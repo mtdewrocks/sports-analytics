@@ -1,0 +1,22 @@
+from fastapi import APIRouter, Depends, Query
+from typing import Optional
+from app.auth.dependencies import require_access
+from app.data import mlb as mlb_data
+
+router = APIRouter(prefix="/api/mlb", tags=["mlb"])
+
+@router.get("/pitchers")
+def pitchers(_=Depends(require_access)):
+    return mlb_data.get_pitchers()
+
+@router.get("/matchup")
+def matchup(pitcher: str = Query(...), _=Depends(require_access)):
+    return mlb_data.get_pitcher_matchup(pitcher)
+
+@router.get("/hot-hitters")
+def hot_hitters(_=Depends(require_access)):
+    return mlb_data.get_hot_hitters()
+
+@router.get("/props")
+def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None), market: Optional[str] = Query(None), _=Depends(require_access)):
+    return mlb_data.get_mlb_props(team, player, market)
