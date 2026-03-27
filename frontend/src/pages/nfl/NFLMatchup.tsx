@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getNFLMatchups, getNFLMatchup } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 

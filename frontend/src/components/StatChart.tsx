@@ -10,7 +10,7 @@ export default function StatChart({ games, threshold, stat }: StatChartProps) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="game_date" angle={-45} textAnchor="end" interval={0} tick={{ fontSize: 10 }} />
         <YAxis />
-        <Tooltip formatter={(v: number) => [v, stat]} />
+        <Tooltip formatter={(v) => [v ?? '', stat]} />
         <ReferenceLine y={threshold} stroke="red" strokeDasharray="5 5" label={{ value: `Line: ${threshold}`, fill: 'red', fontSize: 12 }} />
         <Bar dataKey="stat_value" name={stat}>
           {games.map((g, i) => (
