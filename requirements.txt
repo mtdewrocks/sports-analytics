@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+gunicorn
+sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+stripe
+pandas
+pyarrow
+openpyxl
+requests
+python-dotenv
+pydantic[email]
+pydantic-settings
+python-multipart
+aiofiles
