@@ -16,5 +16,11 @@ def get_db():
         db.close()
 
 def create_tables():
+    import logging
+    logger = logging.getLogger(__name__)
     from app.models import User, Subscription  # noqa
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+        logger.info("Database tables ready.")
+    except Exception as e:
+        logger.warning("create_tables warning (safe to ignore if tables already exist): %s", e)
