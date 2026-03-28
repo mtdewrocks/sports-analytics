@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=8)
 
 
 def _prepare_password(password: str) -> str:
