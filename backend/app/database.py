@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
 if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+    connect_args = {"check_same_thread": False, "timeout": 10}  # 10s lock timeout
     engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
 else:
     # PostgreSQL — add connect_timeout so bad connections fail fast (5s) instead of hanging
