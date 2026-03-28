@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
@@ -17,8 +17,8 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await loginApi(email, password);
-      const { token, user } = res.data;
-      login(token, user);
+      const { access_token, user } = res.data;
+      login(access_token, user);
       navigate('/nba/game-log');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Invalid email or password');

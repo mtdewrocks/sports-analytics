@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register as registerApi } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
@@ -26,8 +26,8 @@ export default function Register() {
     setLoading(true);
     try {
       const res = await registerApi(email, password);
-      const { token, user } = res.data;
-      login(token, user);
+      const { access_token, user } = res.data;
+      login(access_token, user);
       navigate('/nba/game-log');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed. Please try again.');
