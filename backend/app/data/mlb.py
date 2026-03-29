@@ -9,9 +9,10 @@ def _normalize(name: str) -> str:
 
 
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+    cols_lower = {c.lower(): c for c in df.columns}
     for c in candidates:
-        if c in df.columns:
-            return c
+        if c.lower() in cols_lower:
+            return cols_lower[c.lower()]
     return None
 
 
