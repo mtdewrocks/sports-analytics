@@ -188,19 +188,35 @@ def get_game_log(
 
     rows_list = rows.fillna("").to_dict(orient="records")
 
-    total = len(rows_list)
-    hits = int((stat_values >= threshold).sum()) if threshold > 0 else None
-    hit_rate = round(hits / total, 4) if (hits is not None and total > 0) else None
-    average = round(float(stat_values.mean()), 2) if total > 0 else None
+    # Build game rows in the shape the frontend expects
+    game_rows = []
+    for row_dict in rows_list:
+        game_date = str(row_dict.get(date_col, "")) if date_col else ""
+        opponent = str(
+            row_dict.get("opponent") or row_dict.get("matchup") or row_dict.get("opp") or ""
+        )
+        stat_value = float(row_dict.get(stat, 0) or 0)
+        game_rows.append({"game_date": game_date, "opponent": opponent, "stat_value": stat_value})
+
+    # Compute over/under counts for last 5, last 10, and full season
+    def _over_count(values: list, n: int = None) -> dict:
+        v = values[-n:] if n else values
+        total = len(v)
+        if total == 0:
+            return {"over": 0, "total": 0, "pct": 0}
+        over = int(sum(1 for x in v if x >= threshold))
+        return {"over": over, "total": total, "pct": round(over / total, 4)}
+
+    all_vals = [r["stat_value"] for r in game_rows]
+    over_counts = {
+        "last5": _over_count(all_vals, 5),
+        "last10": _over_count(all_vals, 10),
+        "season": _over_count(all_vals),
+    }
 
     return {
-        "player": player,
-        "stat": stat,
-        "threshold": threshold,
-        "games": total,
-        "hit_rate": hit_rate,
-        "average": average,
-        "rows": rows_list,
+        "games": game_rows,
+        "over_counts": over_counts,
     }
 
 

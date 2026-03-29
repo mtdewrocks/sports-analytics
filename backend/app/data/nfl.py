@@ -193,7 +193,8 @@ def get_matchups() -> List[Dict[str, Any]]:
                 entry[c] = str(val) if pd.notna(val) else ""
         matchups.append(entry)
 
-    return matchups
+    # Frontend expects a flat list of matchup strings like ["DAL @ PHI", ...]
+    return [entry["matchup"] for entry in matchups]
 
 
 def get_matchup_detail(matchup: str) -> Dict[str, Any]:
@@ -261,8 +262,8 @@ def get_matchup_detail(matchup: str) -> Dict[str, Any]:
         "matchup": matchup,
         "home_team": home_team,
         "away_team": away_team,
-        "home_team_stats": get_team_stats_row(home_team),
-        "away_team_stats": get_team_stats_row(away_team),
+        "home_stats": get_team_stats_row(home_team),
+        "away_stats": get_team_stats_row(away_team),
         "home_top_players": get_top_players(home_team),
         "away_top_players": get_top_players(away_team),
     }
