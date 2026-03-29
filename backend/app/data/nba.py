@@ -43,7 +43,7 @@ def get_teammates(player: str) -> List[str]:
             break
 
     game_col = None
-    for c in ["game_id", "game_date", "date"]:
+    for c in ["game_id", "gameid", "game_date", "date"]:
         if c in df.columns:
             game_col = c
             break
@@ -105,13 +105,13 @@ def get_game_log(
 
     # Detect date/game columns
     date_col = None
-    for c in ["game_date", "date", "game_id"]:
+    for c in ["game_date", "gameid", "date", "game_id"]:
         if c in df.columns:
             date_col = c
             break
 
     game_col = None
-    for c in ["game_id", "game_date", "date"]:
+    for c in ["game_id", "gameid", "game_date", "date"]:
         if c in df.columns:
             game_col = c
             break
@@ -247,9 +247,9 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     col = _player_col(df)
     exclude = exclude or []
 
-    # Find game identifier
+    # Find game identifier — prefer gameid (unique per game) over game_date
     game_col = None
-    for c in ["game_id", "game_date", "date"]:
+    for c in ["game_id", "gameid", "game_date", "date"]:
         if c in df.columns:
             game_col = c
             break
