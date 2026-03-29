@@ -3,10 +3,11 @@ import { getMLBPitchers, getMLBMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface MatchupData {
-  season_stats?: Record<string, any>[];
+  season_stats?: Record<string, any>;
   game_logs?: Record<string, any>[];
-  hitters?: Record<string, any>[];
-  percentile_rankings?: Record<string, any>;
+  splits?: Record<string, any>[];
+  percentiles?: { Statistic: string; Percentile: number }[];
+  opposing_hitters?: Record<string, any>[];
   [key: string]: any;
 }
 
@@ -76,15 +77,15 @@ export default function MLBMatchup() {
     if (p) fetchMatchup(p);
   };
 
-  const seasonStats = matchupData?.season_stats?.[0];
+  const seasonStats = matchupData?.season_stats;
   const gameLogs = matchupData?.game_logs ?? [];
-  const hitters = matchupData?.hitters ?? [];
-  const percentiles = matchupData?.percentile_rankings;
+  const splits = matchupData?.splits ?? [];
+  const percentiles = matchupData?.percentiles ?? [];
+  const opposingHitters = matchupData?.opposing_hitters ?? [];
 
   const gameLogColumns = gameLogs.length > 0 ? Object.keys(gameLogs[0]) : [];
-  const hitterColumns = hitters.length > 0
-    ? ['mlb_name', 'Batting Order', 'gamePosition', 'Bats'].filter((c) => c in hitters[0])
-    : [];
+  const splitsColumns = splits.length > 0 ? Object.keys(splits[0]) : [];
+  const hitterColumns = opposingHitters.length > 0 ? Object.keys(opposingHitters[0]) : [];
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
@@ -112,23 +113,29 @@ export default function MLBMatchup() {
             <h2 style={{ marginTop: 0, marginBottom: 20, color: '#1a1a2e' }}>{selectedPitcher}</h2>
 
             {/* Season Stats */}
-            {seasonStats && (
+            {seasonStats && Object.keys(seasonStats).length > 0 && (
               <div style={cardStyle}>
                 <div style={cardHeaderStyle}>Season Stats</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                  <tbody>
-                    {Object.entries(seasonStats).map(([key, value], i) => (
-                      <tr key={key} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                        <td style={{ padding: '8px 16px', fontWeight: 600, color: '#555', textTransform: 'capitalize' }}>
-                          {key.replace(/_/g, ' ')}
-                        </td>
-                        <td style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 700, color: '#1a1a2e' }}>
-                          {String(value ?? '—')}
-                        </td>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ borderCollapse: 'collapse', fontSize: 14 }}>
+                    <thead>
+                      <tr style={{ background: '#f0f0f0' }}>
+                        {Object.keys(seasonStats).map((k) => (
+                          <th key={k} style={{ padding: '8px 16px', fontWeight: 600, color: '#333', whiteSpace: 'nowrap' }}>{k}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {Object.values(seasonStats).map((v, i) => (
+                          <td key={i} style={{ padding: '8px 16px', textAlign: 'center', fontWeight: 700, color: '#1a1a2e', whiteSpace: 'nowrap' }}>
+                            {String(v ?? '—')}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -141,9 +148,7 @@ export default function MLBMatchup() {
                     <thead>
                       <tr style={{ background: '#f0f0f0' }}>
                         {gameLogColumns.map((col) => (
-                          <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#333', whiteSpace: 'nowrap' }}>
-                            {col}
-                          </th>
+                          <th key={col} style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#333', whiteSpace: 'nowrap' }}>{col}</th>
                         ))}
                       </tr>
                     </thead>
@@ -151,7 +156,7 @@ export default function MLBMatchup() {
                       {gameLogs.map((row, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
                           {gameLogColumns.map((col) => (
-                            <td key={col} style={{ padding: '7px 12px', whiteSpace: 'nowrap' }}>
+                            <td key={col} style={{ padding: '7px 12px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                               {String(row[col] ?? '—')}
                             </td>
                           ))}
@@ -163,65 +168,84 @@ export default function MLBMatchup() {
               </div>
             )}
 
+            {/* Splits (vs L / vs R) + Percentiles side by side */}
+            {(splits.length > 0 || percentiles.length > 0) && (
+              <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+                {splits.length > 0 && (
+                  <div style={{ ...cardStyle, flex: 1, minWidth: 280, marginBottom: 0 }}>
+                    <div style={cardHeaderStyle}>Splits (vs L / vs R) — 2024–2025</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                          <tr style={{ background: '#f0f0f0' }}>
+                            {splitsColumns.map((col) => (
+                              <th key={col} style={{ padding: '7px 12px', fontWeight: 600, color: '#333', textAlign: col === 'Statistic' ? 'left' : 'center' }}>{col}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {splits.map((row, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                              {splitsColumns.map((col) => (
+                                <td key={col} style={{ padding: '6px 12px', textAlign: col === 'Statistic' ? 'left' : 'center', fontWeight: col === 'Statistic' ? 600 : 400 }}>
+                                  {String(row[col] ?? '—')}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                {percentiles.length > 0 && (
+                  <div style={{ ...cardStyle, flex: 1, minWidth: 280, marginBottom: 0 }}>
+                    <div style={cardHeaderStyle}>2025 Percentile Rankings</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                      <tbody>
+                        {percentiles.map((row, i) => {
+                          const pct = Number(row.Percentile);
+                          const color = pct >= 60 ? '#1e8449' : pct >= 40 ? '#f39c12' : '#c0392b';
+                          return (
+                            <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                              <td style={{ padding: '8px 16px', fontWeight: 600, color: '#555' }}>{row.Statistic}</td>
+                              <td style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 700, color }}>{pct}th</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Opposing Hitters */}
-            {hitters.length > 0 && (
+            {opposingHitters.length > 0 && (
               <div style={cardStyle}>
                 <div style={cardHeaderStyle}>Opposing Hitters</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
                       <tr style={{ background: '#f0f0f0' }}>
-                        {hitterColumns.length > 0
-                          ? hitterColumns.map((col) => (
-                              <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#333' }}>
-                                {col}
-                              </th>
-                            ))
-                          : Object.keys(hitters[0]).map((col) => (
-                              <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#333' }}>
-                                {col}
-                              </th>
-                            ))
-                        }
+                        {hitterColumns.map((col) => (
+                          <th key={col} style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#333', whiteSpace: 'nowrap' }}>{col}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {hitters.map((row, i) => {
-                        const cols = hitterColumns.length > 0 ? hitterColumns : Object.keys(row);
-                        return (
-                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                            {cols.map((col) => (
-                              <td key={col} style={{ padding: '7px 12px' }}>
-                                {String(row[col] ?? '—')}
-                              </td>
-                            ))}
-                          </tr>
-                        );
-                      })}
+                      {opposingHitters.map((row, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                          {hitterColumns.map((col) => (
+                            <td key={col} style={{ padding: '7px 12px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                              {String(row[col] ?? '—')}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
-
-            {/* Percentile Rankings */}
-            {percentiles && Object.keys(percentiles).length > 0 && (
-              <div style={cardStyle}>
-                <div style={cardHeaderStyle}>Percentile Rankings</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                  <tbody>
-                    {Object.entries(percentiles).map(([key, value], i) => (
-                      <tr key={key} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                        <td style={{ padding: '8px 16px', fontWeight: 600, color: '#555', textTransform: 'capitalize' }}>
-                          {key.replace(/_/g, ' ')}
-                        </td>
-                        <td style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 700, color: '#1a1a2e' }}>
-                          {String(value ?? '—')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             )}
           </>

@@ -43,14 +43,17 @@ def get_nba_props() -> pd.DataFrame:
 def get_mlb_data() -> dict:
     base = settings.MLB_BASE_URL
     files = {
-        "pitcher_stats": f"{base}/Pitcher_Stats.xlsx",
-        "pitcher_game_logs": f"{base}/MLB_Pitcher_Game_Logs.xlsx",
-        "hitter_stats": f"{base}/Aggregated_Hitter_Statistics.xlsx",
-        "hitter_game_logs": f"{base}/Hitter_Game_Logs.xlsx",
-        "current_hitters": f"{base}/current_day_hitters.xlsx",
-        "pitcher_percentiles": f"{base}/Pitcher_Percentile_Rankings.csv",
-        "hot_hitters": f"{base}/Top_Hitter_Picks.xlsx",
-        "props": f"{base}/Daily_Props.xlsx",
+        "pitcher_season_stats":   f"{base}/Pitcher_Season_Stats.xlsx",
+        "historical_starters":    f"{base}/Historical_Starting_Pitchers.xlsx",
+        "pitcher_game_logs":      f"{base}/2025_Pitching_Logs.xlsx",
+        "pitcher_splits":         f"{base}/Season_Aggregated_Pitcher_Statistics.xlsx",
+        "pitcher_percentiles":    f"{base}/Pitcher_Percentile_Rankings.csv",
+        "hitter_percentiles":     f"{base}/Hitter_Percentile_Rankings.csv",
+        "combined_daily":         f"{base}/Combined_Daily_Data.xlsx",
+        "last_week_stats":        f"{base}/Last_Week_Stats.xlsx",
+        "props":                  f"{base}/Daily_Props.xlsx",
+        "my_pitcher_listing":     f"{base}/My_Pitcher_Listing.xlsx",
+        "my_hitter_listing":      f"{base}/My_Hitter_Listing.xlsx",
     }
     result = {}
     for key, url in files.items():
