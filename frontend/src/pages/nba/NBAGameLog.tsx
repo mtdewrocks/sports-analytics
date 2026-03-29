@@ -10,6 +10,7 @@ interface Game {
   game_date: string;
   opponent: string;
   stat_value: number;
+  min?: number | string;
 }
 
 interface OverCount {
@@ -47,6 +48,8 @@ export default function NBAGameLog() {
   const [players, setPlayers] = useState<string[]>([]);
   const [teammates, setTeammates] = useState<string[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
+  const [playerSearch, setPlayerSearch] = useState('');
+  const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [selectedStat, setSelectedStat] = useState('pts');
   const [threshold, setThreshold] = useState(0);
   const [withPlayer, setWithPlayer] = useState('');
@@ -104,10 +107,50 @@ export default function NBAGameLog() {
         <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>NBA Game Log</h3>
 
         <label style={labelStyle}>Player</label>
-        <select style={inputStyle} value={selectedPlayer} onChange={(e) => setSelectedPlayer(e.target.value)}>
-          <option value="">-- Select Player --</option>
-          {players.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
+        <div style={{ position: 'relative', marginBottom: 16 }}>
+          <input
+            style={{ ...inputStyle, marginBottom: 0 }}
+            placeholder="Search by first or last name..."
+            value={playerSearch}
+            onChange={(e) => {
+              setPlayerSearch(e.target.value);
+              setSelectedPlayer('');
+              setShowPlayerDropdown(true);
+            }}
+            onFocus={() => setShowPlayerDropdown(true)}
+            onBlur={() => setTimeout(() => setShowPlayerDropdown(false), 150)}
+          />
+          {showPlayerDropdown && playerSearch.length > 0 && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+              background: 'white', border: '1px solid #ddd', borderRadius: 4,
+              maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            }}>
+              {players
+                .filter((p) => p.toLowerCase().includes(playerSearch.toLowerCase()))
+                .map((p) => (
+                  <div
+                    key={p}
+                    onMouseDown={() => {
+                      setSelectedPlayer(p);
+                      setPlayerSearch(p);
+                      setShowPlayerDropdown(false);
+                    }}
+                    style={{
+                      padding: '8px 12px', cursor: 'pointer', fontSize: 13,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f4ff')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                  >
+                    {p}
+                  </div>
+                ))}
+              {players.filter((p) => p.toLowerCase().includes(playerSearch.toLowerCase())).length === 0 && (
+                <div style={{ padding: '8px 12px', color: '#999', fontSize: 13 }}>No players found</div>
+              )}
+            </div>
+          )}
+        </div>
 
         <label style={labelStyle}>Stat</label>
         <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
@@ -118,10 +161,11 @@ export default function NBAGameLog() {
         <input
           type="number"
           min={0}
-          max={60}
-          step={0.5}
+          max={100}
+          step={1}
           style={inputStyle}
           value={threshold}
+          onFocus={(e) => e.target.select()}
           onChange={(e) => setThreshold(parseFloat(e.target.value) || 0)}
         />
 
@@ -186,20 +230,24 @@ export default function NBAGameLog() {
             </h2>
             <StatChart games={gameData.games} threshold={threshold} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={threshold} stat={selectedStat} />
-            <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games</h3>
+            <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games (Last 10)</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ background: '#1a1a2e', color: 'white' }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Date</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>MIN</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
                 </tr>
               </thead>
               <tbody>
-                {gameData.games.map((g, i) => (
+                {[...gameData.games].slice(-10).reverse().map((g, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
                     <td style={{ padding: '8px 14px' }}>{g.game_date}</td>
                     <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                      {g.min ?? '—'}
+                    </td>
                     <td style={{
                       padding: '8px 14px',
                       textAlign: 'center',

@@ -29,8 +29,8 @@ export default function OverCountsTable({ over_counts, threshold, stat }: OverCo
               <td style={{ padding: '8px 12px' }}>{label}</td>
               <td style={{ padding: '8px 12px', textAlign: 'center' }}>{data.over}</td>
               <td style={{ padding: '8px 12px', textAlign: 'center' }}>{data.total}</td>
-              <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 'bold', color: data.pct >= 60 ? '#2ecc71' : data.pct >= 40 ? '#f39c12' : '#e74c3c' }}>
-                {data.pct}%
+              <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 'bold', color: data.pct >= 0.6 ? '#2ecc71' : data.pct >= 0.4 ? '#f39c12' : '#e74c3c' }}>
+                {Math.round(data.pct * 100)}%
               </td>
             </tr>
           ))}

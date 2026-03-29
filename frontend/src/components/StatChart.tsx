@@ -1,13 +1,12 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer, Cell } from 'recharts';
 
 interface Game { game_date?: string; week?: number; stat_value: number; opponent?: string; }
 interface StatChartProps { games: Game[]; threshold: number; stat: string; }
 
 export default function StatChart({ games, threshold, stat }: StatChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={games} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
-        <CartesianGrid strokeDasharray="3 3" />
+    <ResponsiveContainer width="100%" height={380}>
+      <BarChart data={games} margin={{ top: 10, right: 10, left: 0, bottom: 40 }}>
         <XAxis dataKey="game_date" angle={-45} textAnchor="end" interval={0} tick={{ fontSize: 10 }} />
         <YAxis />
         <Tooltip formatter={(v) => [v ?? '', stat]} />

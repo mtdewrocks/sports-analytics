@@ -173,6 +173,13 @@ def get_game_log(
     player_df = player_df.copy()
     player_df["_stat_value"] = stat_values
 
+    # Detect minutes column
+    min_col = None
+    for c in ["min", "minutes", "min_played"]:
+        if c in player_df.columns:
+            min_col = c
+            break
+
     # Build result rows
     keep_cols = ["_stat_value"]
     if date_col and date_col in player_df.columns:
@@ -180,6 +187,8 @@ def get_game_log(
     for c in ["opponent", "matchup", "opp", "wl", "result"]:
         if c in player_df.columns:
             keep_cols.append(c)
+    if min_col:
+        keep_cols.append(min_col)
 
     rows = player_df[keep_cols].copy()
     rows = rows.rename(columns={"_stat_value": stat})
@@ -196,7 +205,13 @@ def get_game_log(
             row_dict.get("opponent") or row_dict.get("matchup") or row_dict.get("opp") or ""
         )
         stat_value = float(row_dict.get(stat, 0) or 0)
-        game_rows.append({"game_date": game_date, "opponent": opponent, "stat_value": stat_value})
+        minutes = row_dict.get(min_col) if min_col else None
+        game_rows.append({
+            "game_date": game_date,
+            "opponent": opponent,
+            "stat_value": stat_value,
+            "min": minutes,
+        })
 
     # Compute over/under counts for last 5, last 10, and full season
     def _over_count(values: list, n: int = None) -> dict:
