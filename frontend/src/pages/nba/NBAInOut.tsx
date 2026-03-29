@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getNBAPlayers, getNBATeammates, getNBAInOut } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import SearchDropdown from '../../components/SearchDropdown';
 
 interface InOutData {
   player: string;
@@ -22,68 +23,6 @@ function DiffCell({ value }: { value: number }) {
   );
 }
 
-interface SearchDropdownProps {
-  players: string[];
-  value: string;
-  onSelect: (p: string) => void;
-  placeholder: string;
-  disabled?: boolean;
-}
-
-function SearchDropdown({ players, value, onSelect, placeholder, disabled }: SearchDropdownProps) {
-  const [search, setSearch] = useState(value);
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Keep search text in sync if value is cleared externally
-  useEffect(() => { setSearch(value); }, [value]);
-
-  // Show all when search is empty, otherwise filter
-  const filtered = search.length === 0
-    ? players
-    : players.filter((p) => p.toLowerCase().includes(search.toLowerCase()));
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <input
-        disabled={disabled}
-        style={{
-          padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4,
-          fontSize: 14, minWidth: 220, width: '100%', boxSizing: 'border-box',
-          background: disabled ? '#f5f5f5' : 'white', cursor: disabled ? 'not-allowed' : 'text',
-        }}
-        placeholder={placeholder}
-        value={search}
-        onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        onFocus={() => { setSearch(''); setOpen(true); }}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-      />
-      {open && !disabled && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
-          background: 'white', border: '1px solid #ddd', borderRadius: 4,
-          maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        }}>
-          {filtered.length === 0 ? (
-            <div style={{ padding: '8px 12px', color: '#999', fontSize: 13 }}>No players found</div>
-          ) : (
-            filtered.map((p) => (
-              <div
-                key={p}
-                onMouseDown={() => { onSelect(p); setSearch(p); setOpen(false); }}
-                style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f4ff')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-              >
-                {p}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function NBAInOut() {
   const [players, setPlayers] = useState<string[]>([]);

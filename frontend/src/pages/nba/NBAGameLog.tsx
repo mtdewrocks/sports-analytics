@@ -3,6 +3,7 @@ import { getNBAPlayers, getNBATeammates, getNBAGameLog } from '../../api/nba';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import SearchDropdown from '../../components/SearchDropdown';
 
 const STAT_OPTIONS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tov', '3pm', 'pra', 'blk_stl', 'reb_ast', 'pts_ast', 'pts_reb'];
 
@@ -51,7 +52,7 @@ export default function NBAGameLog() {
   const [playerSearch, setPlayerSearch] = useState('');
   const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [selectedStat, setSelectedStat] = useState('pts');
-  const [threshold, setThreshold] = useState(0);
+  const [thresholdStr, setThresholdStr] = useState('');
   const [withPlayer, setWithPlayer] = useState('');
   const [withoutPlayer, setWithoutPlayer] = useState('');
   const [b2b, setB2b] = useState(false);
@@ -82,6 +83,7 @@ export default function NBAGameLog() {
     setError('');
     setGameData(null);
     try {
+      const threshold = parseFloat(thresholdStr) || 0;
       const params: Record<string, any> = {
         player: selectedPlayer,
         stat: selectedStat,
@@ -164,22 +166,35 @@ export default function NBAGameLog() {
           max={100}
           step={1}
           style={inputStyle}
-          value={threshold}
+          placeholder="e.g. 20"
+          value={thresholdStr}
           onFocus={(e) => e.target.select()}
-          onChange={(e) => setThreshold(parseFloat(e.target.value) || 0)}
+          onChange={(e) => setThresholdStr(e.target.value)}
         />
 
         <label style={labelStyle}>With Player</label>
-        <select style={inputStyle} value={withPlayer} onChange={(e) => setWithPlayer(e.target.value)}>
-          <option value="">-- None --</option>
-          {teammates.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <div style={{ marginBottom: 16 }}>
+          <SearchDropdown
+            players={teammates}
+            value={withPlayer}
+            onSelect={setWithPlayer}
+            placeholder={selectedPlayer ? 'Search teammate...' : 'Select player first'}
+            disabled={!selectedPlayer || teammates.length === 0}
+            inputStyle={{ padding: 8 }}
+          />
+        </div>
 
         <label style={labelStyle}>Without Player</label>
-        <select style={inputStyle} value={withoutPlayer} onChange={(e) => setWithoutPlayer(e.target.value)}>
-          <option value="">-- None --</option>
-          {teammates.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <div style={{ marginBottom: 16 }}>
+          <SearchDropdown
+            players={teammates}
+            value={withoutPlayer}
+            onSelect={setWithoutPlayer}
+            placeholder={selectedPlayer ? 'Search teammate...' : 'Select player first'}
+            disabled={!selectedPlayer || teammates.length === 0}
+            inputStyle={{ padding: 8 }}
+          />
+        </div>
 
         <div style={{ marginBottom: 12 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
@@ -226,10 +241,10 @@ export default function NBAGameLog() {
         {!loading && !error && gameData && (
           <>
             <h2 style={{ marginTop: 0, color: '#1a1a2e' }}>
-              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {threshold})
+              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
-            <StatChart games={gameData.games} threshold={threshold} stat={selectedStat} />
-            <OverCountsTable over_counts={gameData.over_counts} threshold={threshold} stat={selectedStat} />
+            <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
+            <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games (Last 10)</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -252,7 +267,7 @@ export default function NBAGameLog() {
                       padding: '8px 14px',
                       textAlign: 'center',
                       fontWeight: 700,
-                      color: g.stat_value > threshold ? '#2ecc71' : '#e74c3c',
+                      color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
                     }}>
                       {g.stat_value}
                     </td>
