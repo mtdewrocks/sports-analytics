@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getNBAPlayers, getNBAInOut } from '../../api/nba';
+import { getNBAPlayers, getNBATeammates, getNBAInOut } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface InOutData {
@@ -86,6 +86,7 @@ function SearchDropdown({ players, value, onSelect, placeholder, disabled }: Sea
 
 export default function NBAInOut() {
   const [players, setPlayers] = useState<string[]>([]);
+  const [teammates, setTeammates] = useState<string[]>([]);
   const [playerA, setPlayerA] = useState('');
   const [excludeA, setExcludeA] = useState('');
   const [excludeB, setExcludeB] = useState('');
@@ -99,8 +100,12 @@ export default function NBAInOut() {
       .catch(() => setPlayers([]));
   }, []);
 
-  // Clear exclude selections when anchor changes
+  // When anchor changes, load that player's teammates and clear prior selections
   useEffect(() => {
+    if (!playerA) { setTeammates([]); setExcludeA(''); setExcludeB(''); setData(null); return; }
+    getNBATeammates(playerA)
+      .then((res) => setTeammates(res.data))
+      .catch(() => setTeammates([]));
     setExcludeA('');
     setExcludeB('');
     setData(null);
@@ -122,10 +127,10 @@ export default function NBAInOut() {
     }
   };
 
-  // Exclude dropdowns show all players — cross-team comparisons are valid.
-  // Just filter out the anchor and the other already-selected player.
-  const excludeAOptions = players.filter((p) => p !== playerA && p !== excludeB);
-  const excludeBOptions = players.filter((p) => p !== playerA && p !== excludeA);
+  // Exclude dropdowns show only teammates of the anchor player.
+  // Filter out whoever is already selected in the other slot.
+  const excludeAOptions = teammates.filter((p) => p !== excludeB);
+  const excludeBOptions = teammates.filter((p) => p !== excludeA);
 
   const excludeLabel = [excludeA, excludeB].filter(Boolean).join(' & ') || 'excluded players';
 
@@ -160,8 +165,8 @@ export default function NBAInOut() {
             players={excludeAOptions}
             value={excludeA}
             onSelect={setExcludeA}
-            placeholder={playerA ? 'Search any player...' : 'Select anchor first'}
-            disabled={!playerA}
+            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
+            disabled={!playerA || teammates.length === 0}
           />
         </div>
 
@@ -173,8 +178,8 @@ export default function NBAInOut() {
             players={excludeBOptions}
             value={excludeB}
             onSelect={setExcludeB}
-            placeholder={playerA ? 'Search any player...' : 'Select anchor first'}
-            disabled={!playerA}
+            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
+            disabled={!playerA || teammates.length === 0}
           />
         </div>
 
