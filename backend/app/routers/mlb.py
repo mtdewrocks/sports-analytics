@@ -20,3 +20,17 @@ def hot_hitters(_=Depends(require_access)):
 @router.get("/props")
 def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None), market: Optional[str] = Query(None), _=Depends(require_access)):
     return mlb_data.get_mlb_props(team, player, market)
+
+@router.get("/debug")
+def debug():
+    """No-auth debug: shows what MLB data files loaded and their row counts."""
+    from app.data.loader import get_mlb_data
+    data = get_mlb_data()
+    result = {}
+    for key, df in data.items():
+        result[key] = {
+            "rows": len(df),
+            "columns": list(df.columns[:5]) if not df.empty else [],
+            "empty": df.empty,
+        }
+    return result
