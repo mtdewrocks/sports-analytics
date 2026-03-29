@@ -3,6 +3,7 @@ import { getNFLPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import SearchDropdown from '../../components/SearchDropdown';
 
 interface Game {
   week?: number;
@@ -47,7 +48,7 @@ export default function NFLGameLog() {
   const [stats, setStats] = useState<string[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [selectedStat, setSelectedStat] = useState('');
-  const [threshold, setThreshold] = useState(0);
+  const [thresholdStr, setThresholdStr] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState<GameData | null>(null);
@@ -70,6 +71,7 @@ export default function NFLGameLog() {
     setError('');
     setGameData(null);
     try {
+      const threshold = parseFloat(thresholdStr) || 0;
       const res = await getNFLGameLog({ player: selectedPlayer, stat: selectedStat, threshold });
       setGameData(res.data);
     } catch (err: any) {
@@ -86,10 +88,15 @@ export default function NFLGameLog() {
         <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>NFL Game Log</h3>
 
         <label style={labelStyle}>Player</label>
-        <select style={inputStyle} value={selectedPlayer} onChange={(e) => setSelectedPlayer(e.target.value)}>
-          <option value="">-- Select Player --</option>
-          {players.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
+        <div style={{ marginBottom: 16 }}>
+          <SearchDropdown
+            players={players}
+            value={selectedPlayer}
+            onSelect={setSelectedPlayer}
+            placeholder="Search by first or last name..."
+            inputStyle={{ padding: 8 }}
+          />
+        </div>
 
         <label style={labelStyle}>Stat</label>
         <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
@@ -101,10 +108,12 @@ export default function NFLGameLog() {
         <input
           type="number"
           min={0}
-          step={0.5}
+          step={1}
           style={inputStyle}
-          value={threshold}
-          onChange={(e) => setThreshold(parseFloat(e.target.value) || 0)}
+          placeholder="e.g. 250"
+          value={thresholdStr}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => setThresholdStr(e.target.value)}
         />
 
         <button
@@ -138,10 +147,10 @@ export default function NFLGameLog() {
         {!loading && !error && gameData && (
           <>
             <h2 style={{ marginTop: 0, color: '#1a1a2e' }}>
-              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {threshold})
+              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
-            <StatChart games={gameData.games} threshold={threshold} stat={selectedStat} />
-            <OverCountsTable over_counts={gameData.over_counts} threshold={threshold} stat={selectedStat} />
+            <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
+            <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -160,7 +169,7 @@ export default function NFLGameLog() {
                       padding: '8px 14px',
                       textAlign: 'center',
                       fontWeight: 700,
-                      color: g.stat_value > threshold ? '#2ecc71' : '#e74c3c',
+                      color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
                     }}>
                       {g.stat_value}
                     </td>

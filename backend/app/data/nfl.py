@@ -66,22 +66,16 @@ def get_players() -> List[str]:
     return sorted(df[col].dropna().unique().tolist())
 
 
-def get_available_stats() -> Dict[str, Any]:
-    """Return available stat columns grouped by category."""
+def get_available_stats() -> List[str]:
+    """Return a flat list of available stat columns in preferred display order."""
     df = get_nfl_stats()
     actual_cols = set(df.columns.tolist())
-
-    result = {}
-    for group, stats in ALL_STAT_GROUPS.items():
-        available = [s for s in stats if s in actual_cols]
-        result[group] = available
-
-    # Also return all numeric columns not already categorized
-    categorized = set(s for stats in ALL_STAT_GROUPS.values() for s in stats)
-    extra = [c for c in actual_cols if c not in categorized and pd.api.types.is_numeric_dtype(df[c])]
-    result["other"] = sorted(extra)
-
-    return result
+    ordered = []
+    for group_stats in ALL_STAT_GROUPS.values():
+        for s in group_stats:
+            if s in actual_cols:
+                ordered.append(s)
+    return ordered
 
 
 def get_game_log(
@@ -93,58 +87,57 @@ def get_game_log(
     col = _player_col(df)
 
     player_norm = _normalize(player)
-    mask = df[col].str.lower().str.strip() == player_norm
-    player_df = df[mask].copy()
+    player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
 
     if player_df.empty:
-        return {"rows": [], "hit_rate": None, "average": None, "games": 0}
+        return {"games": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
 
     week_col = _week_col(df)
     season_col = _season_col(df)
-    team_col = _team_col(df)
 
     # Compute stat values
-    if stat in player_df.columns:
-        stat_values = pd.to_numeric(player_df[stat], errors="coerce").fillna(0)
-    else:
-        stat_values = pd.Series([0.0] * len(player_df), index=player_df.index)
-
-    player_df = player_df.copy()
+    stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
     player_df["_stat_value"] = stat_values
 
-    # Build output rows with useful context columns
-    keep_cols = ["_stat_value"]
-    for c in [week_col, season_col, team_col, "opponent_team", "home_team", "away_team", "result"]:
-        if c and c in player_df.columns:
-            keep_cols.append(c)
-
-    rows = player_df[keep_cols].copy()
-    rows = rows.rename(columns={"_stat_value": stat})
-
-    # Sort by season then week if available
-    sort_cols = []
-    if season_col and season_col in rows.columns:
-        sort_cols.append(season_col)
-    if week_col and week_col in rows.columns:
-        sort_cols.append(week_col)
+    # Sort by season then week
+    sort_cols = [c for c in [season_col, week_col] if c and c in player_df.columns]
     if sort_cols:
-        rows = rows.sort_values(sort_cols)
+        player_df = player_df.sort_values(sort_cols)
+        stat_values = player_df["_stat_value"]
 
-    rows_list = rows.fillna("").to_dict(orient="records")
+    # Build game rows matching NBA shape
+    game_rows = []
+    for _, row in player_df.iterrows():
+        week = row.get(week_col) if week_col else None
+        season = row.get(season_col) if season_col else None
+        opponent = row.get("opponent_team") or row.get("home_team") or ""
+        label = f"W{int(week)}" if pd.notna(week) else ""
+        game_date = f"{int(season)} {label}" if season and label else label or str(season or "")
+        game_rows.append({
+            "game_date": game_date,
+            "opponent": str(opponent),
+            "stat_value": float(row["_stat_value"]),
+            "week": int(week) if pd.notna(week) else None,
+        })
 
-    total = len(rows_list)
-    hits = int((stat_values >= threshold).sum()) if threshold > 0 else None
-    hit_rate = round(hits / total, 4) if (hits is not None and total > 0) else None
-    average = round(float(stat_values.mean()), 2) if total > 0 else None
+    # Compute over/under counts matching NBA shape
+    all_vals = [g["stat_value"] for g in game_rows]
+
+    def _over_count(values: list, n: int = None) -> dict:
+        v = values[-n:] if n else values
+        total = len(v)
+        if total == 0:
+            return {"over": 0, "total": 0, "pct": 0}
+        over = int(sum(1 for x in v if x >= threshold))
+        return {"over": over, "total": total, "pct": round(over / total, 4)}
 
     return {
-        "player": player,
-        "stat": stat,
-        "threshold": threshold,
-        "games": total,
-        "hit_rate": hit_rate,
-        "average": average,
-        "rows": rows_list,
+        "games": game_rows,
+        "over_counts": {
+            "last5": _over_count(all_vals, 5),
+            "last10": _over_count(all_vals, 10),
+            "season": _over_count(all_vals),
+        },
     }
 
 
