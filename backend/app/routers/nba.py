@@ -35,7 +35,8 @@ def props(player: Optional[str] = Query(None), market: Optional[str] = Query(Non
     return nba_data.get_props(player, market, side)
 
 @router.get("/debug-columns")
-def debug_columns(_=Depends(require_access)):
+def debug_columns():
+    """Public endpoint — no auth needed. Shows NBA data column names and 2 sample rows."""
     from app.data.loader import get_nba_data
     df = get_nba_data()
     sample = df.head(2).fillna("").to_dict(orient="records")
