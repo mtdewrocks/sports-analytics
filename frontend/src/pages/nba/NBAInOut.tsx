@@ -1,24 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { getNBAPlayers, getNBAInOut } from '../../api/nba';
+import { useState, useEffect, useRef } from 'react';
+import { getNBAPlayers, getNBATeammates, getNBAInOut } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
-interface InOutRow {
+interface InOutData {
   player: string;
-  pts_with: number;
-  pts_without: number;
-  pts_diff: number;
-  reb_with: number;
-  reb_without: number;
-  reb_diff: number;
-  ast_with: number;
-  ast_without: number;
-  ast_diff: number;
+  exclude: string[];
+  games_with: number;
+  games_without: number;
+  with: Record<string, number | null>;
+  without: Record<string, number | null>;
 }
 
+const DISPLAY_STATS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tov'];
+
 function DiffCell({ value }: { value: number }) {
-  let color = '#333';
-  if (value > 0.5) color = '#27ae60';
-  else if (value < -0.5) color = '#e74c3c';
+  const color = value > 0.5 ? '#27ae60' : value < -0.5 ? '#e74c3c' : '#333';
   return (
     <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color }}>
       {value > 0 ? '+' : ''}{value.toFixed(1)}
@@ -26,14 +22,77 @@ function DiffCell({ value }: { value: number }) {
   );
 }
 
+interface SearchDropdownProps {
+  players: string[];
+  value: string;
+  onSelect: (p: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+}
+
+function SearchDropdown({ players, value, onSelect, placeholder, disabled }: SearchDropdownProps) {
+  const [search, setSearch] = useState(value);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Keep search text in sync if value is cleared externally
+  useEffect(() => { setSearch(value); }, [value]);
+
+  const filtered = players.filter((p) =>
+    p.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input
+        disabled={disabled}
+        style={{
+          padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4,
+          fontSize: 14, minWidth: 220, width: '100%', boxSizing: 'border-box',
+          background: disabled ? '#f5f5f5' : 'white', cursor: disabled ? 'not-allowed' : 'text',
+        }}
+        placeholder={placeholder}
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+      />
+      {open && !disabled && search.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+          background: 'white', border: '1px solid #ddd', borderRadius: 4,
+          maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '8px 12px', color: '#999', fontSize: 13 }}>No players found</div>
+          ) : (
+            filtered.map((p) => (
+              <div
+                key={p}
+                onMouseDown={() => { onSelect(p); setSearch(p); setOpen(false); }}
+                style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13 }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f4ff')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+              >
+                {p}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NBAInOut() {
   const [players, setPlayers] = useState<string[]>([]);
+  const [teammates, setTeammates] = useState<string[]>([]);
   const [playerA, setPlayerA] = useState('');
   const [excludeA, setExcludeA] = useState('');
   const [excludeB, setExcludeB] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [results, setResults] = useState<InOutRow[]>([]);
+  const [data, setData] = useState<InOutData | null>(null);
 
   useEffect(() => {
     getNBAPlayers()
@@ -41,15 +100,25 @@ export default function NBAInOut() {
       .catch(() => setPlayers([]));
   }, []);
 
+  // When anchor player changes, load teammates and clear exclude selections
+  useEffect(() => {
+    if (!playerA) { setTeammates([]); setExcludeA(''); setExcludeB(''); return; }
+    getNBATeammates(playerA)
+      .then((res) => setTeammates(res.data))
+      .catch(() => setTeammates([]));
+    setExcludeA('');
+    setExcludeB('');
+  }, [playerA]);
+
   const analyze = async () => {
     if (!playerA) return;
     setLoading(true);
     setError('');
-    setResults([]);
+    setData(null);
     try {
       const exclude = [excludeA, excludeB].filter(Boolean);
       const res = await getNBAInOut(playerA, exclude);
-      setResults(res.data);
+      setData(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch in/out data.');
     } finally {
@@ -57,58 +126,67 @@ export default function NBAInOut() {
     }
   };
 
-  const selectStyle: React.CSSProperties = {
-    padding: '8px 12px',
-    border: '1px solid #ddd',
-    borderRadius: 4,
-    fontSize: 14,
-    minWidth: 200,
-  };
+  // Exclude A options: teammates minus the anchor and currently selected exclude B
+  const excludeAOptions = teammates.filter((p) => p !== excludeB);
+  // Exclude B options: teammates minus the anchor and currently selected exclude A
+  const excludeBOptions = teammates.filter((p) => p !== excludeA);
+
+  const excludeLabel = [excludeA, excludeB].filter(Boolean).join(' & ') || 'excluded players';
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>
+      <h2 style={{ marginTop: 0, marginBottom: 8, color: '#1a1a2e' }}>
         In/Out Analysis{playerA ? ` — ${playerA}` : ''}
       </h2>
+      <p style={{ color: '#666', fontSize: 13, marginBottom: 24, marginTop: 0 }}>
+        Compare an anchor player's stats when specific teammates are in vs. out of the lineup.
+      </p>
 
       {/* Controls */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
             Anchor Player
           </label>
-          <select style={selectStyle} value={playerA} onChange={(e) => setPlayerA(e.target.value)}>
-            <option value="">-- Select Player --</option>
-            {players.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <SearchDropdown
+            players={players}
+            value={playerA}
+            onSelect={setPlayerA}
+            placeholder="Search by first or last name..."
+          />
         </div>
+
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
             Exclude Player A
           </label>
-          <select style={selectStyle} value={excludeA} onChange={(e) => setExcludeA(e.target.value)}>
-            <option value="">-- None --</option>
-            {players.filter((p) => p !== playerA && p !== excludeB).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+          <SearchDropdown
+            players={excludeAOptions}
+            value={excludeA}
+            onSelect={setExcludeA}
+            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
+            disabled={!playerA || teammates.length === 0}
+          />
         </div>
+
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
             Exclude Player B
           </label>
-          <select style={selectStyle} value={excludeB} onChange={(e) => setExcludeB(e.target.value)}>
-            <option value="">-- None --</option>
-            {players.filter((p) => p !== playerA && p !== excludeA).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+          <SearchDropdown
+            players={excludeBOptions}
+            value={excludeB}
+            onSelect={setExcludeB}
+            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
+            disabled={!playerA || teammates.length === 0}
+          />
         </div>
+
         <button
           onClick={analyze}
           disabled={!playerA || loading}
           style={{
-            padding: '9px 24px',
+            padding: '9px 28px',
             background: '#1a1a2e',
             color: 'white',
             border: 'none',
@@ -129,45 +207,68 @@ export default function NBAInOut() {
           {error}
         </div>
       )}
-      {!loading && results.length > 0 && (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 700 }}>
-            <thead>
-              <tr style={{ background: '#1a1a2e', color: 'white' }}>
-                <th style={{ padding: '10px 14px', textAlign: 'left' }}>Player</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>PTS With</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>PTS W/O</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>PTS Diff</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>REB With</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>REB W/O</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>REB Diff</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>AST With</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>AST W/O</th>
-                <th style={{ padding: '10px 14px', textAlign: 'center' }}>AST Diff</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((row, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                  <td style={{ padding: '8px 14px', fontWeight: 600 }}>{row.player}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.pts_with?.toFixed(1)}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.pts_without?.toFixed(1)}</td>
-                  <DiffCell value={row.pts_diff} />
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.reb_with?.toFixed(1)}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.reb_without?.toFixed(1)}</td>
-                  <DiffCell value={row.reb_diff} />
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.ast_with?.toFixed(1)}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{row.ast_without?.toFixed(1)}</td>
-                  <DiffCell value={row.ast_diff} />
+
+      {!loading && data && (
+        <>
+          {/* Game count context */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div style={{
+              background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: 6,
+              padding: '10px 20px', fontSize: 14,
+            }}>
+              <span style={{ fontWeight: 700, color: '#2e7d32' }}>With {excludeLabel}: </span>
+              <span style={{ color: '#333' }}>{data.games_with} games</span>
+            </div>
+            <div style={{
+              background: '#fce4ec', border: '1px solid #f48fb1', borderRadius: 6,
+              padding: '10px 20px', fontSize: 14,
+            }}>
+              <span style={{ fontWeight: 700, color: '#c62828' }}>Without {excludeLabel}: </span>
+              <span style={{ color: '#333' }}>{data.games_without} games</span>
+            </div>
+          </div>
+
+          {/* Stats table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                  <th style={{ padding: '10px 14px', textAlign: 'left' }}>Stat</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>With</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>Without</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>Diff</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {DISPLAY_STATS.map((stat, i) => {
+                  const withVal = data.with?.[stat] ?? null;
+                  const withoutVal = data.without?.[stat] ?? null;
+                  if (withVal === null && withoutVal === null) return null;
+                  const diff = (withVal ?? 0) - (withoutVal ?? 0);
+                  return (
+                    <tr key={stat} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <td style={{ padding: '8px 14px', fontWeight: 700, textTransform: 'uppercase', color: '#1a1a2e' }}>
+                        {stat}
+                      </td>
+                      <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                        {withVal !== null ? withVal.toFixed(1) : '—'}
+                      </td>
+                      <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                        {withoutVal !== null ? withoutVal.toFixed(1) : '—'}
+                      </td>
+                      <DiffCell value={diff} />
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
-      {!loading && !error && results.length === 0 && (
+
+      {!loading && !error && !data && (
         <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 60 }}>
-          Select an anchor player and click "Analyze" to view in/out splits.
+          Select an anchor player and at least one player to exclude, then click "Analyze".
         </div>
       )}
     </div>
