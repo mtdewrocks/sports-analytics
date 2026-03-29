@@ -249,19 +249,19 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     col = _player_col(df)
     exclude = [e for e in (exclude or []) if e]
 
-    # Use gameid as the unique game key — format is "TEAM_DATE" so it's already
-    # team-specific. Two teammates always share the same gameid.
-    gameid_col = next((c for c in ["gameid", "game_id"] if c in df.columns), None)
-    date_col   = next((c for c in ["game_date", "date"] if c in df.columns), None)
-    game_col   = gameid_col or date_col  # prefer gameid, fall back to date
+    date_col = next((c for c in ["game_date", "date"] if c in df.columns), None)
+    team_col = next((c for c in ["team", "team_abbreviation", "tm"] if c in df.columns), None)
 
-    if not game_col:
+    if not date_col or not team_col:
         return {"player": player_a, "exclude": exclude,
                 "games_with": 0, "games_without": 0, "with": {}, "without": {}}
 
     # Filter to played=1 rows only
     played_col = next((c for c in ["played", "game_played"] if c in df.columns), None)
     df_active = df[pd.to_numeric(df[played_col], errors="coerce") == 1].copy() if played_col else df.copy()
+
+    # Normalise date to remove timestamp component so dates compare cleanly
+    df_active["_date"] = pd.to_datetime(df_active[date_col], errors="coerce").dt.date
 
     player_norm = _normalize(player_a)
     anchor_df = df_active[df_active[col].str.lower().str.strip() == player_norm].copy()
@@ -270,22 +270,23 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
         return {"player": player_a, "exclude": exclude,
                 "games_with": 0, "games_without": 0, "with": {}, "without": {}}
 
-    # All gameids where anchor played
-    anchor_games = set(anchor_df[game_col].dropna())
+    # Key = (date, team) — two teammates always share the same team on the same date
+    anchor_keys = set(zip(anchor_df["_date"], anchor_df[team_col]))
 
-    # "With" = anchor games where EVERY excluded player also has a matching gameid
-    with_games = anchor_games.copy()
+    # "With" = keys where EVERY excluded player also played (same date + same team)
+    with_keys = anchor_keys.copy()
     for exc_player in exclude:
         exc_norm = _normalize(exc_player)
-        exc_df   = df_active[df_active[col].str.lower().str.strip() == exc_norm]
-        exc_games = set(exc_df[game_col].dropna())
-        with_games = with_games & exc_games  # intersection
+        exc_df   = df_active[df_active[col].str.lower().str.strip() == exc_norm].copy()
+        exc_keys = set(zip(exc_df["_date"], exc_df[team_col]))
+        with_keys = with_keys & exc_keys
 
-    # "Without" = anchor games where at least one excluded player did NOT play
-    without_games = anchor_games - with_games
+    # "Without" = anchor keys where at least one excluded player did NOT play
+    without_keys = anchor_keys - with_keys
 
-    df_with    = anchor_df[anchor_df[game_col].isin(with_games)]
-    df_without = anchor_df[anchor_df[game_col].isin(without_games)]
+    anchor_df["_key"] = list(zip(anchor_df["_date"], anchor_df[team_col]))
+    df_with    = anchor_df[anchor_df["_key"].isin(with_keys)]
+    df_without = anchor_df[anchor_df["_key"].isin(without_keys)]
 
     stat_cols = [s for s in ["pts", "reb", "ast", "stl", "blk", "tov"] if s in anchor_df.columns]
 
@@ -299,8 +300,8 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     return {
         "player": player_a,
         "exclude": exclude,
-        "games_with": len(with_games),
-        "games_without": len(without_games),
+        "games_with": len(with_keys),
+        "games_without": len(without_keys),
         "with": avg_stats(df_with),
         "without": avg_stats(df_without),
     }
