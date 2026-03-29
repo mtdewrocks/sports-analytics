@@ -38,9 +38,10 @@ function SearchDropdown({ players, value, onSelect, placeholder, disabled }: Sea
   // Keep search text in sync if value is cleared externally
   useEffect(() => { setSearch(value); }, [value]);
 
-  const filtered = players.filter((p) =>
-    p.toLowerCase().includes(search.toLowerCase())
-  );
+  // Show all when search is empty, otherwise filter
+  const filtered = search.length === 0
+    ? players
+    : players.filter((p) => p.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -54,10 +55,10 @@ function SearchDropdown({ players, value, onSelect, placeholder, disabled }: Sea
         placeholder={placeholder}
         value={search}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { setSearch(''); setOpen(true); }}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
       />
-      {open && !disabled && search.length > 0 && (
+      {open && !disabled && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
           background: 'white', border: '1px solid #ddd', borderRadius: 4,
