@@ -31,8 +31,14 @@ def in_out(player: str = Query(...), exclude: List[str] = Query(default=[]), _=D
     return nba_data.get_in_out(player, exclude)
 
 @router.get("/props")
-def props(player: Optional[str] = Query(None), market: Optional[str] = Query(None), side: Optional[str] = Query(None), _=Depends(require_access)):
-    return nba_data.get_props(player, market, side)
+def props(
+    player: Optional[str] = Query(None),
+    market: Optional[str] = Query(None),
+    side: Optional[str] = Query(None),
+    bookmaker: Optional[str] = Query(None),
+    _=Depends(require_access),
+):
+    return nba_data.get_props(player, market, side, bookmaker)
 
 @router.get("/debug-columns")
 def debug_columns():

@@ -314,12 +314,34 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     }
 
 
+ALLOWED_BOOKS = {
+    "betmgm", "draftkings", "espnbet", "fanatics", "fanduel",
+    "fliff", "hardrockbet", "prizepicks", "underdog", "williamhill_us",
+}
+
+# Maps frontend-friendly market names to the data's player_ prefix keys
+MARKET_MAP = {
+    "points":    "player_points",
+    "rebounds":  "player_rebounds",
+    "assists":   "player_assists",
+    "steals":    "player_steals",
+    "blocks":    "player_blocks",
+    "3-pointers": "player_threes",
+    "pts+reb+ast": "player_points_rebounds_assists",
+    "pts+reb":   "player_points_rebounds",
+    "pts+ast":   "player_points_assists",
+    "reb+ast":   "player_rebounds_assists",
+    "blk+stl":   "player_blocks_steals",
+}
+
+
 def get_props(
     player: Optional[str] = None,
     market: Optional[str] = None,
     side: Optional[str] = None,
+    bookmaker: Optional[str] = None,
 ) -> List[dict]:
-    """Return NBA props filtered by player, market, and/or side."""
+    """Return NBA props filtered by player, market, side, and/or bookmaker."""
     try:
         df = get_nba_props()
     except Exception as e:
@@ -330,35 +352,36 @@ def get_props(
 
     df.columns = [c.lower().replace(" ", "_") for c in df.columns]
 
-    # Detect columns
-    player_col = None
-    for c in ["player", "player_name", "name"]:
-        if c in df.columns:
-            player_col = c
-            break
+    # Restrict to allowed sportsbooks
+    df = df[df["bookmakers"].isin(ALLOWED_BOOKS)]
 
-    market_col = None
-    for c in ["market", "stat", "prop_type", "bet_type"]:
-        if c in df.columns:
-            market_col = c
-            break
+    if player:
+        df = df[df["player"].str.lower().str.strip() == _normalize(player)]
 
-    side_col = None
-    for c in ["side", "over_under", "direction"]:
-        if c in df.columns:
-            side_col = c
-            break
+    if market:
+        market_key = MARKET_MAP.get(_normalize(market), _normalize(market))
+        df = df[df["market"].str.lower() == market_key]
 
-    if player and player_col:
-        player_norm = _normalize(player)
-        df = df[df[player_col].str.lower().str.strip() == player_norm]
+    if bookmaker:
+        df = df[df["bookmakers"].str.lower() == _normalize(bookmaker)]
 
-    if market and market_col:
-        market_norm = _normalize(market)
-        df = df[df[market_col].str.lower().str.strip() == market_norm]
+    # The data has over_price / under_price as separate columns — melt into rows
+    over_df = df[["player", "market", "line", "bookmakers", "over_price"]].copy()
+    over_df["side"] = "over"
+    over_df = over_df.rename(columns={"over_price": "odds", "bookmakers": "bookmaker"})
+    over_df = over_df.dropna(subset=["odds"])
 
-    if side and side_col:
-        side_norm = _normalize(side)
-        df = df[df[side_col].str.lower().str.strip() == side_norm]
+    under_df = df[["player", "market", "line", "bookmakers", "under_price"]].copy()
+    under_df["side"] = "under"
+    under_df = under_df.rename(columns={"under_price": "odds", "bookmakers": "bookmaker"})
+    under_df = under_df.dropna(subset=["odds"])
 
-    return df.fillna("").to_dict(orient="records")
+    melted = pd.concat([over_df, under_df], ignore_index=True)
+
+    if side:
+        melted = melted[melted["side"] == _normalize(side)]
+
+    melted["odds"] = melted["odds"].astype(int)
+    melted["line"] = melted["line"].astype(float)
+
+    return melted.fillna("").to_dict(orient="records")

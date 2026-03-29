@@ -1,8 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { getNBAPlayers, getNBAProps } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import SearchDropdown from '../../components/SearchDropdown';
 
-const MARKETS = ['points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', '3-pointers'];
+const MARKETS = [
+  { label: 'Points',          value: 'points' },
+  { label: 'Rebounds',        value: 'rebounds' },
+  { label: 'Assists',         value: 'assists' },
+  { label: 'Steals',          value: 'steals' },
+  { label: 'Blocks',          value: 'blocks' },
+  { label: '3-Pointers',      value: '3-pointers' },
+  { label: 'PTS+REB+AST',     value: 'pts+reb+ast' },
+  { label: 'PTS+REB',         value: 'pts+reb' },
+  { label: 'PTS+AST',         value: 'pts+ast' },
+  { label: 'REB+AST',         value: 'reb+ast' },
+  { label: 'BLK+STL',         value: 'blk+stl' },
+];
+
+const SPORTSBOOKS = [
+  'betmgm', 'draftkings', 'espnbet', 'fanatics', 'fanduel',
+  'fliff', 'hardrockbet', 'prizepicks', 'underdog', 'williamhill_us',
+];
 
 interface Prop {
   player: string;
@@ -11,14 +29,23 @@ interface Prop {
   side: string;
   bookmaker: string;
   odds: number;
-  [key: string]: any;
 }
+
+const selectStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  border: '1px solid #ddd',
+  borderRadius: 4,
+  fontSize: 14,
+  minWidth: 160,
+  height: 38,
+};
 
 export default function NBAProps() {
   const [players, setPlayers] = useState<string[]>([]);
   const [playerFilter, setPlayerFilter] = useState('');
   const [marketFilter, setMarketFilter] = useState('');
   const [sideFilter, setSideFilter] = useState('');
+  const [bookmakerFilter, setBookmakerFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [props, setProps] = useState<Prop[]>([]);
@@ -38,6 +65,7 @@ export default function NBAProps() {
       if (playerFilter) params.player = playerFilter;
       if (marketFilter) params.market = marketFilter;
       if (sideFilter) params.side = sideFilter;
+      if (bookmakerFilter) params.bookmaker = bookmakerFilter;
       const res = await getNBAProps(params);
       setProps(res.data);
     } catch (err: any) {
@@ -45,14 +73,6 @@ export default function NBAProps() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const selectStyle: React.CSSProperties = {
-    padding: '8px 12px',
-    border: '1px solid #ddd',
-    borderRadius: 4,
-    fontSize: 14,
-    minWidth: 180,
   };
 
   return (
@@ -63,16 +83,19 @@ export default function NBAProps() {
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Player</label>
-          <select style={selectStyle} value={playerFilter} onChange={(e) => setPlayerFilter(e.target.value)}>
-            <option value="">-- All Players --</option>
-            {players.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <SearchDropdown
+            players={players}
+            value={playerFilter}
+            onSelect={setPlayerFilter}
+            placeholder="Search player..."
+            inputStyle={{ minWidth: 200, height: 38, padding: '8px 12px', fontSize: 14 }}
+          />
         </div>
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Market</label>
           <select style={selectStyle} value={marketFilter} onChange={(e) => setMarketFilter(e.target.value)}>
             <option value="">-- All Markets --</option>
-            {MARKETS.map((m) => <option key={m} value={m}>{m}</option>)}
+            {MARKETS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
         <div>
@@ -81,6 +104,13 @@ export default function NBAProps() {
             <option value="">-- Both --</option>
             <option value="over">Over</option>
             <option value="under">Under</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Sportsbook</label>
+          <select style={selectStyle} value={bookmakerFilter} onChange={(e) => setBookmakerFilter(e.target.value)}>
+            <option value="">-- All Books --</option>
+            {SPORTSBOOKS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
         <button
@@ -96,6 +126,7 @@ export default function NBAProps() {
             fontSize: 14,
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,
+            height: 38,
           }}
         >
           Search
@@ -117,7 +148,7 @@ export default function NBAProps() {
                 <th style={{ padding: '10px 14px', textAlign: 'left' }}>Market</th>
                 <th style={{ padding: '10px 14px', textAlign: 'center' }}>Line</th>
                 <th style={{ padding: '10px 14px', textAlign: 'center' }}>Side</th>
-                <th style={{ padding: '10px 14px', textAlign: 'left' }}>Bookmaker</th>
+                <th style={{ padding: '10px 14px', textAlign: 'left' }}>Sportsbook</th>
                 <th style={{ padding: '10px 14px', textAlign: 'center' }}>Odds</th>
               </tr>
             </thead>
@@ -125,7 +156,7 @@ export default function NBAProps() {
               {props.map((p, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
                   <td style={{ padding: '8px 14px', fontWeight: 600 }}>{p.player}</td>
-                  <td style={{ padding: '8px 14px' }}>{p.market}</td>
+                  <td style={{ padding: '8px 14px', color: '#555' }}>{p.market}</td>
                   <td style={{ padding: '8px 14px', textAlign: 'center' }}>{p.line}</td>
                   <td style={{ padding: '8px 14px', textAlign: 'center' }}>
                     <span style={{
@@ -141,7 +172,9 @@ export default function NBAProps() {
                     </span>
                   </td>
                   <td style={{ padding: '8px 14px' }}>{p.bookmaker}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700 }}>{p.odds}</td>
+                  <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700 }}>
+                    {p.odds > 0 ? `+${p.odds}` : p.odds}
+                  </td>
                 </tr>
               ))}
             </tbody>
