@@ -237,50 +237,38 @@ def get_game_log(
 
 def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     """
-    Compare player_a's stats when specific teammates are in vs out of the lineup.
+    Compare player_a's stats when selected players are also playing vs not playing.
 
-    Logic: same team + same game + played=1 for all selected players.
-      - anchor AND excluded player both have played=1 on the same team/game → "with"
-      - anchor played but excluded player did not (or wasn't on the roster) → "without"
+    Logic: use game_date as the common key across all teams.
+      - Sum of played=1 for anchor + all excluded players on that date == total selected → "with"
+      - Anchor played but at least one excluded player did not play that date → "without"
+
+    This intentionally works cross-team: "how does Durant perform on days
+    Sengun also plays?" regardless of whether they are teammates.
     """
     df = get_nba_data()
     col = _player_col(df)
-    exclude = exclude or []
+    exclude = [e for e in (exclude or []) if e]
 
-    # Find game identifier — prefer gameid (unique per game) over game_date
-    game_col = None
-    for c in ["game_id", "gameid", "game_date", "date"]:
+    # Use game_date as the matching key (works across teams)
+    date_col = None
+    for c in ["game_date", "date"]:
         if c in df.columns:
-            game_col = c
+            date_col = c
             break
 
-    # Find team column
-    team_col = None
-    for c in ["team", "team_abbreviation", "tm"]:
-        if c in df.columns:
-            team_col = c
-            break
-
-    if not game_col or not team_col:
+    if not date_col:
         return {"player": player_a, "exclude": exclude,
                 "games_with": 0, "games_without": 0, "with": {}, "without": {}}
 
-    # Find played indicator column (1 = played, 0 = DNP/inactive)
-    played_col = None
-    for c in ["game_played", "played"]:
-        if c in df.columns:
-            played_col = c
-            break
-
-    # Filter to rows where the player actually played
+    # Filter to rows where played=1
+    played_col = next((c for c in ["played", "game_played"] if c in df.columns), None)
     if played_col:
         df_active = df[pd.to_numeric(df[played_col], errors="coerce") == 1].copy()
     else:
-        df_active = df.copy()  # every row assumed = played
+        df_active = df.copy()
 
     player_norm = _normalize(player_a)
-
-    # All games where anchor played — keyed on (game, team)
     anchor_mask = df_active[col].str.lower().str.strip() == player_norm
     anchor_df = df_active[anchor_mask].copy()
 
@@ -288,44 +276,41 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
         return {"player": player_a, "exclude": exclude,
                 "games_with": 0, "games_without": 0, "with": {}, "without": {}}
 
-    # Use (game, team) tuples so we only match same-team appearances
-    anchor_game_teams = set(zip(anchor_df[game_col], anchor_df[team_col]))
+    # Normalise the date column to date-only string so it merges cleanly
+    anchor_df[date_col] = pd.to_datetime(anchor_df[date_col], errors="coerce").dt.date
+    anchor_dates = set(anchor_df[date_col].dropna())
 
-    # "With" = anchor game-teams where EVERY excluded player also played for the same team
-    with_game_teams = anchor_game_teams.copy()
+    # Start with all anchor dates as potential "with" dates
+    with_dates = anchor_dates.copy()
     for exc_player in exclude:
-        if not exc_player:
-            continue
         exc_norm = _normalize(exc_player)
         exc_mask = df_active[col].str.lower().str.strip() == exc_norm
-        exc_game_teams = set(zip(df_active[exc_mask][game_col], df_active[exc_mask][team_col]))
-        with_game_teams = with_game_teams & exc_game_teams  # intersection
+        exc_df = df_active[exc_mask].copy()
+        exc_df[date_col] = pd.to_datetime(exc_df[date_col], errors="coerce").dt.date
+        exc_dates = set(exc_df[date_col].dropna())
+        # Keep only dates where this excluded player ALSO played
+        with_dates = with_dates & exc_dates
 
-    # "Without" = anchor game-teams not in "with"
-    without_game_teams = anchor_game_teams - with_game_teams
-
-    # Pull game IDs back out for filtering anchor_df
-    with_games = {g for g, _ in with_game_teams}
-    without_games = {g for g, _ in without_game_teams}
+    without_dates = anchor_dates - with_dates
 
     # Compute per-stat averages
-    stat_cols = [s for s in ["pts", "reb", "ast", "stl", "blk", "tov"] if s in df_active.columns]
+    stat_cols = [s for s in ["pts", "reb", "ast", "stl", "blk", "tov"] if s in anchor_df.columns]
 
-    def avg_stats(sub_df):
+    def avg_stats(sub_df: pd.DataFrame) -> dict:
         result = {}
         for s in stat_cols:
             vals = pd.to_numeric(sub_df[s], errors="coerce").dropna()
             result[s] = round(float(vals.mean()), 2) if len(vals) > 0 else None
         return result
 
-    df_with = anchor_df[anchor_df[game_col].isin(with_games)]
-    df_without = anchor_df[anchor_df[game_col].isin(without_games)]
+    df_with = anchor_df[anchor_df[date_col].isin(with_dates)]
+    df_without = anchor_df[anchor_df[date_col].isin(without_dates)]
 
     return {
         "player": player_a,
         "exclude": exclude,
-        "games_with": len(with_game_teams),
-        "games_without": len(without_game_teams),
+        "games_with": len(with_dates),
+        "games_without": len(without_dates),
         "with": avg_stats(df_with),
         "without": avg_stats(df_without),
     }
