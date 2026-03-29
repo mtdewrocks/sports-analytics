@@ -33,3 +33,10 @@ def in_out(player: str = Query(...), exclude: List[str] = Query(default=[]), _=D
 @router.get("/props")
 def props(player: Optional[str] = Query(None), market: Optional[str] = Query(None), side: Optional[str] = Query(None), _=Depends(require_access)):
     return nba_data.get_props(player, market, side)
+
+@router.get("/debug-columns")
+def debug_columns(_=Depends(require_access)):
+    from app.data.loader import get_nba_data
+    df = get_nba_data()
+    sample = df.head(2).fillna("").to_dict(orient="records")
+    return {"columns": list(df.columns), "shape": list(df.shape), "sample": sample}
