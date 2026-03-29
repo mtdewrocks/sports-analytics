@@ -21,3 +21,8 @@ class Settings(BaseSettings):
     MLB_BASE_URL: str = "https://github.com/mtdewrocks/matchup/raw/main/assets"
 
 settings = Settings()
+
+# SQLAlchemy requires "postgresql://" but Render provides "postgres://"
+# Auto-fix this common gotcha so it works regardless of what Render gives us
+if settings.DATABASE_URL.startswith("postgres://"):
+    settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
