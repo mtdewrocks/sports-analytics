@@ -35,6 +35,22 @@ app.include_router(mlb_router)
 def health():
     return {"status": "ok"}
 
+@app.get("/api/db-test")
+def db_test():
+    """Diagnostic endpoint — tests DB connection and returns result."""
+    import time
+    from app.database import engine
+    from sqlalchemy import text
+    try:
+        start = time.time()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1")).fetchone()
+        elapsed = round((time.time() - start) * 1000)
+        db_url_safe = settings.DATABASE_URL[:30] + "..." if len(settings.DATABASE_URL) > 30 else settings.DATABASE_URL
+        return {"db": "ok", "ms": elapsed, "url_prefix": db_url_safe}
+    except Exception as e:
+        return {"db": "error", "error": str(e)}
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
 if os.path.exists(STATIC_DIR):
     assets_dir = os.path.join(STATIC_DIR, "assets")
