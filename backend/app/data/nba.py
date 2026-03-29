@@ -288,7 +288,7 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     df_with    = anchor_df[anchor_df["_key"].isin(with_keys)]
     df_without = anchor_df[anchor_df["_key"].isin(without_keys)]
 
-    stat_cols = [s for s in ["pts", "reb", "ast", "stl", "blk", "tov"] if s in anchor_df.columns]
+    stat_cols = [s for s in ["min", "pts", "reb", "ast", "pts_ast", "pts_reb", "pra"] if s in anchor_df.columns]
 
     def avg_stats(sub_df: pd.DataFrame) -> dict:
         result = {}

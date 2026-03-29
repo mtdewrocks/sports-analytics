@@ -12,8 +12,17 @@ interface InOutData {
   without: Record<string, number | null>;
 }
 
-const DISPLAY_STATS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tov'];
+const DISPLAY_STATS: { key: string; label: string }[] = [
+  { key: 'min',     label: 'MIN' },
+  { key: 'pts',     label: 'PTS' },
+  { key: 'reb',     label: 'REB' },
+  { key: 'ast',     label: 'AST' },
+  { key: 'pts_ast', label: 'PTS+AST' },
+  { key: 'pts_reb', label: 'PTS+REB' },
+  { key: 'pra',     label: 'PTS+REB+AST' },
+];
 
+// Diff = without - with: positive (green) means the stat went UP without the excluded player
 function DiffCell({ value }: { value: number }) {
   const color = value > 0.5 ? '#27ae60' : value < -0.5 ? '#e74c3c' : '#333';
   return (
@@ -181,15 +190,16 @@ export default function NBAInOut() {
                 </tr>
               </thead>
               <tbody>
-                {DISPLAY_STATS.map((stat, i) => {
-                  const withVal = data.with?.[stat] ?? null;
-                  const withoutVal = data.without?.[stat] ?? null;
+                {DISPLAY_STATS.map(({ key, label }, i) => {
+                  const withVal = data.with?.[key] ?? null;
+                  const withoutVal = data.without?.[key] ?? null;
                   if (withVal === null && withoutVal === null) return null;
-                  const diff = (withVal ?? 0) - (withoutVal ?? 0);
+                  // Positive diff = stat went UP without excluded player = good = green
+                  const diff = (withoutVal ?? 0) - (withVal ?? 0);
                   return (
-                    <tr key={stat} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                      <td style={{ padding: '8px 14px', fontWeight: 700, textTransform: 'uppercase', color: '#1a1a2e' }}>
-                        {stat}
+                    <tr key={key} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <td style={{ padding: '8px 14px', fontWeight: 700, color: '#1a1a2e' }}>
+                        {label}
                       </td>
                       <td style={{ padding: '8px 14px', textAlign: 'center' }}>
                         {withVal !== null ? withVal.toFixed(1) : '—'}
