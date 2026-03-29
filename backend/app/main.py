@@ -35,6 +35,21 @@ app.include_router(mlb_router)
 def health():
     return {"status": "ok"}
 
+@app.get("/api/clear-cache")
+def clear_cache():
+    """Clear all lru_cache data caches so fresh data is fetched on next request."""
+    from app.data.loader import (
+        get_nba_data, get_nfl_stats, get_nfl_team_stats,
+        get_nfl_schedule, get_nba_props, get_mlb_data,
+    )
+    get_nba_data.cache_clear()
+    get_nfl_stats.cache_clear()
+    get_nfl_team_stats.cache_clear()
+    get_nfl_schedule.cache_clear()
+    get_nba_props.cache_clear()
+    get_mlb_data.cache_clear()
+    return {"status": "cache cleared"}
+
 @app.get("/api/db-test")
 def db_test():
     """Diagnostic endpoint — tests DB connection and returns result."""
