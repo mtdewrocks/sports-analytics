@@ -189,6 +189,9 @@ def get_game_log(
             keep_cols.append(c)
     if min_col:
         keep_cols.append(min_col)
+    for c in ["fgm", "fga"]:
+        if c in player_df.columns:
+            keep_cols.append(c)
 
     rows = player_df[keep_cols].copy()
     rows = rows.rename(columns={"_stat_value": stat})
@@ -206,11 +209,15 @@ def get_game_log(
         )
         stat_value = float(row_dict.get(stat, 0) or 0)
         minutes = row_dict.get(min_col) if min_col else None
+        fgm = row_dict.get("fgm")
+        fga = row_dict.get("fga")
         game_rows.append({
             "game_date": game_date,
             "opponent": opponent,
             "stat_value": stat_value,
             "min": minutes,
+            "fgm": int(fgm) if fgm not in (None, "") else None,
+            "fga": int(fga) if fga not in (None, "") else None,
         })
 
     # Compute over/under counts for last 5, last 10, and full season

@@ -12,6 +12,8 @@ interface Game {
   opponent: string;
   stat_value: number;
   min?: number | string;
+  fgm?: number | null;
+  fga?: number | null;
 }
 
 interface OverCount {
@@ -105,7 +107,7 @@ export default function NBAGameLog() {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
       {/* Sidebar */}
-      <div style={{ width: 280, background: '#f8f9fa', padding: 20, height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+      <div style={{ width: 240, background: '#f8f9fa', padding: '16px 16px', height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
         <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>NBA Game Log</h3>
 
         <label style={labelStyle}>Player</label>
@@ -231,7 +233,7 @@ export default function NBAGameLog() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 24, overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
         {loading && <LoadingSpinner />}
         {error && (
           <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b' }}>
@@ -252,6 +254,8 @@ export default function NBAGameLog() {
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Date</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>MIN</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG%</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
                 </tr>
               </thead>
@@ -262,6 +266,14 @@ export default function NBAGameLog() {
                     <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
                     <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
                       {g.min ?? '—'}
+                    </td>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                      {g.fgm != null && g.fga != null ? `${g.fgm}-${g.fga}` : '—'}
+                    </td>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                      {g.fgm != null && g.fga != null && g.fga > 0
+                        ? `${Math.round((g.fgm / g.fga) * 100)}%`
+                        : '—'}
                     </td>
                     <td style={{
                       padding: '8px 14px',
