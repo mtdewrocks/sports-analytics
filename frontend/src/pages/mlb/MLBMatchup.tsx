@@ -3,7 +3,7 @@ import { getMLBPitchers, getMLBMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 
-const IMAGE_BASE = 'https://github.com/mtdewrocks/matchup/raw/main/assets';
+const IMAGE_BASE = 'https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb/pitcher_images';
 
 interface MatchupData {
   season_stats?: Record<string, any>;
