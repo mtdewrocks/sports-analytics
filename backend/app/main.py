@@ -74,4 +74,12 @@ if os.path.exists(STATIC_DIR):
 
     @app.get("/{full_path:path}")
     async def serve_react(full_path: str):
-        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+        # Never intercept backend routes
+        if full_path.startswith(("api/", "auth/", "billing/")):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+        index = os.path.join(STATIC_DIR, "index.html")
+        if not os.path.exists(index):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Frontend not built")
+        return FileResponse(index)
