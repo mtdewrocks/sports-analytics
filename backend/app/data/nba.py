@@ -123,20 +123,37 @@ def get_game_log(
             break
 
     # Filter with_player / without_player
-    if (with_player or without_player) and game_col and team_col:
+    # Use the same (normalized_date, team) key approach as get_in_out so that
+    # played=0 inactive rows don't pollute the game lists.
+    if (with_player or without_player) and date_col and team_col:
+        # Normalize dates to plain date objects (strips timestamp differences)
+        player_df = player_df.copy()
+        player_df["_date"] = pd.to_datetime(player_df[date_col], errors="coerce").dt.date
+
+        # Build a reference frame limited to rows where the player actually played
+        played_col = next((c for c in ["played", "game_played"] if c in df.columns), None)
+        df_ref = df.copy()
+        df_ref["_date"] = pd.to_datetime(df_ref[date_col], errors="coerce").dt.date
+        if played_col:
+            df_ref = df_ref[pd.to_numeric(df_ref[played_col], errors="coerce") == 1]
+
         if with_player:
             wp_norm = _normalize(with_player)
-            wp_mask = df[col].str.lower().str.strip() == wp_norm
-            wp_games = df[wp_mask][game_col].unique()
-            # Get games where both player and with_player played on the same team
-            wp_team = df[wp_mask][[game_col, team_col]].drop_duplicates()
-            player_df = player_df.merge(wp_team, on=[game_col, team_col])
+            wp_rows = (
+                df_ref[df_ref[col].str.lower().str.strip() == wp_norm][["_date", team_col]]
+                .drop_duplicates()
+            )
+            # Keep only player games where with_player was on the same team same date
+            player_df = player_df.merge(wp_rows, on=["_date", team_col], how="inner")
 
         if without_player:
             wop_norm = _normalize(without_player)
-            wop_mask = df[col].str.lower().str.strip() == wop_norm
-            wop_games = set(df[wop_mask][game_col].unique())
-            player_df = player_df[~player_df[game_col].isin(wop_games)]
+            wop_rows = df_ref[df_ref[col].str.lower().str.strip() == wop_norm]
+            # (date, team) pairs where without_player actually played
+            wop_keys = set(zip(wop_rows["_date"], wop_rows[team_col]))
+            player_df = player_df[
+                ~player_df.apply(lambda r: (r["_date"], r[team_col]) in wop_keys, axis=1)
+            ]
 
     # Back-to-back filter
     if b2b and date_col:
@@ -219,6 +236,10 @@ def get_game_log(
             "fgm": int(fgm) if fgm not in (None, "") else None,
             "fga": int(fga) if fga not in (None, "") else None,
         })
+
+    # Sort ascending so chart displays oldest (left) → newest (right)
+    # and values[-n:] correctly selects the most recent N games
+    game_rows.sort(key=lambda r: r["game_date"] or "")
 
     # Compute over/under counts for last 5, last 10, and full season
     def _over_count(values: list, n: int = None) -> dict:
