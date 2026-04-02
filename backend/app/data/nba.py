@@ -139,12 +139,12 @@ def get_game_log(
 
         if with_player:
             wp_norm = _normalize(with_player)
-            wp_rows = (
-                df_ref[df_ref[col].str.lower().str.strip() == wp_norm][["_date", team_col]]
-                .drop_duplicates()
-            )
-            # Keep only player games where with_player was on the same team same date
-            player_df = player_df.merge(wp_rows, on=["_date", team_col], how="inner")
+            wp_rows = df_ref[df_ref[col].str.lower().str.strip() == wp_norm]
+            # (date, team) pairs where with_player actually played
+            wp_keys = set(zip(wp_rows["_date"], wp_rows[team_col]))
+            player_df = player_df[
+                player_df.apply(lambda r: (r["_date"], r[team_col]) in wp_keys, axis=1)
+            ]
 
         if without_player:
             wop_norm = _normalize(without_player)
