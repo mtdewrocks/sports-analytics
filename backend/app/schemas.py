@@ -5,6 +5,11 @@ from typing import Optional
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
+    first_name: str
+    last_name: str
+    state: Optional[str] = None
+    favorite_sport: Optional[str] = None
+    favorite_teams: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -15,6 +20,11 @@ class UserOut(BaseModel):
     email: str
     trial_ends_at: datetime
     created_at: datetime
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    state: Optional[str] = None
+    favorite_sport: Optional[str] = None
+    favorite_teams: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class TokenWithUser(BaseModel):

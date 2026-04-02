@@ -13,6 +13,12 @@ class User(Base):
     trial_ends_at = Column(DateTime, nullable=False)
     stripe_customer_id = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
+    # Profile fields
+    first_name = Column(String(100), nullable=True)
+    last_name = Column(String(100), nullable=True)
+    state = Column(String(50), nullable=True)
+    favorite_sport = Column(String(50), nullable=True)
+    favorite_teams = Column(String(500), nullable=True)
     subscriptions = relationship("Subscription", back_populates="user")
 
 class Subscription(Base):

@@ -45,6 +45,11 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
             email=data.email,
             hashed_password=hash_password(data.password),
             trial_ends_at=datetime.utcnow() + timedelta(days=settings.TRIAL_DAYS),
+            first_name=data.first_name,
+            last_name=data.last_name,
+            state=data.state,
+            favorite_sport=data.favorite_sport,
+            favorite_teams=data.favorite_teams,
         )
         db.add(user)
         sub = Subscription(id=str(uuid.uuid4()), user_id=user.id, status="trialing")

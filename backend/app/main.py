@@ -21,9 +21,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def _run_migrations():
+    """Add any new columns to existing tables without losing data."""
+    from app.database import engine
+    from sqlalchemy import text
+    new_columns = [
+        "ALTER TABLE users ADD COLUMN first_name VARCHAR(100)",
+        "ALTER TABLE users ADD COLUMN last_name VARCHAR(100)",
+        "ALTER TABLE users ADD COLUMN state VARCHAR(50)",
+        "ALTER TABLE users ADD COLUMN favorite_sport VARCHAR(50)",
+        "ALTER TABLE users ADD COLUMN favorite_teams VARCHAR(500)",
+    ]
+    with engine.connect() as conn:
+        for sql in new_columns:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                pass  # Column already exists — safe to ignore
+
 @app.on_event("startup")
 def startup():
     create_tables()
+    _run_migrations()
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(billing_router, prefix="/billing", tags=["billing"])
