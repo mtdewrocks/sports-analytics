@@ -259,7 +259,7 @@ def get_game_log(
         total = len(v)
         if total == 0:
             return {"over": 0, "total": 0, "pct": 0}
-        over = int(sum(1 for x in v if x >= threshold))
+        over = int(sum(1 for x in v if x > threshold))
         return {"over": over, "total": total, "pct": round(over / total, 4)}
 
     all_vals = [r["stat_value"] for r in game_rows]
