@@ -249,8 +249,9 @@ def get_game_log(
         })
 
     # Sort ascending so chart displays oldest (left) → newest (right)
-    # and values[-n:] correctly selects the most recent N games
-    game_rows.sort(key=lambda r: r["game_date"] or "")
+    # and values[-n:] correctly selects the most recent N games.
+    # Must parse the date string (MM/DD/YYYY) — lexicographic sort is wrong.
+    game_rows.sort(key=lambda r: pd.to_datetime(r["game_date"], errors="coerce") if r.get("game_date") else pd.Timestamp.min)
 
     # Compute over/under counts for last 5, last 10, and full season
     def _over_count(values: list, n: int = None) -> dict:
