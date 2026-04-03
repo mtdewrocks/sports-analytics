@@ -122,6 +122,8 @@ def get_game_log(
             team_col = c
             break
 
+    _wp_debug = None  # populated below if with_player is set
+
     # Filter with_player / without_player
     # Use the same (normalized_date, team) key approach as get_in_out so that
     # played=0 inactive rows don't pollute the game lists.
@@ -142,9 +144,18 @@ def get_game_log(
             wp_rows = df_ref[df_ref[col].str.lower().str.strip() == wp_norm]
             # (date, team) pairs where with_player actually played
             wp_keys = set(zip(wp_rows["_date"], wp_rows[team_col]))
+            _wp_debug = {
+                "wp_norm": wp_norm,
+                "wp_rows_found": len(wp_rows),
+                "wp_keys_count": len(wp_keys),
+                "wp_sample_keys": [str(k) for k in list(wp_keys)[:3]],
+                "anchor_rows_before": len(player_df),
+                "anchor_sample_keys": [str((r["_date"], r[team_col])) for _, r in player_df.head(3).iterrows()],
+            }
             player_df = player_df[
                 player_df.apply(lambda r: (r["_date"], r[team_col]) in wp_keys, axis=1)
             ]
+            _wp_debug["anchor_rows_after"] = len(player_df)
 
         if without_player:
             wop_norm = _normalize(without_player)
@@ -257,10 +268,13 @@ def get_game_log(
         "season": _over_count(all_vals),
     }
 
-    return {
+    result = {
         "games": game_rows,
         "over_counts": over_counts,
     }
+    if _wp_debug is not None:
+        result["_debug"] = _wp_debug
+    return result
 
 
 def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
