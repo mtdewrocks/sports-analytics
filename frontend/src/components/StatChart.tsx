@@ -36,7 +36,7 @@ export default function StatChart({ games, threshold, stat }: StatChartProps) {
         />
         <Bar dataKey="stat_value" name={stat} radius={[3, 3, 0, 0]}>
           {games.map((g, i) => (
-            <Cell key={i} fill={g.stat_value > threshold ? '#2ecc71' : '#e74c3c'} />
+            <Cell key={i} fill={g.stat_value >= threshold ? '#2ecc71' : '#e74c3c'} />
           ))}
         </Bar>
       </BarChart>
