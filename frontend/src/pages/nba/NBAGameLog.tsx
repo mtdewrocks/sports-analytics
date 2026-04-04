@@ -55,6 +55,7 @@ export default function NBAGameLog() {
   const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [selectedStat, setSelectedStat] = useState('pts');
   const [thresholdStr, setThresholdStr] = useState('');
+  const [minMinutesStr, setMinMinutesStr] = useState('');
   const [withPlayer, setWithPlayer] = useState('');
   const [withoutPlayer, setWithoutPlayer] = useState('');
   const [b2b, setB2b] = useState(false);
@@ -86,6 +87,7 @@ export default function NBAGameLog() {
     setGameData(null);
     try {
       const threshold = parseFloat(thresholdStr) || 0;
+      const minMinutes = parseInt(minMinutesStr) || 0;
       const params: Record<string, any> = {
         player: selectedPlayer,
         stat: selectedStat,
@@ -93,6 +95,7 @@ export default function NBAGameLog() {
         b2b,
         three_in_four: threeInFour,
       };
+      if (minMinutes > 0) params.min_minutes = minMinutes;
       if (withPlayer) params.with_player = withPlayer;
       if (withoutPlayer) params.without_player = withoutPlayer;
       const res = await getNBAGameLog(params);
@@ -172,6 +175,19 @@ export default function NBAGameLog() {
           value={thresholdStr}
           onFocus={(e) => e.target.select()}
           onChange={(e) => setThresholdStr(e.target.value)}
+        />
+
+        <label style={labelStyle}>Min Minutes</label>
+        <input
+          type="number"
+          min={0}
+          max={48}
+          step={1}
+          style={inputStyle}
+          placeholder="e.g. 20"
+          value={minMinutesStr}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => setMinMinutesStr(e.target.value)}
         />
 
         <label style={labelStyle}>With Player</label>
@@ -254,6 +270,7 @@ export default function NBAGameLog() {
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Date</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>MIN</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>FGA</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG%</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
@@ -266,6 +283,9 @@ export default function NBAGameLog() {
                     <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
                     <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
                       {g.min ?? '—'}
+                    </td>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                      {g.fga != null ? g.fga : '—'}
                     </td>
                     <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
                       {g.fgm != null && g.fga != null ? `${g.fgm}-${g.fga}` : '—'}

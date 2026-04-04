@@ -41,7 +41,11 @@ export default function SearchDropdown({
         value={search}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
         onFocus={() => { setSearch(''); setOpen(true); }}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={() => setTimeout(() => {
+          setOpen(false);
+          // If text doesn't match a valid selection, clear parent state
+          if (!players.includes(search)) { onSelect(''); setSearch(''); }
+        }, 150)}
       />
       {open && !disabled && (
         <div style={{

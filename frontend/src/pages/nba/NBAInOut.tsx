@@ -22,7 +22,6 @@ const DISPLAY_STATS: { key: string; label: string }[] = [
   { key: 'pra',     label: 'PTS+REB+AST' },
 ];
 
-// Diff = without - with: positive (green) means the stat went UP without the excluded player
 function DiffCell({ value }: { value: number }) {
   const color = value > 0.5 ? '#27ae60' : value < -0.5 ? '#e74c3c' : '#333';
   return (
@@ -32,13 +31,12 @@ function DiffCell({ value }: { value: number }) {
   );
 }
 
-
 export default function NBAInOut() {
   const [players, setPlayers] = useState<string[]>([]);
   const [teammates, setTeammates] = useState<string[]>([]);
   const [playerA, setPlayerA] = useState('');
-  const [excludeA, setExcludeA] = useState('');
-  const [excludeB, setExcludeB] = useState('');
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const [tmFilter, setTmFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState<InOutData | null>(null);
@@ -49,16 +47,21 @@ export default function NBAInOut() {
       .catch(() => setPlayers([]));
   }, []);
 
-  // When anchor changes, load that player's teammates and clear prior selections
   useEffect(() => {
-    if (!playerA) { setTeammates([]); setExcludeA(''); setExcludeB(''); setData(null); return; }
+    if (!playerA) { setTeammates([]); setExcluded([]); setTmFilter(''); setData(null); return; }
     getNBATeammates(playerA)
       .then((res) => setTeammates(res.data))
       .catch(() => setTeammates([]));
-    setExcludeA('');
-    setExcludeB('');
+    setExcluded([]);
+    setTmFilter('');
     setData(null);
   }, [playerA]);
+
+  const toggleExclude = (name: string) => {
+    setExcluded((prev) =>
+      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
+    );
+  };
 
   const analyze = async () => {
     if (!playerA) return;
@@ -66,8 +69,7 @@ export default function NBAInOut() {
     setError('');
     setData(null);
     try {
-      const exclude = [excludeA, excludeB].filter(Boolean);
-      const res = await getNBAInOut(playerA, exclude);
+      const res = await getNBAInOut(playerA, excluded);
       setData(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch in/out data.');
@@ -76,12 +78,11 @@ export default function NBAInOut() {
     }
   };
 
-  // Exclude dropdowns show only teammates of the anchor player.
-  // Filter out whoever is already selected in the other slot.
-  const excludeAOptions = teammates.filter((p) => p !== excludeB);
-  const excludeBOptions = teammates.filter((p) => p !== excludeA);
+  const excludeLabel = excluded.length > 0 ? excluded.join(' & ') : 'excluded players';
 
-  const excludeLabel = [excludeA, excludeB].filter(Boolean).join(' & ') || 'excluded players';
+  const filteredTeammates = tmFilter
+    ? teammates.filter((t) => t.toLowerCase().includes(tmFilter.toLowerCase()))
+    : teammates;
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
@@ -90,10 +91,13 @@ export default function NBAInOut() {
       </h2>
       <p style={{ color: '#666', fontSize: 13, marginBottom: 24, marginTop: 0 }}>
         Compare an anchor player's stats when specific teammates are in vs. out of the lineup.
+        "Without" shows games where <strong>all</strong> selected teammates were absent.
       </p>
 
       {/* Controls */}
-      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: 28 }}>
+
+        {/* Anchor player */}
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
             Anchor Player
@@ -106,49 +110,90 @@ export default function NBAInOut() {
           />
         </div>
 
-        <div>
+        {/* Teammate checkbox list */}
+        <div style={{ minWidth: 220 }}>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
-            Exclude Player A
+            Exclude Teammates{excluded.length > 0 ? ` (${excluded.length} selected)` : ''}
           </label>
-          <SearchDropdown
-            players={excludeAOptions}
-            value={excludeA}
-            onSelect={setExcludeA}
-            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
+          <input
+            type="text"
+            placeholder={playerA ? 'Filter teammates...' : 'Select anchor first'}
             disabled={!playerA || teammates.length === 0}
+            value={tmFilter}
+            onChange={(e) => setTmFilter(e.target.value)}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              padding: '7px 10px', fontSize: 13,
+              border: '1px solid #ddd', borderRadius: 4,
+              marginBottom: 4,
+              background: !playerA || teammates.length === 0 ? '#f5f5f5' : 'white',
+            }}
           />
+          <div style={{
+            border: '1px solid #ddd', borderRadius: 4,
+            maxHeight: 200, overflowY: 'auto',
+            background: !playerA || teammates.length === 0 ? '#f5f5f5' : 'white',
+          }}>
+            {!playerA || teammates.length === 0 ? (
+              <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>
+                {playerA ? 'No teammates found' : 'Select anchor player first'}
+              </div>
+            ) : filteredTeammates.length === 0 ? (
+              <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No matches</div>
+            ) : (
+              filteredTeammates.map((t) => (
+                <label
+                  key={t}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '6px 12px', cursor: 'pointer', fontSize: 13,
+                    background: excluded.includes(t) ? '#f0f4ff' : 'transparent',
+                    borderBottom: '1px solid #f0f0f0',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={excluded.includes(t)}
+                    onChange={() => toggleExclude(t)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  {t}
+                </label>
+              ))
+            )}
+          </div>
+          {excluded.length > 0 && (
+            <button
+              onClick={() => setExcluded([])}
+              style={{
+                marginTop: 4, fontSize: 12, color: '#999', background: 'none',
+                border: 'none', cursor: 'pointer', padding: 0,
+              }}
+            >
+              Clear all
+            </button>
+          )}
         </div>
 
-        <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
-            Exclude Player B
-          </label>
-          <SearchDropdown
-            players={excludeBOptions}
-            value={excludeB}
-            onSelect={setExcludeB}
-            placeholder={playerA ? 'Search teammate...' : 'Select anchor first'}
-            disabled={!playerA || teammates.length === 0}
-          />
+        <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+          <button
+            onClick={analyze}
+            disabled={!playerA || excluded.length === 0 || loading}
+            style={{
+              padding: '9px 28px',
+              background: '#1a1a2e',
+              color: 'white',
+              border: 'none',
+              borderRadius: 4,
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: playerA && excluded.length > 0 && !loading ? 'pointer' : 'not-allowed',
+              opacity: playerA && excluded.length > 0 && !loading ? 1 : 0.6,
+            }}
+          >
+            Analyze
+          </button>
         </div>
-
-        <button
-          onClick={analyze}
-          disabled={!playerA || loading}
-          style={{
-            padding: '9px 28px',
-            background: '#1a1a2e',
-            color: 'white',
-            border: 'none',
-            borderRadius: 4,
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: playerA && !loading ? 'pointer' : 'not-allowed',
-            opacity: playerA && !loading ? 1 : 0.6,
-          }}
-        >
-          Analyze
-        </button>
       </div>
 
       {loading && <LoadingSpinner />}
@@ -160,7 +205,6 @@ export default function NBAInOut() {
 
       {!loading && data && (
         <>
-          {/* Game count context */}
           <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
             <div style={{
               background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: 6,
@@ -178,7 +222,6 @@ export default function NBAInOut() {
             </div>
           </div>
 
-          {/* Stats table */}
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -194,13 +237,10 @@ export default function NBAInOut() {
                   const withVal = data.with?.[key] ?? null;
                   const withoutVal = data.without?.[key] ?? null;
                   if (withVal === null && withoutVal === null) return null;
-                  // Positive diff = stat went UP without excluded player = good = green
                   const diff = (withoutVal ?? 0) - (withVal ?? 0);
                   return (
                     <tr key={key} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                      <td style={{ padding: '8px 14px', fontWeight: 700, color: '#1a1a2e' }}>
-                        {label}
-                      </td>
+                      <td style={{ padding: '8px 14px', fontWeight: 700, color: '#1a1a2e' }}>{label}</td>
                       <td style={{ padding: '8px 14px', textAlign: 'center' }}>
                         {withVal !== null ? withVal.toFixed(1) : '—'}
                       </td>
@@ -219,7 +259,7 @@ export default function NBAInOut() {
 
       {!loading && !error && !data && (
         <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 60 }}>
-          Select an anchor player and at least one player to exclude, then click "Analyze".
+          Select an anchor player, check at least one teammate to exclude, then click "Analyze".
         </div>
       )}
     </div>

@@ -92,6 +92,7 @@ def get_game_log(
     without_player: Optional[str] = None,
     b2b: bool = False,
     three_in_four: bool = False,
+    min_minutes: int = 0,
 ) -> dict:
     df = get_nba_data()
     col = _player_col(df)
@@ -122,7 +123,6 @@ def get_game_log(
             team_col = c
             break
 
-    _wp_debug = None  # populated below if with_player is set
 
     # Filter with_player / without_player
     # Use the same (normalized_date, team) key approach as get_in_out so that
@@ -144,18 +144,9 @@ def get_game_log(
             wp_rows = df_ref[df_ref[col].str.lower().str.strip() == wp_norm]
             # (date, team) pairs where with_player actually played
             wp_keys = set(zip(wp_rows["_date"], wp_rows[team_col]))
-            _wp_debug = {
-                "wp_norm": wp_norm,
-                "wp_rows_found": len(wp_rows),
-                "wp_keys_count": len(wp_keys),
-                "wp_sample_keys": [str(k) for k in list(wp_keys)[:3]],
-                "anchor_rows_before": len(player_df),
-                "anchor_sample_keys": [str((r["_date"], r[team_col])) for _, r in player_df.head(3).iterrows()],
-            }
             player_df = player_df[
                 player_df.apply(lambda r: (r["_date"], r[team_col]) in wp_keys, axis=1)
             ]
-            _wp_debug["anchor_rows_after"] = len(player_df)
 
         if without_player:
             wop_norm = _normalize(without_player)
@@ -195,6 +186,14 @@ def get_game_log(
             player_df = player_df[mask_3in4]
         except Exception:
             pass
+
+    # Minimum minutes filter
+    if min_minutes > 0:
+        min_col_early = next((c for c in ["min", "minutes", "min_played"] if c in player_df.columns), None)
+        if min_col_early:
+            player_df = player_df[
+                pd.to_numeric(player_df[min_col_early], errors="coerce").fillna(0) >= min_minutes
+            ]
 
     # Compute stat
     stat_values = compute_stat(player_df, stat)
@@ -269,13 +268,10 @@ def get_game_log(
         "season": _over_count(all_vals),
     }
 
-    result = {
+    return {
         "games": game_rows,
         "over_counts": over_counts,
     }
-    if _wp_debug is not None:
-        result["_debug"] = _wp_debug
-    return result
 
 
 def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
@@ -316,16 +312,22 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     # Key = (date, team) — two teammates always share the same team on the same date
     anchor_keys = set(zip(anchor_df["_date"], anchor_df[team_col]))
 
-    # "With" = keys where EVERY excluded player also played (same date + same team)
-    with_keys = anchor_keys.copy()
+    # Pre-compute (date, team) key sets for each excluded player
+    exc_key_sets = []
     for exc_player in exclude:
         exc_norm = _normalize(exc_player)
         exc_df   = df_active[df_active[col].str.lower().str.strip() == exc_norm].copy()
-        exc_keys = set(zip(exc_df["_date"], exc_df[team_col]))
-        with_keys = with_keys & exc_keys
+        exc_key_sets.append(set(zip(exc_df["_date"], exc_df[team_col])))
 
-    # "Without" = anchor keys where at least one excluded player did NOT play
-    without_keys = anchor_keys - with_keys
+    # "With" = anchor games where ALL excluded players played
+    with_keys = anchor_keys.copy()
+    for eks in exc_key_sets:
+        with_keys = with_keys & eks
+
+    # "Without" = anchor games where ALL excluded players were absent
+    without_keys = anchor_keys.copy()
+    for eks in exc_key_sets:
+        without_keys = without_keys - eks
 
     anchor_df["_key"] = list(zip(anchor_df["_date"], anchor_df[team_col]))
     df_with    = anchor_df[anchor_df["_key"].isin(with_keys)]
