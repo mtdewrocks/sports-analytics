@@ -177,7 +177,7 @@ export default function NBAGameLog() {
           onChange={(e) => setThresholdStr(e.target.value)}
         />
 
-        <label style={labelStyle}>Min Minutes</label>
+        <label style={labelStyle}>Minimum Minutes Played</label>
         <input
           type="number"
           min={0}
