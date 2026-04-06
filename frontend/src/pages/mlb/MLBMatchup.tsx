@@ -82,15 +82,18 @@ const tdStyle: React.CSSProperties = {
 
 export default function MLBMatchup() {
   const [pitchers, setPitchers] = useState<string[]>([]);
+  const [loadingPitchers, setLoadingPitchers] = useState(true);
   const [selectedPitcher, setSelectedPitcher] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
 
   useEffect(() => {
+    setLoadingPitchers(true);
     getMLBPitchers()
       .then((res) => setPitchers(res.data))
-      .catch(() => setPitchers([]));
+      .catch(() => setPitchers([]))
+      .finally(() => setLoadingPitchers(false));
   }, []);
 
   const fetchMatchup = async (pitcher: string) => {
@@ -142,13 +145,17 @@ export default function MLBMatchup() {
         <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>MLB Matchup</div>
         <div>
           <div style={{ color: '#aaa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
-          <SearchDropdown
-            players={pitchers}
-            value={selectedPitcher}
-            onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
-            placeholder="Search pitcher..."
-            inputStyle={{ padding: '7px 10px', fontSize: 13, width: '100%', boxSizing: 'border-box' }}
-          />
+          {loadingPitchers ? (
+            <div style={{ color: '#aaa', fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
+          ) : (
+            <SearchDropdown
+              players={pitchers}
+              value={selectedPitcher}
+              onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
+              placeholder="Search pitcher..."
+              inputStyle={{ padding: '7px 10px', fontSize: 13, width: '100%', boxSizing: 'border-box' }}
+            />
+          )}
         </div>
       </div>
 

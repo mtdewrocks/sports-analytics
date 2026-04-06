@@ -69,80 +69,81 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     starters_df = data.get("historical_starters", pd.DataFrame())
 
     season_stats = {}
-    if not stats_df.empty and not starters_df.empty:
-        # Merge on Name <-> Baseball_Savant_Name
-        name_col = _find_col(stats_df, ["name"])
-        savant_col = _find_col(starters_df, ["baseball_savant_name"])
-        if name_col and savant_col:
-            merged = stats_df.merge(starters_df, left_on=name_col, right_on=savant_col, how="left")
-            savant_merged_col = _find_col(merged, ["baseball_savant_name"])
-            if savant_merged_col:
-                row = merged[merged[savant_merged_col].str.lower().str.strip() == pitcher_norm]
+    try:
+        if not stats_df.empty and not starters_df.empty:
+            # Merge on Name <-> Baseball_Savant_Name
+            name_col = _find_col(stats_df, ["name"])
+            savant_col = _find_col(starters_df, ["baseball_savant_name"])
+            if name_col and savant_col:
+                merged = stats_df.merge(starters_df, left_on=name_col, right_on=savant_col, how="left")
+                savant_merged_col = _find_col(merged, ["baseball_savant_name"])
+                if savant_merged_col:
+                    row = merged[merged[savant_merged_col].str.lower().str.strip() == pitcher_norm]
+                    if not row.empty:
+                        keep = ["Name", "Handedness", "GS", "W", "L", "ERA", "IP", "SO", "WHIP"]
+                        available = [c for c in keep if _find_col(row, [c])]
+                        season_stats = row[[_find_col(row, [c]) for c in available]].iloc[0].fillna("").to_dict()
+                        # Map K -> SO if SO not present
+                        if "SO" not in season_stats:
+                            k_col = _find_col(row, ["k"])
+                            if k_col:
+                                season_stats["SO"] = int(row[k_col].iloc[0])
+
+        elif not stats_df.empty:
+            name_col = _find_col(stats_df, ["name", "baseball_savant_name"])
+            if name_col:
+                row = stats_df[stats_df[name_col].str.lower().str.strip() == pitcher_norm]
                 if not row.empty:
-                    keep = ["Name", "Handedness", "GS", "W", "L", "ERA", "IP", "SO", "WHIP"]
-                    available = [c for c in keep if _find_col(row, [c])]
-                    season_stats = row[[_find_col(row, [c]) for c in available]].iloc[0].fillna("").to_dict()
-                    # Map K -> SO if SO not present
-                    if "SO" not in season_stats:
-                        k_col = _find_col(row, ["k"])
-                        if k_col:
-                            season_stats["SO"] = row[k_col].iloc[0]
+                    season_stats = row.iloc[0].fillna("").to_dict()
 
-    elif not stats_df.empty:
-        name_col = _find_col(stats_df, ["name", "baseball_savant_name"])
-        if name_col:
-            row = stats_df[stats_df[name_col].str.lower().str.strip() == pitcher_norm]
-            if not row.empty:
-                season_stats = row.iloc[0].fillna("").to_dict()
-
-    # Supplement season_stats with GS / W / L / SO from 2026 game logs
-    gl_df_agg = data.get("pitcher_game_logs", pd.DataFrame())
-    if not gl_df_agg.empty and season_stats:
-        name_col_gl = _find_col(gl_df_agg, ["name"])
-        if name_col_gl:
-            pitcher_logs = gl_df_agg[gl_df_agg[name_col_gl].str.lower().str.strip() == pitcher_norm]
-            if not pitcher_logs.empty:
-                gs_col = _find_col(pitcher_logs, ["gs"])
-                w_col  = _find_col(pitcher_logs, ["w"])
-                l_col  = _find_col(pitcher_logs, ["l"])
-                so_col = _find_col(pitcher_logs, ["so"])
-                if gs_col and "GS" not in season_stats:
-                    season_stats["GS"] = int(pitcher_logs[gs_col].astype(float).sum())
-                if w_col and "W" not in season_stats:
-                    season_stats["W"] = int(pitcher_logs[w_col].astype(float).sum())
-                if l_col and "L" not in season_stats:
-                    season_stats["L"] = int(pitcher_logs[l_col].astype(float).sum())
-                if so_col and "SO" not in season_stats:
-                    season_stats["SO"] = int(pitcher_logs[so_col].astype(float).sum())
+        # Supplement season_stats with GS / W / L / SO from 2026 game logs
+        gl_df_agg = data.get("pitcher_game_logs", pd.DataFrame())
+        if not gl_df_agg.empty and season_stats:
+            name_col_gl = _find_col(gl_df_agg, ["name"])
+            if name_col_gl:
+                pitcher_logs = gl_df_agg[gl_df_agg[name_col_gl].str.lower().str.strip() == pitcher_norm]
+                if not pitcher_logs.empty:
+                    gs_col = _find_col(pitcher_logs, ["gs"])
+                    w_col  = _find_col(pitcher_logs, ["w"])
+                    l_col  = _find_col(pitcher_logs, ["l"])
+                    so_col = _find_col(pitcher_logs, ["so"])
+                    if gs_col and "GS" not in season_stats:
+                        season_stats["GS"] = int(pitcher_logs[gs_col].astype(float).sum())
+                    if w_col and "W" not in season_stats:
+                        season_stats["W"] = int(pitcher_logs[w_col].astype(float).sum())
+                    if l_col and "L" not in season_stats:
+                        season_stats["L"] = int(pitcher_logs[l_col].astype(float).sum())
+                    if so_col and "SO" not in season_stats:
+                        season_stats["SO"] = int(pitcher_logs[so_col].astype(float).sum())
+    except Exception as e:
+        print(f"Warning: season_stats section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
-    # 2. Game logs — 2025_Pitching_Logs.xlsx
+    # 2. Game logs — 2026_Pitching_Logs.xlsx
     # ------------------------------------------------------------------
-    gl_df = data.get("pitcher_game_logs", pd.DataFrame())
     game_logs = []
-    if not gl_df.empty:
-        name_col = _find_col(gl_df, ["name"])
-        if name_col:
-            sub = gl_df[gl_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
-            # Keep display columns matching the original app
-            keep = ["Date", "Opp", "Opponent", "W", "L", "IP", "BF", "H", "R", "ER", "HR", "BB", "SO", "Pit"]
-            keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
-            sub = sub[keep_actual]
-            # Rename Opp -> Opponent if needed
-            opp_col = _find_col(sub, ["opp"])
-            if opp_col and opp_col != "Opponent":
-                sub = sub.rename(columns={opp_col: "Opponent"})
-            # Sort newest first
-            date_col = _find_col(sub, ["date"])
-            if date_col:
-                sub[date_col] = pd.to_datetime(sub[date_col], errors="coerce")
-                # Filter to 2026 only
-                sub = sub[sub[date_col].dt.year == 2026]
-                sub = sub.sort_values(date_col, ascending=False)
-                # Limit to last 10 games and format date as M/D/YYYY string
-                sub = sub.head(10)
-                sub[date_col] = sub[date_col].apply(lambda d: f"{d.month}/{d.day}/{d.year}" if pd.notna(d) else "")
-            game_logs = sub.fillna("").to_dict(orient="records")
+    try:
+        gl_df = data.get("pitcher_game_logs", pd.DataFrame())
+        if not gl_df.empty:
+            name_col = _find_col(gl_df, ["name"])
+            if name_col:
+                sub = gl_df[gl_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
+                keep = ["Date", "Opp", "Opponent", "W", "L", "IP", "BF", "H", "R", "ER", "HR", "BB", "SO", "Pit"]
+                keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
+                sub = sub[keep_actual]
+                opp_col = _find_col(sub, ["opp"])
+                if opp_col and opp_col != "Opponent":
+                    sub = sub.rename(columns={opp_col: "Opponent"})
+                date_col = _find_col(sub, ["date"])
+                if date_col:
+                    sub[date_col] = pd.to_datetime(sub[date_col], errors="coerce")
+                    sub = sub[sub[date_col].dt.year == 2026]
+                    sub = sub.sort_values(date_col, ascending=False)
+                    sub = sub.head(10)
+                    sub[date_col] = sub[date_col].apply(lambda d: f"{d.month}/{d.day}/{d.year}" if pd.notna(d) else "")
+                game_logs = sub.fillna("").to_dict(orient="records")
+    except Exception as e:
+        print(f"Warning: game_logs section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
     # 3. Splits — combine 2025 (Season_Aggregated) + 2026 (Pitcher_Season_Stats)
@@ -164,136 +165,127 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     splits_df   = data.get("pitcher_splits", pd.DataFrame())
     stats_df_26 = data.get("pitcher_season_stats", pd.DataFrame())
     splits = []
+    try:
+        def _get_splits_row(df, savant_candidates):
+            col = _find_col(df, savant_candidates)
+            if col is None:
+                return pd.DataFrame()
+            return df[df[col].str.lower().str.strip() == pitcher_norm].copy()
 
-    def _get_splits_row(df, savant_candidates):
-        col = _find_col(df, savant_candidates)
-        if col is None:
-            return pd.DataFrame()
-        return df[df[col].str.lower().str.strip() == pitcher_norm].copy()
+        sub25 = _get_splits_row(splits_df,   ["baseball savant name", "baseball_savant_name"])
+        sub26 = _get_splits_row(stats_df_26, ["baseball savant name", "baseball_savant_name"])
 
-    sub25 = _get_splits_row(splits_df,   ["baseball savant name", "baseball_savant_name"])
-    sub26 = _get_splits_row(stats_df_26, ["baseball savant name", "baseball_savant_name"])
+        for df in [sub25, sub26]:
+            sc = _find_col(df, ["split"])
+            if sc and sc != "Split":
+                df.rename(columns={sc: "Split"}, inplace=True)
 
-    # Normalise split column name to "Split"
-    for df in [sub25, sub26]:
-        sc = _find_col(df, ["split"])
-        if sc and sc != "Split":
-            df.rename(columns={sc: "Split"}, inplace=True)
+        combined_rows = []
+        for split_val in ["vs L", "vs R"]:
+            row25 = sub25[sub25["Split"] == split_val] if not sub25.empty and "Split" in sub25.columns else pd.DataFrame()
+            row26 = sub26[sub26["Split"] == split_val] if not sub26.empty and "Split" in sub26.columns else pd.DataFrame()
 
-    combined_rows = []
-    for split_val in ["vs L", "vs R"]:
-        row25 = sub25[sub25["Split"] == split_val] if not sub25.empty and "Split" in sub25.columns else pd.DataFrame()
-        row26 = sub26[sub26["Split"] == split_val] if not sub26.empty and "Split" in sub26.columns else pd.DataFrame()
+            tbf25 = float(row25["TBF"].iloc[0]) if not row25.empty and "TBF" in row25.columns else 0
+            tbf26 = float(row26["TBF"].iloc[0]) if not row26.empty and "TBF" in row26.columns else 0
+            total_tbf = tbf25 + tbf26
+            if total_tbf == 0:
+                continue
 
-        tbf25 = float(row25["TBF"].iloc[0]) if not row25.empty and "TBF" in row25.columns else 0
-        tbf26 = float(row26["TBF"].iloc[0]) if not row26.empty and "TBF" in row26.columns else 0
-        total_tbf = tbf25 + tbf26
-        if total_tbf == 0:
-            continue
+            hr25 = float(row25["HR"].iloc[0]) if not row25.empty and "HR" in row25.columns else 0
+            hr26 = float(row26["HR"].iloc[0]) if not row26.empty and "HR" in row26.columns else 0
 
-        hr25 = float(row25["HR"].iloc[0]) if not row25.empty and "HR" in row25.columns else 0
-        hr26 = float(row26["HR"].iloc[0]) if not row26.empty and "HR" in row26.columns else 0
+            out = {"Split": split_val, "TBF": int(total_tbf), "HR": int(hr25 + hr26)}
+            out["Pitcher HR Rate"] = round((hr25 + hr26) / total_tbf, 3) if total_tbf else ""
 
-        out = {"Split": split_val, "TBF": int(total_tbf), "HR": int(hr25 + hr26)}
-        out["Pitcher HR Rate"] = round((hr25 + hr26) / total_tbf, 3) if total_tbf else ""
+            for stat in WEIGHTED_STATS:
+                v25 = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
+                v26 = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
+                if v25 is not None and v26 is not None:
+                    combined = (tbf25 * v25 + tbf26 * v26) / total_tbf
+                elif v25 is not None:
+                    combined = v25
+                elif v26 is not None:
+                    combined = v26
+                else:
+                    combined = None
+                out[stat] = round(combined, 3) if combined is not None else ""
 
-        for stat in WEIGHTED_STATS:
-            v25 = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
-            v26 = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
-            if v25 is not None and v26 is not None:
-                combined = (tbf25 * v25 + tbf26 * v26) / total_tbf
-            elif v25 is not None:
-                combined = v25
-            elif v26 is not None:
-                combined = v26
-            else:
-                combined = None
-            out[stat] = round(combined, 3) if combined is not None else ""
+            wslg = out.get("Weighted SLG", "")
+            wavg = out.get("Weighted AVG", "")
+            out["ISO Pitcher"] = round(float(wslg) - float(wavg), 3) if wslg != "" and wavg != "" else ""
+            combined_rows.append(out)
 
-        # ISO Pitcher = Weighted SLG - Weighted AVG
-        wslg = out.get("Weighted SLG", "")
-        wavg = out.get("Weighted AVG", "")
-        if wslg != "" and wavg != "":
-            out["ISO Pitcher"] = round(float(wslg) - float(wavg), 3)
-        else:
-            out["ISO Pitcher"] = ""
-
-        combined_rows.append(out)
-
-    if combined_rows:
-        try:
+        if combined_rows:
             combined_df = pd.DataFrame(combined_rows).set_index("Split").T.reset_index()
             combined_df = combined_df.rename(columns={"index": "Statistic"})
-            # Apply desired stat order
             order_map = {s: i for i, s in enumerate(STAT_ORDER)}
             combined_df["_ord"] = combined_df["Statistic"].map(order_map).fillna(999)
             combined_df = combined_df.sort_values("_ord").drop(columns=["_ord"])
             cols = [c for c in ["vs L", "Statistic", "vs R"] if c in combined_df.columns]
-            combined_df = combined_df[cols]
-            splits = combined_df.fillna("").to_dict(orient="records")
-        except Exception:
-            pass
+            splits = combined_df[cols].fillna("").to_dict(orient="records")
+    except Exception as e:
+        print(f"Warning: splits section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
     # 4. Percentiles — Pitcher_Percentile_Rankings.csv (reshaped for chart)
     # ------------------------------------------------------------------
-    pct_df = data.get("pitcher_percentiles", pd.DataFrame())
     percentiles = []
-    if not pct_df.empty:
-        rename_map = {
-            "xera": "Expected ERA", "xba": "Expected Batting Avg",
-            "fb_velocity": "Fastball Velo", "exit_velocity": "Avg Exit Velocity",
-            "k_percent": "K %", "chase_percent": "Chase %", "whiff_percent": "Whiff %",
-            "brl_percent": "Barrel %", "hard_hit_percent": "Hard-Hit %", "bb_percent": "BB %",
-        }
-        pct_df = pct_df.rename(columns={k: v for k, v in rename_map.items() if k in pct_df.columns})
-        name_col = _find_col(pct_df, ["player_name"])
-        if name_col:
-            pct_df["converted_name"] = pct_df[name_col].apply(_convert_savant_name)
-            sub = pct_df[pct_df["converted_name"].str.lower().str.strip() == pitcher_norm].copy()
-            if not sub.empty:
-                stat_cols = [c for c in ["Fastball Velo", "Avg Exit Velocity", "Chase %",
-                                         "Whiff %", "K %", "BB %", "Barrel %", "Hard-Hit %"]
-                             if c in sub.columns]
-                id_cols = [c for c in ["converted_name"] if c in sub.columns]
-                melted = pd.melt(sub[id_cols + stat_cols], id_vars=id_cols,
-                                 var_name="Statistic", value_name="Percentile")
-                percentiles = melted[["Statistic", "Percentile"]].fillna("").to_dict(orient="records")
+    try:
+        pct_df = data.get("pitcher_percentiles", pd.DataFrame())
+        if not pct_df.empty:
+            rename_map = {
+                "xera": "Expected ERA", "xba": "Expected Batting Avg",
+                "fb_velocity": "Fastball Velo", "exit_velocity": "Avg Exit Velocity",
+                "k_percent": "K %", "chase_percent": "Chase %", "whiff_percent": "Whiff %",
+                "brl_percent": "Barrel %", "hard_hit_percent": "Hard-Hit %", "bb_percent": "BB %",
+            }
+            pct_df = pct_df.rename(columns={k: v for k, v in rename_map.items() if k in pct_df.columns})
+            name_col = _find_col(pct_df, ["player_name"])
+            if name_col:
+                pct_df["converted_name"] = pct_df[name_col].apply(_convert_savant_name)
+                sub = pct_df[pct_df["converted_name"].str.lower().str.strip() == pitcher_norm].copy()
+                if not sub.empty:
+                    stat_cols = [c for c in ["Fastball Velo", "Avg Exit Velocity", "Chase %",
+                                             "Whiff %", "K %", "BB %", "Barrel %", "Hard-Hit %"]
+                                 if c in sub.columns]
+                    id_cols = [c for c in ["converted_name"] if c in sub.columns]
+                    melted = pd.melt(sub[id_cols + stat_cols], id_vars=id_cols,
+                                     var_name="Statistic", value_name="Percentile")
+                    percentiles = melted[["Statistic", "Percentile"]].fillna("").to_dict(orient="records")
+    except Exception as e:
+        print(f"Warning: percentiles section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
     # 5. Opposing hitters — Combined_Daily_Data.xlsx filtered by pitcher
     # ------------------------------------------------------------------
-    daily_df = data.get("combined_daily", pd.DataFrame())
-    last_week_df = data.get("last_week_stats", pd.DataFrame())
     opposing_hitters = []
-
-    if not daily_df.empty:
-        pitcher_col = _find_col(daily_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
-        if pitcher_col:
-            sub = daily_df[daily_df[pitcher_col].str.lower().str.strip() == pitcher_norm].copy()
-            # Merge last week BA
-            if not last_week_df.empty and not sub.empty:
-                name_col_lw = _find_col(last_week_df, ["name"])
-                ba_col = _find_col(last_week_df, ["ba"])
-                if name_col_lw and ba_col:
-                    lw = last_week_df[[name_col_lw, ba_col]].rename(
-                        columns={name_col_lw: "Name", ba_col: "Last Week BA"}
-                    )
-                    savant_col = _find_col(sub, ["savant name", "savant_name"])
-                    if savant_col:
-                        sub = sub.merge(lw, left_on=savant_col, right_on="Name", how="left").drop(columns=["Name"], errors="ignore")
-
-            # Keep useful display columns
-            keep = ["fg_name", "Savant Name", "Bats", "Batting Order", "Average",
-                    "wOBA", "ISO", "K%", "BB%", "Fly Ball %", "Hard Contact %", "Last Week BA"]
-            keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
-            sub = sub[keep_actual]
-
-            order_col = _find_col(sub, ["batting order"])
-            if order_col:
-                sub = sub.sort_values(order_col)
-
-            opposing_hitters = sub.fillna("").to_dict(orient="records")
+    try:
+        daily_df = data.get("combined_daily", pd.DataFrame())
+        last_week_df = data.get("last_week_stats", pd.DataFrame())
+        if not daily_df.empty:
+            pitcher_col = _find_col(daily_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
+            if pitcher_col:
+                sub = daily_df[daily_df[pitcher_col].str.lower().str.strip() == pitcher_norm].copy()
+                if not last_week_df.empty and not sub.empty:
+                    name_col_lw = _find_col(last_week_df, ["name"])
+                    ba_col = _find_col(last_week_df, ["ba"])
+                    if name_col_lw and ba_col:
+                        lw = last_week_df[[name_col_lw, ba_col]].rename(
+                            columns={name_col_lw: "Name", ba_col: "Last Week BA"}
+                        )
+                        savant_col = _find_col(sub, ["savant name", "savant_name"])
+                        if savant_col:
+                            sub = sub.merge(lw, left_on=savant_col, right_on="Name", how="left").drop(columns=["Name"], errors="ignore")
+                keep = ["fg_name", "Savant Name", "Bats", "Batting Order", "Average",
+                        "wOBA", "ISO", "K%", "BB%", "Fly Ball %", "Hard Contact %", "Last Week BA"]
+                keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
+                sub = sub[keep_actual]
+                order_col = _find_col(sub, ["batting order"])
+                if order_col:
+                    sub = sub.sort_values(order_col)
+                opposing_hitters = sub.fillna("").to_dict(orient="records")
+    except Exception as e:
+        print(f"Warning: opposing_hitters section failed for {pitcher_name}: {e}")
 
     return {
         "pitcher": pitcher_name,
