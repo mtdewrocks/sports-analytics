@@ -162,7 +162,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         "Weighted FIP", "Weighted xFIP",
     ]
 
-    splits_df   = data.get("pitcher_splits", pd.DataFrame())
+    splits_df   = data.get("pitcher_splits_hist", pd.DataFrame())
     stats_df_26 = data.get("pitcher_season_stats", pd.DataFrame())
     splits = []
     try:
