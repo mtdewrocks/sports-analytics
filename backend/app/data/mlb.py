@@ -82,6 +82,11 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                     keep = ["Name", "Handedness", "GS", "W", "L", "ERA", "IP", "SO", "WHIP"]
                     available = [c for c in keep if _find_col(row, [c])]
                     season_stats = row[[_find_col(row, [c]) for c in available]].iloc[0].fillna("").to_dict()
+                    # Map K -> SO if SO not present
+                    if "SO" not in season_stats:
+                        k_col = _find_col(row, ["k"])
+                        if k_col:
+                            season_stats["SO"] = row[k_col].iloc[0]
 
     elif not stats_df.empty:
         name_col = _find_col(stats_df, ["name", "baseball_savant_name"])
@@ -89,6 +94,26 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             row = stats_df[stats_df[name_col].str.lower().str.strip() == pitcher_norm]
             if not row.empty:
                 season_stats = row.iloc[0].fillna("").to_dict()
+
+    # Supplement season_stats with GS / W / L / SO from 2026 game logs
+    gl_df_agg = data.get("pitcher_game_logs", pd.DataFrame())
+    if not gl_df_agg.empty and season_stats:
+        name_col_gl = _find_col(gl_df_agg, ["name"])
+        if name_col_gl:
+            pitcher_logs = gl_df_agg[gl_df_agg[name_col_gl].str.lower().str.strip() == pitcher_norm]
+            if not pitcher_logs.empty:
+                gs_col = _find_col(pitcher_logs, ["gs"])
+                w_col  = _find_col(pitcher_logs, ["w"])
+                l_col  = _find_col(pitcher_logs, ["l"])
+                so_col = _find_col(pitcher_logs, ["so"])
+                if gs_col and "GS" not in season_stats:
+                    season_stats["GS"] = int(pitcher_logs[gs_col].astype(float).sum())
+                if w_col and "W" not in season_stats:
+                    season_stats["W"] = int(pitcher_logs[w_col].astype(float).sum())
+                if l_col and "L" not in season_stats:
+                    season_stats["L"] = int(pitcher_logs[l_col].astype(float).sum())
+                if so_col and "SO" not in season_stats:
+                    season_stats["SO"] = int(pitcher_logs[so_col].astype(float).sum())
 
     # ------------------------------------------------------------------
     # 2. Game logs — 2025_Pitching_Logs.xlsx

@@ -49,7 +49,7 @@ function pctBarColor(pct: number) {
   return '#e74c3c';
 }
 
-const SEASON_DISPLAY = ['Name', 'Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'WHIP'];
+const SEASON_DISPLAY = ['Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'WHIP'];
 
 const cardStyle: React.CSSProperties = {
   background: 'white',
