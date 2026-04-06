@@ -247,7 +247,7 @@ export default function MLBMatchup() {
                         <thead>
                           <tr>
                             {splitsColumns.map((col) => (
-                              <th key={col} style={{ ...thStyle, textAlign: col === 'Statistic' ? 'left' : 'center' }}>{col}</th>
+                              <th key={col} style={thStyle}>{col}</th>
                             ))}
                           </tr>
                         </thead>
