@@ -45,7 +45,7 @@ def get_mlb_data() -> dict:
     files = {
         "pitcher_season_stats":   f"{base}/Pitcher_Season_Stats.xlsx",
         "historical_starters":    f"{base}/Historical_Starting_Pitchers.xlsx",
-        "pitcher_game_logs":      f"{base}/2025_Pitching_Logs.xlsx",
+        "pitcher_game_logs":      f"{base}/2026_Pitching_Logs.xlsx",
         "pitcher_splits":         f"{base}/Season_Aggregated_Pitcher_Statistics.xlsx",
         "pitcher_percentiles":    f"{base}/Pitcher_Percentile_Rankings.csv",
         "hitter_percentiles":     f"{base}/Hitter_Percentile_Rankings.csv",
