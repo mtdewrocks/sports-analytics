@@ -135,7 +135,13 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             # Sort newest first
             date_col = _find_col(sub, ["date"])
             if date_col:
+                sub[date_col] = pd.to_datetime(sub[date_col], errors="coerce")
+                # Filter to 2026 only
+                sub = sub[sub[date_col].dt.year == 2026]
                 sub = sub.sort_values(date_col, ascending=False)
+                # Limit to last 10 games and format date as M/D/YYYY string
+                sub = sub.head(10)
+                sub[date_col] = sub[date_col].apply(lambda d: f"{d.month}/{d.day}/{d.year}" if pd.notna(d) else "")
             game_logs = sub.fillna("").to_dict(orient="records")
 
     # ------------------------------------------------------------------
