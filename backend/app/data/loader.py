@@ -40,6 +40,19 @@ def get_nba_props() -> pd.DataFrame:
     return pd.read_excel(io.BytesIO(raw))
 
 @lru_cache(maxsize=1)
+def get_pitcher_names() -> list:
+    """Lightweight loader — only fetches the small pitcher names parquet file."""
+    base = settings.MLB_BASE_URL
+    try:
+        raw = _fetch_bytes(f"{base}/Historical_Starting_Pitchers.parquet")
+        df = pd.read_parquet(io.BytesIO(raw))
+        col = next((c for c in df.columns if "savant_name" in c.lower() or "savant name" in c.lower()), df.columns[0])
+        return sorted(df[col].dropna().unique().tolist())
+    except Exception as e:
+        print(f"Warning: could not load pitcher names parquet: {e}")
+        return []
+
+@lru_cache(maxsize=1)
 def get_mlb_data() -> dict:
     base = settings.MLB_BASE_URL
     files = {

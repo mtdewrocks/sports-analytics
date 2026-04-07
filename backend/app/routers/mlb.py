@@ -7,6 +7,11 @@ router = APIRouter(prefix="/api/mlb", tags=["mlb"])
 
 @router.get("/pitchers")
 def pitchers(_=Depends(require_access)):
+    from app.data.loader import get_pitcher_names
+    names = get_pitcher_names()
+    if names:
+        return names
+    # Fallback to full data load if parquet not available
     return mlb_data.get_pitchers()
 
 @router.get("/matchup")
@@ -23,9 +28,10 @@ def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None)
 
 @router.post("/refresh")
 def refresh_cache(_=Depends(require_access)):
-    """Clear the MLB data cache so fresh files are fetched from GitHub on next request."""
-    from app.data.loader import get_mlb_data
+    """Clear all MLB data caches so fresh files are fetched from GitHub on next request."""
+    from app.data.loader import get_mlb_data, get_pitcher_names
     get_mlb_data.cache_clear()
+    get_pitcher_names.cache_clear()
     return {"status": "cache cleared"}
 
 @router.get("/debug")
