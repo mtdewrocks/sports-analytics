@@ -115,6 +115,15 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                         season_stats["L"] = int(pitcher_logs[l_col].astype(float).sum())
                     if so_col and "SO" not in season_stats:
                         season_stats["SO"] = int(pitcher_logs[so_col].astype(float).sum())
+
+        # Compute K/IP (baseball IP convention: .1 = 1/3 inn, .2 = 2/3 inn)
+        if season_stats:
+            ip_raw = float(season_stats.get("IP", 0) or 0)
+            ip_frac = round(ip_raw - int(ip_raw), 1)
+            ip_true = int(ip_raw) + (ip_frac * 10 / 3)
+            so_val = int(season_stats.get("SO", 0) or 0)
+            if ip_true > 0:
+                season_stats["K/IP"] = round(so_val / ip_true, 2)
     except Exception as e:
         print(f"Warning: season_stats section failed for {pitcher_name}: {e}")
 
@@ -312,12 +321,17 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
     return lw_df.head(25).fillna("").to_dict(orient="records")
 
 
+_EXCLUDED_BOOKS = {
+    "ballybet", "betonlineag", "betparx", "betr_us_dfs",
+    "betrivers", "bovada", "dabble_us_dfs", "hardrockbet_oh", "mybookieag",
+}
+
 def get_mlb_props(
     team: Optional[str] = None,
     player: Optional[str] = None,
     market: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Return MLB props filtered by team, player, and/or market."""
+    """Return MLB props pivoted wide (one row per player/line/market, sportsbooks as columns)."""
     data = get_mlb_data()
     props_df = data.get("props", pd.DataFrame())
     if props_df.empty:
@@ -326,15 +340,47 @@ def get_mlb_props(
     props_df = props_df.copy()
     props_df.columns = [c.strip().lower().replace(" ", "_") for c in props_df.columns]
 
-    player_col = _find_col(props_df, ["player", "player_name", "name"])
-    team_col = _find_col(props_df, ["team", "team_name", "mlb_team_long"])
-    market_col = _find_col(props_df, ["market", "prop_type", "stat", "bet_type", "category"])
+    player_col  = _find_col(props_df, ["player", "player_name", "name"])
+    market_col  = _find_col(props_df, ["market", "prop_type", "stat", "bet_type", "category"])
+    book_col    = _find_col(props_df, ["bookmakers", "bookmaker", "sportsbook"])
+    price_col   = _find_col(props_df, ["over_price", "price", "over"])
+    line_col    = _find_col(props_df, ["line", "line_value"])
 
-    if team and team_col:
-        props_df = props_df[props_df[team_col].str.upper().str.strip() == team.strip().upper()]
+    # Remove excluded sportsbooks
+    if book_col:
+        props_df = props_df[~props_df[book_col].str.lower().isin(_EXCLUDED_BOOKS)]
+
+    # Optional row-level filters
     if player and player_col:
         props_df = props_df[props_df[player_col].str.lower().str.strip() == _normalize(player)]
     if market and market_col:
         props_df = props_df[props_df[market_col].str.lower().str.strip() == _normalize(market)]
+
+    # Pivot to wide format
+    if book_col and price_col and player_col:
+        idx = [c for c in [player_col, line_col, market_col] if c]
+        try:
+            pivot = props_df.pivot_table(
+                index=idx,
+                columns=book_col,
+                values=price_col,
+                aggfunc="first",
+            ).reset_index()
+            pivot.columns.name = None
+
+            # Build line_id display label
+            pivot["line_id"] = pivot[player_col].astype(str)
+            if line_col and line_col in pivot.columns:
+                pivot["line_id"] = pivot["line_id"] + " " + pivot[line_col].astype(str)
+            if market_col and market_col in pivot.columns:
+                pivot["line_id"] = pivot["line_id"] + " " + pivot[market_col].astype(str)
+
+            # Reorder: line_id first, then meta, then sportsbook columns
+            meta = [c for c in idx if c in pivot.columns]
+            books = [c for c in pivot.columns if c not in meta and c != "line_id"]
+            pivot = pivot[["line_id"] + meta + books]
+            return pivot.fillna("").to_dict(orient="records")
+        except Exception as e:
+            print(f"Warning: props pivot failed: {e}")
 
     return props_df.fillna("").to_dict(orient="records")

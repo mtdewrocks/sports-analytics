@@ -49,7 +49,7 @@ function pctBarColor(pct: number) {
   return '#e74c3c';
 }
 
-const SEASON_DISPLAY = ['Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'WHIP'];
+const SEASON_DISPLAY = ['Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'K/IP', 'WHIP'];
 
 const cardStyle: React.CSSProperties = {
   background: 'white',
@@ -165,7 +165,7 @@ export default function MLBMatchup() {
         {/* ── Pitcher Photo + Season Stats ── */}
         {(selectedPitcher || seasonDisplay.length > 0) && (
           <div style={{ ...cardStyle, marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '16px 20px' }}>
               {selectedPitcher && (
                 <img
                   src={photoUrl}
@@ -248,7 +248,7 @@ export default function MLBMatchup() {
 
                 {splits.length > 0 && (
                   <div style={{ ...cardStyle, flex: 1, minWidth: 300, marginBottom: 0 }}>
-                    <div style={cardHeaderStyle}>Splits (vs L / vs R) — 2024–2025</div>
+                    <div style={cardHeaderStyle}>Splits (vs L / vs R) — 2025–2026</div>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
@@ -262,7 +262,7 @@ export default function MLBMatchup() {
                           {splits.map((row, i) => (
                             <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
                               {splitsColumns.map((col) => (
-                                <td key={col} style={{ ...tdStyle, textAlign: col === 'Statistic' ? 'left' : 'center', fontWeight: col === 'Statistic' ? 600 : 400 }}>
+                                <td key={col} style={{ ...tdStyle, fontWeight: col === 'Statistic' ? 600 : 400 }}>
                                   {String(row[col] ?? '—')}
                                 </td>
                               ))}
@@ -276,7 +276,7 @@ export default function MLBMatchup() {
 
                 {percentiles.length > 0 && (
                   <div style={{ ...cardStyle, flex: 1, minWidth: 300, marginBottom: 0 }}>
-                    <div style={cardHeaderStyle}>2025 Percentile Rankings</div>
+                    <div style={cardHeaderStyle}>2026 Percentile Rankings</div>
                     <div style={{ padding: '12px 16px' }}>
                       {percentiles.map((row, i) => {
                         const pct = Math.round(Number(row.Percentile));
