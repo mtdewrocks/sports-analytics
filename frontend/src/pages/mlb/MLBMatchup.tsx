@@ -64,6 +64,7 @@ const cardHeaderStyle: React.CSSProperties = {
   padding: '10px 16px',
   fontWeight: 700,
   fontSize: 14,
+  textAlign: 'center',
 };
 const thStyle: React.CSSProperties = {
   padding: '8px 12px',
@@ -165,7 +166,7 @@ export default function MLBMatchup() {
         {/* ── Pitcher Photo + Season Stats ── */}
         {(selectedPitcher || seasonDisplay.length > 0) && (
           <div style={{ ...cardStyle, marginBottom: 20 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 20, padding: '16px 20px' }}>
               {selectedPitcher && (
                 <img
                   src={photoUrl}
