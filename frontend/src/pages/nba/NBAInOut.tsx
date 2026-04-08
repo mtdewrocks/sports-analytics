@@ -110,71 +110,72 @@ export default function NBAInOut() {
           />
         </div>
 
-        {/* Teammate checkbox list */}
-        <div style={{ minWidth: 220 }}>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
-            Exclude Teammates{excluded.length > 0 ? ` (${excluded.length} selected)` : ''}
-          </label>
-          <input
-            type="text"
-            placeholder={playerA ? 'Filter teammates...' : 'Select anchor first'}
-            disabled={!playerA || teammates.length === 0}
-            value={tmFilter}
-            onChange={(e) => setTmFilter(e.target.value)}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              padding: '7px 10px', fontSize: 13,
+        {/* Teammate checkbox list — only shown once anchor player is selected */}
+        {playerA && (
+          <div style={{ minWidth: 220 }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+              Exclude Teammates{excluded.length > 0 ? ` (${excluded.length} selected)` : ''}
+            </label>
+            <input
+              type="text"
+              placeholder="Filter teammates..."
+              disabled={teammates.length === 0}
+              value={tmFilter}
+              onChange={(e) => setTmFilter(e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '7px 10px', fontSize: 13,
+                border: '1px solid #ddd', borderRadius: 4,
+                marginBottom: 4,
+                background: teammates.length === 0 ? '#f5f5f5' : 'white',
+              }}
+            />
+            <div style={{
               border: '1px solid #ddd', borderRadius: 4,
-              marginBottom: 4,
-              background: !playerA || teammates.length === 0 ? '#f5f5f5' : 'white',
-            }}
-          />
-          <div style={{
-            border: '1px solid #ddd', borderRadius: 4,
-            maxHeight: 200, overflowY: 'auto',
-            background: !playerA || teammates.length === 0 ? '#f5f5f5' : 'white',
-          }}>
-            {!playerA || teammates.length === 0 ? (
-              <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>
-                {playerA ? 'No teammates found' : 'Select anchor player first'}
-              </div>
-            ) : filteredTeammates.length === 0 ? (
-              <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No matches</div>
-            ) : (
-              filteredTeammates.map((t) => (
-                <label
-                  key={t}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '6px 12px', cursor: 'pointer', fontSize: 13,
-                    background: excluded.includes(t) ? '#f0f4ff' : 'transparent',
-                    borderBottom: '1px solid #f0f0f0',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={excluded.includes(t)}
-                    onChange={() => toggleExclude(t)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  {t}
-                </label>
-              ))
+              maxHeight: 200, overflowY: 'auto',
+              background: teammates.length === 0 ? '#f5f5f5' : 'white',
+            }}>
+              {teammates.length === 0 ? (
+                <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No teammates found</div>
+              ) : filteredTeammates.length === 0 ? (
+                <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No matches</div>
+              ) : (
+                filteredTeammates.map((t) => (
+                  <label
+                    key={t}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '6px 12px', cursor: 'pointer', fontSize: 13,
+                      background: excluded.includes(t) ? '#f0f4ff' : 'transparent',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={excluded.includes(t)}
+                      onChange={() => toggleExclude(t)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    {t}
+                  </label>
+                ))
+              )}
+            </div>
+            {excluded.length > 0 && (
+              <button
+                onClick={() => setExcluded([])}
+                style={{
+                  marginTop: 4, fontSize: 12, color: '#999', background: 'none',
+                  border: 'none', cursor: 'pointer', padding: 0,
+                }}
+              >
+                Clear all
+              </button>
             )}
           </div>
-          {excluded.length > 0 && (
-            <button
-              onClick={() => setExcluded([])}
-              style={{
-                marginTop: 4, fontSize: 12, color: '#999', background: 'none',
-                border: 'none', cursor: 'pointer', padding: 0,
-              }}
-            >
-              Clear all
-            </button>
-          )}
-        </div>
+        )}
 
+        {playerA && (
         <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
           <button
             onClick={analyze}
@@ -194,6 +195,7 @@ export default function NBAInOut() {
             Analyze
           </button>
         </div>
+        )}
       </div>
 
       {loading && <LoadingSpinner />}
