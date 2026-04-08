@@ -92,8 +92,6 @@ export default function MLBProps() {
   const [selectedMarket, setSelectedMarket]   = useState('');
   const [selectedBooks, setSelectedBooks]     = useState<Set<string>>(new Set());
   const [minOdds, setMinOdds]                 = useState<number | null>(null);
-  const [booksOpen, setBooksOpen]             = useState(true);
-
   // Load all props on mount
   useEffect(() => {
     setLoading(true);
