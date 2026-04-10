@@ -25,6 +25,25 @@ def _convert_savant_name(name: str) -> str:
         return name
 
 
+# Sanity bounds — corrupted historical values can reach e+100 from accumulation bugs
+_PERCENT_STATS = {"Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%",
+                  "Weighted FB%", "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%"}
+_RATE_STATS    = {"Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG", "ISO Pitcher"}
+_ERA_STATS     = {"Weighted FIP", "Weighted xFIP"}
+
+
+def _sane(val, stat):
+    if val is None:
+        return None
+    if stat in _PERCENT_STATS and not (0 <= val <= 100):
+        return None
+    if stat in _RATE_STATS and not (0 <= val <= 2):
+        return None
+    if stat in _ERA_STATS and not (0 <= val <= 15):
+        return None
+    return val
+
+
 # ---------------------------------------------------------------------------
 # Public helpers
 # ---------------------------------------------------------------------------
@@ -209,24 +228,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             out = {"Split": split_val, "TBF": int(total_tbf), "HR": int(hr25 + hr26)}
             out["Pitcher HR Rate"] = round((hr25 + hr26) / total_tbf, 3) if total_tbf else ""
 
-            # Sanity bounds — corrupted historical values can reach e+100 from accumulation bugs
-        _PERCENT_STATS = {"Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%",
-                          "Weighted FB%", "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%"}
-        _RATE_STATS    = {"Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG", "ISO Pitcher"}
-        _ERA_STATS     = {"Weighted FIP", "Weighted xFIP"}
-
-        def _sane(val, stat):
-            if val is None:
-                return None
-            if stat in _PERCENT_STATS and not (0 <= val <= 100):
-                return None
-            if stat in _RATE_STATS and not (0 <= val <= 2):
-                return None
-            if stat in _ERA_STATS and not (0 <= val <= 15):
-                return None
-            return val
-
-        for stat in WEIGHTED_STATS:
+            for stat in WEIGHTED_STATS:
                 v25_raw = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
                 v26_raw = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
                 v25 = _sane(v25_raw, stat)
