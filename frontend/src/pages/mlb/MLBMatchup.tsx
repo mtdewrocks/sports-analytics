@@ -37,10 +37,10 @@ function isoColor(v: number) {
   return { bg: '#b71c1c', fg: 'white' };
 }
 function kpctColor(v: number) {
-  if (v >= 25) return { bg: '#1a7a3a', fg: 'white' };
-  if (v >= 20) return { bg: '#1e88e5', fg: 'white' };
-  if (v >= 15) return { bg: '#e57373', fg: 'white' };
-  return { bg: '#b71c1c', fg: 'white' };
+  if (v >= 25) return { bg: '#b71c1c', fg: 'white' };
+  if (v >= 20) return { bg: '#e57373', fg: 'white' };
+  if (v >= 15) return { bg: '#1e88e5', fg: 'white' };
+  return { bg: '#1a7a3a', fg: 'white' };
 }
 
 function pctBarColor(pct: number) {
@@ -166,7 +166,7 @@ export default function MLBMatchup() {
         {/* ── Pitcher Photo + Season Stats ── */}
         {(selectedPitcher || seasonDisplay.length > 0) && (
           <div style={{ ...cardStyle, marginBottom: 20 }}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 20, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, padding: '16px 20px' }}>
               {selectedPitcher && (
                 <img
                   src={photoUrl}
