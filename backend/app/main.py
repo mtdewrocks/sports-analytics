@@ -61,6 +61,7 @@ def clear_cache():
     from app.data.loader import (
         get_nba_data, get_nfl_stats, get_nfl_team_stats,
         get_nfl_schedule, get_nba_props, get_mlb_data,
+        get_mlb_props_data, get_pitcher_names,
     )
     get_nba_data.cache_clear()
     get_nfl_stats.cache_clear()
@@ -68,6 +69,8 @@ def clear_cache():
     get_nfl_schedule.cache_clear()
     get_nba_props.cache_clear()
     get_mlb_data.cache_clear()
+    get_mlb_props_data.cache_clear()
+    get_pitcher_names.cache_clear()
     return {"status": "cache cleared"}
 
 @app.get("/api/db-test")

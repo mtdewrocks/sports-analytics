@@ -1,7 +1,7 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_mlb_data
+from app.data.loader import get_mlb_data, get_mlb_props_data
 
 
 def _normalize(name: str) -> str:
@@ -137,12 +137,15 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             name_col = _find_col(gl_df, ["name"])
             if name_col:
                 sub = gl_df[gl_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
-                keep = ["Date", "Opp", "Opponent", "W", "L", "IP", "BF", "H", "R", "ER", "HR", "BB", "SO", "Pit"]
+                keep = ["Date", "OPP", "Opponent", "W", "L", "IP", "H", "R", "ER", "HR", "BB", "SO", "Total_Pitches"]
                 keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
                 sub = sub[keep_actual]
-                opp_col = _find_col(sub, ["opp"])
+                opp_col = _find_col(sub, ["opp", "opponent"])
                 if opp_col and opp_col != "Opponent":
                     sub = sub.rename(columns={opp_col: "Opponent"})
+                pit_col = _find_col(sub, ["total_pitches"])
+                if pit_col and pit_col != "Pitches":
+                    sub = sub.rename(columns={pit_col: "Pitches"})
                 date_col = _find_col(sub, ["date"])
                 if date_col:
                     sub[date_col] = pd.to_datetime(sub[date_col], errors="coerce")
@@ -206,9 +209,28 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             out = {"Split": split_val, "TBF": int(total_tbf), "HR": int(hr25 + hr26)}
             out["Pitcher HR Rate"] = round((hr25 + hr26) / total_tbf, 3) if total_tbf else ""
 
-            for stat in WEIGHTED_STATS:
-                v25 = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
-                v26 = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
+            # Sanity bounds — corrupted historical values can reach e+100 from accumulation bugs
+        _PERCENT_STATS = {"Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%",
+                          "Weighted FB%", "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%"}
+        _RATE_STATS    = {"Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG", "ISO Pitcher"}
+        _ERA_STATS     = {"Weighted FIP", "Weighted xFIP"}
+
+        def _sane(val, stat):
+            if val is None:
+                return None
+            if stat in _PERCENT_STATS and not (0 <= val <= 100):
+                return None
+            if stat in _RATE_STATS and not (0 <= val <= 2):
+                return None
+            if stat in _ERA_STATS and not (0 <= val <= 15):
+                return None
+            return val
+
+        for stat in WEIGHTED_STATS:
+                v25_raw = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
+                v26_raw = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
+                v25 = _sane(v25_raw, stat)
+                v26 = _sane(v26_raw, stat)
                 if v25 is not None and v26 is not None:
                     combined = (tbf25 * v25 + tbf26 * v26) / total_tbf
                 elif v25 is not None:
@@ -332,8 +354,7 @@ def get_mlb_props(
     market: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Return MLB props pivoted wide (one row per player/line/market, sportsbooks as columns)."""
-    data = get_mlb_data()
-    props_df = data.get("props", pd.DataFrame())
+    props_df = get_mlb_props_data()
     if props_df.empty:
         return []
 
