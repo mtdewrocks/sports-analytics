@@ -175,7 +175,7 @@ export default function MLBMatchup() {
                   style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e0e0', flexShrink: 0 }}
                 />
               )}
-              <div style={{ flex: 1 }}>
+              <div>
                 {selectedPitcher && (
                   <div style={{ fontWeight: 700, fontSize: 18, color: '#1a1a2e', marginBottom: 10 }}>
                     {selectedPitcher}
