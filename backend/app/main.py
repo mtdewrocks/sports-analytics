@@ -44,6 +44,13 @@ def _run_migrations():
 def startup():
     create_tables()
     _run_migrations()
+    # Pre-warm MLB data cache so first user request doesn't time out
+    try:
+        from app.data.loader import get_mlb_data, get_pitcher_names
+        get_mlb_data()
+        get_pitcher_names()
+    except Exception:
+        pass
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(billing_router, prefix="/billing", tags=["billing"])
