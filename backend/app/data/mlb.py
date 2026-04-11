@@ -110,7 +110,8 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                         if col:
                             val = bb_row[col].iloc[0]
                             if pd.notna(val):
-                                season_stats[stat] = val
+                                # Convert numpy scalar → Python native type so JSON serialization works
+                                season_stats[stat] = val.item() if hasattr(val, "item") else val
 
         # Compute K/IP
         if season_stats:
