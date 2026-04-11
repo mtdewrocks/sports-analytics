@@ -89,58 +89,34 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
 
     season_stats = {}
     try:
-        if not stats_df.empty and not starters_df.empty:
-            # Merge on Name <-> Baseball_Savant_Name
-            name_col = _find_col(stats_df, ["name"])
+        # Get Handedness from starters file
+        if not starters_df.empty:
             savant_col = _find_col(starters_df, ["baseball_savant_name"])
-            if name_col and savant_col:
-                merged = stats_df.merge(starters_df, left_on=name_col, right_on=savant_col, how="left")
-                savant_merged_col = _find_col(merged, ["baseball_savant_name"])
-                if savant_merged_col:
-                    row = merged[merged[savant_merged_col].str.lower().str.strip() == pitcher_norm]
-                    if not row.empty:
-                        keep = ["Name", "Handedness", "GS", "W", "L", "ERA", "IP", "SO", "WHIP"]
-                        available = [c for c in keep if _find_col(row, [c])]
-                        season_stats = row[[_find_col(row, [c]) for c in available]].iloc[0].fillna("").to_dict()
-                        # Map K -> SO if SO not present
-                        if "SO" not in season_stats:
-                            k_col = _find_col(row, ["k"])
-                            if k_col:
-                                season_stats["SO"] = int(row[k_col].iloc[0])
+            if savant_col:
+                starter_row = starters_df[starters_df[savant_col].str.lower().str.strip() == pitcher_norm]
+                if not starter_row.empty:
+                    hand_col = _find_col(starter_row, ["handedness"])
+                    if hand_col:
+                        season_stats["Handedness"] = starter_row[hand_col].iloc[0]
 
-        elif not stats_df.empty:
-            name_col = _find_col(stats_df, ["name", "baseball_savant_name"])
-            if name_col:
-                row = stats_df[stats_df[name_col].str.lower().str.strip() == pitcher_norm]
-                if not row.empty:
-                    season_stats = row.iloc[0].fillna("").to_dict()
+        # Get season totals (W, L, ERA, IP, SO, WHIP) from Pitcher_Season_Stats.xlsx (Baseball Reference)
+        bbref_df = data.get("pitcher_season_stats", pd.DataFrame())
+        if not bbref_df.empty:
+            name_col_bb = _find_col(bbref_df, ["name"])
+            if name_col_bb:
+                bb_row = bbref_df[bbref_df[name_col_bb].str.lower().str.strip() == pitcher_norm]
+                if not bb_row.empty:
+                    for stat in ["W", "L", "ERA", "IP", "SO", "WHIP"]:
+                        col = _find_col(bb_row, [stat.lower()])
+                        if col:
+                            season_stats[stat] = bb_row[col].iloc[0]
 
-        # Supplement season_stats with GS / W / L / SO from 2026 game logs
-        gl_df_agg = data.get("pitcher_game_logs", pd.DataFrame())
-        if not gl_df_agg.empty and season_stats:
-            name_col_gl = _find_col(gl_df_agg, ["name"])
-            if name_col_gl:
-                pitcher_logs = gl_df_agg[gl_df_agg[name_col_gl].str.lower().str.strip() == pitcher_norm]
-                if not pitcher_logs.empty:
-                    gs_col = _find_col(pitcher_logs, ["gs"])
-                    w_col  = _find_col(pitcher_logs, ["w"])
-                    l_col  = _find_col(pitcher_logs, ["l"])
-                    so_col = _find_col(pitcher_logs, ["so"])
-                    if gs_col and "GS" not in season_stats:
-                        season_stats["GS"] = int(pitcher_logs[gs_col].astype(float).sum())
-                    if w_col and "W" not in season_stats:
-                        season_stats["W"] = int(pitcher_logs[w_col].astype(float).sum())
-                    if l_col and "L" not in season_stats:
-                        season_stats["L"] = int(pitcher_logs[l_col].astype(float).sum())
-                    if so_col and "SO" not in season_stats:
-                        season_stats["SO"] = int(pitcher_logs[so_col].astype(float).sum())
-
-        # Compute K/IP (baseball IP convention: .1 = 1/3 inn, .2 = 2/3 inn)
+        # Compute K/IP
         if season_stats:
             ip_raw = float(season_stats.get("IP", 0) or 0)
             ip_frac = round(ip_raw - int(ip_raw), 1)
             ip_true = int(ip_raw) + (ip_frac * 10 / 3)
-            so_val = int(season_stats.get("SO", 0) or 0)
+            so_val = float(season_stats.get("SO", 0) or 0)
             if ip_true > 0:
                 season_stats["K/IP"] = round(so_val / ip_true, 2)
     except Exception as e:
