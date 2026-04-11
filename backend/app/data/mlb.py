@@ -98,24 +98,44 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                     if hand_col:
                         season_stats["Handedness"] = starter_row[hand_col].iloc[0]
 
-        # Get season totals (W, L, ERA, IP, SO, WHIP) from Pitcher_Season_Stats.xlsx (Baseball Reference)
-        bbref_df = data.get("pitcher_season_stats", pd.DataFrame())
-        if not bbref_df.empty:
-            name_col_bb = _find_col(bbref_df, ["name"])
-            if name_col_bb:
-                bb_row = bbref_df[bbref_df[name_col_bb].str.lower().str.strip() == pitcher_norm]
-                if not bb_row.empty:
-                    for stat in ["W", "L", "ERA", "IP", "SO", "WHIP"]:
-                        col = _find_col(bb_row, [stat.lower()])
-                        if col:
-                            season_stats[stat] = bb_row[col].iloc[0]
+        # Get W, L, IP, SO, ERA, WHIP from game logs — works for every pitcher
+        gl_df_ss = data.get("pitcher_game_logs", pd.DataFrame())
+        if not gl_df_ss.empty:
+            name_col_gl = _find_col(gl_df_ss, ["name"])
+            if name_col_gl:
+                pl = gl_df_ss[gl_df_ss[name_col_gl].str.lower().str.strip() == pitcher_norm]
+                if not pl.empty:
+                    w_col  = _find_col(pl, ["w"])
+                    l_col  = _find_col(pl, ["l"])
+                    ip_col = _find_col(pl, ["ip"])
+                    so_col = _find_col(pl, ["so"])
+                    er_col = _find_col(pl, ["er"])
+                    h_col  = _find_col(pl, ["h"])
+                    bb_col = _find_col(pl, ["bb"])
+                    if w_col:  season_stats["W"]  = int(pl[w_col].astype(float).sum())
+                    if l_col:  season_stats["L"]  = int(pl[l_col].astype(float).sum())
+                    if so_col: season_stats["SO"] = int(pl[so_col].astype(float).sum())
+                    if ip_col:
+                        def _ip_true(ip):
+                            ip = float(ip); f = round(ip - int(ip), 1)
+                            return int(ip) + (f * 10 / 3)
+                        ip_total = pl[ip_col].astype(float).apply(_ip_true).sum()
+                        full = int(ip_total); thirds = round((ip_total - full) * 3)
+                        season_stats["IP"] = float(f"{full}.{thirds}") if thirds else float(full)
+                        if er_col:
+                            er_total = pl[er_col].astype(float).sum()
+                            season_stats["ERA"] = round(9 * er_total / ip_total, 2) if ip_total > 0 else "- - -"
+                        if h_col and bb_col:
+                            season_stats["WHIP"] = round(
+                                (pl[h_col].astype(float).sum() + pl[bb_col].astype(float).sum()) / ip_total, 2
+                            ) if ip_total > 0 else "- - -"
 
         # Compute K/IP
         if season_stats:
             ip_raw = float(season_stats.get("IP", 0) or 0)
             ip_frac = round(ip_raw - int(ip_raw), 1)
             ip_true = int(ip_raw) + (ip_frac * 10 / 3)
-            so_val = float(season_stats.get("SO", 0) or 0)
+            so_val  = float(season_stats.get("SO", 0) or 0)
             if ip_true > 0:
                 season_stats["K/IP"] = round(so_val / ip_true, 2)
     except Exception as e:
