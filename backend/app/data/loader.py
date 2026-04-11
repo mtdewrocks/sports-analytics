@@ -70,8 +70,8 @@ def get_mlb_data() -> dict:
     # Core matchup files — parquet where available, smallest xlsx otherwise
     xlsx_files = {
         "pitcher_season_stats":   f"{base}/Pitcher_Season_Stats.xlsx",
+        "pitcher_splits_agg":     f"{base}/Season_Aggregated_Pitcher_Statistics.xlsx",
         "historical_starters":    f"{base}/Historical_Starting_Pitchers.xlsx",
-        "pitcher_splits_hist":    f"{base}/Historical_Pitcher_Splits.xlsx",
         "combined_daily":         f"{base}/Combined_Daily_Data.xlsx",
         "last_week_stats":        f"{base}/Last_Week_Stats.xlsx",
     }

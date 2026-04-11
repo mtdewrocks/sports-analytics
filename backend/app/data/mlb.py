@@ -59,10 +59,10 @@ def get_pitchers() -> List[str]:
         if col:
             return sorted(starters_df[col].dropna().unique().tolist())
 
-    # Fallback: pitcher season stats Name column
-    stats_df = data.get("pitcher_season_stats", pd.DataFrame())
+    # Fallback: pitcher splits aggregated Name column
+    stats_df = data.get("pitcher_splits_agg", pd.DataFrame())
     if not stats_df.empty:
-        col = _find_col(stats_df, ["name", "pitcher_name", "pitcher"])
+        col = _find_col(stats_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
         if col:
             return sorted(stats_df[col].dropna().unique().tolist())
 
@@ -82,9 +82,8 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     pitcher_norm = _normalize(pitcher_name)
 
     # ------------------------------------------------------------------
-    # 1. Season stats — Pitcher_Season_Stats.xlsx merged with Historical_Starting_Pitchers
+    # 1. Season stats — Pitcher_Season_Stats.xlsx (Baseball Reference totals)
     # ------------------------------------------------------------------
-    stats_df = data.get("pitcher_season_stats", pd.DataFrame())
     starters_df = data.get("historical_starters", pd.DataFrame())
 
     season_stats = {}
@@ -153,8 +152,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         print(f"Warning: game_logs section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
-    # 3. Splits — combine 2025 (Season_Aggregated) + 2026 (Pitcher_Season_Stats)
-    #    using TBF-weighted averaging
+    # 3. Splits — Season_Aggregated_Pitcher_Statistics.xlsx
     # ------------------------------------------------------------------
     STAT_ORDER = [
         "TBF", "Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG",
@@ -162,76 +160,27 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         "Weighted GB%", "Weighted LD%", "Weighted FB%", "Weighted HR/FB",
         "Weighted Soft%", "Weighted Med%", "Weighted Hard%", "Weighted FIP", "Weighted xFIP",
     ]
-    WEIGHTED_STATS = [
-        "Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG",
-        "Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%", "Weighted FB%",
-        "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%",
-        "Weighted FIP", "Weighted xFIP",
-    ]
 
-    splits_df   = data.get("pitcher_splits_hist", pd.DataFrame())
-    stats_df_26 = data.get("pitcher_season_stats", pd.DataFrame())
+    splits_df = data.get("pitcher_splits_agg", pd.DataFrame())
     splits = []
     try:
-        def _get_splits_row(df, savant_candidates):
-            col = _find_col(df, savant_candidates)
-            if col is None:
-                return pd.DataFrame()
-            return df[df[col].str.lower().str.strip() == pitcher_norm].copy()
-
-        sub25 = _get_splits_row(splits_df,   ["baseball savant name", "baseball_savant_name"])
-        sub26 = _get_splits_row(stats_df_26, ["baseball savant name", "baseball_savant_name"])
-
-        for df in [sub25, sub26]:
-            sc = _find_col(df, ["split"])
-            if sc and sc != "Split":
-                df.rename(columns={sc: "Split"}, inplace=True)
-
-        combined_rows = []
-        for split_val in ["vs L", "vs R"]:
-            row25 = sub25[sub25["Split"] == split_val] if not sub25.empty and "Split" in sub25.columns else pd.DataFrame()
-            row26 = sub26[sub26["Split"] == split_val] if not sub26.empty and "Split" in sub26.columns else pd.DataFrame()
-
-            tbf25 = float(row25["TBF"].iloc[0]) if not row25.empty and "TBF" in row25.columns else 0
-            tbf26 = float(row26["TBF"].iloc[0]) if not row26.empty and "TBF" in row26.columns else 0
-            total_tbf = tbf25 + tbf26
-            if total_tbf == 0:
-                continue
-
-            hr25 = float(row25["HR"].iloc[0]) if not row25.empty and "HR" in row25.columns else 0
-            hr26 = float(row26["HR"].iloc[0]) if not row26.empty and "HR" in row26.columns else 0
-
-            out = {"Split": split_val, "TBF": int(total_tbf), "HR": int(hr25 + hr26)}
-            out["Pitcher HR Rate"] = round((hr25 + hr26) / total_tbf, 3) if total_tbf else ""
-
-            for stat in WEIGHTED_STATS:
-                v25_raw = float(row25[stat].iloc[0]) if not row25.empty and stat in row25.columns else None
-                v26_raw = float(row26[stat].iloc[0]) if not row26.empty and stat in row26.columns else None
-                v25 = _sane(v25_raw, stat)
-                v26 = _sane(v26_raw, stat)
-                if v25 is not None and v26 is not None:
-                    combined = (tbf25 * v25 + tbf26 * v26) / total_tbf
-                elif v25 is not None:
-                    combined = v25
-                elif v26 is not None:
-                    combined = v26
-                else:
-                    combined = None
-                out[stat] = round(combined, 3) if combined is not None else ""
-
-            wslg = out.get("Weighted SLG", "")
-            wavg = out.get("Weighted AVG", "")
-            out["ISO Pitcher"] = round(float(wslg) - float(wavg), 3) if wslg != "" and wavg != "" else ""
-            combined_rows.append(out)
-
-        if combined_rows:
-            combined_df = pd.DataFrame(combined_rows).set_index("Split").T.reset_index()
-            combined_df = combined_df.rename(columns={"index": "Statistic"})
-            order_map = {s: i for i, s in enumerate(STAT_ORDER)}
-            combined_df["_ord"] = combined_df["Statistic"].map(order_map).fillna(999)
-            combined_df = combined_df.sort_values("_ord").drop(columns=["_ord"])
-            cols = [c for c in ["vs L", "Statistic", "vs R"] if c in combined_df.columns]
-            splits = combined_df[cols].fillna("").to_dict(orient="records")
+        if not splits_df.empty:
+            name_col = _find_col(splits_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
+            split_col = _find_col(splits_df, ["split"])
+            if name_col and split_col:
+                sub = splits_df[splits_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
+                if split_col != "Split":
+                    sub = sub.rename(columns={split_col: "Split"})
+                sub = sub[sub["Split"].isin(["vs L", "vs R"])]
+                if not sub.empty:
+                    stat_cols = [c for c in STAT_ORDER if c in sub.columns]
+                    pivot = sub[["Split"] + stat_cols].set_index("Split")[stat_cols].T.reset_index()
+                    pivot = pivot.rename(columns={"index": "Statistic"})
+                    order_map = {s: i for i, s in enumerate(STAT_ORDER)}
+                    pivot["_ord"] = pivot["Statistic"].map(order_map).fillna(999)
+                    pivot = pivot.sort_values("_ord").drop(columns=["_ord"])
+                    cols = [c for c in ["vs L", "Statistic", "vs R"] if c in pivot.columns]
+                    splits = pivot[cols].fillna("").to_dict(orient="records")
     except Exception as e:
         print(f"Warning: splits section failed for {pitcher_name}: {e}")
 
