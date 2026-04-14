@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Claude
+.claude/
+
+# Node
+node_modules/
+package-lock.json
+
+# Database
+*.db
+*.sqlite
+
+# Misc
+generate_doc.js
+.DS_Store
+Thumbs.db
