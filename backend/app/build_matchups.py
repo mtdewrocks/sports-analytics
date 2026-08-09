@@ -20,7 +20,11 @@ in GitHub Actions:
 
 Reads:  backend/data/mlb/lineups_{date}.csv
         backend/data/mlb/daily_components_2026.parquet
-Writes: backend/data/mlb/matchups_{date}.parquet
+Writes: backend/data/mlb/matchups.parquet
+
+The output filename is fixed, not date-stamped, so the dashboard can point at
+one path forever. Each run overwrites it with the current slate; the `date`
+column carries which day the rows belong to.
 """
 
 from __future__ import annotations
@@ -79,6 +83,27 @@ def season_totals(components: pd.DataFrame, role: str, by_hand: bool) -> pd.Data
     return out
 
 
+def last_week(components: pd.DataFrame, day: str, days: int = 7) -> pd.DataFrame:
+    """Recent-form batting average, all pitchers, over a trailing window.
+
+    Keyed on the slate date rather than the parquet's last game so the window
+    stays honest on an off-day -- otherwise a Monday with no games would
+    silently report the seven days before Sunday.
+    """
+    cutoff = pd.Timestamp(day) - pd.Timedelta(days=days)
+    recent = components[
+        (components["role"] == "batter") & (components["game_date"] >= cutoff)
+    ]
+
+    out = recent.groupby("player_id", as_index=False).agg(
+        last_week_ab=("ab", "sum"), last_week_h=("h", "sum")
+    )
+    out["last_week_ba"] = out["last_week_h"] / out["last_week_ab"].where(
+        out["last_week_ab"] > 0
+    )
+    return out[["player_id", "last_week_ab", "last_week_ba"]]
+
+
 def attach(lineups: pd.DataFrame, totals: pd.DataFrame, left_id: str,
            left_hand: str | None, prefix: str) -> pd.DataFrame:
     """Left-join one side's season totals onto the lineup rows."""
@@ -127,17 +152,19 @@ def add_flags(frame: pd.DataFrame) -> pd.DataFrame:
 COLUMN_ORDER = [
     # identity
     "date", "game_pk", "game_time_utc", "team", "opponent", "home_away",
-    "batting_order", "batter_name", "batter_id", "bats",
+    "batting_order", "player", "batter_id", "bats", "hits_from",
     # hitter vs the starter's hand
     "split_hitter", "split_pa", "split_ab", "split_h", "split_hr",
     "split_avg", "split_obp", "split_slg", "split_ops", "split_iso",
     "split_woba", "split_xwoba_con", "split_k_pct", "split_bb_pct",
     "split_hr_pct", "split_pitches_per_pa",
+    # recent form, all pitchers
+    "last_week_ab", "last_week_ba",
     # hitter overall
     "all_pa", "all_avg", "all_obp", "all_slg", "all_ops", "all_iso",
     "all_woba", "all_k_pct", "all_bb_pct", "all_hr_pct",
     # opposing starter vs this batter's stance
-    "pitcher_name", "pitcher_id", "throws", "split_pitcher",
+    "pitcher", "pitcher_id", "throws", "split_pitcher",
     "p_split_pa", "p_split_h", "p_split_hr", "p_split_avg", "p_split_obp",
     "p_split_slg", "p_split_ops", "p_split_iso", "p_split_woba",
     "p_split_xwoba_con", "p_split_k_pct", "p_split_bb_pct", "p_split_hr_pct",
@@ -182,24 +209,36 @@ def main() -> None:
     frame = attach(frame, pit_split, "opp_starter_id", "stand", "p_split_")
     frame = attach(frame, pit_all, "opp_starter_id", None, "p_all_")
 
+    # Recent form is not split by hand -- it answers "is he hot right now".
+    frame = frame.merge(
+        last_week(components, day).rename(columns={"player_id": "batter_id"}),
+        on="batter_id",
+        how="left",
+    )
+
     frame = frame.rename(
         columns={
             "slot": "batting_order",
-            "stand": "bats",
+            "batter_name": "player",
+            "stand": "hits_from",
             "opp_throws": "throws",
-            "opp_starter_name": "pitcher_name",
+            "opp_starter_name": "pitcher",
             "opp_starter_id": "pitcher_id",
         }
     )
+
+    # `bats` is how the player is listed (S survives for switch hitters);
+    # `hits_from` is the side they bat from today, and is what every split
+    # column above was actually matched on.
     frame["split_hitter"] = "vs " + frame["throws"]
-    frame["split_pitcher"] = "vs " + frame["bats"]
+    frame["split_pitcher"] = "vs " + frame["hits_from"]
 
     frame = add_flags(frame)
     frame = frame[[c for c in COLUMN_ORDER if c in frame.columns]]
     frame = frame.sort_values(["game_pk", "team", "batting_order"]).reset_index(drop=True)
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    dest = DATA_DIR / f"daily_matchups.parquet"
+    dest = DATA_DIR / "matchups.parquet"
     frame.to_parquet(dest, index=False)
 
     unmatched = frame["split_pa"].isna().sum()
