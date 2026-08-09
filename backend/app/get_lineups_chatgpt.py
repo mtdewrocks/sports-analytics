@@ -1,4 +1,3 @@
-```python
 """Pull today's MLB starting pitchers and posted lineups.
 
 The script creates one row per starting batter and includes the opposing
@@ -375,4 +374,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-```
