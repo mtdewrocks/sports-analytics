@@ -151,7 +151,7 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-09,823751,2026-08-09T18:10:00Z,Milwaukee Brewers,Minnesota Twins,home,6,641343,Jake Bauers,687570,Connor Prielipp,L,L
 2026-08-09,823751,2026-08-09T18:10:00Z,Milwaukee Brewers,Minnesota Twins,home,7,800325,Luis Lara,687570,Connor Prielipp,R,L
 2026-08-09,823751,2026-08-09T18:10:00Z,Milwaukee Brewers,Minnesota Twins,home,8,596142,Gary Sánchez,687570,Connor Prielipp,R,L
-2026-08-09,823751,2026-08-09T18:10:00Z,Milwaukee Brewers,Minnesota Twins,home,9,663604,Brandon Lockridge,687570,Connor Prielipp,R,L
+2026-08-09,823751,2026-08-09T18:10:00Z,Milwaukee Brewers,Minnesota Twins,home,9,592885,Christian Yelich,687570,Connor Prielipp,L,L
 2026-08-09,823751,2026-08-09T18:10:00Z,Minnesota Twins,Milwaukee Brewers,away,1,663616,Trevor Larnach,694819,Jacob Misiorowski,L,R
 2026-08-09,823751,2026-08-09T18:10:00Z,Minnesota Twins,Milwaukee Brewers,away,2,680777,Ryan Jeffers,694819,Jacob Misiorowski,R,R
 2026-08-09,823751,2026-08-09T18:10:00Z,Minnesota Twins,Milwaukee Brewers,away,3,668904,Royce Lewis,694819,Jacob Misiorowski,R,R
@@ -180,23 +180,23 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-09,823020,2026-08-09T18:15:00Z,Colorado Rockies,St. Louis Cardinals,away,8,664954,Brett Sullivan,700241,Michael McGreevy,L,R
 2026-08-09,823020,2026-08-09T18:15:00Z,Colorado Rockies,St. Louis Cardinals,away,9,678662,Ezequiel Tovar,700241,Michael McGreevy,R,R
 2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,1,694671,Wyatt Langford,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,2,608369,Corey Seager,700249,Cade Povich,L,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,3,677649,Ezequiel Duran,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,4,607043,Brandon Nimmo,700249,Cade Povich,L,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,5,669394,Jake Burger,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,6,679822,Justin Foscue,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,7,553869,Elias Díaz,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,8,681146,Jonah Bride,700249,Cade Povich,R,L
-2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,9,695508,Cam Cauley,700249,Cade Povich,R,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,2,670032,Nicky Lopez,700249,Cade Povich,L,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,3,608369,Corey Seager,700249,Cade Povich,L,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,4,677649,Ezequiel Duran,700249,Cade Povich,R,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,5,607043,Brandon Nimmo,700249,Cade Povich,L,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,6,694497,Evan Carter,700249,Cade Povich,L,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,7,669394,Jake Burger,700249,Cade Povich,R,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,8,679822,Justin Foscue,700249,Cade Povich,R,L
+2026-08-09,822862,2026-08-09T18:35:00Z,Texas Rangers,Baltimore Orioles,home,9,553869,Elias Díaz,700249,Cade Povich,R,L
 2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,1,683002,Gunnar Henderson,677958,Kumar Rocker,L,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,2,624413,Pete Alonso,677958,Kumar Rocker,R,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,3,702616,Jackson Holliday,677958,Kumar Rocker,L,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,4,641933,Tyler O'Neill,677958,Kumar Rocker,R,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,5,687637,Dylan Beavers,677958,Kumar Rocker,L,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,6,665750,Leody Taveras,677958,Kumar Rocker,L,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,7,691723,Coby Mayo,677958,Kumar Rocker,R,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,8,681297,Colton Cowser,677958,Kumar Rocker,L,R
-2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,9,665966,Carlos Narváez,677958,Kumar Rocker,R,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,2,669236,Jeremiah Jackson,677958,Kumar Rocker,R,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,3,624413,Pete Alonso,677958,Kumar Rocker,R,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,4,702616,Jackson Holliday,677958,Kumar Rocker,L,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,5,641933,Tyler O'Neill,677958,Kumar Rocker,R,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,6,687637,Dylan Beavers,677958,Kumar Rocker,L,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,7,665750,Leody Taveras,677958,Kumar Rocker,L,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,8,691723,Coby Mayo,677958,Kumar Rocker,R,R
+2026-08-09,822862,2026-08-09T18:35:00Z,Baltimore Orioles,Texas Rangers,away,9,681297,Colton Cowser,677958,Kumar Rocker,L,R
 2026-08-09,823190,2026-08-09T20:05:00Z,San Francisco Giants,Detroit Tigers,home,1,805811,Bryce Eldridge,675512,Troy Melton,L,R
 2026-08-09,823190,2026-08-09T20:05:00Z,San Francisco Giants,Detroit Tigers,home,2,808982,Jung Hoo Lee,675512,Troy Melton,L,R
 2026-08-09,823190,2026-08-09T20:05:00Z,San Francisco Giants,Detroit Tigers,home,3,642715,Willy Adames,675512,Troy Melton,R,R
