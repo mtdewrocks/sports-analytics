@@ -44,10 +44,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add backend/app/data/mlb/daily_components_2026.parquet
-          git add backend/app/data/fg_woba_weights.json
-          git add backend/app/data/mlb/statcast_hitters_2026.xlsx
-          git add backend/app/data/mlb/statcast_pitchers_2026.xlsx
+          git add backend/data/mlb/daily_components_2026.parquet
+          git add backend/data/fg_woba_weights.json
+          git add backend/data/mlb/statcast_hitters_2026.xlsx
+          git add backend/data/mlb/statcast_pitchers_2026.xlsx
 
           if git diff --cached --quiet; then
             echo "No data changes to commit."
