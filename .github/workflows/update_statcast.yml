@@ -4,8 +4,7 @@ on:
   schedule:
     # Hourly, 9:00 AM - 9:00 PM Central during daylight saving time (UTC-5).
     # GitHub Actions cron is UTC.
-    - cron: "0 14-23 * * *"   # 9 AM - 6 PM CDT
-    - cron: "0 0-2 * * *"     # 7 PM - 9 PM CDT
+    - cron: "0 13 * * *"
   workflow_dispatch:
 
 permissions:
