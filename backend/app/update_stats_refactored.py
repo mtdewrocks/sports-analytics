@@ -14,6 +14,8 @@ sys.path.insert(0, str(HERE))
 from etl.aggregate import KEY_COLUMNS, aggregate_daily
 from fg_weights import load_weights
 
+KEY_COLUMNS = list(KEY_COLUMNS)
+
 log = logging.getLogger("update")
 
 # -----------------------------------------------------------------------------
