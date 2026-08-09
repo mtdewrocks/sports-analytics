@@ -59,7 +59,7 @@ jobs:
           day="$(TZ=America/Chicago date +%F)"
 
           for path in "backend/data/mlb/lineups_${day}.csv" \
-                      "backend/data/mlb/matchups.parquet"; do
+                      "backend/data/mlb/daily_matchups.parquet"; do
             if [ -f "$path" ]; then
               git add "$path"
             else
