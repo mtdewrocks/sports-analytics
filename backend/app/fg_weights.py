@@ -247,7 +247,7 @@ if __name__ == "__main__":
     season = int(sys.argv[1]) if len(sys.argv) > 1 else datetime.now().year
     here = Path(__file__).resolve().parent
     weights, provenance = load_weights(
-        here / "data" / "fg_woba_weights.json", season, force_refresh=True
+        here / "data" / "mlb" / "fg_woba_weights.json", season, force_refresh=True
     )
     print(f"\nprovenance: {provenance}")
     if season in weights:
