@@ -71,13 +71,11 @@ def get_mlb_data() -> dict:
     xlsx_files = {
         "pitcher_season_stats":   f"{base}/Pitcher_Season_Stats.xlsx",
         "pitcher_splits_agg":     f"{base}/Season_Aggregated_Pitcher_Statistics.xlsx",
-        "historical_starters":    f"{base}/Historical_Starting_Pitchers.xlsx",
-        "combined_daily":         f"{base}/Combined_Daily_Data.xlsx",
-        "last_week_stats":        f"{base}/Last_Week_Stats.xlsx",
     }
     parquet_files = {
         "pitcher_game_logs":      f"{base}/Pitcher_Game_Logs_2026.parquet",
         "matchups": pd.read_parquet(DATA_DIR / "matchups.parquet"),
+        "starters": pd.read_parquet(DATA_DIR / "starters.parquet"),
     }
     csv_files = {
         "pitcher_percentiles":    f"{base}/Pitcher_Percentile_Rankings.csv",
