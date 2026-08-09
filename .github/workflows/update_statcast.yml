@@ -21,12 +21,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: "pip"
@@ -37,17 +37,17 @@ jobs:
           pip install pandas numpy pyarrow openpyxl pybaseball
 
       - name: Run Statcast update
-        run: python update_stats_refactored.py
+        run: python backend/app/update_stats_refactored.py
 
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/daily_components_2026.parquet
-          git add data/fg_woba_weights.json
-          git add statcast_hitters_2026.xlsx
-          git add statcast_pitchers_2026.xlsx
+          git add backend/app/data/daily_components_2026.parquet
+          git add backend/app/data/fg_woba_weights.json
+          git add backend/app/statcast_hitters_2026.xlsx
+          git add backend/app/statcast_pitchers_2026.xlsx
 
           if git diff --cached --quiet; then
             echo "No data changes to commit."
