@@ -42,7 +42,7 @@ jobs:
           pip install pandas requests
 
       - name: Pull starters and lineups
-        run: python -u backend/app/get_lineups.py
+        run: python -u backend/app/get_lineups_chatgpt.py
 
       - name: Commit lineups
         run: |
