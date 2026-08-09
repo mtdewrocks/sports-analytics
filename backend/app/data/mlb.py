@@ -47,26 +47,18 @@ def _sane(val, stat):
 # ---------------------------------------------------------------------------
 # Public helpers
 # ---------------------------------------------------------------------------
-
 def get_pitchers() -> List[str]:
-    """Return sorted list of today's pitcher names (Baseball Savant name)."""
-    data = get_mlb_data()
+    """Every pitcher with a start this season, for the dropdown.
 
-    # Historical starters has Baseball_Savant_Name — this is the canonical pitcher list
-    starters_df = data.get("historical_starters", pd.DataFrame())
-    if not starters_df.empty:
-        col = _find_col(starters_df, ["Baseball_Savant_Name", "baseball_savant_name", "savant_name"])
-        if col:
-            return sorted(starters_df[col].dropna().unique().tolist())
-
-    # Fallback: pitcher splits aggregated Name column
-    stats_df = data.get("pitcher_splits_agg", pd.DataFrame())
-    if not stats_df.empty:
-        col = _find_col(stats_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
-        if col:
-            return sorted(stats_df[col].dropna().unique().tolist())
-
-    return []
+    Season-long rather than today's probables, so a user can look up any
+    starter at any time. Sourced from starters.parquet, which uses the same
+    MLB Stats API names as daily_matchups.parquet -- so a dropdown selection
+    matches the matchup table without any name conversion.
+    """
+    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+    if starters_df.empty:
+        return []
+    return sorted(starters_df["pitcher"].dropna().unique().tolist())
 
 
 def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
@@ -216,38 +208,48 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"Warning: percentiles section failed for {pitcher_name}: {e}")
 
-    # ------------------------------------------------------------------
-    # 5. Opposing hitters — Combined_Daily_Data.xlsx filtered by pitcher
+       # ------------------------------------------------------------------
+    # 5. Opposing hitters — daily_matchups.parquet (built by GitHub Actions)
     # ------------------------------------------------------------------
     opposing_hitters = []
     try:
-        daily_df = data.get("combined_daily", pd.DataFrame())
-        last_week_df = data.get("last_week_stats", pd.DataFrame())
-        if not daily_df.empty:
-            pitcher_col = _find_col(daily_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
-            if pitcher_col:
-                sub = daily_df[daily_df[pitcher_col].str.lower().str.strip() == pitcher_norm].copy()
-                if not last_week_df.empty and not sub.empty:
-                    name_col_lw = _find_col(last_week_df, ["name"])
-                    ba_col = _find_col(last_week_df, ["ba"])
-                    if name_col_lw and ba_col:
-                        lw = last_week_df[[name_col_lw, ba_col]].rename(
-                            columns={name_col_lw: "Name", ba_col: "Last Week BA"}
-                        )
-                        savant_col = _find_col(sub, ["savant name", "savant_name"])
-                        if savant_col:
-                            sub = sub.merge(lw, left_on=savant_col, right_on="Name", how="left").drop(columns=["Name"], errors="ignore")
-                keep = ["fg_name", "Savant Name", "Bats", "Batting Order", "Average",
-                        "wOBA", "ISO", "K%", "BB%", "Fly Ball %", "Hard Contact %", "Last Week BA"]
-                keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
-                sub = sub[keep_actual]
-                order_col = _find_col(sub, ["batting order"])
-                if order_col:
-                    sub = sub.sort_values(order_col)
-                opposing_hitters = sub.fillna("").to_dict(orient="records")
+        matchups_df = data.get("matchups", pd.DataFrame())
+        if not matchups_df.empty:
+            sub = matchups_df[
+                matchups_df["pitcher"].str.lower().str.strip() == pitcher_norm
+            ].copy()
+
+            # Splits were already computed against this starter's throwing hand
+            # and last_week_ba is already joined in, so nothing to merge here.
+            display = {
+                "player": "Player",
+                "bats": "Bats",
+                "batting_order": "Batting Order",
+                "split_avg": "Average",
+                "split_woba": "wOBA",
+                "split_iso": "ISO",
+                "split_k_pct": "K%",
+                "split_bb_pct": "BB%",
+                "last_week_ba": "Last Week BA",
+            }
+            cols = [c for c in display if c in sub.columns]
+            sub = sub[cols].rename(columns=display)
+
+            for col in ("Average", "wOBA", "ISO", "Last Week BA"):
+                if col in sub.columns:
+                    sub[col] = pd.to_numeric(sub[col], errors="coerce").round(3)
+            for col in ("K%", "BB%"):
+                if col in sub.columns:
+                    sub[col] = pd.to_numeric(sub[col], errors="coerce").round(1)
+
+            if "Batting Order" in sub.columns:
+                sub = sub.sort_values("Batting Order")
+
+            # Nullable dtypes hold pd.NA, which is not JSON serializable.
+            sub = sub.astype(object).where(sub.notna(), "")
+            opposing_hitters = sub.to_dict(orient="records")
     except Exception as e:
         print(f"Warning: opposing_hitters section failed for {pitcher_name}: {e}")
-
     return {
         "pitcher": pitcher_name,
         "season_stats": season_stats,
