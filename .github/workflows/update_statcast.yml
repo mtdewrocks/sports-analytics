@@ -15,16 +15,9 @@ concurrency:
   group: update-statcast
   cancel-in-progress: false
 
-env:
-  # Python block-buffers stdout when it is not attached to a TTY, so without
-  # this the per-chunk progress lines never reach the Actions log and a long
-  # Statcast pull looks frozen.
-  PYTHONUNBUFFERED: "1"
-
 jobs:
   update-statcast:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     steps:
       - name: Check out repository
@@ -44,34 +37,17 @@ jobs:
           pip install pandas numpy pyarrow openpyxl pybaseball
 
       - name: Run Statcast update
-        run: python -u backend/app/update_stats_refactored.py
+        run: python backend/app/update_stats_refactored.py
 
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-<<<<<<< HEAD
-          # Stage only this script's outputs -- backend/data/mlb also holds
-          # files written by other jobs. The -f test skips anything the run did
-          # not produce; a bare `git add` on a missing path exits 128 and kills
-          # the step even when the rest of the run succeeded.
-          for f in daily_components_2026.parquet \
-                   fg_woba_weights.json \
-                   statcast_hitters_2026.xlsx \
-                   statcast_pitchers_2026.xlsx; do
-            if [ -f "backend/data/mlb/$f" ]; then
-              git add "backend/data/mlb/$f"
-            else
-              echo "missing (skipped): $f"
-            fi
-          done
-=======
           git add backend/data/mlb/daily_components_2026.parquet
           git add backend/data/mlb/fg_woba_weights.json
           git add backend/data/mlb/statcast_hitters_2026.xlsx
           git add backend/data/mlb/statcast_pitchers_2026.xlsx
->>>>>>> ffdb621f02687788b21dcb6e4187a00dffff4f92
 
           if git diff --cached --quiet; then
             echo "No data changes to commit."
@@ -80,3 +56,4 @@ jobs:
             git pull --rebase --autostash
             git push
           fi
+
