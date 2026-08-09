@@ -74,8 +74,8 @@ def get_mlb_data() -> dict:
     }
     parquet_files = {
         "pitcher_game_logs":      f"{base}/Pitcher_Game_Logs_2026.parquet",
-        "matchups": pd.read_parquet(DATA_DIR / "matchups.parquet"),
-        "starters": pd.read_parquet(DATA_DIR / "starters.parquet"),
+        "matchups": f"{base}/"daily_matchups.parquet"),
+        "starters": f"{base}/"starters.parquet"),
     }
     csv_files = {
         "pitcher_percentiles":    f"{base}/Pitcher_Percentile_Rankings.csv",
