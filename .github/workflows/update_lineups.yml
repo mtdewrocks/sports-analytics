@@ -40,7 +40,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas requests pyarrow
-
+      - name: Pull season starters
+        run: python -u backend/app/get_starters.py
+        
       - name: Pull starters and lineups
         run: python -u backend/app/get_lineups_chatgpt.py
 
@@ -74,3 +76,4 @@ jobs:
             git pull --rebase --autostash
             git push
           fi
+
