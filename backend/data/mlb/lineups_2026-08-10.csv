@@ -5,7 +5,7 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,4,543807,George Springer,543243,Sonny Gray,R,R,R
 2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,5,660821,Jesús Sánchez,543243,Sonny Gray,L,R,L
 2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,6,665926,Andrés Giménez,543243,Sonny Gray,L,R,L
-2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,672960,Kazuma Okamoto,543243,Sonny Gray,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,807727,Charles McAdoo,543243,Sonny Gray,R,R,R
 2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,8,669701,Josh Smith,543243,Sonny Gray,L,R,L
 2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,9,678218,Brandon Valenzuela,543243,Sonny Gray,S,R,L
 2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,1,686765,Nick Sogard,592791,Jameson Taillon,S,R,L
@@ -26,6 +26,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,7,663586,Austin Riley,681035,Christian Scott,R,R,R
 2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,8,805347,Jim Jarvis,681035,Christian Scott,L,R,L
 2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,9,669221,Sean Murphy,681035,Christian Scott,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,1,805999,A.J. Ewing,693821,Bryce Elder,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,2,596019,Francisco Lindor,693821,Bryce Elder,S,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,3,666182,Bo Bichette,693821,Bryce Elder,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,4,701807,Carson Benge,693821,Bryce Elder,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,5,676724,Jared Young,693821,Bryce Elder,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,6,543760,Marcus Semien,693821,Bryce Elder,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,7,683146,Brett Baty,693821,Bryce Elder,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,8,593871,Jorge Polanco,693821,Bryce Elder,S,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,New York Mets,Atlanta Braves,away,9,682626,Francisco Alvarez,693821,Bryce Elder,R,R,R
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,1,668885,Austin Martin,669432,Trevor Rogers,R,L,R
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,2,680777,Ryan Jeffers,669432,Trevor Rogers,R,L,R
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,3,668904,Royce Lewis,669432,Trevor Rogers,R,L,R
@@ -35,6 +44,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,7,701785,Kaelen Culpepper,669432,Trevor Rogers,R,L,R
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,8,605170,Victor Caratini,669432,Trevor Rogers,S,L,R
 2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,9,668952,Ryan Kreidler,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,1,683002,Gunnar Henderson,665152,Dean Kremer,L,R,L
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,2,624413,Pete Alonso,665152,Dean Kremer,R,R,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,3,702616,Jackson Holliday,665152,Dean Kremer,L,R,L
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,4,641933,Tyler O'Neill,665152,Dean Kremer,R,R,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,5,687637,Dylan Beavers,665152,Dean Kremer,L,R,L
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,6,665750,Leody Taveras,665152,Dean Kremer,S,R,L
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,7,691723,Coby Mayo,665152,Dean Kremer,R,R,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,8,681297,Colton Cowser,665152,Dean Kremer,L,R,L
+2026-08-10,823675,2026-08-10T23:40:00Z,Baltimore Orioles,Minnesota Twins,away,9,665966,Carlos Narváez,665152,Dean Kremer,R,R,R
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,1,802139,JJ Wetherholt,691725,Andrew Painter,L,R,L
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,2,671056,Iván Herrera,691725,Andrew Painter,R,R,R
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,3,676475,Alec Burleson,691725,Andrew Painter,L,R,L
