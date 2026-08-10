@@ -1,0 +1,46 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,1,664770,Nathan Lukes,543243,Sonny Gray,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,2,703520,Brett Bateman,543243,Sonny Gray,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,3,665489,Vladimir Guerrero Jr.,543243,Sonny Gray,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,4,543807,George Springer,543243,Sonny Gray,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,5,660821,Jesús Sánchez,543243,Sonny Gray,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,6,665926,Andrés Giménez,543243,Sonny Gray,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,672960,Kazuma Okamoto,543243,Sonny Gray,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,8,669701,Josh Smith,543243,Sonny Gray,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,9,678218,Brandon Valenzuela,543243,Sonny Gray,S,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,1,686765,Nick Sogard,592791,Jameson Taillon,S,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,2,678882,Ceddanne Rafaela,592791,Jameson Taillon,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,3,677800,Wilyer Abreu,592791,Jameson Taillon,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,4,575929,Willson Contreras,592791,Jameson Taillon,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,5,807799,Masataka Yoshida,592791,Jameson Taillon,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,6,702332,Caleb Durbin,592791,Jameson Taillon,R,R,R
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,7,680776,Jarren Duran,592791,Jameson Taillon,L,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,8,678011,Anthony Seigler,592791,Jameson Taillon,S,R,L
+2026-08-10,822780,2026-08-10T23:07:00Z,Boston Red Sox,Toronto Blue Jays,away,9,657136,Connor Wong,592791,Jameson Taillon,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,1,686948,Drake Baldwin,681035,Christian Scott,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,2,660670,Ronald Acuña Jr.,681035,Christian Scott,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,3,621566,Matt Olson,681035,Christian Scott,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,4,671739,Michael Harris II,681035,Christian Scott,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,5,645277,Ozzie Albies,681035,Christian Scott,S,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,6,643289,Mauricio Dubón,681035,Christian Scott,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,7,663586,Austin Riley,681035,Christian Scott,R,R,R
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,8,805347,Jim Jarvis,681035,Christian Scott,L,R,L
+2026-08-10,824887,2026-08-10T23:15:00Z,Atlanta Braves,New York Mets,home,9,669221,Sean Murphy,681035,Christian Scott,R,R,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,1,668885,Austin Martin,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,2,680777,Ryan Jeffers,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,3,668904,Royce Lewis,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,4,605137,Josh Bell,669432,Trevor Rogers,S,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,5,807712,Luke Keaschall,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,6,686797,Brooks Lee,669432,Trevor Rogers,S,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,7,701785,Kaelen Culpepper,669432,Trevor Rogers,R,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,8,605170,Victor Caratini,669432,Trevor Rogers,S,L,R
+2026-08-10,823675,2026-08-10T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,9,668952,Ryan Kreidler,669432,Trevor Rogers,R,L,R
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,1,802139,JJ Wetherholt,691725,Andrew Painter,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,2,671056,Iván Herrera,691725,Andrew Painter,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,3,676475,Alec Burleson,691725,Andrew Painter,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,4,691023,Jordan Walker,691725,Andrew Painter,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,5,701675,Nathan Church,691725,Andrew Painter,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,6,691026,Masyn Winn,691725,Andrew Painter,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,7,665877,José Fermín,691725,Andrew Painter,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,8,699625,Jimmy Crooks,691725,Andrew Painter,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,9,693409,César Prieto,691725,Andrew Painter,L,R,L
