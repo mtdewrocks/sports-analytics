@@ -62,3 +62,39 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,7,665877,José Fermín,691725,Andrew Painter,R,R,R
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,8,699625,Jimmy Crooks,691725,Andrew Painter,L,R,L
 2026-08-10,823018,2026-08-10T23:45:00Z,St. Louis Cardinals,Philadelphia Phillies,home,9,693409,César Prieto,691725,Andrew Painter,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,1,656941,Kyle Schwarber,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,2,681082,Bryson Stott,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,3,547180,Bryce Harper,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,4,650333,Luis Arraez,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,5,669016,Brandon Marsh,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,6,656537,Derek Hill,690928,Hunter Dobbins,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,7,702222,Justin Crawford,690928,Hunter Dobbins,L,R,L
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,8,624641,Edmundo Sosa,690928,Hunter Dobbins,R,R,R
+2026-08-10,823018,2026-08-10T23:45:00Z,Philadelphia Phillies,St. Louis Cardinals,away,9,596117,Garrett Stubbs,690928,Hunter Dobbins,L,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,1,664983,Jake McCarthy,647336,Michael Soroka,L,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,2,694249,Cole Carrigg,647336,Michael Soroka,S,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,3,681198,TJ Rumfield,647336,Michael Soroka,L,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,4,696100,Hunter Goodman,647336,Michael Soroka,R,R,R
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,5,666160,Mickey Moniak,647336,Michael Soroka,L,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,6,691720,Kyle Karros,647336,Michael Soroka,R,R,R
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,7,650489,Willi Castro,647336,Michael Soroka,S,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,8,687859,Troy Johnston,647336,Michael Soroka,L,R,L
+2026-08-10,825048,2026-08-11T01:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,9,687597,Jordan Beck,647336,Michael Soroka,R,R,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,1,643446,Jeff McNeil,642547,Freddy Peralta,L,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,2,691016,Tyler Soderstrom,642547,Freddy Peralta,L,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,3,805779,Jacob Wilson,642547,Freddy Peralta,R,R,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,4,666126,Carlos Cortes,642547,Freddy Peralta,L,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,5,671732,Lawrence Butler,642547,Freddy Peralta,L,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,6,641680,Jonah Heim,642547,Freddy Peralta,S,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,7,703607,Henry Bolte,642547,Freddy Peralta,R,R,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,8,622268,Donovan Walton,642547,Freddy Peralta,L,R,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,9,680869,Zack Gelof,642547,Freddy Peralta,R,R,R
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,1,665487,Fernando Tatis Jr.,701656,Logan Henderson,R,R,R
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,2,630105,Jake Cronenworth,701656,Logan Henderson,L,R,L
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,3,592518,Manny Machado,701656,Logan Henderson,R,R,R
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,4,664034,Ty France,701656,Logan Henderson,R,R,R
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,5,701538,Jackson Merrill,701656,Logan Henderson,L,R,L
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,6,650859,Luis Rengifo,701656,Logan Henderson,S,R,L
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,7,657757,Gavin Sheets,701656,Logan Henderson,L,R,L
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,8,666023,Freddy Fermin,701656,Logan Henderson,R,R,R
+2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,9,823550,Sung-Mun Song,701656,Logan Henderson,L,R,L
