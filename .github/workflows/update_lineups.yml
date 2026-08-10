@@ -40,27 +40,37 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas requests pyarrow
+
+      # Independent of lineups -- writes starters.parquet on every run, so a
+      # pitcher making his season debut reaches the dropdown within the hour.
       - name: Pull season starters
         run: python -u backend/app/get_starters.py
-        
-      - name: Pull starters and lineups
+
+      # Only fetches photos that are missing, so this is a no-op on a normal
+      # run and costs nothing.
+      - name: Download missing pitcher photos
+        run: python -u backend/app/get_pitcher_images.py
+
+      - name: Pull lineups
         run: python -u backend/app/get_lineups_chatgpt.py
 
-      # Steps run in order and the job stops on the first failure, so this only
-      # runs once the lineup pull has succeeded and written its CSV.
+      # Steps run in order and the job halts on the first failure. Early in the
+      # day no lineup exists yet, so this exits without writing -- the commit
+      # step skips the missing files and the run still goes green.
       - name: Build matchup table
         run: python -u backend/app/build_matchups.py
 
-      - name: Commit lineups and matchups
+      - name: Commit data files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # The lineup CSV is date-stamped (kept as history); the matchup table
-          # is a fixed filename the dashboard reads, overwritten each run.
+          # The lineup CSV is date-stamped (kept as history); the other two are
+          # fixed filenames the dashboard reads, overwritten each run.
           day="$(TZ=America/Chicago date +%F)"
 
-          for path in "backend/data/mlb/lineups_${day}.csv" \
+          for path in "backend/data/mlb/starters.parquet" \
+                      "backend/data/mlb/lineups_${day}.csv" \
                       "backend/data/mlb/daily_matchups.parquet"; do
             if [ -f "$path" ]; then
               git add "$path"
@@ -69,11 +79,15 @@ jobs:
             fi
           done
 
+          # A directory rather than a filename: which photos appeared is not
+          # known ahead of time. Unlike a missing file, `git add` on a
+          # directory with no changes is harmless.
+          git add backend/data/mlb/pitcher_images
+
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update lineups and matchups"
+            git commit -m "Update starters, lineups and matchups"
             git pull --rebase --autostash
             git push
           fi
-
