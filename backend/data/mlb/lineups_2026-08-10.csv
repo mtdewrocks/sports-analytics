@@ -116,6 +116,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,7,703607,Henry Bolte,642547,Freddy Peralta,R,R,R
 2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,8,622268,Donovan Walton,642547,Freddy Peralta,L,R,L
 2026-08-10,824969,2026-08-11T01:40:00Z,Athletics,Tampa Bay Rays,home,9,680869,Zack Gelof,642547,Freddy Peralta,R,R,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,1,650490,Yandy Díaz,682052,Jacob Lopez,R,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,2,666018,Jonathan Aranda,682052,Jacob Lopez,L,L,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,3,691406,Junior Caminero,682052,Jacob Lopez,R,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,4,668723,Ryan Vilade,682052,Jacob Lopez,R,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,5,676356,Jonny DeLuca,682052,Jacob Lopez,R,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,6,802415,Chandler Simpson,682052,Jacob Lopez,L,L,L
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,7,663743,Nick Fortes,682052,Jacob Lopez,R,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,8,670764,Taylor Walls,682052,Jacob Lopez,S,L,R
+2026-08-10,824969,2026-08-11T01:40:00Z,Tampa Bay Rays,Athletics,away,9,700246,Carson Williams,682052,Jacob Lopez,R,L,R
 2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,1,665487,Fernando Tatis Jr.,701656,Logan Henderson,R,R,R
 2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,2,630105,Jake Cronenworth,701656,Logan Henderson,L,R,L
 2026-08-10,823265,2026-08-11T01:40:00Z,San Diego Padres,Milwaukee Brewers,home,3,592518,Manny Machado,701656,Logan Henderson,R,R,R
@@ -143,6 +152,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-10,823189,2026-08-11T01:45:00Z,San Francisco Giants,Houston Astros,home,7,701852,Drew Cavanaugh,669713,Hayden Wesneski,L,R,L
 2026-08-10,823189,2026-08-11T01:45:00Z,San Francisco Giants,Houston Astros,home,8,687529,Grant McCray,669713,Hayden Wesneski,L,R,L
 2026-08-10,823189,2026-08-11T01:45:00Z,San Francisco Giants,Houston Astros,home,9,683766,Christian Koss,669713,Hayden Wesneski,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,1,665161,Jeremy Peña,694918,Blade Tidwell,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,2,670541,Yordan Alvarez,694918,Blade Tidwell,L,R,L
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,3,670623,Isaac Paredes,694918,Blade Tidwell,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,4,514888,Jose Altuve,694918,Blade Tidwell,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,5,666211,Taylor Trammell,694918,Blade Tidwell,L,R,L
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,6,572233,Christian Walker,694918,Blade Tidwell,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,7,662139,Daulton Varsho,694918,Blade Tidwell,L,R,L
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,8,701358,Cam Smith,694918,Blade Tidwell,R,R,R
+2026-08-10,823189,2026-08-11T01:45:00Z,Houston Astros,San Francisco Giants,away,9,543877,Christian Vázquez,694918,Blade Tidwell,R,R,R
 2026-08-10,823918,2026-08-11T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,1,660271,Shohei Ohtani,702070,Noah Cameron,L,L,L
 2026-08-10,823918,2026-08-11T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,2,681624,Andy Pages,702070,Noah Cameron,R,L,R
 2026-08-10,823918,2026-08-11T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,3,518692,Freddie Freeman,702070,Noah Cameron,L,L,L
