@@ -324,9 +324,12 @@ export default function MLBMatchup() {
                             else if (col === 'ISO' && !isNaN(num)) { const c = isoColor(num); bg = c.bg; fg = c.fg; }
                             else if (col === 'K%' && !isNaN(num)) { const c = kpctColor(num); bg = c.bg; fg = c.fg; }
                             // Display batting order as integer (Excel stores as float)
-                            const displayVal = col === 'Batting Order' && !isNaN(num) && val !== ''
-                              ? String(Math.round(num))
-                              : String(val ?? '—');
+                            const displayVal =
+                              val === '' || val == null
+                                ? '—'
+                                : col === 'Batting Order' && !isNaN(num)
+                                ? String(Math.round(num))
+                                : String(val);
                             return (
                               <td key={col} style={{ ...tdStyle, background: bg, color: fg, fontWeight: bg !== 'transparent' ? 700 : 400 }}>
                                 {displayVal}
