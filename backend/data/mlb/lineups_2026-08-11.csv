@@ -1,0 +1,64 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,1,805808,Kevin McGonigle,676440,Tanner Bibee,L,R,L
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,2,650402,Gleyber Torres,676440,Tanner Bibee,R,R,R
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,3,693307,Dillon Dingler,676440,Tanner Bibee,R,R,R
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,4,682985,Riley Greene,676440,Tanner Bibee,L,R,L
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,5,690993,Colt Keith,676440,Tanner Bibee,L,R,L
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,6,679529,Spencer Torkelson,676440,Tanner Bibee,R,R,R
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,7,703601,Max Clark,676440,Tanner Bibee,L,R,L
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,8,595879,Javier Báez,676440,Tanner Bibee,R,R,R
+2026-08-11,824240,2026-08-11T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,9,656716,Zach McKinstry,676440,Tanner Bibee,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,1,669364,Xavier Edwards,694973,Paul Skenes,S,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,2,672640,Otto Lopez,694973,Paul Skenes,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,3,665052,Griffin Conine,694973,Paul Skenes,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,4,681715,Heriberto Hernández,694973,Paul Skenes,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,5,805300,Jakob Marsee,694973,Paul Skenes,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,6,691594,Javier Sanoja,694973,Paul Skenes,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,7,683357,Owen Caissie,694973,Paul Skenes,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,8,691788,Joe Mack,694973,Paul Skenes,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,9,665923,Esteury Ruiz,694973,Paul Skenes,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,1,663968,Jake Mangum,691587,Eury Pérez,S,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,2,664040,Brandon Lowe,691587,Eury Pérez,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,3,668804,Bryan Reynolds,691587,Eury Pérez,S,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,4,687462,Spencer Horwitz,691587,Eury Pérez,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,5,693304,Nick Gonzales,691587,Eury Pérez,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,6,682927,Ronny Simon,691587,Eury Pérez,S,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,7,699013,Esmerlyn Valdez,691587,Eury Pérez,R,R,R
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,8,694378,Jacob Gonzalez,691587,Eury Pérez,L,R,L
+2026-08-11,823832,2026-08-11T22:40:00Z,Pittsburgh Pirates,Miami Marlins,away,9,680779,Henry Davis,691587,Eury Pérez,R,R,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,1,686611,Dylan Crews,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,2,665953,Andrés Chaparro,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,3,691781,Brady House,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,4,682928,CJ Abrams,684007,Shota Imanaga,L,L,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,5,695670,Harry Ford,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,6,696285,Jacob Young,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,7,695734,Daylen Lile,684007,Shota Imanaga,L,L,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,8,683083,Nasim Nuñez,684007,Shota Imanaga,S,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Washington Nationals,Chicago Cubs,home,9,687605,Andrew Pinckney,684007,Shota Imanaga,R,L,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,1,691718,Pete Crow-Armstrong,663623,Jake Irvin,L,R,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,2,673548,Seiya Suzuki,663623,Jake Irvin,R,R,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,3,683737,Michael Busch,663623,Jake Irvin,L,R,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,4,608324,Alex Bregman,663623,Jake Irvin,R,R,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,5,664023,Ian Happ,663623,Jake Irvin,S,R,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,6,663538,Nico Hoerner,663623,Jake Irvin,R,R,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,7,624424,Michael Conforto,663623,Jake Irvin,L,R,L
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,8,608348,Carson Kelly,663623,Jake Irvin,R,R,R
+2026-08-11,822697,2026-08-11T22:45:00Z,Chicago Cubs,Washington Nationals,away,9,621020,Dansby Swanson,663623,Jake Irvin,R,R,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,1,807727,Charles McAdoo,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,2,703520,Brett Bateman,663776,Patrick Sandoval,L,L,L
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,3,665489,Vladimir Guerrero Jr.,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,4,543807,George Springer,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,5,672386,Alejandro Kirk,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,6,676391,Ernie Clement,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,672960,Kazuma Okamoto,663776,Patrick Sandoval,R,L,R
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,8,665926,Andrés Giménez,663776,Patrick Sandoval,L,L,L
+2026-08-11,822778,2026-08-11T23:07:00Z,Toronto Blue Jays,Boston Red Sox,home,9,664702,Myles Straw,663776,Patrick Sandoval,R,L,R
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,1,663616,Trevor Larnach,687064,Brandon Young,L,R,L
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,2,680777,Ryan Jeffers,687064,Brandon Young,R,R,R
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,3,605137,Josh Bell,687064,Brandon Young,S,R,L
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,4,665019,Kody Clemens,687064,Brandon Young,L,R,L
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,5,668904,Royce Lewis,687064,Brandon Young,R,R,R
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,6,686797,Brooks Lee,687064,Brandon Young,S,R,L
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,7,807712,Luke Keaschall,687064,Brandon Young,R,R,R
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,8,702176,Alan Roden,687064,Brandon Young,L,R,L
+2026-08-11,823673,2026-08-11T23:40:00Z,Minnesota Twins,Baltimore Orioles,home,9,701785,Kaelen Culpepper,687064,Brandon Young,R,R,R
