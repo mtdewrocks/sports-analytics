@@ -44,14 +44,19 @@ jobs:
       - name: Run Statcast update
         run: python -u backend/app/update_stats_refactored.py
 
-      - name: Download Savant percentiles
-        run: python -u backend/app/get_percentiles.py
+      # Must follow the Statcast update -- it reads the daily_components file
+      # that step just rewrote.
+      - name: Build hot hitters
+        run: python -u backend/app/build_hot_hitters.py
 
       # Refetches only pitchers who actually started yesterday -- that set is
       # fixed by morning, so this belongs on the daily run rather than the
       # hourly one. First run with no existing file does a full pull.
       - name: Update pitcher game logs
         run: python -u backend/app/get_pitcher_logs.py
+
+      - name: Download Savant percentiles
+        run: python -u backend/app/get_percentiles.py
 
       - name: Commit updated data
         run: |
@@ -66,6 +71,7 @@ jobs:
                    fg_woba_weights.json \
                    statcast_hitters_2026.xlsx \
                    statcast_pitchers_2026.xlsx \
+                   hot_hitters.parquet \
                    pitcher_logs.parquet \
                    pitcher_percentiles.parquet \
                    hitter_percentiles.parquet; do
@@ -79,7 +85,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No data changes to commit."
           else
-            git commit -m "Update Statcast data and pitcher logs"
+            git commit -m "Update Statcast data, hot hitters, logs and percentiles"
             git pull --rebase --autostash
             git push
           fi
