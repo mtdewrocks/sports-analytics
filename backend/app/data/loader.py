@@ -148,7 +148,7 @@ def get_mlb_data() -> dict:
         ("pitcher_percentiles", "Pitcher_Percentile_Rankings.csv", pd.read_csv),
         ("hitter_percentiles", "Hitter_Percentile_Rankings.csv", pd.read_csv),
         # --- hot hitters (get_hot_hitters reads this key) ---
-        ("last_week_stats", "Last_Week_Stats.xlsx", pd.read_excel),
+        ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}
