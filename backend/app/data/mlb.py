@@ -306,18 +306,10 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
 
 
 def get_hot_hitters() -> List[Dict[str, Any]]:
-    """Return hot hitters — batters from last week with PA>=20 and BA>=.350."""
-    data = get_mlb_data()
-    lw_df = data.get("last_week_stats", pd.DataFrame())
-    if lw_df.empty:
+    df = get_mlb_data().get("hot_hitters", pd.DataFrame())
+    if df.empty:
         return []
-    pa_col = _find_col(lw_df, ["pa"])
-    ba_col = _find_col(lw_df, ["ba"])
-    if pa_col and ba_col:
-        hot = lw_df[(pd.to_numeric(lw_df[pa_col], errors="coerce") >= 20) &
-                    (pd.to_numeric(lw_df[ba_col], errors="coerce") >= 0.350)]
-        return hot.fillna("").to_dict(orient="records")
-    return lw_df.head(25).fillna("").to_dict(orient="records")
+    return df.astype(object).where(df.notna(), "").to_dict(orient="records")
 
 
 _EXCLUDED_BOOKS = {
