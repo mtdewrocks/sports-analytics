@@ -139,13 +139,16 @@ def get_mlb_data() -> dict:
 
     # (key, filename, reader)
     files = [
-        ("pitcher_season_stats", "Pitcher_Season_Stats.xlsx", pd.read_excel),
+        # --- MLB Stats API, rebuilt by GitHub Actions ---
+        ("starters", "starters.parquet", pd.read_parquet),          # dropdown + season stats
+        ("pitcher_logs", "pitcher_logs.parquet", pd.read_parquet),  # recent game logs
+        ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
+        # --- still Excel / CSV: splits and percentiles ---
         ("pitcher_splits_agg", "Season_Aggregated_Pitcher_Statistics.xlsx", pd.read_excel),
-        ("pitcher_game_logs", "Pitcher_Game_Logs_2026.parquet", pd.read_parquet),
-        ("matchups", "daily_matchups.parquet", pd.read_parquet),
-        ("starters", "starters.parquet", pd.read_parquet),
         ("pitcher_percentiles", "Pitcher_Percentile_Rankings.csv", pd.read_csv),
         ("hitter_percentiles", "Hitter_Percentile_Rankings.csv", pd.read_csv),
+        # --- hot hitters (get_hot_hitters reads this key) ---
+        ("last_week_stats", "Last_Week_Stats.xlsx", pd.read_excel),
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}
