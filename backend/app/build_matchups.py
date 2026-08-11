@@ -20,7 +20,7 @@ in GitHub Actions:
 
 Reads:  backend/data/mlb/lineups_{date}.csv
         backend/data/mlb/daily_components_2026.parquet
-Writes: backend/data/mlb/matchups.parquet
+Writes: backend/data/mlb/daily_matchups.parquet
 
 The output filename is fixed, not date-stamped, so the dashboard can point at
 one path forever. Each run overwrites it with the current slate; the `date`
@@ -238,7 +238,7 @@ def main() -> None:
     frame = frame.sort_values(["game_pk", "team", "batting_order"]).reset_index(drop=True)
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    dest = DATA_DIR / "matchups.parquet"
+    dest = DATA_DIR / "daily_matchups.parquet"
     frame.to_parquet(dest, index=False)
 
     unmatched = frame["split_pa"].isna().sum()
