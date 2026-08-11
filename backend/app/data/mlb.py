@@ -306,10 +306,41 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
 
 
 def get_hot_hitters() -> List[Dict[str, Any]]:
-    df = get_mlb_data().get("hot_hitters", pd.DataFrame())
-    if df.empty:
+    """Batters hot over the last seven days.
+
+    The window and thresholds (7 days, 18+ PA, .350+ BA) are applied in
+    build_hot_hitters.py against the raw components, so this is a straight
+    read -- filtering here would be applying a cut to already-cut data.
+    """
+    hot = get_mlb_data().get("hot_hitters", pd.DataFrame())
+    if hot.empty:
         return []
-    return df.astype(object).where(df.notna(), "").to_dict(orient="records")
+
+    # "AVG" rather than "BA" -- unambiguous next to OBP/SLG/OPS, and it
+    # matches the "Average" column on the matchup table.
+    display = {
+        "player": "Player",
+        "games": "G",
+        "pa": "PA",
+        "ab": "AB",
+        "h": "H",
+        "hr": "HR",
+        "bb": "BB",
+        "so": "SO",
+        "ba": "AVG",
+        "obp": "OBP",
+        "slg": "SLG",
+        "ops": "OPS",
+        "woba": "wOBA",
+        "k_pct": "K%",
+        "bb_pct": "BB%",
+    }
+    cols = [c for c in display if c in hot.columns]
+    out = hot[cols].rename(columns=display)
+
+    # Nullable dtypes hold pd.NA, which is not JSON serializable.
+    out = out.astype(object).where(out.notna(), "")
+    return out.to_dict(orient="records")
 
 
 _EXCLUDED_BOOKS = {
