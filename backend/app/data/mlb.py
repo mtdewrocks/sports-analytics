@@ -25,6 +25,27 @@ def _convert_savant_name(name: str) -> str:
         return name
 
 
+def _starter_row(starters_df: pd.DataFrame, pitcher_norm: str):
+    """The starters.parquet row for a dropdown value, or None.
+
+    Accepts either spelling: `pitcher` is the MLB Stats API form the dropdown
+    uses, `savant_name` is the "Last, First" form the Excel-backed sections
+    still use. Matching both keeps this working whichever way the dropdown is
+    wired, and returning the row gives callers `pitcher_id` for exact joins.
+    """
+    if starters_df is None or starters_df.empty:
+        return None
+    if "pitcher" not in starters_df.columns:
+        return None
+
+    match = starters_df["pitcher"].str.lower().str.strip() == pitcher_norm
+    if "savant_name" in starters_df.columns:
+        match = match | (starters_df["savant_name"].str.lower().str.strip() == pitcher_norm)
+
+    hit = starters_df[match]
+    return None if hit.empty else hit.iloc[0]
+
+
 # Sanity bounds — corrupted historical values can reach e+100 from accumulation bugs
 _PERCENT_STATS = {"Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%",
                   "Weighted FB%", "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%"}
@@ -73,76 +94,83 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     data = get_mlb_data()
     pitcher_norm = _normalize(pitcher_name)
 
-    # ------------------------------------------------------------------
-    # 1. Season stats — Pitcher_Season_Stats.xlsx (Baseball Reference totals)
-    # ------------------------------------------------------------------
-    starters_df = data.get("historical_starters", pd.DataFrame())
+    # Resolved once and reused by sections 1 and 2.
+    starters_df = data.get("starters", pd.DataFrame())
+    starter = _starter_row(starters_df, pitcher_norm)
 
+    # ------------------------------------------------------------------
+    # 1. Season stats — starters.parquet (MLB Stats API)
+    # ------------------------------------------------------------------
     season_stats = {}
     try:
-        # Get Handedness from starters file
-        if not starters_df.empty:
-            savant_col = _find_col(starters_df, ["baseball_savant_name"])
-            if savant_col:
-                starter_row = starters_df[starters_df[savant_col].str.lower().str.strip() == pitcher_norm]
-                if not starter_row.empty:
-                    hand_col = _find_col(starter_row, ["handedness"])
-                    if hand_col:
-                        season_stats["Handedness"] = starter_row[hand_col].iloc[0]
-
-        # Get season totals (W, L, ERA, IP, SO, WHIP) from Pitcher_Season_Stats.xlsx (Baseball Reference)
-        bbref_df = data.get("pitcher_season_stats", pd.DataFrame())
-        if not bbref_df.empty:
-            name_col_bb = _find_col(bbref_df, ["name"])
-            if name_col_bb:
-                bb_row = bbref_df[bbref_df[name_col_bb].str.lower().str.strip() == pitcher_norm]
-                if not bb_row.empty:
-                    for stat in ["W", "L", "ERA", "IP", "SO", "WHIP"]:
-                        col = _find_col(bb_row, [stat.lower()])
-                        if col:
-                            val = bb_row[col].iloc[0]
-                            if pd.notna(val):
-                                # Convert numpy scalar → Python native type so JSON serialization works
-                                season_stats[stat] = val.item() if hasattr(val, "item") else val
-
-        # Compute K/IP
-        if season_stats:
-            ip_raw = float(season_stats.get("IP", 0) or 0)
-            ip_frac = round(ip_raw - int(ip_raw), 1)
-            ip_true = int(ip_raw) + (ip_frac * 10 / 3)
-            so_val  = float(season_stats.get("SO", 0) or 0)
-            if ip_true > 0:
-                season_stats["K/IP"] = round(so_val / ip_true, 2)
+        if starter is not None:
+            # ERA, WHIP and K/IP are recomputed from summed components in
+            # get_starters.py, so a traded pitcher's line is whole rather than
+            # one team's partial figures.
+            candidate = {
+                "Handedness": {"R": "RHP", "L": "LHP"}.get(
+                    starter.get("throws"), starter.get("throws")
+                ),
+                "GS": starter.get("games_started"),
+                "W": starter.get("wins"),
+                "L": starter.get("losses"),
+                "ERA": starter.get("era"),
+                "IP": starter.get("innings"),
+                "SO": starter.get("strikeouts"),
+                "K/IP": starter.get("k_per_ip"),
+                "WHIP": starter.get("whip"),
+            }
+            for key, val in candidate.items():
+                if val is None or (isinstance(val, float) and pd.isna(val)):
+                    continue
+                # numpy scalars are not JSON serializable
+                season_stats[key] = val.item() if hasattr(val, "item") else val
     except Exception as e:
         print(f"Warning: season_stats section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
-    # 2. Game logs — 2026_Pitching_Logs.xlsx
+    # 2. Game logs — pitcher_logs.parquet (MLB Stats API)
     # ------------------------------------------------------------------
     game_logs = []
     try:
-        gl_df = data.get("pitcher_game_logs", pd.DataFrame())
-        if not gl_df.empty:
-            name_col = _find_col(gl_df, ["name"])
-            if name_col:
-                sub = gl_df[gl_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
-                keep = ["Date", "OPP", "Opponent", "W", "L", "IP", "H", "R", "ER", "HR", "BB", "SO", "Total_Pitches"]
-                keep_actual = [_find_col(sub, [c]) for c in keep if _find_col(sub, [c])]
-                sub = sub[keep_actual]
-                opp_col = _find_col(sub, ["opp", "opponent"])
-                if opp_col and opp_col != "Opponent":
-                    sub = sub.rename(columns={opp_col: "Opponent"})
-                pit_col = _find_col(sub, ["total_pitches"])
-                if pit_col and pit_col != "Pitches":
-                    sub = sub.rename(columns={pit_col: "Pitches"})
-                date_col = _find_col(sub, ["date"])
-                if date_col:
-                    sub[date_col] = pd.to_datetime(sub[date_col], errors="coerce")
-                    sub = sub[sub[date_col].dt.year == 2026]
-                    sub = sub.sort_values(date_col, ascending=False)
-                    sub = sub.head(10)
-                    sub[date_col] = sub[date_col].apply(lambda d: f"{d.month}/{d.day}/{d.year}" if pd.notna(d) else "")
-                game_logs = sub.fillna("").to_dict(orient="records")
+        logs_df = data.get("pitcher_logs", pd.DataFrame())
+
+        if not logs_df.empty and starter is not None:
+            # Join on the id: pitcher_logs carries MLB-format names, so this
+            # sidesteps the name-format question entirely.
+            sub = logs_df[logs_df["pitcher_id"] == int(starter["pitcher_id"])].copy()
+
+            sub["date"] = pd.to_datetime(sub["date"], errors="coerce")
+            sub = sub[sub["date"].notna()].sort_values("date", ascending=False).head(10)
+
+            display = {
+                "date": "Date",
+                "opponent": "Opponent",
+                "wins": "W",
+                "losses": "L",
+                "innings": "IP",
+                "hits": "H",
+                "runs": "R",
+                "earned_runs": "ER",
+                "home_runs": "HR",
+                "walks": "BB",
+                "strikeouts": "SO",
+                "pitches": "Pitches",
+            }
+            cols = [c for c in display if c in sub.columns]
+            sub = sub[cols].rename(columns=display)
+
+            if "Date" in sub.columns:
+                # Built from parts rather than strftime("%-m/..."), which is
+                # platform specific and raises on Windows.
+                sub["Date"] = (
+                    sub["Date"].dt.month.astype(str) + "/"
+                    + sub["Date"].dt.day.astype(str) + "/"
+                    + sub["Date"].dt.year.astype(str)
+                )
+
+            sub = sub.astype(object).where(sub.notna(), "")
+            game_logs = sub.to_dict(orient="records")
     except Exception as e:
         print(f"Warning: game_logs section failed for {pitcher_name}: {e}")
 
@@ -163,7 +191,14 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             name_col = _find_col(splits_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
             split_col = _find_col(splits_df, ["split"])
             if name_col and split_col:
-                sub = splits_df[splits_df[name_col].str.lower().str.strip() == pitcher_norm].copy()
+                # This file is keyed on Savant-format names while the dropdown
+                # now supplies MLB format, so try both spellings.
+                wanted = {pitcher_norm}
+                if starter is not None and "savant_name" in starters_df.columns:
+                    wanted.add(_normalize(str(starter["savant_name"])))
+                    wanted.add(_normalize(str(starter["pitcher"])))
+
+                sub = splits_df[splits_df[name_col].str.lower().str.strip().isin(wanted)].copy()
                 if split_col != "Split":
                     sub = sub.rename(columns={split_col: "Split"})
                 sub = sub[sub["Split"].isin(["vs L", "vs R"])]
@@ -193,22 +228,31 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                 "brl_percent": "Barrel %", "hard_hit_percent": "Hard-Hit %", "bb_percent": "BB %",
             }
             pct_df = pct_df.rename(columns={k: v for k, v in rename_map.items() if k in pct_df.columns})
-            name_col = _find_col(pct_df, ["player_name"])
-            if name_col:
-                pct_df["converted_name"] = pct_df[name_col].apply(_convert_savant_name)
-                sub = pct_df[pct_df["converted_name"].str.lower().str.strip() == pitcher_norm].copy()
-                if not sub.empty:
-                    stat_cols = [c for c in ["Fastball Velo", "Avg Exit Velocity", "Chase %",
-                                             "Whiff %", "K %", "BB %", "Barrel %", "Hard-Hit %"]
-                                 if c in sub.columns]
-                    id_cols = [c for c in ["converted_name"] if c in sub.columns]
-                    melted = pd.melt(sub[id_cols + stat_cols], id_vars=id_cols,
-                                     var_name="Statistic", value_name="Percentile")
-                    percentiles = melted[["Statistic", "Percentile"]].fillna("").to_dict(orient="records")
+
+            sub = pd.DataFrame()
+            # This CSV carries player_id (the MLBAM id), so prefer an exact id
+            # join -- it removes accents, suffixes and initials as failure modes.
+            id_col = _find_col(pct_df, ["player_id"])
+            if id_col and starter is not None:
+                ids = pd.to_numeric(pct_df[id_col], errors="coerce")
+                sub = pct_df[ids == int(starter["pitcher_id"])].copy()
+
+            if sub.empty:
+                name_col = _find_col(pct_df, ["player_name"])
+                if name_col:
+                    pct_df["converted_name"] = pct_df[name_col].apply(_convert_savant_name)
+                    sub = pct_df[pct_df["converted_name"].str.lower().str.strip() == pitcher_norm].copy()
+
+            if not sub.empty:
+                stat_cols = [c for c in ["Fastball Velo", "Avg Exit Velocity", "Chase %",
+                                         "Whiff %", "K %", "BB %", "Barrel %", "Hard-Hit %"]
+                             if c in sub.columns]
+                melted = pd.melt(sub[stat_cols], var_name="Statistic", value_name="Percentile")
+                percentiles = melted.fillna("").to_dict(orient="records")
     except Exception as e:
         print(f"Warning: percentiles section failed for {pitcher_name}: {e}")
 
-       # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # 5. Opposing hitters — daily_matchups.parquet (built by GitHub Actions)
     # ------------------------------------------------------------------
     opposing_hitters = []
@@ -250,6 +294,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             opposing_hitters = sub.to_dict(orient="records")
     except Exception as e:
         print(f"Warning: opposing_hitters section failed for {pitcher_name}: {e}")
+
     return {
         "pitcher": pitcher_name,
         "season_stats": season_stats,
@@ -279,6 +324,7 @@ _EXCLUDED_BOOKS = {
     "ballybet", "betonlineag", "betparx", "betr_us_dfs",
     "betrivers", "bovada", "dabble_us_dfs", "hardrockbet_oh", "mybookieag",
 }
+
 
 def get_mlb_props(
     team: Optional[str] = None,
