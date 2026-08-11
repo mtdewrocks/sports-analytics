@@ -44,6 +44,9 @@ jobs:
       - name: Run Statcast update
         run: python -u backend/app/update_stats_refactored.py
 
+      - name: Download Savant percentiles
+        run: python -u backend/app/get_percentiles.py
+
       # Refetches only pitchers who actually started yesterday -- that set is
       # fixed by morning, so this belongs on the daily run rather than the
       # hourly one. First run with no existing file does a full pull.
@@ -63,7 +66,9 @@ jobs:
                    fg_woba_weights.json \
                    statcast_hitters_2026.xlsx \
                    statcast_pitchers_2026.xlsx \
-                   pitcher_logs.parquet; do
+                   pitcher_logs.parquet \
+                   pitcher_percentiles.parquet \
+                   hitter_percentiles.parquet; do
             if [ -f "backend/data/mlb/$f" ]; then
               git add "backend/data/mlb/$f"
             else
