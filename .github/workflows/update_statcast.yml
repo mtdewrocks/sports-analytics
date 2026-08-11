@@ -2,9 +2,8 @@ name: Update Statcast
 
 on:
   schedule:
-    # Hourly, 9:00 AM - 9:00 PM Central during daylight saving time (UTC-5).
-    # GitHub Actions cron is UTC.
-    - cron: "0 13 * * *"   
+    # 8:00 AM Central during daylight saving time (UTC-5) = 13:00 UTC.
+    - cron: "0 13 * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +22,7 @@ env:
 jobs:
   update-statcast:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -45,19 +44,26 @@ jobs:
       - name: Run Statcast update
         run: python -u backend/app/update_stats_refactored.py
 
+      # Refetches only pitchers who actually started yesterday -- that set is
+      # fixed by morning, so this belongs on the daily run rather than the
+      # hourly one. First run with no existing file does a full pull.
+      - name: Update pitcher game logs
+        run: python -u backend/app/get_pitcher_logs.py
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Stage only this script's outputs -- backend/data/mlb also holds
-          # files written by other jobs. The -f test skips anything the run did
-          # not produce; a bare `git add` on a missing path exits 128 and kills
-          # the step even when the rest of the run succeeded.
+          # Stage only this workflow's outputs -- backend/data/mlb also holds
+          # files written by the hourly job. The -f test skips anything a run
+          # did not produce; a bare `git add` on a missing path exits 128 and
+          # kills the step even when everything else succeeded.
           for f in daily_components_2026.parquet \
                    fg_woba_weights.json \
                    statcast_hitters_2026.xlsx \
-                   statcast_pitchers_2026.xlsx; do
+                   statcast_pitchers_2026.xlsx \
+                   pitcher_logs.parquet; do
             if [ -f "backend/data/mlb/$f" ]; then
               git add "backend/data/mlb/$f"
             else
@@ -68,7 +74,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No data changes to commit."
           else
-            git commit -m "Update Statcast data"
+            git commit -m "Update Statcast data and pitcher logs"
             git pull --rebase --autostash
             git push
           fi

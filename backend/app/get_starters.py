@@ -137,8 +137,12 @@ def build() -> pd.DataFrame:
                 "pitcher_id": player.get("id"),
                 "pitcher": player.get("fullName", ""),
                 "games_started": games_started,
+                "wins": int(stat.get("wins", 0) or 0),
+                "losses": int(stat.get("losses", 0) or 0),
                 "_outs": outs(stat.get("inningsPitched")),
                 "_er": int(stat.get("earnedRuns", 0) or 0),
+                "_hits": int(stat.get("hits", 0) or 0),
+                "_walks": int(stat.get("baseOnBalls", 0) or 0),
                 "strikeouts": int(stat.get("strikeOuts", 0) or 0),
             }
         )
@@ -151,9 +155,17 @@ def build() -> pd.DataFrame:
     # season totals are whole, then recompute ERA from the combined figures --
     # averaging two ERAs would be wrong, and picking one team's row would throw
     # away half the season.
-    frame = (
-        frame.groupby(["pitcher_id", "pitcher"], as_index=False)
-        .agg({"games_started": "sum", "_outs": "sum", "_er": "sum", "strikeouts": "sum"})
+    frame = frame.groupby(["pitcher_id", "pitcher"], as_index=False).agg(
+        {
+            "games_started": "sum",
+            "wins": "sum",
+            "losses": "sum",
+            "_outs": "sum",
+            "_er": "sum",
+            "_hits": "sum",
+            "_walks": "sum",
+            "strikeouts": "sum",
+        }
     )
 
     people = get_people(frame["pitcher_id"].astype(int).tolist())
@@ -164,13 +176,19 @@ def build() -> pd.DataFrame:
     # Current roster team, so a traded pitcher reads as his new club.
     frame["team"] = frame["pitcher_id"].map(lambda i: people.get(i, {}).get("team", ""))
 
+    # Rate stats are recomputed from the summed components rather than taken
+    # from any one team's row -- a traded pitcher has no single correct ERA.
+    ip_exact = (frame["_outs"] / 3).where(frame["_outs"] > 0)
     frame["innings"] = (frame["_outs"] // 3) + (frame["_outs"] % 3) / 10
-    frame["era"] = (9 * frame["_er"] / (frame["_outs"] / 3).where(frame["_outs"] > 0)).round(2)
+    frame["era"] = (9 * frame["_er"] / ip_exact).round(2)
+    frame["whip"] = ((frame["_hits"] + frame["_walks"]) / ip_exact).round(3)
+    frame["k_per_ip"] = (frame["strikeouts"] / ip_exact).round(2)
 
     frame["season"] = SEASON
     frame = frame[
         ["pitcher_id", "pitcher", "savant_name", "throws", "team",
-         "games_started", "innings", "era", "strikeouts", "season"]
+         "games_started", "wins", "losses", "era", "innings", "strikeouts",
+         "k_per_ip", "whip", "season"]
     ]
     return frame.sort_values("pitcher").reset_index(drop=True)
 
