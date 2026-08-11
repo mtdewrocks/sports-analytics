@@ -50,6 +50,22 @@ REQUIRED_COLUMNS = (
     "events",
 )
 
+#: Batted-ball classifications Statcast puts in `bb_type`, mapped to the
+#: component column each one feeds.
+BB_TYPES = {
+    "ground_ball": "gb",
+    "line_drive": "ld",
+    "fly_ball": "fb",
+    "popup": "pu",
+}
+
+#: Exit-velocity thresholds, in mph. 95+ is Savant's "hard hit" definition.
+#: Note these are NOT FanGraphs' Soft/Med/Hard, which come from Baseball Info
+#: Solutions' visual classification and will not match exactly. Named _ev_ in
+#: the derived rates to keep that distinction visible.
+HARD_HIT_MPH = 95.0
+SOFT_HIT_MPH = 85.0
+
 #: Additive component columns, in table order. Everything downstream derives
 #: from these.
 COMPONENT_COLUMNS = (
@@ -73,7 +89,21 @@ COMPONENT_COLUMNS = (
     "xwoba_con_sum",
     "xwoba_con_n",
     "outs_batter_events",
+    # --- batted-ball components ---
+    "bip",
+    "gb",
+    "ld",
+    "fb",
+    "pu",
+    "hard_hit",
+    "med_hit",
+    "soft_hit",
+    "ev_sum",
+    "ev_n",
 )
+
+#: Components that are sums of floats rather than counts.
+_FLOAT_COMPONENTS = ("woba_num", "woba_den", "xwoba_con_sum", "ev_sum")
 
 KEY_COLUMNS = ("player_id", "role", "opp_hand", "game_date", "season")
 
@@ -147,6 +177,30 @@ def pa_indicators(pa: pd.DataFrame) -> pd.DataFrame:
     indicators["xwoba_con_sum"] = xwoba.fillna(0.0)
     indicators["xwoba_con_n"] = xwoba.notna().astype("int64")
 
+    # ---- batted-ball type ------------------------------------------------
+    # `bb_type` is populated only on batted balls, so its non-null count is the
+    # denominator for GB%/LD%/FB%. Strikeouts and walks are correctly excluded
+    # by that alone -- no event filtering needed.
+    bb_type = pa.get("bb_type", pd.Series(index=pa.index, dtype="object"))
+    for statcast_value, column in BB_TYPES.items():
+        indicators[column] = (bb_type == statcast_value).astype("int64")
+    indicators["bip"] = bb_type.notna().astype("int64")
+
+    # ---- exit velocity ---------------------------------------------------
+    # Bucketed on the batted ball, not the plate appearance, so the shares
+    # below sum to bip rather than pa.
+    ev = pd.to_numeric(
+        pa.get("launch_speed", pd.Series(index=pa.index, dtype="float64")),
+        errors="coerce",
+    )
+    indicators["hard_hit"] = (ev >= HARD_HIT_MPH).fillna(False).astype("int64")
+    indicators["med_hit"] = (
+        (ev >= SOFT_HIT_MPH) & (ev < HARD_HIT_MPH)
+    ).fillna(False).astype("int64")
+    indicators["soft_hit"] = (ev < SOFT_HIT_MPH).fillna(False).astype("int64")
+    indicators["ev_sum"] = ev.fillna(0.0)
+    indicators["ev_n"] = ev.notna().astype("int64")
+
     # AB eligibility, needed for AB-denominated stats at PA granularity.
     indicators["ab"] = (
         1
@@ -207,7 +261,7 @@ def _one_role(
     out["game_date"] = pd.to_datetime(out["game_date"])
     out["season"] = out["game_date"].dt.year
 
-    integer_columns = [c for c in COMPONENT_COLUMNS if c not in ("woba_num", "woba_den", "xwoba_con_sum")]
+    integer_columns = [c for c in COMPONENT_COLUMNS if c not in _FLOAT_COMPONENTS]
     for column in integer_columns:
         out[column] = out[column].round().astype("int64")
     out["player_id"] = out["player_id"].astype("int64")
@@ -263,6 +317,14 @@ def aggregate_daily(
             "etl/events.py): %s",
             sorted(strays),
         )
+
+    for optional in ("bb_type", "launch_speed"):
+        if optional not in frame.columns:
+            log.warning(
+                "No `%s` column in this pull -- batted-ball components will be "
+                "zero for these dates.",
+                optional,
+            )
 
     pa_rows = frame[frame["events"].isin(PA_EVENTS)]
 
@@ -366,4 +428,28 @@ def derive_rates(totals: pd.DataFrame) -> pd.DataFrame:
     out["pitches_per_inning_est"] = safe_divide(
         out["pitches"], out["outs_batter_events"] / 3.0
     )
+
+    # --- batted-ball rates, all denominated on balls in play ---
+    if "bip" in out.columns:
+        out["gb_rate"] = safe_divide(out["gb"], out["bip"])
+        out["ld_rate"] = safe_divide(out["ld"], out["bip"])
+        out["fb_rate"] = safe_divide(out["fb"], out["bip"])
+        out["pu_rate"] = safe_divide(out["pu"], out["bip"])
+        # HR per fly ball, the standard denominator -- not per batted ball.
+        out["hr_per_fb"] = safe_divide(out["hr"], out["fb"])
+
+        # Exit-velocity buckets. Denominated on batted balls with a reading,
+        # since launch_speed is missing on a small share of them.
+        out["ev_hard_rate"] = safe_divide(out["hard_hit"], out["ev_n"])
+        out["ev_med_rate"] = safe_divide(out["med_hit"], out["ev_n"])
+        out["ev_soft_rate"] = safe_divide(out["soft_hit"], out["ev_n"])
+        out["avg_exit_velocity"] = safe_divide(out["ev_sum"], out["ev_n"])
+
+        # BABIP: hits that are not home runs, over balls put in play plus the
+        # strikeouts and sac flies that could have been.
+        out["babip"] = safe_divide(
+            out["h"] - out["hr"],
+            out["ab"] - out["so"] - out["hr"] + out["sf"],
+        )
+
     return out
