@@ -11,7 +11,7 @@ export default function MLBHotHitters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [hitters, setHitters] = useState<Record<string, any>[]>([]);
-  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>({ key: 'AVG', direction: 'desc' });
 
   useEffect(() => {
     getMLBHotHitters()
@@ -53,7 +53,7 @@ export default function MLBHotHitters() {
 
   return (
     <div style={{ padding: 24, minHeight: 'calc(100vh - 60px)' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>Today's Hot Hitters</h2>
+      <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>Hot Hitters — Last 7 Days</h2>
 
       {loading && <LoadingSpinner />}
       {error && (
