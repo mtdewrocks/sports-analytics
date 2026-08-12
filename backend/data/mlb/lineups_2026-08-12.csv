@@ -1,0 +1,37 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,1,663616,Trevor Larnach,669358,Shane Baz,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,2,668904,Royce Lewis,669358,Shane Baz,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,3,605137,Josh Bell,669358,Shane Baz,S,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,4,665019,Kody Clemens,669358,Shane Baz,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,5,686797,Brooks Lee,669358,Shane Baz,S,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,6,807712,Luke Keaschall,669358,Shane Baz,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,7,605170,Victor Caratini,669358,Shane Baz,S,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,8,702176,Alan Roden,669358,Shane Baz,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Minnesota Twins,Baltimore Orioles,home,9,668952,Ryan Kreidler,669358,Shane Baz,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,1,683002,Gunnar Henderson,805673,Zebby Matthews,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,2,624413,Pete Alonso,805673,Zebby Matthews,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,3,702616,Jackson Holliday,805673,Zebby Matthews,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,4,641933,Tyler O'Neill,805673,Zebby Matthews,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,5,687637,Dylan Beavers,805673,Zebby Matthews,L,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,6,687952,Christian Encarnacion-Strand,805673,Zebby Matthews,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,7,665750,Leody Taveras,805673,Zebby Matthews,S,R,L
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,8,681047,Christian Franklin,805673,Zebby Matthews,R,R,R
+2026-08-12,823672,2026-08-12T17:40:00Z,Baltimore Orioles,Minnesota Twins,away,9,665966,Carlos Narváez,805673,Zebby Matthews,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,1,802139,JJ Wetherholt,554430,Zack Wheeler,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,2,671056,Iván Herrera,554430,Zack Wheeler,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,3,676475,Alec Burleson,554430,Zack Wheeler,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,4,691023,Jordan Walker,554430,Zack Wheeler,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,5,701675,Nathan Church,554430,Zack Wheeler,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,6,691026,Masyn Winn,554430,Zack Wheeler,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,7,693409,César Prieto,554430,Zack Wheeler,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,8,665877,José Fermín,554430,Zack Wheeler,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,St. Louis Cardinals,Philadelphia Phillies,home,9,699625,Jimmy Crooks,554430,Zack Wheeler,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,1,656941,Kyle Schwarber,681517,Kyle Leahy,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,2,607208,Trea Turner,681517,Kyle Leahy,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,3,547180,Bryce Harper,681517,Kyle Leahy,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,4,650333,Luis Arraez,681517,Kyle Leahy,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,5,681082,Bryson Stott,681517,Kyle Leahy,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,6,669016,Brandon Marsh,681517,Kyle Leahy,L,R,L
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,7,592663,J.T. Realmuto,681517,Kyle Leahy,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,8,664761,Alec Bohm,681517,Kyle Leahy,R,R,R
+2026-08-12,823017,2026-08-12T18:15:00Z,Philadelphia Phillies,St. Louis Cardinals,away,9,702222,Justin Crawford,681517,Kyle Leahy,L,R,L
