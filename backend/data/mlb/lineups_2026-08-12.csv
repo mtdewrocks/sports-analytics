@@ -44,6 +44,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,824967,2026-08-12T19:05:00Z,Athletics,Tampa Bay Rays,home,7,691777,Max Muncy,656876,Drew Rasmussen,R,R,R
 2026-08-12,824967,2026-08-12T19:05:00Z,Athletics,Tampa Bay Rays,home,8,695720,Tommy White,656876,Drew Rasmussen,R,R,R
 2026-08-12,824967,2026-08-12T19:05:00Z,Athletics,Tampa Bay Rays,home,9,661531,Brian Serven,656876,Drew Rasmussen,R,R,R
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,1,650490,Yandy Díaz,678022,Jack Perkins,R,R,R
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,2,666018,Jonathan Aranda,678022,Jack Perkins,L,R,L
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,3,691406,Junior Caminero,678022,Jack Perkins,R,R,R
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,4,689414,Liam Hicks,678022,Jack Perkins,L,R,L
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,5,683748,Victor Mesa Jr.,678022,Jack Perkins,L,R,L
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,6,676356,Jonny DeLuca,678022,Jack Perkins,R,R,R
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,7,656775,Cedric Mullins,678022,Jack Perkins,L,R,L
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,8,680700,Richie Palacios,678022,Jack Perkins,L,R,L
+2026-08-12,824967,2026-08-12T19:05:00Z,Tampa Bay Rays,Athletics,away,9,670764,Taylor Walls,678022,Jack Perkins,S,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,1,672695,Geraldo Perdomo,663372,Ryan Feltner,S,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,2,682998,Corbin Carroll,663372,Ryan Feltner,L,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,3,672515,Gabriel Moreno,663372,Ryan Feltner,R,R,R
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,4,606466,Ketel Marte,663372,Ryan Feltner,S,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,5,663457,Lars Nootbaar,663372,Ryan Feltner,L,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,6,571448,Nolan Arenado,663372,Ryan Feltner,R,R,R
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,7,596146,Max Kepler,663372,Ryan Feltner,L,R,L
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,8,694374,Tim Tawa,663372,Ryan Feltner,R,R,R
+2026-08-12,825047,2026-08-12T19:40:00Z,Arizona Diamondbacks,Colorado Rockies,home,9,814439,Ryan Waldschmidt,663372,Ryan Feltner,R,R,R
 2026-08-12,825047,2026-08-12T19:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,1,664983,Jake McCarthy,518876,Merrill Kelly,L,R,L
 2026-08-12,825047,2026-08-12T19:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,2,694249,Cole Carrigg,518876,Merrill Kelly,S,R,L
 2026-08-12,825047,2026-08-12T19:40:00Z,Colorado Rockies,Arizona Diamondbacks,away,3,681198,TJ Rumfield,518876,Merrill Kelly,L,R,L
@@ -62,6 +80,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,823187,2026-08-12T19:45:00Z,San Francisco Giants,Houston Astros,home,7,678545,Osleivis Basabe,687911,Bryan King,R,L,R
 2026-08-12,823187,2026-08-12T19:45:00Z,San Francisco Giants,Houston Astros,home,8,701852,Drew Cavanaugh,687911,Bryan King,L,L,L
 2026-08-12,823187,2026-08-12T19:45:00Z,San Francisco Giants,Houston Astros,home,9,683766,Christian Koss,687911,Bryan King,R,L,R
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,1,665161,Jeremy Peña,605288,Adrian Houser,R,R,R
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,2,670541,Yordan Alvarez,605288,Adrian Houser,L,R,L
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,3,670623,Isaac Paredes,605288,Adrian Houser,R,R,R
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,4,662139,Daulton Varsho,605288,Adrian Houser,L,R,L
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,5,664774,LaMonte Wade Jr.,605288,Adrian Houser,L,R,L
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,6,701358,Cam Smith,605288,Adrian Houser,R,R,R
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,7,666211,Taylor Trammell,605288,Adrian Houser,L,R,L
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,8,669397,Nick Allen,605288,Adrian Houser,R,R,R
+2026-08-12,823187,2026-08-12T19:45:00Z,Houston Astros,San Francisco Giants,away,9,543877,Christian Vázquez,605288,Adrian Houser,R,R,R
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,1,650859,Luis Rengifo,669160,Dustin May,S,R,L
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,2,630105,Jake Cronenworth,669160,Dustin May,L,R,L
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,3,592518,Manny Machado,669160,Dustin May,R,R,R
@@ -71,3 +98,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,7,657757,Gavin Sheets,669160,Dustin May,L,R,L
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,8,593428,Xander Bogaerts,669160,Dustin May,R,R,R
 2026-08-12,823263,2026-08-12T20:10:00Z,San Diego Padres,Milwaukee Brewers,home,9,666023,Freddy Fermin,669160,Dustin May,R,R,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,1,694192,Jackson Chourio,592662,Robbie Ray,R,L,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,2,668930,Brice Turang,592662,Robbie Ray,L,L,L
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,3,683734,Andrew Vaughn,592662,Robbie Ray,R,L,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,4,641343,Jake Bauers,592662,Robbie Ray,L,L,L
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,5,661388,William Contreras,592662,Robbie Ray,R,L,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,6,596142,Gary Sánchez,592662,Robbie Ray,R,L,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,7,663604,Brandon Lockridge,592662,Robbie Ray,R,L,R
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,8,666152,David Hamilton,592662,Robbie Ray,L,L,L
+2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,9,687401,Joey Ortiz,592662,Robbie Ray,R,L,R
