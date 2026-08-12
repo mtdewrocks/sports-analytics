@@ -107,3 +107,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,7,663604,Brandon Lockridge,592662,Robbie Ray,R,L,R
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,8,666152,David Hamilton,592662,Robbie Ray,L,L,L
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,9,687401,Joey Ortiz,592662,Robbie Ray,R,L,R
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,1,669364,Xavier Edwards,669387,Carmen Mlodzinski,S,R,L
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,2,672640,Otto Lopez,669387,Carmen Mlodzinski,R,R,R
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,3,665052,Griffin Conine,669387,Carmen Mlodzinski,L,R,L
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,4,681715,Heriberto Hernández,669387,Carmen Mlodzinski,R,R,R
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,5,805300,Jakob Marsee,669387,Carmen Mlodzinski,L,R,L
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,6,682663,Agustín Ramírez,669387,Carmen Mlodzinski,R,R,R
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,7,683357,Owen Caissie,669387,Carmen Mlodzinski,L,R,L
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,8,677870,Leo Jiménez,669387,Carmen Mlodzinski,R,R,R
+2026-08-12,823833,2026-08-12T22:40:00Z,Miami Marlins,Pittsburgh Pirates,home,9,691788,Joe Mack,669387,Carmen Mlodzinski,L,R,L
