@@ -107,6 +107,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,7,663604,Brandon Lockridge,592662,Robbie Ray,R,L,R
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,8,666152,David Hamilton,592662,Robbie Ray,L,L,L
 2026-08-12,823263,2026-08-12T20:10:00Z,Milwaukee Brewers,San Diego Padres,away,9,687401,Joey Ortiz,592662,Robbie Ray,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,1,650402,Gleyber Torres,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,2,693307,Dillon Dingler,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,3,805808,Kevin McGonigle,656492,Foster Griffin,L,L,L
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,4,701678,Hao-Yu Lee,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,5,679529,Spencer Torkelson,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,6,701162,Ben Malgeri,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,7,703601,Max Clark,656492,Foster Griffin,L,L,L
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,8,595879,Javier Báez,656492,Foster Griffin,R,L,R
+2026-08-12,824241,2026-08-12T22:40:00Z,Detroit Tigers,Cleveland Guardians,home,9,667452,Corey Julks,656492,Foster Griffin,R,L,R
 2026-08-12,824241,2026-08-12T22:40:00Z,Cleveland Guardians,Detroit Tigers,away,1,680757,Steven Kwan,664285,Framber Valdez,L,L,L
 2026-08-12,824241,2026-08-12T22:40:00Z,Cleveland Guardians,Detroit Tigers,away,2,800050,Chase DeLauter,664285,Framber Valdez,L,L,L
 2026-08-12,824241,2026-08-12T22:40:00Z,Cleveland Guardians,Detroit Tigers,away,3,608070,José Ramírez,664285,Framber Valdez,S,L,R
@@ -143,6 +152,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,822698,2026-08-12T22:45:00Z,Washington Nationals,Chicago Cubs,home,7,696285,Jacob Young,656849,David Peterson,R,L,R
 2026-08-12,822698,2026-08-12T22:45:00Z,Washington Nationals,Chicago Cubs,home,8,695734,Daylen Lile,656849,David Peterson,L,L,L
 2026-08-12,822698,2026-08-12T22:45:00Z,Washington Nationals,Chicago Cubs,home,9,683083,Nasim Nuñez,656849,David Peterson,S,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,1,691718,Pete Crow-Armstrong,800600,Jackson Kent,L,L,L
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,2,673548,Seiya Suzuki,800600,Jackson Kent,R,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,3,608324,Alex Bregman,800600,Jackson Kent,R,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,4,608348,Carson Kelly,800600,Jackson Kent,R,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,5,683737,Michael Busch,800600,Jackson Kent,L,L,L
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,6,663538,Nico Hoerner,800600,Jackson Kent,R,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,7,621438,Tyrone Taylor,800600,Jackson Kent,R,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,8,699393,Pedro Ramírez,800600,Jackson Kent,S,L,R
+2026-08-12,822698,2026-08-12T22:45:00Z,Chicago Cubs,Washington Nationals,away,9,621020,Dansby Swanson,800600,Jackson Kent,R,L,R
 2026-08-12,823511,2026-08-12T23:05:00Z,New York Yankees,Seattle Mariners,home,1,663757,Trent Grisham,682243,Bryce Miller,L,R,L
 2026-08-12,823511,2026-08-12T23:05:00Z,New York Yankees,Seattle Mariners,home,2,700250,Ben Rice,682243,Bryce Miller,L,R,L
 2026-08-12,823511,2026-08-12T23:05:00Z,New York Yankees,Seattle Mariners,home,3,682987,Spencer Jones,682243,Bryce Miller,L,R,L
