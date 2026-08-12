@@ -233,3 +233,30 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,824562,2026-08-12T23:40:00Z,Cincinnati Reds,Chicago White Sox,away,7,624431,Jose Trevino,622491,Luis Castillo,R,R,R
 2026-08-12,824562,2026-08-12T23:40:00Z,Cincinnati Reds,Chicago White Sox,away,8,670770,TJ Friedl,622491,Luis Castillo,L,R,L
 2026-08-12,824562,2026-08-12T23:40:00Z,Cincinnati Reds,Chicago White Sox,away,9,680574,Matt McLain,622491,Luis Castillo,R,R,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,1,660271,Shohei Ohtani,663738,Daniel Lynch IV,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,2,681624,Andy Pages,663738,Daniel Lynch IV,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,3,518692,Freddie Freeman,663738,Daniel Lynch IV,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,4,663656,Kyle Tucker,663738,Daniel Lynch IV,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,5,605141,Mookie Betts,663738,Daniel Lynch IV,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,6,571970,Max Muncy,663738,Daniel Lynch IV,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,7,606192,Teoscar Hernández,663738,Daniel Lynch IV,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,8,676439,Hunter Feduccia,663738,Daniel Lynch IV,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Los Angeles Dodgers,Kansas City Royals,home,9,500743,Miguel Rojas,663738,Daniel Lynch IV,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,1,679845,Nick Loftin,641778,Eric Lauer,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,2,677951,Bobby Witt Jr.,641778,Eric Lauer,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,3,695506,Jac Caglianone,641778,Eric Lauer,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,4,521692,Salvador Perez,641778,Eric Lauer,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,5,516782,Starling Marte,641778,Eric Lauer,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,6,695600,Carter Jensen,641778,Eric Lauer,L,L,L
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,7,686555,Isaac Collins,641778,Eric Lauer,S,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,8,686475,Tyler Tolbert,641778,Eric Lauer,R,L,R
+2026-08-12,823916,2026-08-13T02:10:00Z,Kansas City Royals,Los Angeles Dodgers,away,9,668942,Josh Rojas,641778,Eric Lauer,L,L,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,1,685133,Wade Meckler,615698,Cal Quantrill,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,2,545361,Mike Trout,615698,Cal Quantrill,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,3,694384,Nolan Schanuel,615698,Cal Quantrill,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,4,687263,Zach Neto,615698,Cal Quantrill,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,5,694208,Moisés Ballesteros,615698,Cal Quantrill,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,6,687093,Vaughn Grissom,615698,Cal Quantrill,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,7,666139,Josh Lowe,615698,Cal Quantrill,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,8,672724,Oswald Peraza,615698,Cal Quantrill,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,9,694203,Denzer Guzman,615698,Cal Quantrill,R,R,R
