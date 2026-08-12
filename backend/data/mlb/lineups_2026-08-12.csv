@@ -260,3 +260,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,7,666139,Josh Lowe,615698,Cal Quantrill,L,R,L
 2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,8,672724,Oswald Peraza,615698,Cal Quantrill,R,R,R
 2026-08-12,823994,2026-08-13T02:10:00Z,Los Angeles Angels,Texas Rangers,home,9,694203,Denzer Guzman,615698,Cal Quantrill,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,1,592626,Joc Pederson,691946,George Klassen,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,2,607043,Brandon Nimmo,691946,George Klassen,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,3,608369,Corey Seager,691946,George Klassen,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,4,677649,Ezequiel Duran,691946,George Klassen,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,5,672284,Jarred Kelenic,691946,George Klassen,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,6,669394,Jake Burger,691946,George Klassen,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,7,694497,Evan Carter,691946,George Klassen,L,R,L
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,8,553869,Elias Díaz,691946,George Klassen,R,R,R
+2026-08-12,823994,2026-08-13T02:10:00Z,Texas Rangers,Los Angeles Angels,away,9,670032,Nicky Lopez,691946,George Klassen,L,R,L
