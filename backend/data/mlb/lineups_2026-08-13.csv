@@ -80,3 +80,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,678218,Brandon Valenzuela,801139,Payton Tolle,S,L,R
 2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,8,664702,Myles Straw,801139,Payton Tolle,R,L,R
 2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,9,664770,Nathan Lukes,801139,Payton Tolle,L,L,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,1,686765,Nick Sogard,453286,Max Scherzer,S,R,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,2,678882,Ceddanne Rafaela,453286,Max Scherzer,R,R,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,3,677800,Wilyer Abreu,453286,Max Scherzer,L,R,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,4,575929,Willson Contreras,453286,Max Scherzer,R,R,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,5,807799,Masataka Yoshida,453286,Max Scherzer,L,R,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,6,702332,Caleb Durbin,453286,Max Scherzer,R,R,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,7,680776,Jarren Duran,453286,Max Scherzer,L,R,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,8,655316,Andruw Monasterio,453286,Max Scherzer,R,R,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,9,657136,Connor Wong,453286,Max Scherzer,R,R,R
