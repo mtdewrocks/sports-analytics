@@ -143,12 +143,11 @@ def get_mlb_data() -> dict:
         ("starters", "starters.parquet", pd.read_parquet),          # dropdown + season stats
         ("pitcher_logs", "pitcher_logs.parquet", pd.read_parquet),  # recent game logs
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
-        # --- still Excel / CSV: splits and percentiles ---
-        ("pitcher_splits_agg", "Season_Aggregated_Pitcher_Statistics.xlsx", pd.read_excel),
-        ("pitcher_percentiles", "Pitcher_Percentile_Rankings.csv", pd.read_csv),
-        ("hitter_percentiles", "Hitter_Percentile_Rankings.csv", pd.read_csv),
-        # --- hot hitters (get_hot_hitters reads this key) ---
-        ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),
+        # --- Statcast, rebuilt by GitHub Actions ---
+        ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
+        ("pitcher_splits", "pitcher_splits.parquet", pd.read_parquet),  # vs L / vs R
+        ("pitcher_percentiles", "pitcher_percentiles.parquet", pd.read_parquet),
+        ("hitter_percentiles", "hitter_percentiles.parquet", pd.read_parquet),
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}

@@ -175,42 +175,65 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         print(f"Warning: game_logs section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
-    # 3. Splits — Season_Aggregated_Pitcher_Statistics.xlsx
+    # 3. Splits — pitcher_splits.parquet (Statcast, 2025 + 2026 pooled)
     # ------------------------------------------------------------------
-    STAT_ORDER = [
-        "TBF", "Weighted AVG", "Weighted BABIP", "Weighted wOBA", "Weighted SLG",
-        "ISO Pitcher", "HR", "Pitcher HR Rate", "Weighted K%", "Weighted BB%",
-        "Weighted GB%", "Weighted LD%", "Weighted FB%", "Weighted HR/FB",
-        "Weighted Soft%", "Weighted Med%", "Weighted Hard%", "Weighted FIP", "Weighted xFIP",
+    # (parquet column, display label) in the order the table renders.
+    SPLIT_STATS = [
+        ("tbf", "TBF"),
+        ("ip", "IP"),
+        ("avg", "AVG"),
+        ("babip", "BABIP"),
+        ("woba", "wOBA"),
+        ("slg", "SLG"),
+        ("iso", "ISO"),
+        ("hr_allowed", "HR"),
+        ("hr_rate", "HR Rate"),
+        ("k_pct", "K%"),
+        ("bb_pct", "BB%"),
+        ("gb_pct", "GB%"),
+        ("ld_pct", "LD%"),
+        ("fb_pct", "FB%"),
+        ("iffb_pct", "IFFB%"),
+        ("hr_fb_pct", "HR/FB"),
+        ("soft_pct", "Soft%"),
+        ("med_pct", "Med%"),
+        ("hard_pct", "Hard%"),
+        ("avg_ev", "Avg EV"),
+        ("fip", "FIP"),
+        ("xfip", "xFIP"),
     ]
 
-    splits_df = data.get("pitcher_splits_agg", pd.DataFrame())
     splits = []
     try:
-        if not splits_df.empty:
-            name_col = _find_col(splits_df, ["baseball savant name", "baseball_savant_name", "pitcher"])
-            split_col = _find_col(splits_df, ["split"])
-            if name_col and split_col:
-                # This file is keyed on Savant-format names while the dropdown
-                # now supplies MLB format, so try both spellings.
-                wanted = {pitcher_norm}
-                if starter is not None and "savant_name" in starters_df.columns:
-                    wanted.add(_normalize(str(starter["savant_name"])))
-                    wanted.add(_normalize(str(starter["pitcher"])))
+        splits_df = data.get("pitcher_splits", pd.DataFrame())
 
-                sub = splits_df[splits_df[name_col].str.lower().str.strip().isin(wanted)].copy()
-                if split_col != "Split":
-                    sub = sub.rename(columns={split_col: "Split"})
-                sub = sub[sub["Split"].isin(["vs L", "vs R"])]
-                if not sub.empty:
-                    stat_cols = [c for c in STAT_ORDER if c in sub.columns]
-                    pivot = sub[["Split"] + stat_cols].set_index("Split")[stat_cols].T.reset_index()
-                    pivot = pivot.rename(columns={"index": "Statistic"})
-                    order_map = {s: i for i, s in enumerate(STAT_ORDER)}
-                    pivot["_ord"] = pivot["Statistic"].map(order_map).fillna(999)
-                    pivot = pivot.sort_values("_ord").drop(columns=["_ord"])
-                    cols = [c for c in ["vs L", "Statistic", "vs R"] if c in pivot.columns]
-                    splits = pivot[cols].fillna("").to_dict(orient="records")
+        if not splits_df.empty and starter is not None:
+            # Join on the id -- this file is keyed on player_id, so there is no
+            # name-format question at all.
+            sub = splits_df[splits_df["player_id"] == int(starter["pitcher_id"])].copy()
+            sub = sub[sub["split"].isin(["vs L", "vs R"])]
+
+            if not sub.empty:
+                sub = sub.set_index("split")
+                rows = []
+                for column, label in SPLIT_STATS:
+                    if column not in sub.columns:
+                        continue
+                    row = {"Statistic": label}
+                    for hand in ("vs L", "vs R"):
+                        value = sub[column].get(hand)
+                        if value is None or pd.isna(value):
+                            row[hand] = ""
+                        else:
+                            # numpy scalars are not JSON serializable
+                            row[hand] = value.item() if hasattr(value, "item") else value
+                    rows.append(row)
+
+                # Column order the frontend renders: vs L | Statistic | vs R
+                splits = [
+                    {"vs L": r.get("vs L", ""), "Statistic": r["Statistic"], "vs R": r.get("vs R", "")}
+                    for r in rows
+                ]
     except Exception as e:
         print(f"Warning: splits section failed for {pitcher_name}: {e}")
 
