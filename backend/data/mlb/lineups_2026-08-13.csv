@@ -89,3 +89,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,7,680776,Jarren Duran,453286,Max Scherzer,L,R,L
 2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,8,655316,Andruw Monasterio,453286,Max Scherzer,R,R,R
 2026-08-13,822776,2026-08-13T19:07:00Z,Boston Red Sox,Toronto Blue Jays,away,9,657136,Connor Wong,453286,Max Scherzer,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,1,682928,CJ Abrams,592332,Kevin Gausman,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,2,694673,Abimelec Ortiz,592332,Kevin Gausman,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,3,686611,Dylan Crews,592332,Kevin Gausman,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,4,695734,Daylen Lile,592332,Kevin Gausman,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,5,691781,Brady House,592332,Kevin Gausman,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,6,678391,Jorbit Vivas,592332,Kevin Gausman,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,7,665953,Andrés Chaparro,592332,Kevin Gausman,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,8,660688,Keibert Ruiz,592332,Kevin Gausman,S,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Washington Nationals,Chicago Cubs,home,9,687605,Andrew Pinckney,592332,Kevin Gausman,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,1,691718,Pete Crow-Armstrong,676917,Cade Cavalli,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,2,673548,Seiya Suzuki,676917,Cade Cavalli,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,3,683737,Michael Busch,676917,Cade Cavalli,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,4,608324,Alex Bregman,676917,Cade Cavalli,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,5,664023,Ian Happ,676917,Cade Cavalli,S,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,6,699393,Pedro Ramírez,676917,Cade Cavalli,S,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,7,621020,Dansby Swanson,676917,Cade Cavalli,R,R,R
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,8,624424,Michael Conforto,676917,Cade Cavalli,L,R,L
+2026-08-13,822696,2026-08-13T20:05:00Z,Chicago Cubs,Washington Nationals,away,9,665804,Miguel Amaya,676917,Cade Cavalli,R,R,R
