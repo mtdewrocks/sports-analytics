@@ -145,8 +145,8 @@ def get_mlb_data() -> dict:
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
         # --- still Excel / CSV: splits and percentiles ---
         ("pitcher_splits_agg", "Season_Aggregated_Pitcher_Statistics.xlsx", pd.read_excel),
-        ("pitcher_percentiles", "Pitcher_Percentile_Rankings.csv", pd.read_csv),
-        ("hitter_percentiles", "Hitter_Percentile_Rankings.csv", pd.read_csv),
+        ("pitcher_percentiles", "pitcher_percentiles.parquet", pd.read_parquet),
+        ("hitter_percentiles", "hitter_percentiles.parquet", pd.read_parquet),
         # --- hot hitters (get_hot_hitters reads this key) ---
         ("last_week_stats", "Last_Week_Stats.xlsx", pd.read_excel),
     ]
