@@ -44,10 +44,13 @@ jobs:
       - name: Run Statcast update
         run: python -u backend/app/update_stats_refactored.py
 
-      # Must follow the Statcast update -- it reads the daily_components file
-      # that step just rewrote.
+      # Both must follow the Statcast update -- they read the daily_components
+      # file that step just rewrote.
       - name: Build hot hitters
         run: python -u backend/app/build_hot_hitters.py
+
+      - name: Build pitcher splits
+        run: python -u backend/app/build_splits.py
 
       # Refetches only pitchers who actually started yesterday -- that set is
       # fixed by morning, so this belongs on the daily run rather than the
@@ -72,6 +75,7 @@ jobs:
                    statcast_hitters_2026.xlsx \
                    statcast_pitchers_2026.xlsx \
                    hot_hitters.parquet \
+                   pitcher_splits.parquet \
                    pitcher_logs.parquet \
                    pitcher_percentiles.parquet \
                    hitter_percentiles.parquet; do
