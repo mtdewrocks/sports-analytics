@@ -125,6 +125,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-13,823669,2026-08-13T23:30:00Z,Philadelphia Phillies,Minnesota Twins,away,7,669016,Brandon Marsh,671737,Taj Bradley,L,R,L
 2026-08-13,823669,2026-08-13T23:30:00Z,Philadelphia Phillies,Minnesota Twins,away,8,592663,J.T. Realmuto,671737,Taj Bradley,R,R,R
 2026-08-13,823669,2026-08-13T23:30:00Z,Philadelphia Phillies,Minnesota Twins,away,9,702222,Justin Crawford,671737,Taj Bradley,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,1,685133,Wade Meckler,594798,Jacob deGrom,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,2,545361,Mike Trout,594798,Jacob deGrom,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,3,694384,Nolan Schanuel,594798,Jacob deGrom,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,4,687093,Vaughn Grissom,594798,Jacob deGrom,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,5,694208,Moisés Ballesteros,594798,Jacob deGrom,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,6,694203,Denzer Guzman,594798,Jacob deGrom,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,7,666139,Josh Lowe,594798,Jacob deGrom,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,8,642350,Jose Siri,594798,Jacob deGrom,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Los Angeles Angels,Texas Rangers,home,9,624428,Adam Frazier,594798,Jacob deGrom,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,1,592626,Joc Pederson,700712,Walbert Ureña,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,2,694671,Wyatt Langford,700712,Walbert Ureña,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,3,608369,Corey Seager,700712,Walbert Ureña,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,4,607043,Brandon Nimmo,700712,Walbert Ureña,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,5,677649,Ezequiel Duran,700712,Walbert Ureña,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,6,694497,Evan Carter,700712,Walbert Ureña,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,7,670032,Nicky Lopez,700712,Walbert Ureña,L,R,L
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,8,642851,Austin Wynns,700712,Walbert Ureña,R,R,R
+2026-08-13,823995,2026-08-14T02:07:00Z,Texas Rangers,Los Angeles Angels,away,9,679822,Justin Foscue,700712,Walbert Ureña,R,R,R
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,1,660271,Shohei Ohtani,675660,Shane Drohan,L,L,L
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,2,681624,Andy Pages,675660,Shane Drohan,R,L,R
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,3,669242,Tommy Edman,675660,Shane Drohan,S,L,R
@@ -134,3 +152,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,7,663656,Kyle Tucker,675660,Shane Drohan,L,L,L
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,8,571771,Enrique Hernández,675660,Shane Drohan,R,L,R
 2026-08-13,823915,2026-08-14T02:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,9,666163,Ben Rortvedt,675660,Shane Drohan,L,L,L
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,1,694192,Jackson Chourio,808963,Roki Sasaki,R,R,R
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,2,669003,Garrett Mitchell,808963,Roki Sasaki,L,R,L
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,3,596142,Gary Sánchez,808963,Roki Sasaki,R,R,R
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,4,641343,Jake Bauers,808963,Roki Sasaki,L,R,L
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,5,683734,Andrew Vaughn,808963,Roki Sasaki,R,R,R
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,6,592885,Christian Yelich,808963,Roki Sasaki,L,R,L
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,7,661388,William Contreras,808963,Roki Sasaki,R,R,R
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,8,687401,Joey Ortiz,808963,Roki Sasaki,R,R,R
+2026-08-13,823915,2026-08-14T02:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,9,666152,David Hamilton,808963,Roki Sasaki,L,R,L
