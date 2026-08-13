@@ -1,0 +1,82 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,1,650402,Gleyber Torres,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,2,693307,Dillon Dingler,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,3,805808,Kevin McGonigle,800048,Parker Messick,L,L,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,4,680664,Eduardo Valencia,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,5,679529,Spencer Torkelson,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,6,701678,Hao-Yu Lee,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,7,703601,Max Clark,800048,Parker Messick,L,L,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,8,595879,Javier Báez,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Detroit Tigers,Cleveland Guardians,home,9,701162,Ben Malgeri,800048,Parker Messick,R,L,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,1,680757,Steven Kwan,672456,Keider Montero,L,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,2,800050,Chase DeLauter,672456,Keider Montero,L,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,3,608070,José Ramírez,672456,Keider Montero,S,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,4,663993,Nathaniel Lowe,672456,Keider Montero,L,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,5,666176,Jo Adell,672456,Keider Montero,R,R,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,6,683953,Travis Bazzana,672456,Keider Montero,L,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,7,694197,Angel Genao,672456,Keider Montero,S,R,L
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,8,595978,Austin Hedges,672456,Keider Montero,R,R,R
+2026-08-13,824238,2026-08-13T17:10:00Z,Cleveland Guardians,Detroit Tigers,away,9,677587,Brayan Rocchio,672456,Keider Montero,S,R,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,1,805367,Chase Meidroth,671096,Andrew Abbott,R,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,2,545341,Randal Grichuk,671096,Andrew Abbott,R,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,3,678246,Miguel Vargas,671096,Andrew Abbott,R,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,4,695731,Braden Montgomery,671096,Andrew Abbott,S,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,5,686668,Brenton Doyle,671096,Andrew Abbott,R,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,6,695657,Colson Montgomery,671096,Andrew Abbott,L,L,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,7,700337,Edgar Quero,671096,Andrew Abbott,S,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,8,803011,Sam Antonacci,671096,Andrew Abbott,L,L,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Chicago White Sox,Cincinnati Reds,home,9,682668,Luisangel Acuña,671096,Andrew Abbott,R,L,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,1,682829,Elly De La Cruz,663436,Davis Martin,S,R,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,2,701398,Sal Stewart,663436,Davis Martin,R,R,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,3,668709,JJ Bleday,663436,Davis Martin,L,R,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,4,663886,Tyler Stephenson,663436,Davis Martin,R,R,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,5,553993,Eugenio Suárez,663436,Davis Martin,R,R,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,6,667472,Dane Myers,663436,Davis Martin,R,R,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,7,699302,Héctor Rodríguez,663436,Davis Martin,L,R,L
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,8,680574,Matt McLain,663436,Davis Martin,R,R,R
+2026-08-13,824561,2026-08-13T17:10:00Z,Cincinnati Reds,Chicago White Sox,away,9,663647,Ke'Bryan Hayes,663436,Davis Martin,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,1,805300,Jakob Marsee,677952,Braxton Ashcraft,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,2,669364,Xavier Edwards,677952,Braxton Ashcraft,S,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,3,672640,Otto Lopez,677952,Braxton Ashcraft,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,4,665052,Griffin Conine,677952,Braxton Ashcraft,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,5,682663,Agustín Ramírez,677952,Braxton Ashcraft,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,6,677870,Leo Jiménez,677952,Braxton Ashcraft,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,7,683357,Owen Caissie,677952,Braxton Ashcraft,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,8,691594,Javier Sanoja,677952,Braxton Ashcraft,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Miami Marlins,Pittsburgh Pirates,home,9,665923,Esteury Ruiz,677952,Braxton Ashcraft,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,1,687462,Spencer Horwitz,663969,Tyler Phillips,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,2,664040,Brandon Lowe,663969,Tyler Phillips,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,3,668804,Bryan Reynolds,663969,Tyler Phillips,S,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,4,693304,Nick Gonzales,663969,Tyler Phillips,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,5,699013,Esmerlyn Valdez,663969,Tyler Phillips,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,6,694378,Jacob Gonzalez,663969,Tyler Phillips,L,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,7,663968,Jake Mangum,663969,Tyler Phillips,S,R,L
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,8,669707,Jared Triolo,663969,Tyler Phillips,R,R,R
+2026-08-13,823829,2026-08-13T17:10:00Z,Pittsburgh Pirates,Miami Marlins,away,9,804668,Rafael Flores Jr.,663969,Tyler Phillips,R,R,R
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,1,663757,Trent Grisham,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,2,700250,Ben Rice,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,3,682987,Spencer Jones,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,4,671277,Luis García Jr.,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,5,806146,George Lombard Jr.,669302,Logan Gilbert,R,R,R
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,6,665862,Jazz Chisholm Jr.,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,7,676609,José Caballero,669302,Logan Gilbert,R,R,R
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,8,641857,Ryan McMahon,669302,Logan Gilbert,L,R,L
+2026-08-13,823508,2026-08-13T17:35:00Z,New York Yankees,Seattle Mariners,home,9,645305,Ali Sánchez,669302,Logan Gilbert,R,R,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,1,668227,Randy Arozarena,608331,Max Fried,R,L,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,2,677594,Julio Rodríguez,608331,Max Fried,R,L,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,3,686527,Dominic Canzone,608331,Max Fried,L,L,L
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,4,663728,Cal Raleigh,608331,Max Fried,S,L,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,5,647304,Josh Naylor,608331,Max Fried,L,L,L
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,6,680977,Brendan Donovan,608331,Max Fried,L,L,L
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,7,642215,Weston Wilson,608331,Max Fried,R,L,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,8,640902,Jhonny Pereda,608331,Max Fried,R,L,R
+2026-08-13,823508,2026-08-13T17:35:00Z,Seattle Mariners,New York Yankees,away,9,660844,Leo Rivas,608331,Max Fried,S,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,1,807727,Charles McAdoo,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,2,676391,Ernie Clement,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,3,665489,Vladimir Guerrero Jr.,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,4,543807,George Springer,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,5,672960,Kazuma Okamoto,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,6,665926,Andrés Giménez,801139,Payton Tolle,L,L,L
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,7,678218,Brandon Valenzuela,801139,Payton Tolle,S,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,8,664702,Myles Straw,801139,Payton Tolle,R,L,R
+2026-08-13,822776,2026-08-13T19:07:00Z,Toronto Blue Jays,Boston Red Sox,home,9,664770,Nathan Lukes,801139,Payton Tolle,L,L,L
