@@ -80,6 +80,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,823591,2026-08-14T23:10:00Z,New York Mets,Washington Nationals,home,7,543760,Marcus Semien,674841,Andrew Alvarez,R,L,R
 2026-08-14,823591,2026-08-14T23:10:00Z,New York Mets,Washington Nationals,home,8,676724,Jared Young,674841,Andrew Alvarez,L,L,L
 2026-08-14,823591,2026-08-14T23:10:00Z,New York Mets,Washington Nationals,home,9,620443,Luis Torrens,674841,Andrew Alvarez,R,L,R
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,1,682928,CJ Abrams,476594,Robert Stock,L,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,2,694673,Abimelec Ortiz,476594,Robert Stock,L,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,3,691781,Brady House,476594,Robert Stock,R,R,R
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,4,695734,Daylen Lile,476594,Robert Stock,L,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,5,660688,Keibert Ruiz,476594,Robert Stock,S,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,6,677588,José Tena,476594,Robert Stock,L,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,7,683083,Nasim Nuñez,476594,Robert Stock,S,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,8,678391,Jorbit Vivas,476594,Robert Stock,L,R,L
+2026-08-14,823591,2026-08-14T23:10:00Z,Washington Nationals,New York Mets,away,9,696285,Jacob Young,476594,Robert Stock,R,R,R
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,1,680757,Steven Kwan,650633,Michael King,L,R,L
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,2,800050,Chase DeLauter,650633,Michael King,L,R,L
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,3,682657,Angel Martínez,650633,Michael King,S,R,L
@@ -89,6 +98,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,7,690984,Petey Halpin,650633,Michael King,L,R,L
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,8,672275,Patrick Bailey,650633,Michael King,S,R,L
 2026-08-14,824399,2026-08-14T23:10:00Z,Cleveland Guardians,San Diego Padres,home,9,677587,Brayan Rocchio,650633,Michael King,S,R,L
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,1,665487,Fernando Tatis Jr.,668909,Gavin Williams,R,R,R
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,2,630105,Jake Cronenworth,668909,Gavin Williams,L,R,L
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,3,592518,Manny Machado,668909,Gavin Williams,R,R,R
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,4,664034,Ty France,668909,Gavin Williams,R,R,R
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,5,701538,Jackson Merrill,668909,Gavin Williams,L,R,L
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,6,669134,Luis Campusano,668909,Gavin Williams,R,R,R
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,7,657757,Gavin Sheets,668909,Gavin Williams,L,R,L
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,8,593428,Xander Bogaerts,668909,Gavin Williams,R,R,R
+2026-08-14,824399,2026-08-14T23:10:00Z,San Diego Padres,Cleveland Guardians,away,9,650859,Luis Rengifo,668909,Gavin Williams,S,R,L
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,1,650490,Yandy Díaz,605135,Chris Bassitt,R,R,R
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,2,666018,Jonathan Aranda,605135,Chris Bassitt,L,R,L
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,3,802415,Chandler Simpson,605135,Chris Bassitt,L,R,L
@@ -98,6 +116,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,7,656775,Cedric Mullins,605135,Chris Bassitt,L,R,L
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,8,680700,Richie Palacios,605135,Chris Bassitt,L,R,L
 2026-08-14,822942,2026-08-14T23:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,9,670764,Taylor Walls,605135,Chris Bassitt,S,R,L
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,1,624413,Pete Alonso,571927,Steven Matz,R,L,R
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,2,702616,Jackson Holliday,571927,Steven Matz,L,L,L
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,3,691723,Coby Mayo,571927,Steven Matz,R,L,R
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,4,641933,Tyler O'Neill,571927,Steven Matz,R,L,R
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,5,683002,Gunnar Henderson,571927,Steven Matz,L,L,L
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,6,687952,Christian Encarnacion-Strand,571927,Steven Matz,R,L,R
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,7,665750,Leody Taveras,571927,Steven Matz,S,L,R
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,8,681297,Colton Cowser,571927,Steven Matz,L,L,L
+2026-08-14,822942,2026-08-14T23:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,9,665966,Carlos Narváez,571927,Steven Matz,R,L,R
 2026-08-14,824882,2026-08-14T23:15:00Z,Atlanta Braves,Arizona Diamondbacks,home,1,686948,Drake Baldwin,694297,Brandon Pfaadt,L,R,L
 2026-08-14,824882,2026-08-14T23:15:00Z,Atlanta Braves,Arizona Diamondbacks,home,2,660670,Ronald Acuña Jr.,694297,Brandon Pfaadt,R,R,R
 2026-08-14,824882,2026-08-14T23:15:00Z,Atlanta Braves,Arizona Diamondbacks,home,3,621566,Matt Olson,694297,Brandon Pfaadt,L,R,L
@@ -125,3 +152,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,822777,2026-08-14T23:15:00Z,Toronto Blue Jays,New York Yankees,home,7,672960,Kazuma Okamoto,543037,Gerrit Cole,R,R,R
 2026-08-14,822777,2026-08-14T23:15:00Z,Toronto Blue Jays,New York Yankees,home,8,660821,Jesús Sánchez,543037,Gerrit Cole,L,R,L
 2026-08-14,822777,2026-08-14T23:15:00Z,Toronto Blue Jays,New York Yankees,home,9,676391,Ernie Clement,543037,Gerrit Cole,R,R,R
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,1,663757,Trent Grisham,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,2,700250,Ben Rice,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,3,682987,Spencer Jones,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,4,671277,Luis García Jr.,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,5,665862,Jazz Chisholm Jr.,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,6,671218,Heliot Ramos,669456,Shane Bieber,R,R,R
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,7,641857,Ryan McMahon,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,8,669224,Austin Wells,669456,Shane Bieber,L,R,L
+2026-08-14,822777,2026-08-14T23:15:00Z,New York Yankees,Toronto Blue Jays,away,9,806146,George Lombard Jr.,669456,Shane Bieber,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,1,665161,Jeremy Peña,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,2,670541,Yordan Alvarez,669923,George Kirby,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,3,670623,Isaac Paredes,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,4,666211,Taylor Trammell,669923,George Kirby,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,5,514888,Jose Altuve,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,6,662139,Daulton Varsho,669923,George Kirby,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,7,572233,Christian Walker,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,8,701358,Cam Smith,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,9,543877,Christian Vázquez,669923,George Kirby,R,R,R
