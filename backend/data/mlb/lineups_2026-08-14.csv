@@ -17,3 +17,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,7,663494,Bryan Torres,605280,Clay Holmes,L,R,L
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,8,665877,José Fermín,605280,Clay Holmes,R,R,R
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,9,693409,César Prieto,605280,Clay Holmes,L,R,L
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,1,682829,Elly De La Cruz,645261,Sandy Alcantara,S,R,L
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,2,701398,Sal Stewart,645261,Sandy Alcantara,R,R,R
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,3,668709,JJ Bleday,645261,Sandy Alcantara,L,R,L
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,4,663886,Tyler Stephenson,645261,Sandy Alcantara,R,R,R
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,5,553993,Eugenio Suárez,645261,Sandy Alcantara,R,R,R
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,6,669911,Michael Toglia,645261,Sandy Alcantara,S,R,L
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,7,667472,Dane Myers,645261,Sandy Alcantara,R,R,R
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,8,682622,Noelvi Marte,645261,Sandy Alcantara,R,R,R
+2026-08-14,824479,2026-08-14T22:10:00Z,Cincinnati Reds,Miami Marlins,home,9,680574,Matt McLain,645261,Sandy Alcantara,R,R,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,1,650402,Gleyber Torres,656794,Sean Newcomb,R,L,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,2,693307,Dillon Dingler,656794,Sean Newcomb,R,L,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,3,805808,Kevin McGonigle,656794,Sean Newcomb,L,L,L
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,4,680664,Eduardo Valencia,656794,Sean Newcomb,R,L,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,5,690993,Colt Keith,656794,Sean Newcomb,L,L,L
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,6,679529,Spencer Torkelson,656794,Sean Newcomb,R,L,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,7,656716,Zach McKinstry,656794,Sean Newcomb,L,L,L
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,8,701162,Ben Malgeri,656794,Sean Newcomb,R,L,R
+2026-08-14,824237,2026-08-14T22:40:00Z,Detroit Tigers,Chicago White Sox,home,9,703601,Max Clark,656794,Sean Newcomb,L,L,L
