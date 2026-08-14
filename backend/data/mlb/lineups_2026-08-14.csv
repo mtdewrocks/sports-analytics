@@ -1,4 +1,13 @@
 date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,1,691718,Pete Crow-Armstrong,669461,Matthew Liberatore,L,L,L
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,2,673548,Seiya Suzuki,669461,Matthew Liberatore,R,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,3,608324,Alex Bregman,669461,Matthew Liberatore,R,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,4,683737,Michael Busch,669461,Matthew Liberatore,L,L,L
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,5,663538,Nico Hoerner,669461,Matthew Liberatore,R,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,6,608348,Carson Kelly,669461,Matthew Liberatore,R,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,7,664023,Ian Happ,669461,Matthew Liberatore,S,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,8,621438,Tyrone Taylor,669461,Matthew Liberatore,R,L,R
+2026-08-14,824643,2026-08-14T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,9,621020,Dansby Swanson,669461,Matthew Liberatore,R,L,R
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,1,802139,JJ Wetherholt,605280,Clay Holmes,L,R,L
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,2,671056,Iván Herrera,605280,Clay Holmes,R,R,R
 2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,3,676475,Alec Burleson,605280,Clay Holmes,L,R,L
