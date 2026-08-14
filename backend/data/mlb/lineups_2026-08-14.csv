@@ -170,3 +170,30 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,7,572233,Christian Walker,669923,George Kirby,R,R,R
 2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,8,701358,Cam Smith,669923,George Kirby,R,R,R
 2026-08-14,824159,2026-08-15T00:10:00Z,Houston Astros,Seattle Mariners,home,9,543877,Christian Vázquez,669923,George Kirby,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,1,702284,Cole Young,663567,Peter Lambert,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,2,668227,Randy Arozarena,663567,Peter Lambert,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,3,686527,Dominic Canzone,663567,Peter Lambert,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,4,677594,Julio Rodríguez,663567,Peter Lambert,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,5,647304,Josh Naylor,663567,Peter Lambert,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,6,680977,Brendan Donovan,663567,Peter Lambert,L,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,7,663728,Cal Raleigh,663567,Peter Lambert,S,R,L
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,8,645302,Victor Robles,663567,Peter Lambert,R,R,R
+2026-08-14,824159,2026-08-15T00:10:00Z,Seattle Mariners,Houston Astros,away,9,801126,Brock Rodden,663567,Peter Lambert,S,R,L
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,1,685133,Wade Meckler,607625,Seth Lugo,L,R,L
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,2,545361,Mike Trout,607625,Seth Lugo,R,R,R
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,3,694384,Nolan Schanuel,607625,Seth Lugo,L,R,L
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,4,687263,Zach Neto,607625,Seth Lugo,R,R,R
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,5,694208,Moisés Ballesteros,607625,Seth Lugo,L,R,L
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,6,687093,Vaughn Grissom,607625,Seth Lugo,R,R,R
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,7,666139,Josh Lowe,607625,Seth Lugo,L,R,L
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,8,694203,Denzer Guzman,607625,Seth Lugo,R,R,R
+2026-08-14,823993,2026-08-15T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,9,623168,Tyler Heineman,607625,Seth Lugo,S,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,1,664983,Jake McCarthy,694738,Landen Roupp,L,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,2,666160,Mickey Moniak,694738,Landen Roupp,L,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,3,650489,Willi Castro,694738,Landen Roupp,S,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,4,681198,TJ Rumfield,694738,Landen Roupp,L,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,5,687859,Troy Johnston,694738,Landen Roupp,L,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,6,681393,Connor Norby,694738,Landen Roupp,R,R,R
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,7,691728,Zac Veen,694738,Landen Roupp,L,R,L
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,8,678662,Ezequiel Tovar,694738,Landen Roupp,R,R,R
+2026-08-14,823185,2026-08-15T02:15:00Z,Colorado Rockies,San Francisco Giants,away,9,664954,Brett Sullivan,694738,Landen Roupp,L,R,L
