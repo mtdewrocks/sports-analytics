@@ -1,0 +1,10 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,1,802139,JJ Wetherholt,605280,Clay Holmes,L,R,L
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,2,671056,Iván Herrera,605280,Clay Holmes,R,R,R
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,3,676475,Alec Burleson,605280,Clay Holmes,L,R,L
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,4,691023,Jordan Walker,605280,Clay Holmes,R,R,R
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,5,701675,Nathan Church,605280,Clay Holmes,L,R,L
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,6,691026,Masyn Winn,605280,Clay Holmes,R,R,R
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,7,663494,Bryan Torres,605280,Clay Holmes,L,R,L
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,8,665877,José Fermín,605280,Clay Holmes,R,R,R
+2026-08-14,824643,2026-08-14T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,9,693409,César Prieto,605280,Clay Holmes,L,R,L
