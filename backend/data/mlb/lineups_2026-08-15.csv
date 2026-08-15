@@ -233,3 +233,30 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,7,661388,William Contreras,680736,Justin Wrobleski,R,L,R
 2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,8,687401,Joey Ortiz,680736,Justin Wrobleski,R,L,R
 2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,9,680716,Jonathan Ornelas,680736,Justin Wrobleski,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,1,685133,Wade Meckler,677976,Randy Dobnak,L,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,2,545361,Mike Trout,677976,Randy Dobnak,R,R,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,3,694384,Nolan Schanuel,677976,Randy Dobnak,L,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,4,687263,Zach Neto,677976,Randy Dobnak,R,R,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,5,694208,Moisés Ballesteros,677976,Randy Dobnak,L,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,6,666139,Josh Lowe,677976,Randy Dobnak,L,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,7,694203,Denzer Guzman,677976,Randy Dobnak,R,R,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,8,624428,Adam Frazier,677976,Randy Dobnak,L,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Los Angeles Angels,Kansas City Royals,home,9,623168,Tyler Heineman,677976,Randy Dobnak,S,R,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,1,679845,Nick Loftin,672282,Reid Detmers,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,2,677951,Bobby Witt Jr.,672282,Reid Detmers,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,3,695506,Jac Caglianone,672282,Reid Detmers,L,L,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,4,521692,Salvador Perez,672282,Reid Detmers,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,5,686555,Isaac Collins,672282,Reid Detmers,S,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,6,686681,Michael Massey,672282,Reid Detmers,L,L,L
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,7,516782,Starling Marte,672282,Reid Detmers,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,8,571912,Luke Maile,672282,Reid Detmers,R,L,R
+2026-08-15,823990,2026-08-16T01:38:00Z,Kansas City Royals,Los Angeles Angels,away,9,686475,Tyler Tolbert,672282,Reid Detmers,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,1,703607,Henry Bolte,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,2,680869,Zack Gelof,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,3,643446,Jeff McNeil,669022,MacKenzie Gore,L,L,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,4,641680,Jonah Heim,669022,MacKenzie Gore,S,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,5,695720,Tommy White,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,6,671732,Lawrence Butler,669022,MacKenzie Gore,L,L,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,7,691777,Max Muncy,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,8,661531,Brian Serven,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,9,675961,Alika Williams,669022,MacKenzie Gore,R,L,R
