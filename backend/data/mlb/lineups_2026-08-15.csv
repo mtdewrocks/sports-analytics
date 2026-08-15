@@ -170,6 +170,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,7,686797,Brooks Lee,666200,Jesús Luzardo,S,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,8,668952,Ryan Kreidler,666200,Jesús Luzardo,R,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,9,701785,Kaelen Culpepper,666200,Jesús Luzardo,R,L,R
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,1,656941,Kyle Schwarber,687570,Connor Prielipp,L,L,L
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,2,607208,Trea Turner,687570,Connor Prielipp,R,L,R
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,3,547180,Bryce Harper,687570,Connor Prielipp,L,L,L
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,4,650333,Luis Arraez,687570,Connor Prielipp,L,L,L
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,5,664761,Alec Bohm,687570,Connor Prielipp,R,L,R
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,6,624641,Edmundo Sosa,687570,Connor Prielipp,R,L,R
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,7,681082,Bryson Stott,687570,Connor Prielipp,L,L,L
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,8,592663,J.T. Realmuto,687570,Connor Prielipp,R,L,R
+2026-08-15,823671,2026-08-15T23:10:00Z,Philadelphia Phillies,Minnesota Twins,away,9,656537,Derek Hill,687570,Connor Prielipp,R,L,R
 2026-08-15,823347,2026-08-15T23:15:00Z,Pittsburgh Pirates,Boston Red Sox,home,1,687462,Spencer Horwitz,543243,Sonny Gray,L,R,L
 2026-08-15,823347,2026-08-15T23:15:00Z,Pittsburgh Pirates,Boston Red Sox,home,2,664040,Brandon Lowe,543243,Sonny Gray,L,R,L
 2026-08-15,823347,2026-08-15T23:15:00Z,Pittsburgh Pirates,Boston Red Sox,home,3,668804,Bryan Reynolds,543243,Sonny Gray,S,R,L
@@ -215,3 +224,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,7,606192,Teoscar Hernández,694819,Jacob Misiorowski,R,R,R
 2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,8,669743,Alex Call,694819,Jacob Misiorowski,R,R,R
 2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,9,676439,Hunter Feduccia,694819,Jacob Misiorowski,L,R,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,1,694192,Jackson Chourio,680736,Justin Wrobleski,R,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,2,800325,Luis Lara,680736,Justin Wrobleski,S,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,3,683734,Andrew Vaughn,680736,Justin Wrobleski,R,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,4,641343,Jake Bauers,680736,Justin Wrobleski,L,L,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,5,596142,Gary Sánchez,680736,Justin Wrobleski,R,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,6,592885,Christian Yelich,680736,Justin Wrobleski,L,L,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,7,661388,William Contreras,680736,Justin Wrobleski,R,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,8,687401,Joey Ortiz,680736,Justin Wrobleski,R,L,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,9,680716,Jonathan Ornelas,680736,Justin Wrobleski,R,L,R
