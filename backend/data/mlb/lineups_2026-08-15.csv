@@ -53,3 +53,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,7,806146,George Lombard Jr.,680755,Braydon Fisher,R,R,R
 2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,8,641857,Ryan McMahon,680755,Braydon Fisher,L,R,L
 2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,9,669224,Austin Wells,680755,Braydon Fisher,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,1,687551,Drew Gilbert,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,2,646240,Rafael Devers,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,3,805811,Bryce Eldridge,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,4,808982,Jung Hoo Lee,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,5,678545,Osleivis Basabe,547179,Michael Lorenzen,R,R,R
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,6,701852,Drew Cavanaugh,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,7,806367,Turner Hill,547179,Michael Lorenzen,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,8,671083,Buddy Kennedy,547179,Michael Lorenzen,R,R,R
+2026-08-15,823184,2026-08-15T20:05:00Z,San Francisco Giants,Colorado Rockies,home,9,683766,Christian Koss,547179,Michael Lorenzen,R,R,R
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,1,664983,Jake McCarthy,657277,Logan Webb,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,2,694249,Cole Carrigg,657277,Logan Webb,S,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,3,681198,TJ Rumfield,657277,Logan Webb,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,4,696100,Hunter Goodman,657277,Logan Webb,R,R,R
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,5,666160,Mickey Moniak,657277,Logan Webb,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,6,650489,Willi Castro,657277,Logan Webb,S,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,7,691728,Zac Veen,657277,Logan Webb,L,R,L
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,8,681393,Connor Norby,657277,Logan Webb,R,R,R
+2026-08-15,823184,2026-08-15T20:05:00Z,Colorado Rockies,San Francisco Giants,away,9,678662,Ezequiel Tovar,657277,Logan Webb,R,R,R
