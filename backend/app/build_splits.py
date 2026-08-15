@@ -87,7 +87,7 @@ def pool(frame: pd.DataFrame) -> pd.DataFrame:
     counting = [
         "pa", "ab", "h", "singles", "doubles", "triples", "hr", "bb", "ibb",
         "hbp", "so", "sf", "sh", "pitches", "woba_num", "woba_den",
-        "outs_batter_events", "ev_sum", *BATTED_BALL_COLUMNS,
+        "outs_batter_events", "baserunning_outs", "ev_sum", *BATTED_BALL_COLUMNS,
     ]
     counting = [c for c in counting if c in frame.columns]
 
@@ -106,12 +106,24 @@ def derive(totals: pd.DataFrame, league_hr_per_fb: float) -> pd.DataFrame:
 
     ab, pa, bip, ev_n = out["ab"], out["pa"], out["bip"], out["ev_n"]
     tb = out["singles"] + 2 * out["doubles"] + 3 * out["triples"] + 4 * out["hr"]
-    ip = out["outs_batter_events"] / 3.0
     ubb = out["bb"] - out["ibb"]
 
+    # Innings pitched needs outs made on the bases too -- a caught stealing
+    # ends an inning but carries no plate appearance. Older component files
+    # predate that column, so fall back to batter outs alone.
+    runner_outs = out["baserunning_outs"] if "baserunning_outs" in out.columns else 0
+    total_outs = out["outs_batter_events"] + pd.Series(runner_outs, index=out.index).fillna(0)
+    ip = total_outs / 3.0
+
     out["tbf"] = pa.round().astype("int64")
-    out["ip"] = ip.round(1)
     out["hr_allowed"] = out["hr"].round().astype("int64")
+
+    # IP displays in baseball notation, where the digit after the point is
+    # thirds of an inning, not tenths: 643 outs is 214.1, meaning 214 innings
+    # and one out. `ip` above stays decimal because FIP and the rates need
+    # real division -- only the displayed value is converted.
+    outs = total_outs.round().astype("int64")
+    out["ip"] = (outs // 3) + (outs % 3) / 10
 
     out["avg"] = div(out["h"], ab)
     out["babip"] = div(out["h"] - out["hr"], ab - out["so"] - out["hr"] + out["sf"])

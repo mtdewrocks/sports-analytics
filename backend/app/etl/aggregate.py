@@ -59,6 +59,24 @@ BB_TYPES = {
     "popup": "pu",
 }
 
+#: Outs recorded on the bases rather than by the batter. These end innings and
+#: count toward innings pitched, but they carry no plate appearance, so they
+#: are invisible to OUTS_BY_EVENT. Leaving them out put IP roughly 7 outs light
+#: over two seasons for a starter -- small, but it shows against FanGraphs.
+BASERUNNING_OUTS_BY_EVENT: dict[str, int] = {
+    "caught_stealing_2b": 1,
+    "caught_stealing_3b": 1,
+    "caught_stealing_home": 1,
+    "pickoff_1b": 1,
+    "pickoff_2b": 1,
+    "pickoff_3b": 1,
+    "pickoff_caught_stealing_2b": 1,
+    "pickoff_caught_stealing_3b": 1,
+    "pickoff_caught_stealing_home": 1,
+    "runner_double_play": 2,
+    "cs_double_play": 2,
+}
+
 #: Exit-velocity thresholds, in mph. 95+ is Savant's "hard hit" definition.
 #: Note these are NOT FanGraphs' Soft/Med/Hard, which come from Baseball Info
 #: Solutions' visual classification and will not match exactly. Named _ev_ in
@@ -89,6 +107,7 @@ COMPONENT_COLUMNS = (
     "xwoba_con_sum",
     "xwoba_con_n",
     "outs_batter_events",
+    "baserunning_outs",
     # --- batted-ball components ---
     "bip",
     "gb",
@@ -231,6 +250,19 @@ def _one_role(
         .reset_index()
     )
 
+    # ---- outs on the bases come from ALL rows, like pitch counts ----
+    # A caught stealing carries no plate appearance, so it is absent from
+    # pa_rows entirely and has to be counted off the full frame.
+    runner_outs = (
+        pitches.assign(
+            _bo=pitches["events"].map(BASERUNNING_OUTS_BY_EVENT).fillna(0).astype("int64")
+        )
+        .groupby(group_keys, dropna=True, observed=True)["_bo"]
+        .sum()
+        .rename("baserunning_outs")
+        .reset_index()
+    )
+
     # ---- everything else comes from one row per plate appearance ----
     pa = pa_rows.copy()
     indicators = pa_indicators(pa).drop(columns=["ab"])
@@ -243,6 +275,7 @@ def _one_role(
     )
 
     out = grouped.merge(pitch_counts, on=group_keys, how="outer")
+    out = out.merge(runner_outs, on=group_keys, how="outer")
 
     # A player can throw pitches on a date without any PA completing against
     # them (e.g. removed mid-count), so fill rather than drop.
@@ -424,10 +457,11 @@ def derive_rates(totals: pd.DataFrame) -> pd.DataFrame:
     out["woba"] = safe_divide(out["woba_num"], out["woba_den"])
     out["xwoba_con"] = safe_divide(out["xwoba_con_sum"], out["xwoba_con_n"])
     out["pitches_per_pa"] = safe_divide(out["pitches"], out["pa"])
-    out["ip_est"] = out["outs_batter_events"] / 3.0
-    out["pitches_per_inning_est"] = safe_divide(
-        out["pitches"], out["outs_batter_events"] / 3.0
-    )
+
+    # Real innings pitched: batter outs plus outs made on the bases.
+    total_outs = out["outs_batter_events"] + out.get("baserunning_outs", 0)
+    out["ip_est"] = total_outs / 3.0
+    out["pitches_per_inning_est"] = safe_divide(out["pitches"], total_outs / 3.0)
 
     # --- batted-ball rates, all denominated on balls in play ---
     if "bip" in out.columns:
