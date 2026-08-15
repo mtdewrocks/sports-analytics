@@ -260,3 +260,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,7,691777,Max Muncy,669022,MacKenzie Gore,R,L,R
 2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,8,661531,Brian Serven,669022,MacKenzie Gore,R,L,R
 2026-08-15,824966,2026-08-16T01:40:00Z,Athletics,Texas Rangers,home,9,675961,Alika Williams,669022,MacKenzie Gore,R,L,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,1,592626,Joc Pederson,669372,J.T. Ginn,L,R,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,2,607043,Brandon Nimmo,669372,J.T. Ginn,L,R,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,3,608369,Corey Seager,669372,J.T. Ginn,L,R,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,4,694671,Wyatt Langford,669372,J.T. Ginn,R,R,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,5,677649,Ezequiel Duran,669372,J.T. Ginn,R,R,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,6,694497,Evan Carter,669372,J.T. Ginn,L,R,L
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,7,669394,Jake Burger,669372,J.T. Ginn,R,R,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,8,642851,Austin Wynns,669372,J.T. Ginn,R,R,R
+2026-08-15,824966,2026-08-16T01:40:00Z,Texas Rangers,Athletics,away,9,670032,Nicky Lopez,669372,J.T. Ginn,L,R,L
