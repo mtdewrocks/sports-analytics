@@ -17,3 +17,39 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,824239,2026-08-15T17:10:00Z,Chicago White Sox,Detroit Tigers,away,7,805367,Chase Meidroth,675512,Troy Melton,R,R,R
 2026-08-15,824239,2026-08-15T17:10:00Z,Chicago White Sox,Detroit Tigers,away,8,671976,Tristan Peters,675512,Troy Melton,L,R,L
 2026-08-15,824239,2026-08-15T17:10:00Z,Chicago White Sox,Detroit Tigers,away,9,668670,Jake Rogers,675512,Troy Melton,R,R,R
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,1,691718,Pete Crow-Armstrong,700241,Michael McGreevy,L,R,L
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,2,673548,Seiya Suzuki,700241,Michael McGreevy,R,R,R
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,3,683737,Michael Busch,700241,Michael McGreevy,L,R,L
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,4,608324,Alex Bregman,700241,Michael McGreevy,R,R,R
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,5,664023,Ian Happ,700241,Michael McGreevy,S,R,L
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,6,663538,Nico Hoerner,700241,Michael McGreevy,R,R,R
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,7,699393,Pedro Ramírez,700241,Michael McGreevy,S,R,L
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,8,624424,Michael Conforto,700241,Michael McGreevy,L,R,L
+2026-08-15,824644,2026-08-15T18:20:00Z,Chicago Cubs,St. Louis Cardinals,home,9,665804,Miguel Amaya,700241,Michael McGreevy,R,R,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,1,802139,JJ Wetherholt,571510,Matthew Boyd,L,L,L
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,2,671056,Iván Herrera,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,3,691023,Jordan Walker,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,4,676475,Alec Burleson,571510,Matthew Boyd,L,L,L
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,5,695491,Joshua Báez,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,6,691026,Masyn Winn,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,7,691458,Blaze Jordan,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,8,677592,Everson Pereira,571510,Matthew Boyd,R,L,R
+2026-08-15,824644,2026-08-15T18:20:00Z,St. Louis Cardinals,Chicago Cubs,away,9,686780,Pedro Pagés,571510,Matthew Boyd,R,L,R
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,1,703520,Brett Bateman,693645,Cam Schlittler,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,2,664770,Nathan Lukes,693645,Cam Schlittler,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,3,672386,Alejandro Kirk,693645,Cam Schlittler,R,R,R
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,4,660821,Jesús Sánchez,693645,Cam Schlittler,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,5,672960,Kazuma Okamoto,693645,Cam Schlittler,R,R,R
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,6,665926,Andrés Giménez,693645,Cam Schlittler,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,7,678218,Brandon Valenzuela,693645,Cam Schlittler,S,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,8,669701,Josh Smith,693645,Cam Schlittler,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,Toronto Blue Jays,New York Yankees,home,9,807727,Charles McAdoo,693645,Cam Schlittler,R,R,R
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,1,663757,Trent Grisham,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,2,700250,Ben Rice,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,3,671218,Heliot Ramos,680755,Braydon Fisher,R,R,R
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,4,671277,Luis García Jr.,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,5,682987,Spencer Jones,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,6,665862,Jazz Chisholm Jr.,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,7,806146,George Lombard Jr.,680755,Braydon Fisher,R,R,R
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,8,641857,Ryan McMahon,680755,Braydon Fisher,L,R,L
+2026-08-15,822775,2026-08-15T19:07:00Z,New York Yankees,Toronto Blue Jays,away,9,669224,Austin Wells,680755,Braydon Fisher,L,R,L
