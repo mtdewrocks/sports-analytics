@@ -98,6 +98,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,822941,2026-08-15T22:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,7,656775,Cedric Mullins,680694,Kyle Bradish,L,R,L
 2026-08-15,822941,2026-08-15T22:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,8,680700,Richie Palacios,680694,Kyle Bradish,L,R,L
 2026-08-15,822941,2026-08-15T22:10:00Z,Tampa Bay Rays,Baltimore Orioles,home,9,670764,Taylor Walls,680694,Kyle Bradish,S,R,L
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,1,641933,Tyler O'Neill,693855,Ian Seymour,R,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,2,624413,Pete Alonso,693855,Ian Seymour,R,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,3,702616,Jackson Holliday,693855,Ian Seymour,L,L,L
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,4,691723,Coby Mayo,693855,Ian Seymour,R,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,5,683002,Gunnar Henderson,693855,Ian Seymour,L,L,L
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,6,687952,Christian Encarnacion-Strand,693855,Ian Seymour,R,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,7,681047,Christian Franklin,693855,Ian Seymour,R,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,8,665750,Leody Taveras,693855,Ian Seymour,S,L,R
+2026-08-15,822941,2026-08-15T22:10:00Z,Baltimore Orioles,Tampa Bay Rays,away,9,665966,Carlos Narváez,693855,Ian Seymour,R,L,R
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,1,682829,Elly De La Cruz,687473,Ryan Gusto,S,R,L
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,2,701398,Sal Stewart,687473,Ryan Gusto,R,R,R
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,3,668709,JJ Bleday,687473,Ryan Gusto,L,R,L
@@ -107,6 +116,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,7,682622,Noelvi Marte,687473,Ryan Gusto,R,R,R
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,8,663647,Ke'Bryan Hayes,687473,Ryan Gusto,R,R,R
 2026-08-15,824480,2026-08-15T22:40:00Z,Cincinnati Reds,Miami Marlins,home,9,680574,Matt McLain,687473,Ryan Gusto,R,R,R
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,1,680757,Steven Kwan,593974,Wandy Peralta,L,L,L
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,2,800050,Chase DeLauter,593974,Wandy Peralta,L,L,L
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,3,608070,José Ramírez,593974,Wandy Peralta,S,L,R
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,4,666176,Jo Adell,593974,Wandy Peralta,R,L,R
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,5,663993,Nathaniel Lowe,593974,Wandy Peralta,L,L,L
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,6,694197,Angel Genao,593974,Wandy Peralta,S,L,R
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,7,683953,Travis Bazzana,593974,Wandy Peralta,L,L,L
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,8,672275,Patrick Bailey,593974,Wandy Peralta,S,L,R
+2026-08-15,824400,2026-08-15T23:10:00Z,Cleveland Guardians,San Diego Padres,home,9,690984,Petey Halpin,593974,Wandy Peralta,L,L,L
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,1,665161,Jeremy Peña,676106,Emerson Hancock,R,R,R
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,2,670541,Yordan Alvarez,676106,Emerson Hancock,L,R,L
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,3,670623,Isaac Paredes,676106,Emerson Hancock,R,R,R
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,4,662139,Daulton Varsho,676106,Emerson Hancock,L,R,L
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,5,514888,Jose Altuve,676106,Emerson Hancock,R,R,R
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,6,572233,Christian Walker,676106,Emerson Hancock,R,R,R
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,7,666211,Taylor Trammell,676106,Emerson Hancock,L,R,L
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,8,701358,Cam Smith,676106,Emerson Hancock,R,R,R
+2026-08-15,824157,2026-08-15T23:10:00Z,Houston Astros,Seattle Mariners,home,9,543877,Christian Vázquez,676106,Emerson Hancock,R,R,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,1,668885,Austin Martin,666200,Jesús Luzardo,R,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,2,621439,Byron Buxton,666200,Jesús Luzardo,R,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,3,680777,Ryan Jeffers,666200,Jesús Luzardo,R,L,R
@@ -116,3 +143,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,7,686797,Brooks Lee,666200,Jesús Luzardo,S,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,8,668952,Ryan Kreidler,666200,Jesús Luzardo,R,L,R
 2026-08-15,823671,2026-08-15T23:10:00Z,Minnesota Twins,Philadelphia Phillies,home,9,701785,Kaelen Culpepper,666200,Jesús Luzardo,R,L,R
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,1,663457,Lars Nootbaar,656550,Grant Holmes,L,R,L
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,2,682998,Corbin Carroll,656550,Grant Holmes,L,R,L
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,3,672695,Geraldo Perdomo,656550,Grant Holmes,S,R,L
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,4,672515,Gabriel Moreno,656550,Grant Holmes,R,R,R
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,5,596146,Max Kepler,656550,Grant Holmes,L,R,L
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,6,571448,Nolan Arenado,656550,Grant Holmes,R,R,R
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,7,694374,Tim Tawa,656550,Grant Holmes,R,R,R
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,8,545121,Ildemaro Vargas,656550,Grant Holmes,S,R,L
+2026-08-15,824884,2026-08-15T23:15:00Z,Arizona Diamondbacks,Atlanta Braves,away,9,814439,Ryan Waldschmidt,656550,Grant Holmes,R,R,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,1,660271,Shohei Ohtani,694819,Jacob Misiorowski,L,R,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,2,518692,Freddie Freeman,694819,Jacob Misiorowski,L,R,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,3,681624,Andy Pages,694819,Jacob Misiorowski,R,R,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,4,571970,Max Muncy,694819,Jacob Misiorowski,L,R,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,5,605141,Mookie Betts,694819,Jacob Misiorowski,R,R,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,6,669242,Tommy Edman,694819,Jacob Misiorowski,S,R,L
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,7,606192,Teoscar Hernández,694819,Jacob Misiorowski,R,R,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,8,669743,Alex Call,694819,Jacob Misiorowski,R,R,R
+2026-08-15,823914,2026-08-15T23:15:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,9,676439,Hunter Feduccia,694819,Jacob Misiorowski,L,R,L
