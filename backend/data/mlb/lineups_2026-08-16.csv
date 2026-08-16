@@ -17,6 +17,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-16,822940,2026-08-16T16:15:00Z,Baltimore Orioles,Tampa Bay Rays,away,7,681297,Colton Cowser,642547,Freddy Peralta,L,R,L
 2026-08-16,822940,2026-08-16T16:15:00Z,Baltimore Orioles,Tampa Bay Rays,away,8,691723,Coby Mayo,642547,Freddy Peralta,R,R,R
 2026-08-16,822940,2026-08-16T16:15:00Z,Baltimore Orioles,Tampa Bay Rays,away,9,650968,Yohel Pozo,642547,Freddy Peralta,R,R,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,1,669707,Jared Triolo,663776,Patrick Sandoval,R,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,2,699013,Esmerlyn Valdez,663776,Patrick Sandoval,R,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,3,668804,Bryan Reynolds,663776,Patrick Sandoval,S,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,4,664040,Brandon Lowe,663776,Patrick Sandoval,L,L,L
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,5,804668,Rafael Flores Jr.,663776,Patrick Sandoval,R,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,6,663968,Jake Mangum,663776,Patrick Sandoval,S,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,7,694377,Nick Yorke,663776,Patrick Sandoval,R,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,8,695257,Billy Cook,663776,Patrick Sandoval,R,L,R
+2026-08-16,823344,2026-08-16T17:35:00Z,Pittsburgh Pirates,Boston Red Sox,home,9,680779,Henry Davis,663776,Patrick Sandoval,R,L,R
 2026-08-16,823344,2026-08-16T17:35:00Z,Boston Red Sox,Pittsburgh Pirates,away,1,686765,Nick Sogard,669199,Lake Bachar,S,R,L
 2026-08-16,823344,2026-08-16T17:35:00Z,Boston Red Sox,Pittsburgh Pirates,away,2,678882,Ceddanne Rafaela,669199,Lake Bachar,R,R,R
 2026-08-16,823344,2026-08-16T17:35:00Z,Boston Red Sox,Pittsburgh Pirates,away,3,677800,Wilyer Abreu,669199,Lake Bachar,L,R,L
@@ -143,3 +152,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-16,823670,2026-08-16T18:10:00Z,Minnesota Twins,Philadelphia Phillies,home,7,807712,Luke Keaschall,691725,Andrew Painter,R,R,R
 2026-08-16,823670,2026-08-16T18:10:00Z,Minnesota Twins,Philadelphia Phillies,home,8,605170,Victor Caratini,691725,Andrew Painter,S,R,L
 2026-08-16,823670,2026-08-16T18:10:00Z,Minnesota Twins,Philadelphia Phillies,home,9,701785,Kaelen Culpepper,691725,Andrew Painter,R,R,R
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,1,656941,Kyle Schwarber,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,2,681082,Bryson Stott,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,3,547180,Bryce Harper,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,4,650333,Luis Arraez,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,5,664761,Alec Bohm,665152,Dean Kremer,R,R,R
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,6,669016,Brandon Marsh,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,7,592663,J.T. Realmuto,665152,Dean Kremer,R,R,R
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,8,702222,Justin Crawford,665152,Dean Kremer,L,R,L
+2026-08-16,823670,2026-08-16T18:10:00Z,Philadelphia Phillies,Minnesota Twins,away,9,624641,Edmundo Sosa,665152,Dean Kremer,R,R,R
