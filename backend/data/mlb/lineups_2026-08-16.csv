@@ -215,6 +215,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-16,824965,2026-08-16T20:05:00Z,Texas Rangers,Athletics,away,7,553869,Elias Díaz,682052,Jacob Lopez,R,L,R
 2026-08-16,824965,2026-08-16T20:05:00Z,Texas Rangers,Athletics,away,8,642851,Austin Wynns,682052,Jacob Lopez,R,L,R
 2026-08-16,824965,2026-08-16T20:05:00Z,Texas Rangers,Athletics,away,9,694497,Evan Carter,682052,Jacob Lopez,L,L,L
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,1,687263,Zach Neto,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,2,545361,Mike Trout,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,3,687093,Vaughn Grissom,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,4,642350,Jose Siri,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,5,685133,Wade Meckler,702070,Noah Cameron,L,L,L
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,6,694203,Denzer Guzman,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,7,672724,Oswald Peraza,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,8,518595,Travis d'Arnaud,702070,Noah Cameron,R,L,R
+2026-08-16,823991,2026-08-16T20:07:00Z,Los Angeles Angels,Kansas City Royals,home,9,666139,Josh Lowe,702070,Noah Cameron,L,L,L
 2026-08-16,823991,2026-08-16T20:07:00Z,Kansas City Royals,Los Angeles Angels,away,1,695600,Carter Jensen,696270,Ryan Johnson,L,R,L
 2026-08-16,823991,2026-08-16T20:07:00Z,Kansas City Royals,Los Angeles Angels,away,2,677951,Bobby Witt Jr.,696270,Ryan Johnson,R,R,R
 2026-08-16,823991,2026-08-16T20:07:00Z,Kansas City Royals,Los Angeles Angels,away,3,695506,Jac Caglianone,696270,Ryan Johnson,L,R,L
@@ -233,3 +242,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-16,823912,2026-08-16T20:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,7,669242,Tommy Edman,701656,Logan Henderson,S,R,L
 2026-08-16,823912,2026-08-16T20:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,8,606192,Teoscar Hernández,701656,Logan Henderson,R,R,R
 2026-08-16,823912,2026-08-16T20:10:00Z,Los Angeles Dodgers,Milwaukee Brewers,home,9,666163,Ben Rortvedt,701656,Logan Henderson,L,R,L
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,1,661388,William Contreras,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,2,800325,Luis Lara,669373,Tarik Skubal,S,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,3,694192,Jackson Chourio,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,4,641343,Jake Bauers,669373,Tarik Skubal,L,L,L
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,5,683734,Andrew Vaughn,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,6,596142,Gary Sánchez,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,7,663604,Brandon Lockridge,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,8,687401,Joey Ortiz,669373,Tarik Skubal,R,L,R
+2026-08-16,823912,2026-08-16T20:10:00Z,Milwaukee Brewers,Los Angeles Dodgers,away,9,680716,Jonathan Ornelas,669373,Tarik Skubal,R,L,R
