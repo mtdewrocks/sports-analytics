@@ -17,6 +17,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,7,691458,Blaze Jordan,592288,Kent Emanuel,R,L,R
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,8,677592,Everson Pereira,592288,Kent Emanuel,R,L,R
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,9,686780,Pedro Pagés,592288,Kent Emanuel,R,L,R
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,1,682829,Elly De La Cruz,669467,Andre Pallante,S,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,2,701398,Sal Stewart,669467,Andre Pallante,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,3,668709,JJ Bleday,669467,Andre Pallante,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,4,553993,Eugenio Suárez,669467,Andre Pallante,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,5,669911,Michael Toglia,669467,Andre Pallante,S,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,6,680574,Matt McLain,669467,Andre Pallante,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,7,699302,Héctor Rodríguez,669467,Andre Pallante,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,8,624431,Jose Trevino,669467,Andre Pallante,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,9,670770,TJ Friedl,669467,Andre Pallante,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,1,802139,JJ Wetherholt,695076,Rhett Lowder,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,2,671056,Iván Herrera,695076,Rhett Lowder,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,3,676475,Alec Burleson,695076,Rhett Lowder,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,4,691023,Jordan Walker,695076,Rhett Lowder,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,5,695491,Joshua Báez,695076,Rhett Lowder,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,6,701675,Nathan Church,695076,Rhett Lowder,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,7,691026,Masyn Winn,695076,Rhett Lowder,R,R,R
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,8,663494,Bryan Torres,695076,Rhett Lowder,L,R,L
+2026-08-17,824478,2026-08-17T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,9,691458,Blaze Jordan,695076,Rhett Lowder,R,R,R
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,1,650490,Yandy Díaz,687064,Brandon Young,R,R,R
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,2,666018,Jonathan Aranda,687064,Brandon Young,L,R,L
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,3,691406,Junior Caminero,687064,Brandon Young,R,R,R
@@ -26,6 +44,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,7,656775,Cedric Mullins,687064,Brandon Young,L,R,L
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,8,680700,Richie Palacios,687064,Brandon Young,L,R,L
 2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,9,622761,Jorge Mateo,687064,Brandon Young,R,R,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,1,641933,Tyler O'Neill,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,2,624413,Pete Alonso,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,3,702616,Jackson Holliday,663556,Shane McClanahan,L,L,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,4,691723,Coby Mayo,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,5,683002,Gunnar Henderson,663556,Shane McClanahan,L,L,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,6,687952,Christian Encarnacion-Strand,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,7,669236,Jeremiah Jackson,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,8,665966,Carlos Narváez,663556,Shane McClanahan,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Baltimore Orioles,Tampa Bay Rays,away,9,681047,Christian Franklin,663556,Shane McClanahan,R,L,R
 2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,1,656941,Kyle Schwarber,676083,Janson Junk,L,R,L
 2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,2,607208,Trea Turner,676083,Janson Junk,R,R,R
 2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,3,547180,Bryce Harper,676083,Janson Junk,L,R,L
@@ -62,15 +89,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,823343,2026-08-17T23:05:00Z,Detroit Tigers,Pittsburgh Pirates,away,7,814430,Brett Callahan,669387,Carmen Mlodzinski,L,R,L
 2026-08-17,823343,2026-08-17T23:05:00Z,Detroit Tigers,Pittsburgh Pirates,away,8,703601,Max Clark,669387,Carmen Mlodzinski,L,R,L
 2026-08-17,823343,2026-08-17T23:05:00Z,Detroit Tigers,Pittsburgh Pirates,away,9,595879,Javier Báez,669387,Carmen Mlodzinski,R,R,R
-2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,1,663330,Jahmai Jones,683352,Mitch Bratt,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,1,686765,Nick Sogard,683352,Mitch Bratt,S,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,2,678882,Ceddanne Rafaela,683352,Mitch Bratt,R,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,3,677800,Wilyer Abreu,683352,Mitch Bratt,L,L,L
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,4,575929,Willson Contreras,683352,Mitch Bratt,R,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,5,668939,Adley Rutschman,683352,Mitch Bratt,S,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,6,702332,Caleb Durbin,683352,Mitch Bratt,R,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,7,655316,Andruw Monasterio,683352,Mitch Bratt,R,L,R
-2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,8,642201,Eli White,683352,Mitch Bratt,R,L,R
-2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,9,686765,Nick Sogard,683352,Mitch Bratt,S,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,8,681508,Mickey Gasper,683352,Mitch Bratt,S,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,9,642201,Eli White,683352,Mitch Bratt,R,L,R
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,1,805999,A.J. Ewing,621111,Walker Buehler,L,R,L
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,2,596019,Francisco Lindor,621111,Walker Buehler,S,R,L
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,3,666182,Bo Bichette,621111,Walker Buehler,R,R,R
@@ -89,6 +116,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,7,686681,Michael Massey,686930,Mason Barnett,L,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,8,686555,Isaac Collins,686930,Mason Barnett,S,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,686930,Mason Barnett,L,R,L
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,1,643446,Jeff McNeil,608379,Michael Wacha,L,R,L
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,2,805779,Jacob Wilson,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,3,671732,Lawrence Butler,608379,Michael Wacha,L,R,L
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,4,680869,Zack Gelof,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,5,666126,Carlos Cortes,608379,Michael Wacha,L,R,L
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,6,703607,Henry Bolte,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,7,622268,Donovan Walton,608379,Michael Wacha,L,R,L
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,8,695720,Tommy White,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,9,661531,Brian Serven,608379,Michael Wacha,R,R,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,1,807712,Luke Keaschall,527048,Martín Pérez,R,L,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,2,621439,Byron Buxton,527048,Martín Pérez,R,L,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,3,680777,Ryan Jeffers,527048,Martín Pérez,R,L,R
