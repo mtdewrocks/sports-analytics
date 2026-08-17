@@ -1,0 +1,19 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,1,682829,Elly De La Cruz,687273,Quinn Mathews,S,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,2,701398,Sal Stewart,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,3,663886,Tyler Stephenson,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,4,553993,Eugenio Suárez,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,5,667472,Dane Myers,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,6,669911,Michael Toglia,687273,Quinn Mathews,S,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,7,680574,Matt McLain,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,8,682622,Noelvi Marte,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,9,663647,Ke'Bryan Hayes,687273,Quinn Mathews,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,1,695491,Joshua Báez,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,2,671056,Iván Herrera,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,3,691023,Jordan Walker,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,4,676475,Alec Burleson,592288,Kent Emanuel,L,L,L
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,5,665877,José Fermín,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,6,691026,Masyn Winn,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,7,691458,Blaze Jordan,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,8,677592,Everson Pereira,592288,Kent Emanuel,R,L,R
+2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,9,686780,Pedro Pagés,592288,Kent Emanuel,R,L,R
