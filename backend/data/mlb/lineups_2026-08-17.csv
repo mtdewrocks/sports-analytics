@@ -17,3 +17,39 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,7,691458,Blaze Jordan,592288,Kent Emanuel,R,L,R
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,8,677592,Everson Pereira,592288,Kent Emanuel,R,L,R
 2026-08-17,824514,2026-08-17T17:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,9,686780,Pedro Pagés,592288,Kent Emanuel,R,L,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,1,650490,Yandy Díaz,687064,Brandon Young,R,R,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,2,666018,Jonathan Aranda,687064,Brandon Young,L,R,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,3,691406,Junior Caminero,687064,Brandon Young,R,R,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,4,689414,Liam Hicks,687064,Brandon Young,L,R,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,5,802415,Chandler Simpson,687064,Brandon Young,L,R,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,6,668723,Ryan Vilade,687064,Brandon Young,R,R,R
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,7,656775,Cedric Mullins,687064,Brandon Young,L,R,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,8,680700,Richie Palacios,687064,Brandon Young,L,R,L
+2026-08-17,822939,2026-08-17T22:05:00Z,Tampa Bay Rays,Baltimore Orioles,home,9,622761,Jorge Mateo,687064,Brandon Young,R,R,R
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,1,656941,Kyle Schwarber,676083,Janson Junk,L,R,L
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,2,607208,Trea Turner,676083,Janson Junk,R,R,R
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,3,547180,Bryce Harper,676083,Janson Junk,L,R,L
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,4,650333,Luis Arraez,676083,Janson Junk,L,R,L
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,5,664761,Alec Bohm,676083,Janson Junk,R,R,R
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,6,681082,Bryson Stott,676083,Janson Junk,L,R,L
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,7,669016,Brandon Marsh,676083,Janson Junk,L,R,L
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,8,592663,J.T. Realmuto,676083,Janson Junk,R,R,R
+2026-08-17,823427,2026-08-17T22:40:00Z,Philadelphia Phillies,Miami Marlins,home,9,702222,Justin Crawford,676083,Janson Junk,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,1,805999,A.J. Ewing,621111,Walker Buehler,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,2,596019,Francisco Lindor,621111,Walker Buehler,S,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,3,666182,Bo Bichette,621111,Walker Buehler,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,4,701807,Carson Benge,621111,Walker Buehler,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,5,673357,Luis Robert Jr.,621111,Walker Buehler,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,6,676724,Jared Young,621111,Walker Buehler,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,7,543760,Marcus Semien,621111,Walker Buehler,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,8,593871,Jorge Polanco,621111,Walker Buehler,S,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,9,682626,Francisco Alvarez,621111,Walker Buehler,R,R,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,1,807712,Luke Keaschall,527048,Martín Pérez,R,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,2,621439,Byron Buxton,527048,Martín Pérez,R,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,3,680777,Ryan Jeffers,527048,Martín Pérez,R,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,4,605137,Josh Bell,527048,Martín Pérez,S,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,5,668904,Royce Lewis,527048,Martín Pérez,R,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,6,665019,Kody Clemens,527048,Martín Pérez,L,L,L
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,7,686797,Brooks Lee,527048,Martín Pérez,S,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,8,701785,Kaelen Culpepper,527048,Martín Pérez,R,L,R
+2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,9,702176,Alan Roden,527048,Martín Pérez,L,L,L
