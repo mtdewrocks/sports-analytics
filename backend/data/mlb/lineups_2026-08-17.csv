@@ -98,6 +98,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,7,655316,Andruw Monasterio,683352,Mitch Bratt,R,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,8,681508,Mickey Gasper,683352,Mitch Bratt,S,L,R
 2026-08-17,824725,2026-08-17T23:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,9,642201,Eli White,683352,Mitch Bratt,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,1,545121,Ildemaro Vargas,687941,Alec Gamboa,S,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,2,682998,Corbin Carroll,687941,Alec Gamboa,L,L,L
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,3,672515,Gabriel Moreno,687941,Alec Gamboa,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,4,672695,Geraldo Perdomo,687941,Alec Gamboa,S,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,5,691783,Jordan Lawlar,687941,Alec Gamboa,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,6,694374,Tim Tawa,687941,Alec Gamboa,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,7,699912,Jose Fernandez,687941,Alec Gamboa,R,L,R
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,8,663457,Lars Nootbaar,687941,Alec Gamboa,L,L,L
+2026-08-17,824725,2026-08-17T23:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,9,814439,Ryan Waldschmidt,687941,Alec Gamboa,R,L,R
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,1,805999,A.J. Ewing,621111,Walker Buehler,L,R,L
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,2,596019,Francisco Lindor,621111,Walker Buehler,S,R,L
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,3,666182,Bo Bichette,621111,Walker Buehler,R,R,R
@@ -126,13 +135,13 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,8,686555,Isaac Collins,686930,Mason Barnett,S,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,686930,Mason Barnett,L,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,1,643446,Jeff McNeil,608379,Michael Wacha,L,R,L
-2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,2,805779,Jacob Wilson,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,2,703607,Henry Bolte,608379,Michael Wacha,R,R,R
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,3,671732,Lawrence Butler,608379,Michael Wacha,L,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,4,680869,Zack Gelof,608379,Michael Wacha,R,R,R
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,5,666126,Carlos Cortes,608379,Michael Wacha,L,R,L
-2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,6,703607,Henry Bolte,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,6,695720,Tommy White,608379,Michael Wacha,R,R,R
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,7,622268,Donovan Walton,608379,Michael Wacha,L,R,L
-2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,8,695720,Tommy White,608379,Michael Wacha,R,R,R
+2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,8,675961,Alika Williams,608379,Michael Wacha,R,R,R
 2026-08-17,824077,2026-08-17T23:40:00Z,Athletics,Kansas City Royals,away,9,661531,Brian Serven,608379,Michael Wacha,R,R,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,1,807712,Luke Keaschall,527048,Martín Pérez,R,L,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Minnesota Twins,Atlanta Braves,home,2,621439,Byron Buxton,527048,Martín Pérez,R,L,R
