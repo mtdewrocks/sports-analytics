@@ -107,6 +107,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,7,543760,Marcus Semien,621111,Walker Buehler,R,R,R
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,8,593871,Jorge Polanco,621111,Walker Buehler,S,R,L
 2026-08-17,823589,2026-08-17T23:10:00Z,New York Mets,San Diego Padres,home,9,682626,Francisco Alvarez,621111,Walker Buehler,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,1,665487,Fernando Tatis Jr.,690997,Nolan McLean,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,2,630105,Jake Cronenworth,690997,Nolan McLean,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,3,592518,Manny Machado,690997,Nolan McLean,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,4,664034,Ty France,690997,Nolan McLean,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,5,701538,Jackson Merrill,690997,Nolan McLean,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,6,669134,Luis Campusano,690997,Nolan McLean,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,7,657757,Gavin Sheets,690997,Nolan McLean,L,R,L
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,8,593428,Xander Bogaerts,690997,Nolan McLean,R,R,R
+2026-08-17,823589,2026-08-17T23:10:00Z,San Diego Padres,New York Mets,away,9,650859,Luis Rengifo,690997,Nolan McLean,S,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,1,695600,Carter Jensen,686930,Mason Barnett,L,R,L
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,2,677951,Bobby Witt Jr.,686930,Mason Barnett,R,R,R
 2026-08-17,824077,2026-08-17T23:40:00Z,Kansas City Royals,Athletics,home,3,695506,Jac Caglianone,686930,Mason Barnett,L,R,L
@@ -143,6 +152,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,823668,2026-08-17T23:40:00Z,Atlanta Braves,Minnesota Twins,away,7,573262,Mike Yastrzemski,641927,Bailey Ober,L,R,L
 2026-08-17,823668,2026-08-17T23:40:00Z,Atlanta Braves,Minnesota Twins,away,8,663586,Austin Riley,641927,Bailey Ober,R,R,R
 2026-08-17,823668,2026-08-17T23:40:00Z,Atlanta Braves,Minnesota Twins,away,9,805347,Jim Jarvis,641927,Bailey Ober,L,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,1,691718,Pete Crow-Armstrong,622491,Luis Castillo,L,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,2,673548,Seiya Suzuki,622491,Luis Castillo,R,R,R
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,3,683737,Michael Busch,622491,Luis Castillo,L,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,4,608324,Alex Bregman,622491,Luis Castillo,R,R,R
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,5,664023,Ian Happ,622491,Luis Castillo,S,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,6,663538,Nico Hoerner,622491,Luis Castillo,R,R,R
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,7,699393,Pedro Ramírez,622491,Luis Castillo,S,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,8,624424,Michael Conforto,622491,Luis Castillo,L,R,L
+2026-08-17,824641,2026-08-18T00:05:00Z,Chicago Cubs,Chicago White Sox,home,9,608348,Carson Kelly,622491,Luis Castillo,R,R,R
 2026-08-17,824641,2026-08-18T00:05:00Z,Chicago White Sox,Chicago Cubs,away,1,805367,Chase Meidroth,684007,Shota Imanaga,R,L,R
 2026-08-17,824641,2026-08-18T00:05:00Z,Chicago White Sox,Chicago Cubs,away,2,808959,Munetaka Murakami,684007,Shota Imanaga,L,L,L
 2026-08-17,824641,2026-08-18T00:05:00Z,Chicago White Sox,Chicago Cubs,away,3,678246,Miguel Vargas,684007,Shota Imanaga,R,L,R
@@ -153,11 +171,20 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-17,824641,2026-08-18T00:05:00Z,Chicago White Sox,Chicago Cubs,away,8,682668,Luisangel Acuña,684007,Shota Imanaga,R,L,R
 2026-08-17,824641,2026-08-18T00:05:00Z,Chicago White Sox,Chicago Cubs,away,9,668670,Jake Rogers,684007,Shota Imanaga,R,L,R
 2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,1,664983,Jake McCarthy,605483,Blake Snell,L,L,L
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,2,694249,Cole Carrigg,605483,Blake Snell,S,L,R
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,3,696100,Hunter Goodman,605483,Blake Snell,R,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,2,687597,Jordan Beck,605483,Blake Snell,R,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,3,694249,Cole Carrigg,605483,Blake Snell,S,L,R
 2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,4,650489,Willi Castro,605483,Blake Snell,S,L,R
 2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,5,681198,TJ Rumfield,605483,Blake Snell,L,L,L
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,6,687597,Jordan Beck,605483,Blake Snell,R,L,R
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,7,681393,Connor Norby,605483,Blake Snell,R,L,R
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,8,678662,Ezequiel Tovar,605483,Blake Snell,R,L,R
-2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,9,691182,Adael Amador,605483,Blake Snell,S,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,6,681393,Connor Norby,605483,Blake Snell,R,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,7,691182,Adael Amador,605483,Blake Snell,S,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,8,664954,Brett Sullivan,605483,Blake Snell,L,L,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,9,678662,Ezequiel Tovar,605483,Blake Snell,R,L,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,1,660271,Shohei Ohtani,608372,Tomoyuki Sugano,L,R,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,2,518692,Freddie Freeman,608372,Tomoyuki Sugano,L,R,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,3,681624,Andy Pages,608372,Tomoyuki Sugano,R,R,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,4,571970,Max Muncy,608372,Tomoyuki Sugano,L,R,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,5,605141,Mookie Betts,608372,Tomoyuki Sugano,R,R,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,6,663656,Kyle Tucker,608372,Tomoyuki Sugano,L,R,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,7,669242,Tommy Edman,608372,Tomoyuki Sugano,S,R,L
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,8,606192,Teoscar Hernández,608372,Tomoyuki Sugano,R,R,R
+2026-08-17,824320,2026-08-18T00:40:00Z,Los Angeles Dodgers,Colorado Rockies,away,9,676439,Hunter Feduccia,608372,Tomoyuki Sugano,L,R,L
