@@ -17,6 +17,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,824803,2026-08-18T22:35:00Z,New York Yankees,Baltimore Orioles,away,7,806146,George Lombard Jr.,669358,Shane Baz,R,R,R
 2026-08-18,824803,2026-08-18T22:35:00Z,New York Yankees,Baltimore Orioles,away,8,641857,Ryan McMahon,669358,Shane Baz,L,R,L
 2026-08-18,824803,2026-08-18T22:35:00Z,New York Yankees,Baltimore Orioles,away,9,669224,Austin Wells,669358,Shane Baz,L,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,1,687462,Spencer Horwitz,672456,Keider Montero,L,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,2,664040,Brandon Lowe,672456,Keider Montero,L,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,3,668804,Bryan Reynolds,672456,Keider Montero,S,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,4,699013,Esmerlyn Valdez,672456,Keider Montero,R,R,R
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,5,665833,Oneil Cruz,672456,Keider Montero,L,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,6,663968,Jake Mangum,672456,Keider Montero,S,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,7,804668,Rafael Flores Jr.,672456,Keider Montero,R,R,R
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,8,694378,Jacob Gonzalez,672456,Keider Montero,L,R,L
+2026-08-18,823341,2026-08-18T22:40:00Z,Pittsburgh Pirates,Detroit Tigers,home,9,669707,Jared Triolo,672456,Keider Montero,R,R,R
 2026-08-18,823341,2026-08-18T22:40:00Z,Detroit Tigers,Pittsburgh Pirates,away,1,650402,Gleyber Torres,677952,Braxton Ashcraft,R,R,R
 2026-08-18,823341,2026-08-18T22:40:00Z,Detroit Tigers,Pittsburgh Pirates,away,2,805808,Kevin McGonigle,677952,Braxton Ashcraft,L,R,L
 2026-08-18,823341,2026-08-18T22:40:00Z,Detroit Tigers,Pittsburgh Pirates,away,3,690993,Colt Keith,677952,Braxton Ashcraft,L,R,L
@@ -134,15 +143,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,823586,2026-08-18T23:10:00Z,San Diego Padres,New York Mets,away,7,669720,Austin Hays,804267,Zac Thornton,R,L,R
 2026-08-18,823586,2026-08-18T23:10:00Z,San Diego Padres,New York Mets,away,8,666023,Freddy Fermin,804267,Zac Thornton,R,L,R
 2026-08-18,823586,2026-08-18T23:10:00Z,San Diego Padres,New York Mets,away,9,630105,Jake Cronenworth,804267,Zac Thornton,L,L,L
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,1,679845,Nick Loftin,678022,Jack Perkins,R,R,R
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,2,677951,Bobby Witt Jr.,678022,Jack Perkins,R,R,R
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,3,695506,Jac Caglianone,678022,Jack Perkins,L,R,L
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,4,672580,Maikel Garcia,678022,Jack Perkins,R,R,R
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,5,686469,Vinnie Pasquantino,678022,Jack Perkins,L,R,L
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,6,521692,Salvador Perez,678022,Jack Perkins,R,R,R
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,7,686681,Michael Massey,678022,Jack Perkins,L,R,L
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,8,695600,Carter Jensen,678022,Jack Perkins,L,R,L
-2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,678022,Jack Perkins,L,R,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,1,679845,Nick Loftin,669620,Brady Basso,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,2,677951,Bobby Witt Jr.,669620,Brady Basso,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,3,695506,Jac Caglianone,669620,Brady Basso,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,4,672580,Maikel Garcia,669620,Brady Basso,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,5,686469,Vinnie Pasquantino,669620,Brady Basso,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,6,521692,Salvador Perez,669620,Brady Basso,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,7,686681,Michael Massey,669620,Brady Basso,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,8,695600,Carter Jensen,669620,Brady Basso,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,669620,Brady Basso,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,1,703607,Henry Bolte,663738,Daniel Lynch IV,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,2,680869,Zack Gelof,663738,Daniel Lynch IV,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,3,643446,Jeff McNeil,663738,Daniel Lynch IV,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,4,641680,Jonah Heim,663738,Daniel Lynch IV,S,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,5,695720,Tommy White,663738,Daniel Lynch IV,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,6,671732,Lawrence Butler,663738,Daniel Lynch IV,L,L,L
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,7,691777,Max Muncy,663738,Daniel Lynch IV,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,8,675961,Alika Williams,663738,Daniel Lynch IV,R,L,R
+2026-08-18,824075,2026-08-18T23:40:00Z,Athletics,Kansas City Royals,away,9,687231,Darell Hernaiz,663738,Daniel Lynch IV,R,L,R
 2026-08-18,823667,2026-08-18T23:40:00Z,Minnesota Twins,Atlanta Braves,home,1,807712,Luke Keaschall,641816,Tyler Mahle,R,R,R
 2026-08-18,823667,2026-08-18T23:40:00Z,Minnesota Twins,Atlanta Braves,home,2,663616,Trevor Larnach,641816,Tyler Mahle,L,R,L
 2026-08-18,823667,2026-08-18T23:40:00Z,Minnesota Twins,Atlanta Braves,home,3,680777,Ryan Jeffers,641816,Tyler Mahle,R,R,R
@@ -161,6 +179,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,823667,2026-08-18T23:40:00Z,Atlanta Braves,Minnesota Twins,away,7,663586,Austin Riley,805673,Zebby Matthews,R,R,R
 2026-08-18,823667,2026-08-18T23:40:00Z,Atlanta Braves,Minnesota Twins,away,8,643289,Mauricio Dubón,805673,Zebby Matthews,R,R,R
 2026-08-18,823667,2026-08-18T23:40:00Z,Atlanta Braves,Minnesota Twins,away,9,669221,Sean Murphy,805673,Zebby Matthews,R,R,R
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,1,668930,Brice Turang,682243,Bryce Miller,L,R,L
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,2,694192,Jackson Chourio,682243,Bryce Miller,R,R,R
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,3,641343,Jake Bauers,682243,Bryce Miller,L,R,L
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,4,661388,William Contreras,682243,Bryce Miller,R,R,R
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,5,592885,Christian Yelich,682243,Bryce Miller,L,R,L
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,6,800325,Luis Lara,682243,Bryce Miller,S,R,L
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,7,669003,Garrett Mitchell,682243,Bryce Miller,L,R,L
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,8,687401,Joey Ortiz,682243,Bryce Miller,R,R,R
+2026-08-18,823749,2026-08-18T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,9,666152,David Hamilton,682243,Bryce Miller,L,R,L
 2026-08-18,823749,2026-08-18T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,1,680977,Brendan Donovan,690986,Kyle Harrison,L,L,L
 2026-08-18,823749,2026-08-18T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,2,668227,Randy Arozarena,690986,Kyle Harrison,R,L,R
 2026-08-18,823749,2026-08-18T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,3,686527,Dominic Canzone,690986,Kyle Harrison,L,L,L
@@ -188,6 +215,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,822859,2026-08-19T00:05:00Z,Washington Nationals,Texas Rangers,away,7,695670,Harry Ford,615698,Cal Quantrill,R,R,R
 2026-08-18,822859,2026-08-19T00:05:00Z,Washington Nationals,Texas Rangers,away,8,683083,Nasim Nuñez,615698,Cal Quantrill,S,R,L
 2026-08-18,822859,2026-08-19T00:05:00Z,Washington Nationals,Texas Rangers,away,9,696285,Jacob Young,615698,Cal Quantrill,R,R,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,1,691718,Pete Crow-Armstrong,663542,Bryan Hudson,L,L,L
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,2,673548,Seiya Suzuki,663542,Bryan Hudson,R,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,3,608324,Alex Bregman,663542,Bryan Hudson,R,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,4,683737,Michael Busch,663542,Bryan Hudson,L,L,L
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,5,663538,Nico Hoerner,663542,Bryan Hudson,R,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,6,699393,Pedro Ramírez,663542,Bryan Hudson,S,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,7,664023,Ian Happ,663542,Bryan Hudson,S,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,8,665804,Miguel Amaya,663542,Bryan Hudson,R,L,R
+2026-08-18,824639,2026-08-19T00:05:00Z,Chicago Cubs,Chicago White Sox,home,9,624424,Michael Conforto,663542,Bryan Hudson,L,L,L
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,1,803011,Sam Antonacci,592332,Kevin Gausman,L,R,L
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,2,808959,Munetaka Murakami,592332,Kevin Gausman,L,R,L
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,3,678246,Miguel Vargas,592332,Kevin Gausman,R,R,R
@@ -197,6 +233,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,7,805367,Chase Meidroth,592332,Kevin Gausman,R,R,R
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,8,671976,Tristan Peters,592332,Kevin Gausman,L,R,L
 2026-08-18,824639,2026-08-19T00:05:00Z,Chicago White Sox,Chicago Cubs,away,9,691011,Drew Romo,592332,Kevin Gausman,S,R,L
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,1,665161,Jeremy Peña,691946,George Klassen,R,R,R
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,2,670541,Yordan Alvarez,691946,George Klassen,L,R,L
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,3,670623,Isaac Paredes,691946,George Klassen,R,R,R
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,4,514888,Jose Altuve,691946,George Klassen,R,R,R
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,5,662139,Daulton Varsho,691946,George Klassen,L,R,L
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,6,572233,Christian Walker,691946,George Klassen,R,R,R
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,7,666211,Taylor Trammell,691946,George Klassen,L,R,L
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,8,701358,Cam Smith,691946,George Klassen,R,R,R
+2026-08-18,824154,2026-08-19T00:10:00Z,Houston Astros,Los Angeles Angels,home,9,673237,Yainer Diaz,691946,George Klassen,R,R,R
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,1,685133,Wade Meckler,664299,Cristian Javier,L,R,L
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,2,545361,Mike Trout,664299,Cristian Javier,R,R,R
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,3,694384,Nolan Schanuel,664299,Cristian Javier,L,R,L
@@ -206,3 +251,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,7,666139,Josh Lowe,664299,Cristian Javier,L,R,L
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,8,694203,Denzer Guzman,664299,Cristian Javier,R,R,R
 2026-08-18,824154,2026-08-19T00:10:00Z,Los Angeles Angels,Houston Astros,away,9,623168,Tyler Heineman,664299,Cristian Javier,S,R,L
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,1,664983,Jake McCarthy,641778,Eric Lauer,L,L,L
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,2,694249,Cole Carrigg,641778,Eric Lauer,S,L,R
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,3,650489,Willi Castro,641778,Eric Lauer,S,L,R
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,4,681198,TJ Rumfield,641778,Eric Lauer,L,L,L
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,5,681393,Connor Norby,641778,Eric Lauer,R,L,R
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,6,666160,Mickey Moniak,641778,Eric Lauer,L,L,L
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,7,687597,Jordan Beck,641778,Eric Lauer,R,L,R
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,8,690924,Braxton Fulford,641778,Eric Lauer,R,L,R
+2026-08-18,824319,2026-08-19T00:40:00Z,Colorado Rockies,Los Angeles Dodgers,home,9,678662,Ezequiel Tovar,641778,Eric Lauer,R,L,R
