@@ -1,0 +1,10 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,1,680757,Steven Kwan,687931,Carson Whisenhunt,L,L,L
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,2,608070,José Ramírez,687931,Carson Whisenhunt,S,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,3,666176,Jo Adell,687931,Carson Whisenhunt,R,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,4,682657,Angel Martínez,687931,Carson Whisenhunt,S,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,5,656555,Rhys Hoskins,687931,Carson Whisenhunt,R,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,6,694197,Angel Genao,687931,Carson Whisenhunt,S,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,7,683953,Travis Bazzana,687931,Carson Whisenhunt,L,L,L
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,8,672275,Patrick Bailey,687931,Carson Whisenhunt,S,L,R
+2026-08-18,824398,2026-08-18T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,9,677587,Brayan Rocchio,687931,Carson Whisenhunt,S,L,R
