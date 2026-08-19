@@ -107,6 +107,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,7,665923,Esteury Ruiz,605400,Aaron Nola,R,R,R
 2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,8,691788,Joe Mack,605400,Aaron Nola,L,R,L
 2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,9,691594,Javier Sanoja,605400,Aaron Nola,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,1,702616,Jackson Holliday,701542,Will Warren,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,2,624413,Pete Alonso,701542,Will Warren,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,3,683002,Gunnar Henderson,701542,Will Warren,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,4,694212,Samuel Basallo,701542,Will Warren,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,5,691723,Coby Mayo,701542,Will Warren,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,6,687637,Dylan Beavers,701542,Will Warren,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,7,665750,Leody Taveras,701542,Will Warren,S,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,8,681297,Colton Cowser,701542,Will Warren,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,Baltimore Orioles,New York Yankees,home,9,665966,Carlos Narváez,701542,Will Warren,R,R,R
 2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,1,663757,Trent Grisham,605135,Chris Bassitt,L,R,L
 2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,2,700250,Ben Rice,605135,Chris Bassitt,L,R,L
 2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,3,671277,Luis García Jr.,605135,Chris Bassitt,L,R,L
@@ -179,6 +188,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,7,695600,Carter Jensen,605488,Jeffrey Springs,L,L,L
 2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,8,686475,Tyler Tolbert,605488,Jeffrey Springs,R,L,R
 2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,605488,Jeffrey Springs,L,L,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,1,703607,Henry Bolte,607625,Seth Lugo,R,R,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,2,643446,Jeff McNeil,607625,Seth Lugo,L,R,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,3,680869,Zack Gelof,607625,Seth Lugo,R,R,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,4,671732,Lawrence Butler,607625,Seth Lugo,L,R,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,5,695720,Tommy White,607625,Seth Lugo,R,R,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,6,666126,Carlos Cortes,607625,Seth Lugo,L,R,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,7,641680,Jonah Heim,607625,Seth Lugo,S,R,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,8,622268,Donovan Walton,607625,Seth Lugo,L,R,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Athletics,Kansas City Royals,away,9,691777,Max Muncy,607625,Seth Lugo,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,1,668930,Brice Turang,669302,Logan Gilbert,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,2,694192,Jackson Chourio,669302,Logan Gilbert,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,3,641343,Jake Bauers,669302,Logan Gilbert,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,4,661388,William Contreras,669302,Logan Gilbert,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,5,592885,Christian Yelich,669302,Logan Gilbert,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,6,683734,Andrew Vaughn,669302,Logan Gilbert,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,7,800325,Luis Lara,669302,Logan Gilbert,S,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,8,687401,Joey Ortiz,669302,Logan Gilbert,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Milwaukee Brewers,Seattle Mariners,home,9,806198,Cooper Pratt,669302,Logan Gilbert,R,R,R
 2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,1,680977,Brendan Donovan,669160,Dustin May,L,R,L
 2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,2,668227,Randy Arozarena,669160,Dustin May,R,R,R
 2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,3,686527,Dominic Canzone,669160,Dustin May,L,R,L
@@ -197,6 +224,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,7,672284,Jarred Kelenic,676917,Cade Cavalli,L,R,L
 2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,8,553869,Elias Díaz,676917,Cade Cavalli,R,R,R
 2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,9,670032,Nicky Lopez,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,1,682928,CJ Abrams,677958,Kumar Rocker,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,2,694673,Abimelec Ortiz,677958,Kumar Rocker,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,3,677588,José Tena,677958,Kumar Rocker,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,4,695734,Daylen Lile,677958,Kumar Rocker,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,5,665953,Andrés Chaparro,677958,Kumar Rocker,R,R,R
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,6,660688,Keibert Ruiz,677958,Kumar Rocker,S,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,7,696285,Jacob Young,677958,Kumar Rocker,R,R,R
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,8,678391,Jorbit Vivas,677958,Kumar Rocker,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Washington Nationals,Texas Rangers,away,9,683083,Nasim Nuñez,677958,Kumar Rocker,S,R,L
 2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,1,665161,Jeremy Peña,700712,Walbert Ureña,R,R,R
 2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,2,670541,Yordan Alvarez,700712,Walbert Ureña,L,R,L
 2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,3,670623,Isaac Paredes,700712,Walbert Ureña,R,R,R
