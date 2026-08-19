@@ -71,3 +71,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,824640,2026-08-19T18:20:00Z,Chicago White Sox,Chicago Cubs,away,7,805367,Chase Meidroth,605280,Clay Holmes,R,R,R
 2026-08-19,824640,2026-08-19T18:20:00Z,Chicago White Sox,Chicago Cubs,away,8,671976,Tristan Peters,605280,Clay Holmes,L,R,L
 2026-08-19,824640,2026-08-19T18:20:00Z,Chicago White Sox,Chicago Cubs,away,9,668670,Jake Rogers,605280,Clay Holmes,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,1,686765,Nick Sogard,694297,Brandon Pfaadt,S,R,L
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,2,678882,Ceddanne Rafaela,694297,Brandon Pfaadt,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,3,677800,Wilyer Abreu,694297,Brandon Pfaadt,L,R,L
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,4,575929,Willson Contreras,694297,Brandon Pfaadt,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,5,702332,Caleb Durbin,694297,Brandon Pfaadt,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,6,681508,Mickey Gasper,694297,Brandon Pfaadt,S,R,L
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,7,655316,Andruw Monasterio,694297,Brandon Pfaadt,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,8,680776,Jarren Duran,694297,Brandon Pfaadt,L,R,L
+2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,9,657136,Connor Wong,694297,Brandon Pfaadt,R,R,R
