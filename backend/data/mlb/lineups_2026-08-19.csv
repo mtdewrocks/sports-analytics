@@ -98,6 +98,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,7,669016,Brandon Marsh,645261,Sandy Alcantara,L,R,L
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,8,702222,Justin Crawford,645261,Sandy Alcantara,L,R,L
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,9,596117,Garrett Stubbs,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,1,805300,Jakob Marsee,605400,Aaron Nola,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,2,672640,Otto Lopez,605400,Aaron Nola,R,R,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,3,669364,Xavier Edwards,605400,Aaron Nola,S,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,4,665052,Griffin Conine,605400,Aaron Nola,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,5,681715,Heriberto Hernández,605400,Aaron Nola,R,R,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,6,683357,Owen Caissie,605400,Aaron Nola,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,7,665923,Esteury Ruiz,605400,Aaron Nola,R,R,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,8,691788,Joe Mack,605400,Aaron Nola,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Miami Marlins,Philadelphia Phillies,away,9,691594,Javier Sanoja,605400,Aaron Nola,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,1,663757,Trent Grisham,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,2,700250,Ben Rice,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,3,671277,Luis García Jr.,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,4,671218,Heliot Ramos,605135,Chris Bassitt,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,5,665862,Jazz Chisholm Jr.,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,6,682987,Spencer Jones,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,7,641857,Ryan McMahon,605135,Chris Bassitt,L,R,L
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,8,806146,George Lombard Jr.,605135,Chris Bassitt,R,R,R
+2026-08-19,824801,2026-08-19T22:35:00Z,New York Yankees,Baltimore Orioles,away,9,669224,Austin Wells,605135,Chris Bassitt,L,R,L
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,1,680757,Steven Kwan,683363,Matt Wilkinson,L,L,L
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,2,608070,José Ramírez,683363,Matt Wilkinson,S,L,R
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,3,663993,Nathaniel Lowe,683363,Matt Wilkinson,L,L,L
@@ -107,6 +125,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,7,690984,Petey Halpin,683363,Matt Wilkinson,L,L,L
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,8,595978,Austin Hedges,683363,Matt Wilkinson,R,L,R
 2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,9,677587,Brayan Rocchio,683363,Matt Wilkinson,S,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,1,813841,Jonah Cox,800048,Parker Messick,R,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,2,646240,Rafael Devers,800048,Parker Messick,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,3,642715,Willy Adames,800048,Parker Messick,R,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,4,805811,Bryce Eldridge,800048,Parker Messick,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,5,682674,Victor Bericoto,800048,Parker Messick,R,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,6,808982,Jung Hoo Lee,800048,Parker Messick,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,7,678545,Osleivis Basabe,800048,Parker Messick,R,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,8,701852,Drew Cavanaugh,800048,Parker Messick,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,San Francisco Giants,Cleveland Guardians,away,9,683766,Christian Koss,800048,Parker Messick,R,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,1,682829,Elly De La Cruz,669461,Matthew Liberatore,S,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,2,701398,Sal Stewart,669461,Matthew Liberatore,R,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,3,667472,Dane Myers,669461,Matthew Liberatore,R,L,R
@@ -134,3 +161,57 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,7,668723,Ryan Vilade,453286,Max Scherzer,R,R,R
 2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,8,680700,Richie Palacios,453286,Max Scherzer,L,R,L
 2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,9,670764,Taylor Walls,453286,Max Scherzer,S,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,1,703520,Brett Bateman,656876,Drew Rasmussen,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,2,664770,Nathan Lukes,656876,Drew Rasmussen,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,3,672386,Alejandro Kirk,656876,Drew Rasmussen,R,R,R
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,4,672960,Kazuma Okamoto,656876,Drew Rasmussen,R,R,R
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,5,665926,Andrés Giménez,656876,Drew Rasmussen,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,6,660821,Jesús Sánchez,656876,Drew Rasmussen,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,7,669701,Josh Smith,656876,Drew Rasmussen,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,8,678218,Brandon Valenzuela,656876,Drew Rasmussen,S,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Toronto Blue Jays,Tampa Bay Rays,away,9,807727,Charles McAdoo,656876,Drew Rasmussen,R,R,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,1,679845,Nick Loftin,605488,Jeffrey Springs,R,L,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,2,677951,Bobby Witt Jr.,605488,Jeffrey Springs,R,L,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,3,695506,Jac Caglianone,605488,Jeffrey Springs,L,L,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,4,672580,Maikel Garcia,605488,Jeffrey Springs,R,L,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,5,686469,Vinnie Pasquantino,605488,Jeffrey Springs,L,L,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,6,521692,Salvador Perez,605488,Jeffrey Springs,R,L,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,7,695600,Carter Jensen,605488,Jeffrey Springs,L,L,L
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,8,686475,Tyler Tolbert,605488,Jeffrey Springs,R,L,R
+2026-08-19,824076,2026-08-19T23:40:00Z,Kansas City Royals,Athletics,home,9,664728,Kyle Isbel,605488,Jeffrey Springs,L,L,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,1,680977,Brendan Donovan,669160,Dustin May,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,2,668227,Randy Arozarena,669160,Dustin May,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,3,686527,Dominic Canzone,669160,Dustin May,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,4,677594,Julio Rodríguez,669160,Dustin May,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,5,647304,Josh Naylor,669160,Dustin May,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,6,702284,Cole Young,669160,Dustin May,L,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,7,663728,Cal Raleigh,669160,Dustin May,S,R,L
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,8,621493,Taylor Ward,669160,Dustin May,R,R,R
+2026-08-19,823748,2026-08-19T23:40:00Z,Seattle Mariners,Milwaukee Brewers,away,9,801126,Brock Rodden,669160,Dustin May,S,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,1,592626,Joc Pederson,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,2,608369,Corey Seager,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,3,694671,Wyatt Langford,676917,Cade Cavalli,R,R,R
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,4,607043,Brandon Nimmo,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,5,677649,Ezequiel Duran,676917,Cade Cavalli,R,R,R
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,6,694497,Evan Carter,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,7,672284,Jarred Kelenic,676917,Cade Cavalli,L,R,L
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,8,553869,Elias Díaz,676917,Cade Cavalli,R,R,R
+2026-08-19,822860,2026-08-20T00:05:00Z,Texas Rangers,Washington Nationals,home,9,670032,Nicky Lopez,676917,Cade Cavalli,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,1,665161,Jeremy Peña,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,2,670541,Yordan Alvarez,700712,Walbert Ureña,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,3,670623,Isaac Paredes,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,4,514888,Jose Altuve,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,5,664774,LaMonte Wade Jr.,700712,Walbert Ureña,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,6,701358,Cam Smith,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,7,572233,Christian Walker,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,8,666211,Taylor Trammell,700712,Walbert Ureña,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Houston Astros,Los Angeles Angels,home,9,543877,Christian Vázquez,700712,Walbert Ureña,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,1,685133,Wade Meckler,814490,Ethan Pecko,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,2,545361,Mike Trout,814490,Ethan Pecko,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,3,694384,Nolan Schanuel,814490,Ethan Pecko,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,4,687263,Zach Neto,814490,Ethan Pecko,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,5,694208,Moisés Ballesteros,814490,Ethan Pecko,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,6,687093,Vaughn Grissom,814490,Ethan Pecko,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,7,666139,Josh Lowe,814490,Ethan Pecko,L,R,L
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,8,694203,Denzer Guzman,814490,Ethan Pecko,R,R,R
+2026-08-19,824155,2026-08-20T00:10:00Z,Los Angeles Angels,Houston Astros,away,9,672724,Oswald Peraza,814490,Ethan Pecko,R,R,R
