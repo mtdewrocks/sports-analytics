@@ -98,6 +98,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,7,669016,Brandon Marsh,645261,Sandy Alcantara,L,R,L
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,8,702222,Justin Crawford,645261,Sandy Alcantara,L,R,L
 2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,9,596117,Garrett Stubbs,645261,Sandy Alcantara,L,R,L
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,1,680757,Steven Kwan,683363,Matt Wilkinson,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,2,608070,José Ramírez,683363,Matt Wilkinson,S,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,3,663993,Nathaniel Lowe,683363,Matt Wilkinson,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,4,682657,Angel Martínez,683363,Matt Wilkinson,S,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,5,683953,Travis Bazzana,683363,Matt Wilkinson,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,6,694197,Angel Genao,683363,Matt Wilkinson,S,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,7,690984,Petey Halpin,683363,Matt Wilkinson,L,L,L
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,8,595978,Austin Hedges,683363,Matt Wilkinson,R,L,R
+2026-08-19,824394,2026-08-19T22:40:00Z,Cleveland Guardians,San Francisco Giants,home,9,677587,Brayan Rocchio,683363,Matt Wilkinson,S,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,1,682829,Elly De La Cruz,669461,Matthew Liberatore,S,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,2,701398,Sal Stewart,669461,Matthew Liberatore,R,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,3,667472,Dane Myers,669461,Matthew Liberatore,R,L,R
@@ -107,3 +116,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,7,668709,JJ Bleday,669461,Matthew Liberatore,L,L,L
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,8,624431,Jose Trevino,669461,Matthew Liberatore,R,L,R
 2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,9,680574,Matt McLain,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,1,802139,JJ Wetherholt,695505,Chase Burns,L,R,L
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,2,671056,Iván Herrera,695505,Chase Burns,R,R,R
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,3,676475,Alec Burleson,695505,Chase Burns,L,R,L
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,4,691023,Jordan Walker,695505,Chase Burns,R,R,R
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,5,701675,Nathan Church,695505,Chase Burns,L,R,L
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,6,691026,Masyn Winn,695505,Chase Burns,R,R,R
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,7,663494,Bryan Torres,695505,Chase Burns,L,R,L
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,8,691458,Blaze Jordan,695505,Chase Burns,R,R,R
+2026-08-19,824476,2026-08-19T22:40:00Z,St. Louis Cardinals,Cincinnati Reds,away,9,699625,Jimmy Crooks,695505,Chase Burns,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,1,802415,Chandler Simpson,453286,Max Scherzer,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,2,691406,Junior Caminero,453286,Max Scherzer,R,R,R
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,3,666018,Jonathan Aranda,453286,Max Scherzer,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,4,650490,Yandy Díaz,453286,Max Scherzer,R,R,R
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,5,689414,Liam Hicks,453286,Max Scherzer,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,6,656775,Cedric Mullins,453286,Max Scherzer,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,7,668723,Ryan Vilade,453286,Max Scherzer,R,R,R
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,8,680700,Richie Palacios,453286,Max Scherzer,L,R,L
+2026-08-19,822937,2026-08-19T22:40:00Z,Tampa Bay Rays,Toronto Blue Jays,home,9,670764,Taylor Walls,453286,Max Scherzer,S,R,L
