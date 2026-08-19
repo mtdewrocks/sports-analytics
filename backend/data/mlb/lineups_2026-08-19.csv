@@ -80,3 +80,30 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,7,655316,Andruw Monasterio,694297,Brandon Pfaadt,R,R,R
 2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,8,680776,Jarren Duran,694297,Brandon Pfaadt,L,R,L
 2026-08-19,824722,2026-08-19T20:10:00Z,Boston Red Sox,Arizona Diamondbacks,home,9,657136,Connor Wong,694297,Brandon Pfaadt,R,R,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,1,545121,Ildemaro Vargas,801139,Payton Tolle,S,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,2,682998,Corbin Carroll,801139,Payton Tolle,L,L,L
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,3,672515,Gabriel Moreno,801139,Payton Tolle,R,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,4,672695,Geraldo Perdomo,801139,Payton Tolle,S,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,5,571448,Nolan Arenado,801139,Payton Tolle,R,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,6,694374,Tim Tawa,801139,Payton Tolle,R,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,7,691783,Jordan Lawlar,801139,Payton Tolle,R,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,8,699912,Jose Fernandez,801139,Payton Tolle,R,L,R
+2026-08-19,824722,2026-08-19T20:10:00Z,Arizona Diamondbacks,Boston Red Sox,away,9,814439,Ryan Waldschmidt,801139,Payton Tolle,R,L,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,1,656941,Kyle Schwarber,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,2,607208,Trea Turner,645261,Sandy Alcantara,R,R,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,3,547180,Bryce Harper,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,4,650333,Luis Arraez,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,5,664761,Alec Bohm,645261,Sandy Alcantara,R,R,R
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,6,681082,Bryson Stott,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,7,669016,Brandon Marsh,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,8,702222,Justin Crawford,645261,Sandy Alcantara,L,R,L
+2026-08-19,823424,2026-08-19T22:05:00Z,Philadelphia Phillies,Miami Marlins,home,9,596117,Garrett Stubbs,645261,Sandy Alcantara,L,R,L
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,1,682829,Elly De La Cruz,669461,Matthew Liberatore,S,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,2,701398,Sal Stewart,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,3,667472,Dane Myers,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,4,553993,Eugenio Suárez,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,5,663886,Tyler Stephenson,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,6,669911,Michael Toglia,669461,Matthew Liberatore,S,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,7,668709,JJ Bleday,669461,Matthew Liberatore,L,L,L
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,8,624431,Jose Trevino,669461,Matthew Liberatore,R,L,R
+2026-08-19,824476,2026-08-19T22:40:00Z,Cincinnati Reds,St. Louis Cardinals,home,9,680574,Matt McLain,669461,Matthew Liberatore,R,L,R
