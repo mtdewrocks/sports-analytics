@@ -62,6 +62,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-20,824074,2026-08-20T18:10:00Z,Kansas City Royals,Athletics,home,7,686475,Tyler Tolbert,695611,Gage Jump,R,L,R
 2026-08-20,824074,2026-08-20T18:10:00Z,Kansas City Royals,Athletics,home,8,686681,Michael Massey,695611,Gage Jump,L,L,L
 2026-08-20,824074,2026-08-20T18:10:00Z,Kansas City Royals,Athletics,home,9,571912,Luke Maile,695611,Gage Jump,R,L,R
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,1,703607,Henry Bolte,677976,Randy Dobnak,R,R,R
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,2,643446,Jeff McNeil,677976,Randy Dobnak,L,R,L
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,3,680869,Zack Gelof,677976,Randy Dobnak,R,R,R
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,4,671732,Lawrence Butler,677976,Randy Dobnak,L,R,L
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,5,691777,Max Muncy,677976,Randy Dobnak,R,R,R
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,6,666126,Carlos Cortes,677976,Randy Dobnak,L,R,L
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,7,661531,Brian Serven,677976,Randy Dobnak,R,R,R
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,8,622268,Donovan Walton,677976,Randy Dobnak,L,R,L
+2026-08-20,824074,2026-08-20T18:10:00Z,Athletics,Kansas City Royals,away,9,687231,Darell Hernaiz,677976,Randy Dobnak,R,R,R
 2026-08-20,824589,2026-08-20T18:10:00Z,Chicago White Sox,Atlanta Braves,home,1,803011,Sam Antonacci,656550,Grant Holmes,L,R,L
 2026-08-20,824589,2026-08-20T18:10:00Z,Chicago White Sox,Atlanta Braves,home,2,808959,Munetaka Murakami,656550,Grant Holmes,L,R,L
 2026-08-20,824589,2026-08-20T18:10:00Z,Chicago White Sox,Atlanta Braves,home,3,678246,Miguel Vargas,656550,Grant Holmes,R,R,R
@@ -80,3 +89,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-20,824589,2026-08-20T18:10:00Z,Atlanta Braves,Chicago White Sox,away,7,643289,Mauricio Dubón,641743,Anthony Kay,R,L,R
 2026-08-20,824589,2026-08-20T18:10:00Z,Atlanta Braves,Chicago White Sox,away,8,663586,Austin Riley,641743,Anthony Kay,R,L,R
 2026-08-20,824589,2026-08-20T18:10:00Z,Atlanta Braves,Chicago White Sox,away,9,669221,Sean Murphy,641743,Anthony Kay,R,L,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,1,668930,Brice Turang,669923,George Kirby,L,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,2,694192,Jackson Chourio,669923,George Kirby,R,R,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,3,641343,Jake Bauers,669923,George Kirby,L,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,4,596142,Gary Sánchez,669923,George Kirby,R,R,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,5,592885,Christian Yelich,669923,George Kirby,L,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,6,687401,Joey Ortiz,669923,George Kirby,R,R,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,7,669003,Garrett Mitchell,669923,George Kirby,L,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,8,666152,David Hamilton,669923,George Kirby,L,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Milwaukee Brewers,Seattle Mariners,home,9,800325,Luis Lara,669923,George Kirby,S,R,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,1,680977,Brendan Donovan,688107,Robert Gasser,L,L,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,2,668227,Randy Arozarena,688107,Robert Gasser,R,L,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,3,686527,Dominic Canzone,688107,Robert Gasser,L,L,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,4,677594,Julio Rodríguez,688107,Robert Gasser,R,L,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,5,647304,Josh Naylor,688107,Robert Gasser,L,L,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,6,621493,Taylor Ward,688107,Robert Gasser,R,L,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,7,702284,Cole Young,688107,Robert Gasser,L,L,L
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,8,640902,Jhonny Pereda,688107,Robert Gasser,R,L,R
+2026-08-20,823747,2026-08-20T18:10:00Z,Seattle Mariners,Milwaukee Brewers,away,9,801126,Brock Rodden,688107,Robert Gasser,S,L,R
