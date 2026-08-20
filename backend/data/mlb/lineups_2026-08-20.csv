@@ -134,3 +134,30 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-20,822861,2026-08-21T00:05:00Z,Texas Rangers,Washington Nationals,home,7,643376,Danny Jansen,674841,Andrew Alvarez,R,L,R
 2026-08-20,822861,2026-08-21T00:05:00Z,Texas Rangers,Washington Nationals,home,8,683227,Cody Freeman,674841,Andrew Alvarez,R,L,R
 2026-08-20,822861,2026-08-21T00:05:00Z,Texas Rangers,Washington Nationals,home,9,694497,Evan Carter,674841,Andrew Alvarez,L,L,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,1,695734,Daylen Lile,594798,Jacob deGrom,L,R,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,2,694673,Abimelec Ortiz,594798,Jacob deGrom,L,R,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,3,665953,Andrés Chaparro,594798,Jacob deGrom,R,R,R
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,4,677588,José Tena,594798,Jacob deGrom,L,R,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,5,691781,Brady House,594798,Jacob deGrom,R,R,R
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,6,660688,Keibert Ruiz,594798,Jacob deGrom,S,R,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,7,686611,Dylan Crews,594798,Jacob deGrom,R,R,R
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,8,683083,Nasim Nuñez,594798,Jacob deGrom,S,R,L
+2026-08-20,822861,2026-08-21T00:05:00Z,Washington Nationals,Texas Rangers,away,9,687605,Andrew Pinckney,594798,Jacob deGrom,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,1,664774,LaMonte Wade Jr.,680570,Grayson Rodriguez,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,2,670541,Yordan Alvarez,680570,Grayson Rodriguez,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,3,670623,Isaac Paredes,680570,Grayson Rodriguez,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,4,514888,Jose Altuve,680570,Grayson Rodriguez,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,5,662139,Daulton Varsho,680570,Grayson Rodriguez,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,6,666211,Taylor Trammell,680570,Grayson Rodriguez,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,7,701358,Cam Smith,680570,Grayson Rodriguez,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,8,669397,Nick Allen,680570,Grayson Rodriguez,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Houston Astros,Los Angeles Angels,home,9,543877,Christian Vázquez,680570,Grayson Rodriguez,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,1,685133,Wade Meckler,663567,Peter Lambert,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,2,545361,Mike Trout,663567,Peter Lambert,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,3,694384,Nolan Schanuel,663567,Peter Lambert,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,4,687263,Zach Neto,663567,Peter Lambert,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,5,694208,Moisés Ballesteros,663567,Peter Lambert,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,6,687093,Vaughn Grissom,663567,Peter Lambert,R,R,R
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,7,666139,Josh Lowe,663567,Peter Lambert,L,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,8,623168,Tyler Heineman,663567,Peter Lambert,S,R,L
+2026-08-20,824153,2026-08-21T00:10:00Z,Los Angeles Angels,Houston Astros,away,9,624428,Adam Frazier,663567,Peter Lambert,L,R,L
