@@ -242,6 +242,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-21,823911,2026-08-22T02:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,7,669242,Tommy Edman,696149,Bubba Chandler,S,R,L
 2026-08-21,823911,2026-08-22T02:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,8,606192,Teoscar Hernández,696149,Bubba Chandler,R,R,R
 2026-08-21,823911,2026-08-22T02:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,9,676439,Hunter Feduccia,696149,Bubba Chandler,L,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,1,687462,Spencer Horwitz,808967,Yoshinobu Yamamoto,L,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,2,664040,Brandon Lowe,808967,Yoshinobu Yamamoto,L,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,3,668804,Bryan Reynolds,808967,Yoshinobu Yamamoto,S,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,4,693304,Nick Gonzales,808967,Yoshinobu Yamamoto,R,R,R
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,5,665833,Oneil Cruz,808967,Yoshinobu Yamamoto,L,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,6,804668,Rafael Flores Jr.,808967,Yoshinobu Yamamoto,R,R,R
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,7,663968,Jake Mangum,808967,Yoshinobu Yamamoto,S,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,8,694378,Jacob Gonzalez,808967,Yoshinobu Yamamoto,L,R,L
+2026-08-21,823911,2026-08-22T02:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,9,669707,Jared Triolo,808967,Yoshinobu Yamamoto,R,R,R
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,1,680977,Brendan Donovan,571510,Matthew Boyd,L,L,L
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,2,668227,Randy Arozarena,571510,Matthew Boyd,R,L,R
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,3,686527,Dominic Canzone,571510,Matthew Boyd,L,L,L
@@ -251,3 +260,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,7,663728,Cal Raleigh,571510,Matthew Boyd,S,L,R
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,8,702284,Cole Young,571510,Matthew Boyd,L,L,L
 2026-08-21,823101,2026-08-22T02:10:00Z,Seattle Mariners,Chicago Cubs,home,9,801126,Brock Rodden,571510,Matthew Boyd,S,L,R
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,1,691718,Pete Crow-Armstrong,676106,Emerson Hancock,L,R,L
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,2,673548,Seiya Suzuki,676106,Emerson Hancock,R,R,R
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,3,683737,Michael Busch,676106,Emerson Hancock,L,R,L
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,4,608324,Alex Bregman,676106,Emerson Hancock,R,R,R
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,5,664023,Ian Happ,676106,Emerson Hancock,S,R,L
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,6,663538,Nico Hoerner,676106,Emerson Hancock,R,R,R
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,7,699393,Pedro Ramírez,676106,Emerson Hancock,S,R,L
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,8,624424,Michael Conforto,676106,Emerson Hancock,L,R,L
+2026-08-21,823101,2026-08-22T02:10:00Z,Chicago Cubs,Seattle Mariners,away,9,608348,Carson Kelly,676106,Emerson Hancock,R,R,R
