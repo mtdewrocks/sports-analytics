@@ -1,0 +1,10 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,1,660670,Ronald Acuña Jr.,694819,Jacob Misiorowski,R,R,R
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,2,686948,Drake Baldwin,694819,Jacob Misiorowski,L,R,L
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,3,621566,Matt Olson,694819,Jacob Misiorowski,L,R,L
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,4,671739,Michael Harris II,694819,Jacob Misiorowski,L,R,L
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,5,645277,Ozzie Albies,694819,Jacob Misiorowski,S,R,L
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,6,643289,Mauricio Dubón,694819,Jacob Misiorowski,R,R,R
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,7,642086,Dominic Smith,694819,Jacob Misiorowski,L,R,L
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,8,663586,Austin Riley,694819,Jacob Misiorowski,R,R,R
+2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,9,573262,Mike Yastrzemski,694819,Jacob Misiorowski,L,R,L
