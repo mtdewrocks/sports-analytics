@@ -17,3 +17,48 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,7,642086,Dominic Smith,694819,Jacob Misiorowski,L,R,L
 2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,8,663586,Austin Riley,694819,Jacob Misiorowski,R,R,R
 2026-08-21,823746,2026-08-21T20:10:00Z,Atlanta Braves,Milwaukee Brewers,away,9,573262,Mike Yastrzemski,694819,Jacob Misiorowski,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,1,656941,Kyle Schwarber,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,2,607208,Trea Turner,690928,Hunter Dobbins,R,R,R
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,3,547180,Bryce Harper,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,4,650333,Luis Arraez,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,5,664761,Alec Bohm,690928,Hunter Dobbins,R,R,R
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,6,681082,Bryson Stott,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,7,669016,Brandon Marsh,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,8,592663,J.T. Realmuto,690928,Hunter Dobbins,R,R,R
+2026-08-21,823420,2026-08-21T22:40:00Z,Philadelphia Phillies,St. Louis Cardinals,home,9,702222,Justin Crawford,690928,Hunter Dobbins,L,R,L
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,1,802139,JJ Wetherholt,666200,Jesús Luzardo,L,L,L
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,2,671056,Iván Herrera,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,3,691023,Jordan Walker,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,4,695491,Joshua Báez,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,5,691458,Blaze Jordan,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,6,665877,José Fermín,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,7,677592,Everson Pereira,666200,Jesús Luzardo,R,L,R
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,8,663494,Bryan Torres,666200,Jesús Luzardo,L,L,L
+2026-08-21,823420,2026-08-21T22:40:00Z,St. Louis Cardinals,Philadelphia Phillies,away,9,686780,Pedro Pagés,666200,Jesús Luzardo,R,L,R
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,1,686765,Nick Sogard,657277,Logan Webb,S,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,2,678882,Ceddanne Rafaela,657277,Logan Webb,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,3,677800,Wilyer Abreu,657277,Logan Webb,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,4,575929,Willson Contreras,657277,Logan Webb,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,5,668939,Adley Rutschman,657277,Logan Webb,S,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,6,702332,Caleb Durbin,657277,Logan Webb,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,7,680776,Jarren Duran,657277,Logan Webb,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,8,655316,Andruw Monasterio,657277,Logan Webb,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,Boston Red Sox,San Francisco Giants,home,9,681508,Mickey Gasper,657277,Logan Webb,S,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,1,687551,Drew Gilbert,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,2,646240,Rafael Devers,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,3,642715,Willy Adames,543243,Sonny Gray,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,4,805811,Bryce Eldridge,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,5,808982,Jung Hoo Lee,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,6,678545,Osleivis Basabe,543243,Sonny Gray,R,R,R
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,7,806367,Turner Hill,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,8,701852,Drew Cavanaugh,543243,Sonny Gray,L,R,L
+2026-08-21,824721,2026-08-21T23:10:00Z,San Francisco Giants,Boston Red Sox,away,9,683766,Christian Koss,543243,Sonny Gray,R,R,R
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,1,805300,Jakob Marsee,695418,Brad Lord,L,R,L
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,2,683357,Owen Caissie,695418,Brad Lord,L,R,L
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,3,665052,Griffin Conine,695418,Brad Lord,L,R,L
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,4,669364,Xavier Edwards,695418,Brad Lord,S,R,L
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,5,672640,Otto Lopez,695418,Brad Lord,R,R,R
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,6,681715,Heriberto Hernández,695418,Brad Lord,R,R,R
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,7,691788,Joe Mack,695418,Brad Lord,L,R,L
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,8,682663,Agustín Ramírez,695418,Brad Lord,R,R,R
+2026-08-21,823830,2026-08-21T23:10:00Z,Miami Marlins,Washington Nationals,home,9,677870,Leo Jiménez,695418,Brad Lord,R,R,R
