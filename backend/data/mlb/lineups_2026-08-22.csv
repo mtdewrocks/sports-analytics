@@ -179,14 +179,14 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,823910,2026-08-22T23:15:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,7,694377,Nick Yorke,669373,Tarik Skubal,R,L,R
 2026-08-22,823910,2026-08-22T23:15:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,8,669707,Jared Triolo,669373,Tarik Skubal,R,L,R
 2026-08-22,823910,2026-08-22T23:15:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,9,680779,Henry Davis,669373,Tarik Skubal,R,L,R
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,1,680977,Brendan Donovan,656849,David Peterson,L,L,L
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,2,668227,Randy Arozarena,656849,David Peterson,R,L,R
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,3,686527,Dominic Canzone,656849,David Peterson,L,L,L
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,4,677594,Julio Rodríguez,656849,David Peterson,R,L,R
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,5,647304,Josh Naylor,656849,David Peterson,L,L,L
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,6,621493,Taylor Ward,656849,David Peterson,R,L,R
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,7,663728,Cal Raleigh,656849,David Peterson,S,L,R
-2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,8,702284,Cole Young,656849,David Peterson,L,L,L
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,1,668227,Randy Arozarena,656849,David Peterson,R,L,R
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,2,686527,Dominic Canzone,656849,David Peterson,L,L,L
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,3,677594,Julio Rodríguez,656849,David Peterson,R,L,R
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,4,647304,Josh Naylor,656849,David Peterson,L,L,L
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,5,621493,Taylor Ward,656849,David Peterson,R,L,R
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,6,663728,Cal Raleigh,656849,David Peterson,S,L,R
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,7,702284,Cole Young,656849,David Peterson,L,L,L
+2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,8,642215,Weston Wilson,656849,David Peterson,R,L,R
 2026-08-22,823100,2026-08-22T23:15:00Z,Seattle Mariners,Chicago Cubs,home,9,660844,Leo Rivas,656849,David Peterson,S,L,R
 2026-08-22,823100,2026-08-22T23:15:00Z,Chicago Cubs,Seattle Mariners,away,1,691718,Pete Crow-Armstrong,807739,Kade Anderson,L,L,L
 2026-08-22,823100,2026-08-22T23:15:00Z,Chicago Cubs,Seattle Mariners,away,2,673548,Seiya Suzuki,807739,Kade Anderson,R,L,R
