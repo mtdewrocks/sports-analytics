@@ -1,0 +1,10 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,1,663757,Trent Grisham,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,2,700250,Ben Rice,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,3,671218,Heliot Ramos,656302,Dylan Cease,R,R,R
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,4,671277,Luis García Jr.,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,5,682987,Spencer Jones,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,6,806146,George Lombard Jr.,656302,Dylan Cease,R,R,R
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,7,665862,Jazz Chisholm Jr.,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,8,669224,Austin Wells,656302,Dylan Cease,L,R,L
+2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,9,676609,José Caballero,656302,Dylan Cease,R,R,R
