@@ -98,6 +98,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,822858,2026-08-22T23:05:00Z,Texas Rangers,Los Angeles Angels,home,7,669394,Jake Burger,696270,Ryan Johnson,R,R,R
 2026-08-22,822858,2026-08-22T23:05:00Z,Texas Rangers,Los Angeles Angels,home,8,683227,Cody Freeman,696270,Ryan Johnson,R,R,R
 2026-08-22,822858,2026-08-22T23:05:00Z,Texas Rangers,Los Angeles Angels,home,9,643376,Danny Jansen,696270,Ryan Johnson,R,R,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,1,687263,Zach Neto,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,2,545361,Mike Trout,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,3,687093,Vaughn Grissom,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,4,694208,Moisés Ballesteros,674003,Cody Bradford,L,L,L
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,5,642350,Jose Siri,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,6,672569,Gustavo Campero,674003,Cody Bradford,S,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,7,694203,Denzer Guzman,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,8,695681,Christian Moore,674003,Cody Bradford,R,L,R
+2026-08-22,822858,2026-08-22T23:05:00Z,Los Angeles Angels,Texas Rangers,away,9,518595,Travis d'Arnaud,674003,Cody Bradford,R,L,R
 2026-08-22,824151,2026-08-22T23:10:00Z,Houston Astros,Athletics,home,1,665161,Jeremy Peña,682052,Jacob Lopez,R,L,R
 2026-08-22,824151,2026-08-22T23:10:00Z,Houston Astros,Athletics,home,2,670541,Yordan Alvarez,682052,Jacob Lopez,L,L,L
 2026-08-22,824151,2026-08-22T23:10:00Z,Houston Astros,Athletics,home,3,670623,Isaac Paredes,682052,Jacob Lopez,R,L,R
@@ -215,6 +224,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,825044,2026-08-23T00:10:00Z,Arizona Diamondbacks,Cincinnati Reds,home,7,545121,Ildemaro Vargas,695076,Rhett Lowder,S,R,L
 2026-08-22,825044,2026-08-23T00:10:00Z,Arizona Diamondbacks,Cincinnati Reds,home,8,699912,Jose Fernandez,695076,Rhett Lowder,R,R,R
 2026-08-22,825044,2026-08-23T00:10:00Z,Arizona Diamondbacks,Cincinnati Reds,home,9,814439,Ryan Waldschmidt,695076,Rhett Lowder,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,1,682829,Elly De La Cruz,647336,Michael Soroka,S,R,L
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,2,701398,Sal Stewart,647336,Michael Soroka,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,3,668709,JJ Bleday,647336,Michael Soroka,L,R,L
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,4,663886,Tyler Stephenson,647336,Michael Soroka,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,5,553993,Eugenio Suárez,647336,Michael Soroka,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,6,680574,Matt McLain,647336,Michael Soroka,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,7,667472,Dane Myers,647336,Michael Soroka,R,R,R
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,8,699302,Héctor Rodríguez,647336,Michael Soroka,L,R,L
+2026-08-22,825044,2026-08-23T00:10:00Z,Cincinnati Reds,Arizona Diamondbacks,away,9,663647,Ke'Bryan Hayes,647336,Michael Soroka,R,R,R
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,1,664983,Jake McCarthy,676440,Tanner Bibee,L,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,2,666160,Mickey Moniak,676440,Tanner Bibee,L,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,3,694249,Cole Carrigg,676440,Tanner Bibee,S,R,L
@@ -233,3 +251,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,7,683953,Travis Bazzana,687312,Gabriel Hughes,L,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,8,672275,Patrick Bailey,687312,Gabriel Hughes,S,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,9,690984,Petey Halpin,687312,Gabriel Hughes,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,1,665487,Fernando Tatis Jr.,665152,Dean Kremer,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,2,630105,Jake Cronenworth,665152,Dean Kremer,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,3,592518,Manny Machado,665152,Dean Kremer,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,4,664034,Ty France,665152,Dean Kremer,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,5,701538,Jackson Merrill,665152,Dean Kremer,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,6,650859,Luis Rengifo,665152,Dean Kremer,S,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,7,657757,Gavin Sheets,665152,Dean Kremer,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,8,593428,Xander Bogaerts,665152,Dean Kremer,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,San Diego Padres,Minnesota Twins,home,9,666023,Freddy Fermin,665152,Dean Kremer,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,1,807712,Luke Keaschall,663554,Casey Mize,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,2,621439,Byron Buxton,663554,Casey Mize,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,3,605137,Josh Bell,663554,Casey Mize,S,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,4,680777,Ryan Jeffers,663554,Casey Mize,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,5,665019,Kody Clemens,663554,Casey Mize,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,6,668904,Royce Lewis,663554,Casey Mize,R,R,R
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,7,663616,Trevor Larnach,663554,Casey Mize,L,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,8,686797,Brooks Lee,663554,Casey Mize,S,R,L
+2026-08-22,823261,2026-08-23T00:40:00Z,Minnesota Twins,San Diego Padres,away,9,701785,Kaelen Culpepper,663554,Casey Mize,R,R,R
