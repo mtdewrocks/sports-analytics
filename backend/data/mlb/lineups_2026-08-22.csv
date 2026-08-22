@@ -8,6 +8,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,7,665862,Jazz Chisholm Jr.,656302,Dylan Cease,L,R,L
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,8,669224,Austin Wells,656302,Dylan Cease,L,R,L
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,9,676609,José Caballero,656302,Dylan Cease,R,R,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,1,703520,Brett Bateman,677960,Ryan Weathers,L,L,L
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,2,665489,Vladimir Guerrero Jr.,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,3,672386,Alejandro Kirk,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,4,543807,George Springer,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,5,672960,Kazuma Okamoto,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,6,676391,Ernie Clement,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,7,663662,Daz Cameron,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,8,807727,Charles McAdoo,677960,Ryan Weathers,R,L,R
+2026-08-22,823509,2026-08-22T17:35:00Z,Toronto Blue Jays,New York Yankees,away,9,664702,Myles Straw,677960,Ryan Weathers,R,L,R
 2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,1,694192,Jackson Chourio,527048,Martín Pérez,R,L,R
 2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,2,668930,Brice Turang,527048,Martín Pérez,L,L,L
 2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,3,661388,William Contreras,527048,Martín Pérez,R,L,R
@@ -26,3 +35,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,7,573262,Mike Yastrzemski,701656,Logan Henderson,L,R,L
 2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,8,663586,Austin Riley,701656,Logan Henderson,R,R,R
 2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,9,805347,Jim Jarvis,701656,Logan Henderson,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,1,669364,Xavier Edwards,663623,Jake Irvin,S,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,2,665052,Griffin Conine,663623,Jake Irvin,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,3,683357,Owen Caissie,663623,Jake Irvin,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,4,672640,Otto Lopez,663623,Jake Irvin,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,5,805300,Jakob Marsee,663623,Jake Irvin,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,6,681715,Heriberto Hernández,663623,Jake Irvin,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,7,691788,Joe Mack,663623,Jake Irvin,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,8,691594,Javier Sanoja,663623,Jake Irvin,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Miami Marlins,Washington Nationals,home,9,665923,Esteury Ruiz,663623,Jake Irvin,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,1,695734,Daylen Lile,691587,Eury Pérez,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,2,686611,Dylan Crews,691587,Eury Pérez,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,3,691781,Brady House,691587,Eury Pérez,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,4,694673,Abimelec Ortiz,691587,Eury Pérez,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,5,695670,Harry Ford,691587,Eury Pérez,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,6,677588,José Tena,691587,Eury Pérez,L,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,7,696285,Jacob Young,691587,Eury Pérez,R,R,R
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,8,683083,Nasim Nuñez,691587,Eury Pérez,S,R,L
+2026-08-22,823831,2026-08-22T20:10:00Z,Washington Nationals,Miami Marlins,away,9,687605,Andrew Pinckney,691587,Eury Pérez,R,R,R
