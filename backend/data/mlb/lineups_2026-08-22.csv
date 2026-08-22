@@ -8,3 +8,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,7,665862,Jazz Chisholm Jr.,656302,Dylan Cease,L,R,L
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,8,669224,Austin Wells,656302,Dylan Cease,L,R,L
 2026-08-22,823509,2026-08-22T17:35:00Z,New York Yankees,Toronto Blue Jays,home,9,676609,José Caballero,656302,Dylan Cease,R,R,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,1,694192,Jackson Chourio,527048,Martín Pérez,R,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,2,668930,Brice Turang,527048,Martín Pérez,L,L,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,3,661388,William Contreras,527048,Martín Pérez,R,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,4,641343,Jake Bauers,527048,Martín Pérez,L,L,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,5,683734,Andrew Vaughn,527048,Martín Pérez,R,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,6,592885,Christian Yelich,527048,Martín Pérez,L,L,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,7,687401,Joey Ortiz,527048,Martín Pérez,R,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,8,800325,Luis Lara,527048,Martín Pérez,S,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Milwaukee Brewers,Atlanta Braves,home,9,806198,Cooper Pratt,527048,Martín Pérez,R,L,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,1,686948,Drake Baldwin,701656,Logan Henderson,L,R,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,2,660670,Ronald Acuña Jr.,701656,Logan Henderson,R,R,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,3,621566,Matt Olson,701656,Logan Henderson,L,R,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,4,671739,Michael Harris II,701656,Logan Henderson,L,R,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,5,645277,Ozzie Albies,701656,Logan Henderson,S,R,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,6,643289,Mauricio Dubón,701656,Logan Henderson,R,R,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,7,573262,Mike Yastrzemski,701656,Logan Henderson,L,R,L
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,8,663586,Austin Riley,701656,Logan Henderson,R,R,R
+2026-08-22,823743,2026-08-22T18:10:00Z,Atlanta Braves,Milwaukee Brewers,away,9,805347,Jim Jarvis,701656,Logan Henderson,L,R,L
