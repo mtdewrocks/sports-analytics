@@ -125,6 +125,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,824560,2026-08-22T23:10:00Z,Chicago White Sox,New York Mets,home,7,805367,Chase Meidroth,681035,Christian Scott,R,R,R
 2026-08-22,824560,2026-08-22T23:10:00Z,Chicago White Sox,New York Mets,home,8,671976,Tristan Peters,681035,Christian Scott,L,R,L
 2026-08-22,824560,2026-08-22T23:10:00Z,Chicago White Sox,New York Mets,home,9,691011,Drew Romo,681035,Christian Scott,S,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,1,805999,A.J. Ewing,622491,Luis Castillo,L,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,2,596019,Francisco Lindor,622491,Luis Castillo,S,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,3,666182,Bo Bichette,622491,Luis Castillo,R,R,R
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,4,701807,Carson Benge,622491,Luis Castillo,L,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,5,676724,Jared Young,622491,Luis Castillo,L,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,6,673357,Luis Robert Jr.,622491,Luis Castillo,R,R,R
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,7,683146,Brett Baty,622491,Luis Castillo,L,R,L
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,8,543760,Marcus Semien,622491,Luis Castillo,R,R,R
+2026-08-22,824560,2026-08-22T23:10:00Z,New York Mets,Chicago White Sox,away,9,682626,Francisco Alvarez,622491,Luis Castillo,R,R,R
 2026-08-22,824073,2026-08-22T23:15:00Z,Kansas City Royals,Detroit Tigers,home,1,695600,Carter Jensen,623454,Drew Anderson,L,R,L
 2026-08-22,824073,2026-08-22T23:15:00Z,Kansas City Royals,Detroit Tigers,home,2,677951,Bobby Witt Jr.,623454,Drew Anderson,R,R,R
 2026-08-22,824073,2026-08-22T23:15:00Z,Kansas City Royals,Detroit Tigers,home,3,695506,Jac Caglianone,623454,Drew Anderson,L,R,L
@@ -215,3 +224,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,7,687859,Troy Johnston,676440,Tanner Bibee,L,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,8,664954,Brett Sullivan,676440,Tanner Bibee,L,R,L
 2026-08-22,824316,2026-08-23T00:10:00Z,Colorado Rockies,Cleveland Guardians,home,9,691728,Zac Veen,676440,Tanner Bibee,L,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,1,680757,Steven Kwan,687312,Gabriel Hughes,L,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,2,800050,Chase DeLauter,687312,Gabriel Hughes,L,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,3,608070,José Ramírez,687312,Gabriel Hughes,S,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,4,666176,Jo Adell,687312,Gabriel Hughes,R,R,R
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,5,663993,Nathaniel Lowe,687312,Gabriel Hughes,L,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,6,694197,Angel Genao,687312,Gabriel Hughes,S,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,7,683953,Travis Bazzana,687312,Gabriel Hughes,L,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,8,672275,Patrick Bailey,687312,Gabriel Hughes,S,R,L
+2026-08-22,824316,2026-08-23T00:10:00Z,Cleveland Guardians,Colorado Rockies,away,9,690984,Petey Halpin,687312,Gabriel Hughes,L,R,L
