@@ -125,6 +125,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,824558,2026-08-23T18:10:00Z,New York Mets,Chicago White Sox,away,7,543760,Marcus Semien,656794,Sean Newcomb,R,L,R
 2026-08-23,824558,2026-08-23T18:10:00Z,New York Mets,Chicago White Sox,away,8,805999,A.J. Ewing,656794,Sean Newcomb,L,L,L
 2026-08-23,824558,2026-08-23T18:10:00Z,New York Mets,Chicago White Sox,away,9,620443,Luis Torrens,656794,Sean Newcomb,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,1,679822,Justin Foscue,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,2,608369,Corey Seager,579328,Yusei Kikuchi,L,L,L
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,3,694671,Wyatt Langford,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,4,607043,Brandon Nimmo,579328,Yusei Kikuchi,L,L,L
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,5,677649,Ezequiel Duran,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,6,669394,Jake Burger,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,7,681351,Logan O'Hoppe,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,8,683227,Cody Freeman,579328,Yusei Kikuchi,R,L,R
+2026-08-23,822856,2026-08-23T18:35:00Z,Texas Rangers,Los Angeles Angels,home,9,553869,Elias Díaz,579328,Yusei Kikuchi,R,L,R
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,1,687263,Zach Neto,615698,Cal Quantrill,R,R,R
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,2,545361,Mike Trout,615698,Cal Quantrill,R,R,R
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,3,694208,Moisés Ballesteros,615698,Cal Quantrill,L,R,L
@@ -179,6 +188,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,7,606192,Teoscar Hernández,669199,Lake Bachar,R,R,R
 2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,8,677950,Alek Thomas,669199,Lake Bachar,L,R,L
 2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,9,676439,Hunter Feduccia,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,1,693304,Nick Gonzales,605483,Blake Snell,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,2,699013,Esmerlyn Valdez,605483,Blake Snell,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,3,668804,Bryan Reynolds,605483,Blake Snell,S,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,4,664040,Brandon Lowe,605483,Blake Snell,L,L,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,5,804668,Rafael Flores Jr.,605483,Blake Snell,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,6,694377,Nick Yorke,605483,Blake Snell,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,7,687462,Spencer Horwitz,605483,Blake Snell,L,L,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,8,669707,Jared Triolo,605483,Blake Snell,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,9,695257,Billy Cook,605483,Blake Snell,R,L,R
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,1,691718,Pete Crow-Armstrong,682243,Bryce Miller,L,R,L
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,2,673548,Seiya Suzuki,682243,Bryce Miller,R,R,R
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,3,683737,Michael Busch,682243,Bryce Miller,L,R,L
@@ -215,3 +233,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,7,691783,Jordan Lawlar,671096,Andrew Abbott,R,L,R
 2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,8,543510,James McCann,671096,Andrew Abbott,R,L,R
 2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,9,814439,Ryan Waldschmidt,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,1,682829,Elly De La Cruz,683352,Mitch Bratt,S,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,2,701398,Sal Stewart,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,3,667472,Dane Myers,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,4,663886,Tyler Stephenson,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,5,553993,Eugenio Suárez,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,6,680574,Matt McLain,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,7,668709,JJ Bleday,683352,Mitch Bratt,L,L,L
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,8,677943,Will Banfield,683352,Mitch Bratt,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Cincinnati Reds,Arizona Diamondbacks,away,9,699302,Héctor Rodríguez,683352,Mitch Bratt,L,L,L
