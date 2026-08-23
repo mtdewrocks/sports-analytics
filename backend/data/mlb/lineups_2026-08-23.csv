@@ -260,3 +260,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,823745,2026-08-23T23:10:00Z,Milwaukee Brewers,Atlanta Braves,home,7,687401,Joey Ortiz,641816,Tyler Mahle,R,R,R
 2026-08-23,823745,2026-08-23T23:10:00Z,Milwaukee Brewers,Atlanta Braves,home,8,669003,Garrett Mitchell,641816,Tyler Mahle,L,R,L
 2026-08-23,823745,2026-08-23T23:10:00Z,Milwaukee Brewers,Atlanta Braves,home,9,666152,David Hamilton,641816,Tyler Mahle,L,R,L
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,1,671739,Michael Harris II,675660,Shane Drohan,L,L,L
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,2,660670,Ronald Acuña Jr.,675660,Shane Drohan,R,L,R
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,3,621566,Matt Olson,675660,Shane Drohan,L,L,L
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,4,645277,Ozzie Albies,675660,Shane Drohan,S,L,R
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,5,686948,Drake Baldwin,675660,Shane Drohan,L,L,L
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,6,657041,Lane Thomas,675660,Shane Drohan,R,L,R
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,7,643289,Mauricio Dubón,675660,Shane Drohan,R,L,R
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,8,663586,Austin Riley,675660,Shane Drohan,R,L,R
+2026-08-23,823745,2026-08-23T23:10:00Z,Atlanta Braves,Milwaukee Brewers,away,9,669221,Sean Murphy,675660,Shane Drohan,R,L,R
