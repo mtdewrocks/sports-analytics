@@ -134,6 +134,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,7,642350,Jose Siri,615698,Cal Quantrill,R,R,R
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,8,695681,Christian Moore,615698,Cal Quantrill,R,R,R
 2026-08-23,822856,2026-08-23T18:35:00Z,Los Angeles Angels,Texas Rangers,away,9,623168,Tyler Heineman,615698,Cal Quantrill,S,R,L
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,1,664983,Jake McCarthy,656492,Foster Griffin,L,L,L
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,2,694249,Cole Carrigg,656492,Foster Griffin,S,L,R
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,3,650489,Willi Castro,656492,Foster Griffin,S,L,R
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,4,666160,Mickey Moniak,656492,Foster Griffin,L,L,L
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,5,681393,Connor Norby,656492,Foster Griffin,R,L,R
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,6,687597,Jordan Beck,656492,Foster Griffin,R,L,R
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,7,664954,Brett Sullivan,656492,Foster Griffin,L,L,L
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,8,690022,Ryan Ritter,656492,Foster Griffin,R,L,R
+2026-08-23,824315,2026-08-23T19:10:00Z,Colorado Rockies,Cleveland Guardians,home,9,678662,Ezequiel Tovar,656492,Foster Griffin,R,L,R
 2026-08-23,824315,2026-08-23T19:10:00Z,Cleveland Guardians,Colorado Rockies,away,1,680757,Steven Kwan,608372,Tomoyuki Sugano,L,R,L
 2026-08-23,824315,2026-08-23T19:10:00Z,Cleveland Guardians,Colorado Rockies,away,2,800050,Chase DeLauter,608372,Tomoyuki Sugano,L,R,L
 2026-08-23,824315,2026-08-23T19:10:00Z,Cleveland Guardians,Colorado Rockies,away,3,666176,Jo Adell,608372,Tomoyuki Sugano,R,R,R
@@ -161,3 +170,48 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,824720,2026-08-23T19:15:00Z,San Francisco Giants,Boston Red Sox,away,7,668800,Andrew Knizner,687562,Jake Bennett,R,L,R
 2026-08-23,824720,2026-08-23T19:15:00Z,San Francisco Giants,Boston Red Sox,away,8,813841,Jonah Cox,687562,Jake Bennett,R,L,R
 2026-08-23,824720,2026-08-23T19:15:00Z,San Francisco Giants,Boston Red Sox,away,9,683766,Christian Koss,687562,Jake Bennett,R,L,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,1,660271,Shohei Ohtani,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,2,518692,Freddie Freeman,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,3,605141,Mookie Betts,669199,Lake Bachar,R,R,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,4,571970,Max Muncy,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,5,669242,Tommy Edman,669199,Lake Bachar,S,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,6,663656,Kyle Tucker,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,7,606192,Teoscar Hernández,669199,Lake Bachar,R,R,R
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,8,677950,Alek Thomas,669199,Lake Bachar,L,R,L
+2026-08-23,823909,2026-08-23T20:10:00Z,Los Angeles Dodgers,Pittsburgh Pirates,home,9,676439,Hunter Feduccia,669199,Lake Bachar,L,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,1,691718,Pete Crow-Armstrong,682243,Bryce Miller,L,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,2,673548,Seiya Suzuki,682243,Bryce Miller,R,R,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,3,683737,Michael Busch,682243,Bryce Miller,L,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,4,608324,Alex Bregman,682243,Bryce Miller,R,R,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,5,664023,Ian Happ,682243,Bryce Miller,S,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,6,663538,Nico Hoerner,682243,Bryce Miller,R,R,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,7,699393,Pedro Ramírez,682243,Bryce Miller,S,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,8,624424,Michael Conforto,682243,Bryce Miller,L,R,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,9,608348,Carson Kelly,682243,Bryce Miller,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,1,665487,Fernando Tatis Jr.,641927,Bailey Ober,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,2,630105,Jake Cronenworth,641927,Bailey Ober,L,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,3,592518,Manny Machado,641927,Bailey Ober,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,4,664034,Ty France,641927,Bailey Ober,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,5,701538,Jackson Merrill,641927,Bailey Ober,L,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,6,669134,Luis Campusano,641927,Bailey Ober,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,7,657757,Gavin Sheets,641927,Bailey Ober,L,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,8,593428,Xander Bogaerts,641927,Bailey Ober,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,San Diego Padres,Minnesota Twins,home,9,650859,Luis Rengifo,641927,Bailey Ober,S,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,1,807712,Luke Keaschall,621111,Walker Buehler,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,2,621439,Byron Buxton,621111,Walker Buehler,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,3,605137,Josh Bell,621111,Walker Buehler,S,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,4,665019,Kody Clemens,621111,Walker Buehler,L,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,5,668904,Royce Lewis,621111,Walker Buehler,R,R,R
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,6,686797,Brooks Lee,621111,Walker Buehler,S,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,7,702176,Alan Roden,621111,Walker Buehler,L,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,8,605170,Victor Caratini,621111,Walker Buehler,S,R,L
+2026-08-23,823258,2026-08-23T20:10:00Z,Minnesota Twins,San Diego Padres,away,9,701785,Kaelen Culpepper,621111,Walker Buehler,R,R,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,1,545121,Ildemaro Vargas,671096,Andrew Abbott,S,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,2,682998,Corbin Carroll,671096,Andrew Abbott,L,L,L
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,3,672515,Gabriel Moreno,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,4,672695,Geraldo Perdomo,671096,Andrew Abbott,S,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,5,571448,Nolan Arenado,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,6,694374,Tim Tawa,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,7,691783,Jordan Lawlar,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,8,543510,James McCann,671096,Andrew Abbott,R,L,R
+2026-08-23,825043,2026-08-23T20:15:00Z,Arizona Diamondbacks,Cincinnati Reds,home,9,814439,Ryan Waldschmidt,671096,Andrew Abbott,R,L,R
