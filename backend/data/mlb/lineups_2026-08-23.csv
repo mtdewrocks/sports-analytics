@@ -197,6 +197,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,7,687462,Spencer Horwitz,605483,Blake Snell,L,L,L
 2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,8,669707,Jared Triolo,605483,Blake Snell,R,L,R
 2026-08-23,823909,2026-08-23T20:10:00Z,Pittsburgh Pirates,Los Angeles Dodgers,away,9,695257,Billy Cook,605483,Blake Snell,R,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,1,668227,Randy Arozarena,684007,Shota Imanaga,R,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,2,686527,Dominic Canzone,684007,Shota Imanaga,L,L,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,3,677594,Julio Rodríguez,684007,Shota Imanaga,R,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,4,663728,Cal Raleigh,684007,Shota Imanaga,S,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,5,647304,Josh Naylor,684007,Shota Imanaga,L,L,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,6,642215,Weston Wilson,684007,Shota Imanaga,R,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,7,702284,Cole Young,684007,Shota Imanaga,L,L,L
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,8,645302,Victor Robles,684007,Shota Imanaga,R,L,R
+2026-08-23,823099,2026-08-23T20:10:00Z,Seattle Mariners,Chicago Cubs,home,9,660844,Leo Rivas,684007,Shota Imanaga,S,L,R
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,1,691718,Pete Crow-Armstrong,682243,Bryce Miller,L,R,L
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,2,673548,Seiya Suzuki,682243,Bryce Miller,R,R,R
 2026-08-23,823099,2026-08-23T20:10:00Z,Chicago Cubs,Seattle Mariners,away,3,683737,Michael Busch,682243,Bryce Miller,L,R,L
