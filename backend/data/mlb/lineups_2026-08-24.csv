@@ -1,0 +1,37 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,1,690993,Colt Keith,656876,Drew Rasmussen,L,R,L
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,2,701678,Hao-Yu Lee,656876,Drew Rasmussen,R,R,R
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,3,805808,Kevin McGonigle,656876,Drew Rasmussen,L,R,L
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,4,693307,Dillon Dingler,656876,Drew Rasmussen,R,R,R
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,5,814430,Brett Callahan,656876,Drew Rasmussen,L,R,L
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,6,656716,Zach McKinstry,656876,Drew Rasmussen,L,R,L
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,7,679529,Spencer Torkelson,656876,Drew Rasmussen,R,R,R
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,8,703601,Max Clark,656876,Drew Rasmussen,L,R,L
+2026-08-24,824235,2026-08-24T22:40:00Z,Detroit Tigers,Tampa Bay Rays,home,9,595879,Javier Báez,656876,Drew Rasmussen,R,R,R
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,1,686765,Nick Sogard,645261,Sandy Alcantara,S,R,L
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,2,678882,Ceddanne Rafaela,645261,Sandy Alcantara,R,R,R
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,3,677800,Wilyer Abreu,645261,Sandy Alcantara,L,R,L
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,4,575929,Willson Contreras,645261,Sandy Alcantara,R,R,R
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,5,668939,Adley Rutschman,645261,Sandy Alcantara,S,R,L
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,6,702332,Caleb Durbin,645261,Sandy Alcantara,R,R,R
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,7,680776,Jarren Duran,645261,Sandy Alcantara,L,R,L
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,8,681508,Mickey Gasper,645261,Sandy Alcantara,S,R,L
+2026-08-24,823828,2026-08-24T22:40:00Z,Boston Red Sox,Miami Marlins,away,9,678011,Anthony Seigler,645261,Sandy Alcantara,S,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,1,682928,CJ Abrams,663372,Ryan Feltner,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,2,694673,Abimelec Ortiz,663372,Ryan Feltner,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,3,686611,Dylan Crews,663372,Ryan Feltner,R,R,R
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,4,695734,Daylen Lile,663372,Ryan Feltner,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,5,691781,Brady House,663372,Ryan Feltner,R,R,R
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,6,660688,Keibert Ruiz,663372,Ryan Feltner,S,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,7,696285,Jacob Young,663372,Ryan Feltner,R,R,R
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,8,678391,Jorbit Vivas,663372,Ryan Feltner,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Washington Nationals,Colorado Rockies,home,9,683083,Nasim Nuñez,663372,Ryan Feltner,S,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,1,664983,Jake McCarthy,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,2,666160,Mickey Moniak,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,3,650489,Willi Castro,676917,Cade Cavalli,S,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,4,681198,TJ Rumfield,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,5,687859,Troy Johnston,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,6,681393,Connor Norby,676917,Cade Cavalli,R,R,R
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,7,664954,Brett Sullivan,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,8,691728,Zac Veen,676917,Cade Cavalli,L,R,L
+2026-08-24,822695,2026-08-24T22:45:00Z,Colorado Rockies,Washington Nationals,away,9,678662,Ezequiel Tovar,676917,Cade Cavalli,R,R,R
