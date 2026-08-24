@@ -107,6 +107,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,7,699393,Pedro Ramírez,518876,Merrill Kelly,S,R,L
 2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,8,624424,Michael Conforto,518876,Merrill Kelly,L,R,L
 2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,9,608348,Carson Kelly,518876,Merrill Kelly,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,1,665487,Fernando Tatis Jr.,677952,Braxton Ashcraft,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,2,630105,Jake Cronenworth,677952,Braxton Ashcraft,L,R,L
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,3,592518,Manny Machado,677952,Braxton Ashcraft,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,4,664034,Ty France,677952,Braxton Ashcraft,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,5,701538,Jackson Merrill,677952,Braxton Ashcraft,L,R,L
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,6,593428,Xander Bogaerts,677952,Braxton Ashcraft,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,7,657757,Gavin Sheets,677952,Braxton Ashcraft,L,R,L
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,8,666023,Freddy Fermin,677952,Braxton Ashcraft,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,9,687957,Dustin Harris,677952,Braxton Ashcraft,L,R,L
 2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,1,693304,Nick Gonzales,592662,Robbie Ray,R,L,R
 2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,2,699013,Esmerlyn Valdez,592662,Robbie Ray,R,L,R
 2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,3,668804,Bryan Reynolds,592662,Robbie Ray,S,L,R
