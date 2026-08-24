@@ -71,3 +71,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,7,669394,Jake Burger,664353,José Urquidy,R,R,R
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,8,553869,Elias Díaz,664353,José Urquidy,R,R,R
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,9,683227,Cody Freeman,664353,José Urquidy,R,R,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,1,807712,Luke Keaschall,605488,Jeffrey Springs,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,2,621439,Byron Buxton,605488,Jeffrey Springs,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,3,680777,Ryan Jeffers,605488,Jeffrey Springs,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,4,605137,Josh Bell,605488,Jeffrey Springs,S,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,5,665019,Kody Clemens,605488,Jeffrey Springs,L,L,L
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,6,668904,Royce Lewis,605488,Jeffrey Springs,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,7,701785,Kaelen Culpepper,605488,Jeffrey Springs,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,8,686797,Brooks Lee,605488,Jeffrey Springs,S,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,9,668952,Ryan Kreidler,605488,Jeffrey Springs,R,L,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,1,668227,Randy Arozarena,554430,Zack Wheeler,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,2,686527,Dominic Canzone,554430,Zack Wheeler,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,3,677594,Julio Rodríguez,554430,Zack Wheeler,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,4,647304,Josh Naylor,554430,Zack Wheeler,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,5,621493,Taylor Ward,554430,Zack Wheeler,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,6,663728,Cal Raleigh,554430,Zack Wheeler,S,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,7,702284,Cole Young,554430,Zack Wheeler,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,8,642215,Weston Wilson,554430,Zack Wheeler,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,9,801126,Brock Rodden,554430,Zack Wheeler,S,R,L
