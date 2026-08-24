@@ -71,6 +71,60 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,7,669394,Jake Burger,664353,José Urquidy,R,R,R
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,8,553869,Elias Díaz,664353,José Urquidy,R,R,R
 2026-08-24,824557,2026-08-24T23:40:00Z,Texas Rangers,Chicago White Sox,away,9,683227,Cody Freeman,664353,José Urquidy,R,R,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,1,687263,Zach Neto,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,2,545361,Mike Trout,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,3,687093,Vaughn Grissom,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,4,694208,Moisés Ballesteros,800048,Parker Messick,L,L,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,5,642350,Jose Siri,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,6,672569,Gustavo Campero,800048,Parker Messick,S,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,7,695681,Christian Moore,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,8,694203,Denzer Guzman,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,9,518595,Travis d'Arnaud,800048,Parker Messick,R,L,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,1,680757,Steven Kwan,691946,George Klassen,L,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,2,800050,Chase DeLauter,691946,George Klassen,L,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,3,608070,José Ramírez,691946,George Klassen,S,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,4,666176,Jo Adell,691946,George Klassen,R,R,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,5,663993,Nathaniel Lowe,691946,George Klassen,L,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,6,694197,Angel Genao,691946,George Klassen,S,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,7,690984,Petey Halpin,691946,George Klassen,L,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,8,595978,Austin Hedges,691946,George Klassen,R,R,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,9,677587,Brayan Rocchio,691946,George Klassen,S,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,1,663457,Lars Nootbaar,592332,Kevin Gausman,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,2,682998,Corbin Carroll,592332,Kevin Gausman,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,3,672515,Gabriel Moreno,592332,Kevin Gausman,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,4,672695,Geraldo Perdomo,592332,Kevin Gausman,S,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,5,596146,Max Kepler,592332,Kevin Gausman,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,6,571448,Nolan Arenado,592332,Kevin Gausman,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,7,694374,Tim Tawa,592332,Kevin Gausman,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,8,545121,Ildemaro Vargas,592332,Kevin Gausman,S,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,9,814439,Ryan Waldschmidt,592332,Kevin Gausman,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,1,691718,Pete Crow-Armstrong,518876,Merrill Kelly,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,2,673548,Seiya Suzuki,518876,Merrill Kelly,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,3,683737,Michael Busch,518876,Merrill Kelly,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,4,608324,Alex Bregman,518876,Merrill Kelly,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,5,664023,Ian Happ,518876,Merrill Kelly,S,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,6,663538,Nico Hoerner,518876,Merrill Kelly,R,R,R
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,7,699393,Pedro Ramírez,518876,Merrill Kelly,S,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,8,624424,Michael Conforto,518876,Merrill Kelly,L,R,L
+2026-08-24,825041,2026-08-25T01:40:00Z,Chicago Cubs,Arizona Diamondbacks,away,9,608348,Carson Kelly,518876,Merrill Kelly,R,R,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,1,693304,Nick Gonzales,592662,Robbie Ray,R,L,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,2,699013,Esmerlyn Valdez,592662,Robbie Ray,R,L,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,3,668804,Bryan Reynolds,592662,Robbie Ray,S,L,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,4,665833,Oneil Cruz,592662,Robbie Ray,L,L,L
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,5,804668,Rafael Flores Jr.,592662,Robbie Ray,R,L,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,6,664040,Brandon Lowe,592662,Robbie Ray,L,L,L
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,7,694377,Nick Yorke,592662,Robbie Ray,R,L,R
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,8,687462,Spencer Horwitz,592662,Robbie Ray,L,L,L
+2026-08-24,823260,2026-08-25T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,9,669707,Jared Triolo,592662,Robbie Ray,R,L,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,1,703607,Henry Bolte,805673,Zebby Matthews,R,R,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,2,643446,Jeff McNeil,805673,Zebby Matthews,L,R,L
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,3,680869,Zack Gelof,805673,Zebby Matthews,R,R,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,4,671732,Lawrence Butler,805673,Zebby Matthews,L,R,L
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,5,695720,Tommy White,805673,Zebby Matthews,R,R,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,6,622268,Donovan Walton,805673,Zebby Matthews,L,R,L
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,7,691777,Max Muncy,805673,Zebby Matthews,R,R,R
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,8,666126,Carlos Cortes,805673,Zebby Matthews,L,R,L
+2026-08-24,824964,2026-08-25T01:40:00Z,Athletics,Minnesota Twins,home,9,641680,Jonah Heim,805673,Zebby Matthews,S,R,L
 2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,1,807712,Luke Keaschall,605488,Jeffrey Springs,R,L,R
 2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,2,621439,Byron Buxton,605488,Jeffrey Springs,R,L,R
 2026-08-24,824964,2026-08-25T01:40:00Z,Minnesota Twins,Athletics,away,3,680777,Ryan Jeffers,605488,Jeffrey Springs,R,L,R
@@ -89,3 +143,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,7,702284,Cole Young,554430,Zack Wheeler,L,R,L
 2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,8,642215,Weston Wilson,554430,Zack Wheeler,R,R,R
 2026-08-24,823097,2026-08-25T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,9,801126,Brock Rodden,554430,Zack Wheeler,S,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,1,656941,Kyle Schwarber,669302,Logan Gilbert,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,2,607208,Trea Turner,669302,Logan Gilbert,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,3,547180,Bryce Harper,669302,Logan Gilbert,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,4,650333,Luis Arraez,669302,Logan Gilbert,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,5,664761,Alec Bohm,669302,Logan Gilbert,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,6,681082,Bryson Stott,669302,Logan Gilbert,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,7,669016,Brandon Marsh,669302,Logan Gilbert,L,R,L
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,8,592663,J.T. Realmuto,669302,Logan Gilbert,R,R,R
+2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,9,702222,Justin Crawford,669302,Logan Gilbert,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,1,682829,Elly De La Cruz,687931,Carson Whisenhunt,S,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,2,701398,Sal Stewart,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,3,667472,Dane Myers,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,4,663886,Tyler Stephenson,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,5,553993,Eugenio Suárez,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,6,680574,Matt McLain,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,7,668709,JJ Bleday,687931,Carson Whisenhunt,L,L,L
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,8,624431,Jose Trevino,687931,Carson Whisenhunt,R,L,R
+2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,9,671155,Ivan Johnson,687931,Carson Whisenhunt,S,L,R
