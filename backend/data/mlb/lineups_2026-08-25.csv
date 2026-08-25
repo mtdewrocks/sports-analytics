@@ -170,6 +170,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,7,672569,Gustavo Campero,668909,Gavin Williams,S,R,L
 2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,8,694203,Denzer Guzman,668909,Gavin Williams,R,R,R
 2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,9,624428,Adam Frazier,668909,Gavin Williams,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,1,680757,Steven Kwan,700712,Walbert Ureña,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,2,683953,Travis Bazzana,700712,Walbert Ureña,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,3,608070,José Ramírez,700712,Walbert Ureña,S,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,4,666176,Jo Adell,700712,Walbert Ureña,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,5,663993,Nathaniel Lowe,700712,Walbert Ureña,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,6,682657,Angel Martínez,700712,Walbert Ureña,S,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,7,672275,Patrick Bailey,700712,Walbert Ureña,S,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,8,690984,Petey Halpin,700712,Walbert Ureña,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,9,677587,Brayan Rocchio,700712,Walbert Ureña,S,R,L
 2026-08-25,825042,2026-08-26T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,1,663457,Lars Nootbaar,605280,Clay Holmes,L,R,L
 2026-08-25,825042,2026-08-26T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,2,682998,Corbin Carroll,605280,Clay Holmes,L,R,L
 2026-08-25,825042,2026-08-26T01:40:00Z,Arizona Diamondbacks,Chicago Cubs,home,3,672515,Gabriel Moreno,605280,Clay Holmes,R,R,R
@@ -197,6 +206,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-25,823259,2026-08-26T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,7,669134,Luis Campusano,694973,Paul Skenes,R,R,R
 2026-08-25,823259,2026-08-26T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,8,593428,Xander Bogaerts,694973,Paul Skenes,R,R,R
 2026-08-25,823259,2026-08-26T01:40:00Z,San Diego Padres,Pittsburgh Pirates,home,9,687957,Dustin Harris,694973,Paul Skenes,L,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,1,687462,Spencer Horwitz,650633,Michael King,L,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,2,664040,Brandon Lowe,650633,Michael King,L,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,3,668804,Bryan Reynolds,650633,Michael King,S,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,4,693304,Nick Gonzales,650633,Michael King,R,R,R
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,5,665833,Oneil Cruz,650633,Michael King,L,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,6,663968,Jake Mangum,650633,Michael King,S,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,7,694378,Jacob Gonzalez,650633,Michael King,L,R,L
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,8,669707,Jared Triolo,650633,Michael King,R,R,R
+2026-08-25,823259,2026-08-26T01:40:00Z,Pittsburgh Pirates,San Diego Padres,away,9,680779,Henry Davis,650633,Michael King,R,R,R
 2026-08-25,824962,2026-08-26T01:40:00Z,Athletics,Minnesota Twins,home,1,703607,Henry Bolte,671737,Taj Bradley,R,R,R
 2026-08-25,824962,2026-08-26T01:40:00Z,Athletics,Minnesota Twins,home,2,643446,Jeff McNeil,671737,Taj Bradley,L,R,L
 2026-08-25,824962,2026-08-26T01:40:00Z,Athletics,Minnesota Twins,home,3,680869,Zack Gelof,671737,Taj Bradley,R,R,R
@@ -224,6 +242,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-25,823098,2026-08-26T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,7,621493,Taylor Ward,605400,Aaron Nola,R,R,R
 2026-08-25,823098,2026-08-26T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,8,641487,J.P. Crawford,605400,Aaron Nola,L,R,L
 2026-08-25,823098,2026-08-26T01:40:00Z,Seattle Mariners,Philadelphia Phillies,home,9,801126,Brock Rodden,605400,Aaron Nola,S,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,1,656941,Kyle Schwarber,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,2,607208,Trea Turner,669923,George Kirby,R,R,R
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,3,547180,Bryce Harper,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,4,650333,Luis Arraez,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,5,664761,Alec Bohm,669923,George Kirby,R,R,R
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,6,681082,Bryson Stott,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,7,669016,Brandon Marsh,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,8,702222,Justin Crawford,669923,George Kirby,L,R,L
+2026-08-25,823098,2026-08-26T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,9,596117,Garrett Stubbs,669923,George Kirby,L,R,L
 2026-08-25,823181,2026-08-26T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,1,687551,Drew Gilbert,663903,Brady Singer,L,R,L
 2026-08-25,823181,2026-08-26T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,2,646240,Rafael Devers,663903,Brady Singer,L,R,L
 2026-08-25,823181,2026-08-26T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,3,808982,Jung Hoo Lee,663903,Brady Singer,L,R,L
