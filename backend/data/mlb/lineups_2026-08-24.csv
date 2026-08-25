@@ -81,11 +81,11 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,8,694203,Denzer Guzman,800048,Parker Messick,R,L,R
 2026-08-24,823992,2026-08-25T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,9,518595,Travis d'Arnaud,800048,Parker Messick,R,L,R
 2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,1,680757,Steven Kwan,691946,George Klassen,L,R,L
-2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,2,800050,Chase DeLauter,691946,George Klassen,L,R,L
-2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,3,608070,José Ramírez,691946,George Klassen,S,R,L
-2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,4,666176,Jo Adell,691946,George Klassen,R,R,R
-2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,5,663993,Nathaniel Lowe,691946,George Klassen,L,R,L
-2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,6,694197,Angel Genao,691946,George Klassen,S,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,2,608070,José Ramírez,691946,George Klassen,S,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,3,666176,Jo Adell,691946,George Klassen,R,R,R
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,4,663993,Nathaniel Lowe,691946,George Klassen,L,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,5,694197,Angel Genao,691946,George Klassen,S,R,L
+2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,6,682657,Angel Martínez,691946,George Klassen,S,R,L
 2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,7,690984,Petey Halpin,691946,George Klassen,L,R,L
 2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,8,595978,Austin Hedges,691946,George Klassen,R,R,R
 2026-08-24,823992,2026-08-25T01:38:00Z,Cleveland Guardians,Los Angeles Angels,away,9,677587,Brayan Rocchio,691946,George Klassen,S,R,L
@@ -161,6 +161,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,7,669016,Brandon Marsh,669302,Logan Gilbert,L,R,L
 2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,8,592663,J.T. Realmuto,669302,Logan Gilbert,R,R,R
 2026-08-24,823097,2026-08-25T01:40:00Z,Philadelphia Phillies,Seattle Mariners,away,9,702222,Justin Crawford,669302,Logan Gilbert,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,1,687551,Drew Gilbert,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,2,646240,Rafael Devers,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,3,808982,Jung Hoo Lee,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,4,806367,Turner Hill,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,5,701852,Drew Cavanaugh,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,6,801501,Nate Furman,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,7,694376,Shay Whitcomb,695505,Chase Burns,R,R,R
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,8,687529,Grant McCray,695505,Chase Burns,L,R,L
+2026-08-24,823183,2026-08-25T01:45:00Z,San Francisco Giants,Cincinnati Reds,home,9,683766,Christian Koss,695505,Chase Burns,R,R,R
 2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,1,682829,Elly De La Cruz,687931,Carson Whisenhunt,S,L,R
 2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,2,701398,Sal Stewart,687931,Carson Whisenhunt,R,L,R
 2026-08-24,823183,2026-08-25T01:45:00Z,Cincinnati Reds,San Francisco Giants,away,3,667472,Dane Myers,687931,Carson Whisenhunt,R,L,R
