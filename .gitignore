@@ -26,3 +26,4 @@ package-lock.json
 generate_doc.js
 .DS_Store
 Thumbs.db
+query_users.py
