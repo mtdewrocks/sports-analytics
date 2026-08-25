@@ -134,6 +134,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-25,824556,2026-08-25T23:40:00Z,Chicago White Sox,Texas Rangers,home,7,671976,Tristan Peters,594798,Jacob deGrom,L,R,L
 2026-08-25,824556,2026-08-25T23:40:00Z,Chicago White Sox,Texas Rangers,home,8,686668,Brenton Doyle,594798,Jacob deGrom,R,R,R
 2026-08-25,824556,2026-08-25T23:40:00Z,Chicago White Sox,Texas Rangers,home,9,691011,Drew Romo,594798,Jacob deGrom,S,R,L
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,1,679822,Justin Foscue,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,2,608369,Corey Seager,641743,Anthony Kay,L,L,L
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,3,694671,Wyatt Langford,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,4,607043,Brandon Nimmo,641743,Anthony Kay,L,L,L
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,5,677649,Ezequiel Duran,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,6,669394,Jake Burger,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,7,681351,Logan O'Hoppe,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,8,683227,Cody Freeman,641743,Anthony Kay,R,L,R
+2026-08-25,824556,2026-08-25T23:40:00Z,Texas Rangers,Chicago White Sox,away,9,643376,Danny Jansen,641743,Anthony Kay,R,L,R
 2026-08-25,823016,2026-08-25T23:45:00Z,St. Louis Cardinals,Baltimore Orioles,home,1,802139,JJ Wetherholt,605135,Chris Bassitt,L,R,L
 2026-08-25,823016,2026-08-25T23:45:00Z,St. Louis Cardinals,Baltimore Orioles,home,2,671056,Iván Herrera,605135,Chris Bassitt,R,R,R
 2026-08-25,823016,2026-08-25T23:45:00Z,St. Louis Cardinals,Baltimore Orioles,home,3,676475,Alec Burleson,605135,Chris Bassitt,L,R,L
@@ -152,3 +161,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-25,823016,2026-08-25T23:45:00Z,Baltimore Orioles,St. Louis Cardinals,away,7,681047,Christian Franklin,669461,Matthew Liberatore,R,L,R
 2026-08-25,823016,2026-08-25T23:45:00Z,Baltimore Orioles,St. Louis Cardinals,away,8,687637,Dylan Beavers,669461,Matthew Liberatore,L,L,L
 2026-08-25,823016,2026-08-25T23:45:00Z,Baltimore Orioles,St. Louis Cardinals,away,9,665750,Leody Taveras,669461,Matthew Liberatore,S,L,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,1,687263,Zach Neto,668909,Gavin Williams,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,2,545361,Mike Trout,668909,Gavin Williams,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,3,694208,Moisés Ballesteros,668909,Gavin Williams,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,4,687093,Vaughn Grissom,668909,Gavin Williams,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,5,666139,Josh Lowe,668909,Gavin Williams,L,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,6,695681,Christian Moore,668909,Gavin Williams,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,7,672569,Gustavo Campero,668909,Gavin Williams,S,R,L
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,8,694203,Denzer Guzman,668909,Gavin Williams,R,R,R
+2026-08-25,823989,2026-08-26T01:38:00Z,Los Angeles Angels,Cleveland Guardians,home,9,624428,Adam Frazier,668909,Gavin Williams,L,R,L
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,1,807712,Luke Keaschall,695611,Gage Jump,R,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,2,621439,Byron Buxton,695611,Gage Jump,R,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,3,680777,Ryan Jeffers,695611,Gage Jump,R,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,4,668904,Royce Lewis,695611,Gage Jump,R,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,5,665019,Kody Clemens,695611,Gage Jump,L,L,L
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,6,701785,Kaelen Culpepper,695611,Gage Jump,R,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,7,686797,Brooks Lee,695611,Gage Jump,S,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,8,605170,Victor Caratini,695611,Gage Jump,S,L,R
+2026-08-25,824962,2026-08-26T01:40:00Z,Minnesota Twins,Athletics,away,9,668952,Ryan Kreidler,695611,Gage Jump,R,L,R
