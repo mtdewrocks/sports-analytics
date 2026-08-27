@@ -506,16 +506,36 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     kpis = {"1_day": window_totals(1), "3_day": window_totals(3), "7_day": window_totals(7)}
 
     # ---- Per-pitcher rows ---------------------------------------------------
+    OPENER_OUTS_THRESHOLD = 9  # 3.0 IP -- a "start" shorter than this reads as an opener/bulk role, not a true SP
+
+    def recent_role(g: pd.DataFrame) -> str:
+        """SP / OP / RP based on how this pitcher has actually been used
+        lately, not whether he has ever started a game this season.
+
+        A credited start (is_starter=True in the boxscore) only counts as a
+        true rotation turn if it actually goes multiple innings -- an
+        "opener" is credited as the starter in the box score but pitches
+        like a reliever, and season-long games_started can't tell the two
+        apart. Looking at the last handful of appearances catches a pitcher
+        who has since moved between roles (e.g. into a season-ending
+        bullpen role after starting earlier in the year), which a
+        season-total field can't.
+        """
+        recent = g.tail(5)
+        starts = recent[recent["is_starter"]]
+        if starts.empty:
+            return "RP"
+        return "SP" if starts["outs"].mean() >= OPENER_OUTS_THRESHOLD else "OP"
+
     relievers = []
     for pid, g in sub.groupby("pitcher_id"):
         g = g.sort_values("date")
         name = g["pitcher"].iloc[-1]
         season_row = season_by_id.get(int(pid), {})
 
-        # Role and hand: prefer season_pitching_stats (whole-season sample);
-        # fall back to what the appearance log itself shows if that pitcher
-        # hasn't landed in a season pull yet (e.g. just recalled).
-        role = season_row.get("role") or ("SP" if g["is_starter"].iloc[-1] else "RP")
+        role = recent_role(g)
+        # Hand still comes from the season file -- bullpen_logs has no
+        # handedness column, and throwing hand doesn't change mid-season.
         hand = season_row.get("throws", "") or ""
 
         era = season_row.get("era")

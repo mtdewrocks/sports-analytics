@@ -14,14 +14,19 @@ One row per appearance, with the columns the Bullpen page renders:
 Only refetches pitchers who actually appeared yesterday (starters and
 relievers both), same incremental approach as get_pitcher_logs.py.
 
-First run (no existing parquet) does a full-season pull for every pitcher in
-starters.parquet as a bootstrap, then relies on the daily incremental run to
-backfill true relievers going forward -- there is no existing file to
-bootstrap full bullpen history from, since it was never captured before.
+First run (no existing parquet) does a bootstrap pull for every pitcher in
+starters.parquet, then relies on the daily incremental run to add true
+relievers going forward as they actually appear -- since starters.parquet
+only has pitchers who've started, this misses full-time relievers until
+they happen to pitch on a day the script runs.
 
-No arguments:
+Pass --backfill-days N to skip that wait: it walks the schedule for the
+last N days directly and pulls every pitcher (starters and relievers
+alike) who appeared in any of those games, in one run, with correct team
+tags from that day's actual boxscore instead of relying on starters.parquet.
 
-    python backend/app/get_bullpen_logs.py
+    python backend/app/get_bullpen_logs.py                  # normal daily run
+    python backend/app/get_bullpen_logs.py --backfill-days 10
 
 Reads:  backend/data/mlb/starters.parquet       (bootstrap only)
         backend/data/mlb/bullpen_logs.parquet   (previous run)
@@ -30,6 +35,7 @@ Writes: backend/data/mlb/bullpen_logs.parquet
 
 from __future__ import annotations
 
+import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -87,6 +93,26 @@ def yesterdays_pitchers(day: str) -> dict[int, dict]:
     for pk in pks:
         ids.update(pitchers_in(pk))
     return ids
+
+
+def backfill_pitchers(days: int, end_date) -> dict[int, dict]:
+    """Every pitcher who appeared in any game over the last `days` days,
+    walking the schedule directly rather than waiting for daily runs to
+    accumulate them one day at a time. Later days win on conflicting team
+    tags (rare mid-window trade), same as the merge step does for the
+    incremental path.
+    """
+    meta: dict[int, dict] = {}
+    for i in range(days):
+        day = (end_date - timedelta(days=i)).isoformat()
+        try:
+            day_meta = yesterdays_pitchers(day)
+        except Exception as e:
+            print(f"  {day} failed: {e}; continuing")
+            continue
+        for pid, info in day_meta.items():
+            meta.setdefault(pid, info)
+    return meta
 
 
 def fetch_logs(person_ids: list[int], meta: dict[int, dict]) -> list[dict]:
@@ -184,13 +210,25 @@ def merge(old: pd.DataFrame, new: pd.DataFrame, today: datetime) -> pd.DataFrame
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-days", type=int, default=0,
+        help="Pull every pitcher who appeared over the last N days in one run, "
+             "instead of waiting for daily runs to accumulate them one day at a time.",
+    )
+    args = parser.parse_args()
+
     dest = DATA_DIR / "bullpen_logs.parquet"
     now = datetime.now(BALLPARK_TZ)
     yesterday = (now.date() - timedelta(days=1)).isoformat()
 
     old = pd.read_parquet(dest) if dest.exists() else pd.DataFrame()
 
-    if old.empty:
+    if args.backfill_days > 0:
+        meta = backfill_pitchers(args.backfill_days, now.date() - timedelta(days=1))
+        targets = list(meta.keys())
+        print(f"backfill: {len(targets)} pitcher(s) appeared over the last {args.backfill_days} day(s)")
+    elif old.empty:
         starters_path = DATA_DIR / "starters.parquet"
         if not starters_path.exists():
             print("no starters.parquet -- run get_starters.py first")
@@ -207,7 +245,8 @@ def main() -> None:
             if pd.notna(row.pitcher_id)
         }
         print(f"no existing bullpen logs -- bootstrap pull for {len(targets)} pitcher(s) "
-              f"(starters only; true relievers backfill from tomorrow)")
+              f"(starters only; true relievers backfill from tomorrow -- or run with "
+              f"--backfill-days instead of waiting)")
     else:
         meta = yesterdays_pitchers(yesterday)
         targets = list(meta.keys())
