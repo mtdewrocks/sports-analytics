@@ -2,8 +2,11 @@ name: Update Statcast
 
 on:
   schedule:
-    # 8:00 AM Central during daylight saving time (UTC-5) = 13:00 UTC.
-    - cron: "0 13 * * *"
+    # 8:07 AM Central during daylight saving time (UTC-5) = 13:07 UTC.
+    # Offset a few minutes off the top of the hour on purpose -- GitHub's
+    # own docs note that :00 schedules are the most likely to be delayed
+    # or skipped, since that's when scheduler load peaks across all repos.
+    - cron: "7 13 * * *"
   workflow_dispatch:
 
 permissions:
