@@ -195,8 +195,17 @@ def main() -> None:
         if not starters_path.exists():
             print("no starters.parquet -- run get_starters.py first")
             return
-        targets = pd.read_parquet(starters_path)["pitcher_id"].dropna().astype(int).tolist()
-        meta: dict[int, dict] = {}
+        starters_df = pd.read_parquet(starters_path)
+        targets = starters_df["pitcher_id"].dropna().astype(int).tolist()
+        # starters.parquet already has team per pitcher -- use it here so the
+        # bootstrap pull isn't stuck with blank teams until a reliever happens
+        # to pitch again (blank teams meant the bullpen page's team dropdown
+        # was empty even though the appearance data itself pulled fine).
+        meta: dict[int, dict] = {
+            int(row.pitcher_id): {"team": row.team, "is_starter": True}
+            for row in starters_df.itertuples()
+            if pd.notna(row.pitcher_id)
+        }
         print(f"no existing bullpen logs -- bootstrap pull for {len(targets)} pitcher(s) "
               f"(starters only; true relievers backfill from tomorrow)")
     else:
