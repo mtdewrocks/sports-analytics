@@ -429,3 +429,144 @@ def get_mlb_props(
             print(f"Warning: props pivot failed: {e}")
 
     return props_df.fillna("").to_dict(orient="records")
+
+
+def _ip_to_outs(ip: Any) -> int:
+    """MLB's innings-pitched string ('1.2') is outs in disguise -- the part
+    after the dot is outs-within-the-inning (0, 1 or 2), not tenths."""
+    try:
+        s = str(ip)
+        whole, _, frac = s.partition(".")
+        whole = int(whole) if whole else 0
+        frac = int(frac[:1]) if frac else 0
+        return whole * 3 + frac
+    except Exception:
+        return 0
+
+
+def _outs_to_ip(outs: int) -> str:
+    return f"{outs // 3}.{outs % 3}"
+
+
+def get_bullpen_teams() -> List[str]:
+    """Distinct team names available in bullpen_logs, for the team selector."""
+    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
+    if logs.empty or "team" not in logs.columns:
+        return []
+    return sorted(t for t in logs["team"].dropna().unique().tolist() if t)
+
+
+def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
+    """Rolling workload for one team's bullpen, with season rate stats.
+
+    Day-by-day pitch counts/outings come from bullpen_logs.parquet (see
+    get_bullpen_logs.py) -- that's the only source with per-appearance
+    detail. ERA/WHIP/K%/BB%/throwing hand come from
+    season_pitching_stats.parquet (see get_season_pitching_stats.py)
+    instead of being computed from the rolling log, since a ~14-day window
+    is too small a sample for a meaningful rate stat and starters.parquet
+    excludes anyone with 0 games started.
+    """
+    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
+    season = get_mlb_data().get("season_pitching_stats", pd.DataFrame())
+    empty = {
+        "team": team, "days": [], "kpis": {}, "relievers": [],
+        "freshness": "unknown",
+    }
+    if logs.empty:
+        return empty
+
+    sub = logs[logs["team"].str.lower().str.strip() == _normalize(team)].copy()
+    if sub.empty:
+        return empty
+
+    sub["date"] = pd.to_datetime(sub["date"], errors="coerce")
+    sub = sub[sub["date"].notna()]
+    sub["outs"] = sub["innings"].apply(_ip_to_outs)
+
+    season_by_id: Dict[int, Dict[str, Any]] = {}
+    if not season.empty:
+        season_by_id = season.set_index("pitcher_id").to_dict(orient="index")
+
+    last_date = sub["date"].max()
+    day_list = pd.date_range(end=last_date, periods=days).normalize()
+
+    # ---- KPI strip: rolling pitches/IP over 1, 3 and 7 days ----------------
+    def window_totals(n: int) -> Dict[str, Any]:
+        cutoff = last_date - pd.Timedelta(days=n - 1)
+        w = sub[sub["date"] >= cutoff]
+        outs = int(w["outs"].sum())
+        pitches = int(w["pitches"].sum())
+        # Rough freshness cut: >85 team pitches/day sustained reads as heavy
+        # bullpen usage -- tune against real workload once data accumulates.
+        per_day = pitches / n
+        level = "tired" if per_day > 85 else "neutral" if per_day > 60 else "fresh"
+        return {"pitches": pitches, "ip": _outs_to_ip(outs), "level": level}
+
+    kpis = {"1_day": window_totals(1), "3_day": window_totals(3), "7_day": window_totals(7)}
+
+    # ---- Per-pitcher rows ---------------------------------------------------
+    relievers = []
+    for pid, g in sub.groupby("pitcher_id"):
+        g = g.sort_values("date")
+        name = g["pitcher"].iloc[-1]
+        season_row = season_by_id.get(int(pid), {})
+
+        # Role and hand: prefer season_pitching_stats (whole-season sample);
+        # fall back to what the appearance log itself shows if that pitcher
+        # hasn't landed in a season pull yet (e.g. just recalled).
+        role = season_row.get("role") or ("SP" if g["is_starter"].iloc[-1] else "RP")
+        hand = season_row.get("throws", "") or ""
+
+        era = season_row.get("era")
+        whip = season_row.get("whip")
+        k_pct = season_row.get("k_pct")
+        bb_pct = season_row.get("bb_pct")
+
+        by_date = {d.date(): row for d, row in g.set_index("date").iterrows()}
+        day_cells = []
+        for d in day_list:
+            row = by_date.get(d.date())
+            if row is None:
+                day_cells.append(None)
+            else:
+                day_cells.append({
+                    "pitches": int(row["pitches"]),
+                    "ip": row["innings"],
+                    "h": int(row["hits"]),
+                    "er": int(row["earned_runs"]),
+                    "bb": int(row["walks"]),
+                })
+
+        def clean(v):
+            if v is None or (isinstance(v, float) and pd.isna(v)):
+                return None
+            return v.item() if hasattr(v, "item") else v
+
+        relievers.append({
+            "pitcher_id": int(pid),
+            "name": name,
+            "role": role,
+            "hand": hand,
+            "era": clean(era),
+            "whip": clean(whip),
+            "k_pct": clean(k_pct),
+            "bb_pct": clean(bb_pct),
+            "days": day_cells,
+        })
+
+    # Closer/setup first: rank by total pitches thrown in the window (proxy
+    # for leverage until roles are tagged from a roster file).
+    relievers.sort(key=lambda r: sum(c["pitches"] for c in r["days"] if c), reverse=True)
+
+    # Built from parts rather than strftime("%-m/%-d"), which is platform
+    # specific and raises on Windows (see get_pitcher_matchup above).
+    day_labels = [f"{d.strftime('%a')} {d.month}/{d.day}" for d in day_list]
+
+    return {
+        "team": team,
+        "days": day_labels,
+        "kpis": kpis,
+        "relievers": relievers,
+        "freshness": kpis["3_day"]["level"],
+    }

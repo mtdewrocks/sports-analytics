@@ -58,6 +58,18 @@ jobs:
       - name: Update pitcher game logs
         run: python -u backend/app/get_pitcher_logs.py
 
+      # Same idea, but for every pitcher who appeared (starters + relievers).
+      # Powers the Bullpen page's workload/freshness view.
+      - name: Update bullpen logs
+        run: python -u backend/app/get_bullpen_logs.py
+
+      # Season ERA/WHIP/K%/BB% for every pitcher, SP and RP alike --
+      # starters.parquet drops anyone with 0 games started, which is fine
+      # for the dropdown but leaves true relievers with no season rate
+      # stats anywhere. This keeps everyone.
+      - name: Update season pitching stats
+        run: python -u backend/app/get_season_pitching_stats.py
+
       - name: Download Savant percentiles
         run: python -u backend/app/get_percentiles.py
 
@@ -77,6 +89,8 @@ jobs:
                    hot_hitters.parquet \
                    pitcher_splits.parquet \
                    pitcher_logs.parquet \
+                   bullpen_logs.parquet \
+                   season_pitching_stats.parquet \
                    pitcher_percentiles.parquet \
                    hitter_percentiles.parquet; do
             if [ -f "backend/data/mlb/$f" ]; then

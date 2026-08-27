@@ -141,7 +141,9 @@ def get_mlb_data() -> dict:
     files = [
         # --- MLB Stats API, rebuilt by GitHub Actions ---
         ("starters", "starters.parquet", pd.read_parquet),          # dropdown + season stats
+        ("season_pitching_stats", "season_pitching_stats.parquet", pd.read_parquet),  # all pitchers, SP+RP
         ("pitcher_logs", "pitcher_logs.parquet", pd.read_parquet),  # recent game logs
+        ("bullpen_logs", "bullpen_logs.parquet", pd.read_parquet),  # all appearances, for bullpen workload
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
         # --- Statcast, rebuilt by GitHub Actions ---
         ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
