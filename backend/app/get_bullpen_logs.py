@@ -184,7 +184,14 @@ def fetch_many(pitcher_ids: list[int], meta: dict[int, dict]) -> pd.DataFrame:
         return frame
 
     frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
-    return frame[frame["date"].notna()]
+    frame = frame[frame["date"].notna()]
+
+    # A probable starter for a game that hasn't been played yet (or a game
+    # suspended before anyone threw a pitch) can still show up in a season
+    # gameLog hydrate with every counting stat at zero -- that's not a real
+    # appearance, and left in, it renders as a phantom "0p" cell for a game
+    # that's still in the future.
+    return frame[frame["pitches"] > 0]
 
 
 def merge(old: pd.DataFrame, new: pd.DataFrame, today: datetime) -> pd.DataFrame:

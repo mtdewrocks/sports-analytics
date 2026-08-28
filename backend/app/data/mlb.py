@@ -1,7 +1,11 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import pandas as pd
 from app.data.loader import get_mlb_data, get_mlb_props_data
+
+_CENTRAL_TZ = ZoneInfo("America/Chicago")  # matches get_bullpen_logs.py's BALLPARK_TZ
 
 
 def _normalize(name: str) -> str:
@@ -484,28 +488,12 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     sub = sub[sub["date"].notna()]
     sub["outs"] = sub["innings"].apply(_ip_to_outs)
 
-    season_by_id: Dict[int, Dict[str, Any]] = {}
-    if not season.empty:
-        season_by_id = season.set_index("pitcher_id").to_dict(orient="index")
-
-    last_date = sub["date"].max()
-    day_list = pd.date_range(end=last_date, periods=days).normalize()
-
-    # ---- KPI strip: rolling pitches/IP over 1, 3 and 7 days ----------------
-    def window_totals(n: int) -> Dict[str, Any]:
-        cutoff = last_date - pd.Timedelta(days=n - 1)
-        w = sub[sub["date"] >= cutoff]
-        outs = int(w["outs"].sum())
-        pitches = int(w["pitches"].sum())
-        # Rough freshness cut: >85 team pitches/day sustained reads as heavy
-        # bullpen usage -- tune against real workload once data accumulates.
-        per_day = pitches / n
-        level = "tired" if per_day > 85 else "neutral" if per_day > 60 else "fresh"
-        return {"pitches": pitches, "ip": _outs_to_ip(outs), "level": level}
-
-    kpis = {"1_day": window_totals(1), "3_day": window_totals(3), "7_day": window_totals(7)}
-
-    # ---- Per-pitcher rows ---------------------------------------------------
+    # ---- Role classification, done first so true starters can be excluded
+    # from both the table and the KPI totals below. A rotation starter's
+    # ordinary 90-100 pitch outing every five days always reads as "heavy"
+    # workload on its own, which would make a perfectly rested bullpen look
+    # tired. Openers stay in -- they're functionally a bullpen role even
+    # though they're credited as the starter in the box score.
     OPENER_OUTS_THRESHOLD = 9  # 3.0 IP -- a "start" shorter than this reads as an opener/bulk role, not a true SP
 
     def recent_role(g: pd.DataFrame) -> str:
@@ -521,19 +509,51 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
         bullpen role after starting earlier in the year), which a
         season-total field can't.
         """
-        recent = g.tail(5)
+        recent = g.sort_values("date").tail(5)
         starts = recent[recent["is_starter"]]
         if starts.empty:
             return "RP"
         return "SP" if starts["outs"].mean() >= OPENER_OUTS_THRESHOLD else "OP"
 
+    role_by_id = {pid: recent_role(g) for pid, g in sub.groupby("pitcher_id")}
+    sp_ids = {pid for pid, role in role_by_id.items() if role == "SP"}
+    sub = sub[~sub["pitcher_id"].isin(sp_ids)]
+    if sub.empty:
+        return empty
+
+    season_by_id: Dict[int, Dict[str, Any]] = {}
+    if not season.empty:
+        season_by_id = season.set_index("pitcher_id").to_dict(orient="index")
+
+    # Anchored on today's actual date, not the max date present in the log --
+    # a probable-starter row for a game that hasn't been played yet (see the
+    # zero-pitch filter in get_bullpen_logs.py) should never be able to push
+    # a future, unplayed day into the columns shown.
+    last_date = pd.Timestamp(datetime.now(_CENTRAL_TZ).date())
+    day_list = pd.date_range(end=last_date, periods=days).normalize()
+
+    # ---- KPI strip: rolling pitches/IP over 1, 3 and 7 days (bullpen arms only, SP excluded) ----
+    def window_totals(n: int) -> Dict[str, Any]:
+        cutoff = last_date - pd.Timedelta(days=n - 1)
+        w = sub[sub["date"] >= cutoff]
+        outs = int(w["outs"].sum())
+        pitches = int(w["pitches"].sum())
+        # Rough freshness cut: >85 team pitches/day sustained reads as heavy
+        # bullpen usage -- tune against real workload once data accumulates.
+        per_day = pitches / n
+        level = "tired" if per_day > 85 else "neutral" if per_day > 60 else "fresh"
+        return {"pitches": pitches, "ip": _outs_to_ip(outs), "level": level}
+
+    kpis = {"1_day": window_totals(1), "3_day": window_totals(3), "7_day": window_totals(7)}
+
+    # ---- Per-pitcher rows (SP already excluded from `sub` above) ------------
     relievers = []
     for pid, g in sub.groupby("pitcher_id"):
         g = g.sort_values("date")
         name = g["pitcher"].iloc[-1]
         season_row = season_by_id.get(int(pid), {})
 
-        role = recent_role(g)
+        role = role_by_id[pid]
         # Hand still comes from the season file -- bullpen_logs has no
         # handedness column, and throwing hand doesn't change mid-season.
         hand = season_row.get("throws", "") or ""
