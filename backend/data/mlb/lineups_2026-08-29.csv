@@ -143,6 +143,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,7,699912,Jose Fernandez,683363,Matt Wilkinson,R,L,R
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,8,691783,Jordan Lawlar,683363,Matt Wilkinson,R,L,R
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,9,814439,Ryan Waldschmidt,683363,Matt Wilkinson,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,1,663457,Lars Nootbaar,805074,Yunior Marte,L,R,L
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,2,682998,Corbin Carroll,805074,Yunior Marte,L,R,L
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,3,672695,Geraldo Perdomo,805074,Yunior Marte,S,R,L
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,4,571448,Nolan Arenado,805074,Yunior Marte,R,R,R
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,5,596146,Max Kepler,805074,Yunior Marte,L,R,L
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,6,694374,Tim Tawa,805074,Yunior Marte,R,R,R
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,7,543510,James McCann,805074,Yunior Marte,R,R,R
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,8,545121,Ildemaro Vargas,805074,Yunior Marte,S,R,L
+2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,9,814439,Ryan Waldschmidt,805074,Yunior Marte,R,R,R
 2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,1,682928,CJ Abrams,645261,Sandy Alcantara,L,R,L
 2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,2,694673,Abimelec Ortiz,645261,Sandy Alcantara,L,R,L
 2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,3,677588,José Tena,645261,Sandy Alcantara,L,R,L
@@ -251,6 +260,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-29,823741,2026-08-29T23:15:00Z,Texas Rangers,Milwaukee Brewers,away,7,643376,Danny Jansen,675660,Shane Drohan,R,L,R
 2026-08-29,823741,2026-08-29T23:15:00Z,Texas Rangers,Milwaukee Brewers,away,8,681351,Logan O'Hoppe,675660,Shane Drohan,R,L,R
 2026-08-29,823741,2026-08-29T23:15:00Z,Texas Rangers,Milwaukee Brewers,away,9,683227,Cody Freeman,675660,Shane Drohan,R,L,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,1,703607,Henry Bolte,669358,Shane Baz,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,2,643446,Jeff McNeil,669358,Shane Baz,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,3,680869,Zack Gelof,669358,Shane Baz,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,4,671732,Lawrence Butler,669358,Shane Baz,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,5,695720,Tommy White,669358,Shane Baz,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,6,622268,Donovan Walton,669358,Shane Baz,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,7,691777,Max Muncy,669358,Shane Baz,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,8,666126,Carlos Cortes,669358,Shane Baz,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Athletics,Baltimore Orioles,home,9,641680,Jonah Heim,669358,Shane Baz,S,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,1,702616,Jackson Holliday,678022,Jack Perkins,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,2,624413,Pete Alonso,678022,Jack Perkins,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,3,683002,Gunnar Henderson,678022,Jack Perkins,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,4,687952,Christian Encarnacion-Strand,678022,Jack Perkins,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,5,694212,Samuel Basallo,678022,Jack Perkins,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,6,687637,Dylan Beavers,678022,Jack Perkins,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,7,691723,Coby Mayo,678022,Jack Perkins,R,R,R
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,8,681297,Colton Cowser,678022,Jack Perkins,L,R,L
+2026-08-29,824961,2026-08-30T02:05:00Z,Baltimore Orioles,Athletics,away,9,665750,Leody Taveras,678022,Jack Perkins,S,R,L
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,1,687263,Zach Neto,650911,Cristopher Sánchez,R,L,R
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,2,545361,Mike Trout,650911,Cristopher Sánchez,R,L,R
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,3,687093,Vaughn Grissom,650911,Cristopher Sánchez,R,L,R
@@ -260,3 +287,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,7,694203,Denzer Guzman,650911,Cristopher Sánchez,R,L,R
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,8,518595,Travis d'Arnaud,650911,Cristopher Sánchez,R,L,R
 2026-08-29,823986,2026-08-30T02:07:00Z,Los Angeles Angels,Philadelphia Phillies,home,9,685133,Wade Meckler,650911,Cristopher Sánchez,L,L,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,1,656941,Kyle Schwarber,696270,Ryan Johnson,L,R,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,2,607208,Trea Turner,696270,Ryan Johnson,R,R,R
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,3,547180,Bryce Harper,696270,Ryan Johnson,L,R,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,4,650333,Luis Arraez,696270,Ryan Johnson,L,R,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,5,664761,Alec Bohm,696270,Ryan Johnson,R,R,R
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,6,681082,Bryson Stott,696270,Ryan Johnson,L,R,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,7,669016,Brandon Marsh,696270,Ryan Johnson,L,R,L
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,8,592663,J.T. Realmuto,696270,Ryan Johnson,R,R,R
+2026-08-29,823986,2026-08-30T02:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,9,702222,Justin Crawford,696270,Ryan Johnson,L,R,L
