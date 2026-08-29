@@ -1,0 +1,208 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,1,502671,Paul Goldschmidt,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,2,700250,Ben Rice,687562,Jake Bennett,L,L,L
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,3,642708,Amed Rosario,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,4,671218,Heliot Ramos,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,5,641355,Cody Bellinger,687562,Jake Bennett,L,L,L
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,6,806146,George Lombard Jr.,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,7,676609,José Caballero,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,8,682987,Spencer Jones,687562,Jake Bennett,L,L,L
+2026-08-29,823539,2026-08-29T17:05:00Z,New York Yankees,Boston Red Sox,home,9,645305,Ali Sánchez,687562,Jake Bennett,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,1,663330,Jahmai Jones,607074,Carlos Rodón,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,2,678882,Ceddanne Rafaela,607074,Carlos Rodón,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,3,677800,Wilyer Abreu,607074,Carlos Rodón,L,L,L
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,4,575929,Willson Contreras,607074,Carlos Rodón,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,5,702332,Caleb Durbin,607074,Carlos Rodón,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,6,668939,Adley Rutschman,607074,Carlos Rodón,S,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,7,655316,Andruw Monasterio,607074,Carlos Rodón,R,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,8,686765,Nick Sogard,607074,Carlos Rodón,S,L,R
+2026-08-29,823539,2026-08-29T17:05:00Z,Boston Red Sox,New York Yankees,away,9,642201,Eli White,607074,Carlos Rodón,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,1,650402,Gleyber Torres,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,2,701678,Hao-Yu Lee,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,3,805808,Kevin McGonigle,605483,Blake Snell,L,L,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,4,693307,Dillon Dingler,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,5,680664,Eduardo Valencia,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,6,679529,Spencer Torkelson,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,7,701162,Ben Malgeri,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,8,595879,Javier Báez,605483,Blake Snell,R,L,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Detroit Tigers,Los Angeles Dodgers,home,9,703601,Max Clark,605483,Blake Snell,L,L,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,1,660271,Shohei Ohtani,672456,Keider Montero,L,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,2,518692,Freddie Freeman,672456,Keider Montero,L,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,3,605141,Mookie Betts,672456,Keider Montero,R,R,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,4,571970,Max Muncy,672456,Keider Montero,L,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,5,669242,Tommy Edman,672456,Keider Montero,S,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,6,663656,Kyle Tucker,672456,Keider Montero,L,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,7,606192,Teoscar Hernández,672456,Keider Montero,R,R,R
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,8,676439,Hunter Feduccia,672456,Keider Montero,L,R,L
+2026-08-29,824230,2026-08-29T17:10:00Z,Los Angeles Dodgers,Detroit Tigers,away,9,677950,Alek Thomas,672456,Keider Montero,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,1,807712,Luke Keaschall,607200,Erick Fedde,R,R,R
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,2,686797,Brooks Lee,607200,Erick Fedde,S,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,3,665019,Kody Clemens,607200,Erick Fedde,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,4,605137,Josh Bell,607200,Erick Fedde,S,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,5,668904,Royce Lewis,607200,Erick Fedde,R,R,R
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,6,663616,Trevor Larnach,607200,Erick Fedde,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,7,701785,Kaelen Culpepper,607200,Erick Fedde,R,R,R
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,8,605170,Victor Caratini,607200,Erick Fedde,S,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Minnesota Twins,Chicago White Sox,home,9,805805,Walker Jenkins,607200,Erick Fedde,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,1,803011,Sam Antonacci,641927,Bailey Ober,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,2,808959,Munetaka Murakami,641927,Bailey Ober,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,3,678246,Miguel Vargas,641927,Bailey Ober,R,R,R
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,4,643217,Andrew Benintendi,641927,Bailey Ober,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,5,695731,Braden Montgomery,641927,Bailey Ober,S,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,6,695657,Colson Montgomery,641927,Bailey Ober,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,7,805367,Chase Meidroth,641927,Bailey Ober,R,R,R
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,8,671976,Tristan Peters,641927,Bailey Ober,L,R,L
+2026-08-29,823665,2026-08-29T18:10:00Z,Chicago White Sox,Minnesota Twins,away,9,668670,Jake Rogers,641927,Bailey Ober,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,1,802139,JJ Wetherholt,669199,Lake Bachar,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,2,671056,Iván Herrera,669199,Lake Bachar,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,3,676475,Alec Burleson,669199,Lake Bachar,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,4,691023,Jordan Walker,669199,Lake Bachar,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,5,701675,Nathan Church,669199,Lake Bachar,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,6,665877,José Fermín,669199,Lake Bachar,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,7,669357,Nolan Gorman,669199,Lake Bachar,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,8,695491,Joshua Báez,669199,Lake Bachar,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,St. Louis Cardinals,Pittsburgh Pirates,home,9,699625,Jimmy Crooks,669199,Lake Bachar,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,1,687462,Spencer Horwitz,681517,Kyle Leahy,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,2,664040,Brandon Lowe,681517,Kyle Leahy,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,3,668804,Bryan Reynolds,681517,Kyle Leahy,S,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,4,693304,Nick Gonzales,681517,Kyle Leahy,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,5,665833,Oneil Cruz,681517,Kyle Leahy,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,6,663968,Jake Mangum,681517,Kyle Leahy,S,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,7,804668,Rafael Flores Jr.,681517,Kyle Leahy,R,R,R
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,8,694378,Jacob Gonzalez,681517,Kyle Leahy,L,R,L
+2026-08-29,823011,2026-08-29T18:15:00Z,Pittsburgh Pirates,St. Louis Cardinals,away,9,669707,Jared Triolo,681517,Kyle Leahy,R,R,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,1,691718,Pete Crow-Armstrong,671096,Andrew Abbott,L,L,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,2,673548,Seiya Suzuki,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,3,608324,Alex Bregman,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,4,683737,Michael Busch,671096,Andrew Abbott,L,L,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,5,663538,Nico Hoerner,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,6,807713,Matt Shaw,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,7,621438,Tyrone Taylor,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,8,699393,Pedro Ramírez,671096,Andrew Abbott,S,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Chicago Cubs,Cincinnati Reds,home,9,608348,Carson Kelly,671096,Andrew Abbott,R,L,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,1,699302,Héctor Rodríguez,592332,Kevin Gausman,L,R,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,2,682829,Elly De La Cruz,592332,Kevin Gausman,S,R,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,3,701398,Sal Stewart,592332,Kevin Gausman,R,R,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,4,668709,JJ Bleday,592332,Kevin Gausman,L,R,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,5,663886,Tyler Stephenson,592332,Kevin Gausman,R,R,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,6,553993,Eugenio Suárez,592332,Kevin Gausman,R,R,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,7,624431,Jose Trevino,592332,Kevin Gausman,R,R,R
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,8,670770,TJ Friedl,592332,Kevin Gausman,L,R,L
+2026-08-29,824637,2026-08-29T18:20:00Z,Cincinnati Reds,Chicago Cubs,away,9,680574,Matt McLain,592332,Kevin Gausman,R,R,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,1,703520,Brett Bateman,807739,Kade Anderson,L,L,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,2,672386,Alejandro Kirk,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,3,665489,Vladimir Guerrero Jr.,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,4,543807,George Springer,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,5,672960,Kazuma Okamoto,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,6,807727,Charles McAdoo,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,7,676391,Ernie Clement,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,8,663662,Daz Cameron,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Toronto Blue Jays,Seattle Mariners,home,9,664702,Myles Straw,807739,Kade Anderson,R,L,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,1,668227,Randy Arozarena,667755,José Soriano,R,R,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,2,686527,Dominic Canzone,667755,José Soriano,L,R,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,3,677594,Julio Rodríguez,667755,José Soriano,R,R,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,4,647304,Josh Naylor,667755,José Soriano,L,R,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,5,663728,Cal Raleigh,667755,José Soriano,S,R,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,6,702284,Cole Young,667755,José Soriano,L,R,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,7,621493,Taylor Ward,667755,José Soriano,R,R,R
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,8,641487,J.P. Crawford,667755,José Soriano,L,R,L
+2026-08-29,822770,2026-08-29T19:07:00Z,Seattle Mariners,Toronto Blue Jays,away,9,801126,Brock Rodden,667755,José Soriano,S,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,1,687551,Drew Gilbert,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,2,646240,Rafael Devers,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,3,805811,Bryce Eldridge,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,4,808982,Jung Hoo Lee,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,5,806367,Turner Hill,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,6,701852,Drew Cavanaugh,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,7,694376,Shay Whitcomb,518876,Merrill Kelly,R,R,R
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,8,801501,Nate Furman,518876,Merrill Kelly,L,R,L
+2026-08-29,823177,2026-08-29T20:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,9,683766,Christian Koss,518876,Merrill Kelly,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,1,682928,CJ Abrams,645261,Sandy Alcantara,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,2,694673,Abimelec Ortiz,645261,Sandy Alcantara,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,3,677588,José Tena,645261,Sandy Alcantara,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,4,695734,Daylen Lile,645261,Sandy Alcantara,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,5,686611,Dylan Crews,645261,Sandy Alcantara,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,6,660688,Keibert Ruiz,645261,Sandy Alcantara,S,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,7,691781,Brady House,645261,Sandy Alcantara,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,8,678391,Jorbit Vivas,645261,Sandy Alcantara,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Washington Nationals,Miami Marlins,home,9,683083,Nasim Nuñez,645261,Sandy Alcantara,S,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,1,669065,Kyle Stowers,676917,Cade Cavalli,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,2,681715,Heriberto Hernández,676917,Cade Cavalli,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,3,669364,Xavier Edwards,676917,Cade Cavalli,S,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,4,665052,Griffin Conine,676917,Cade Cavalli,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,5,672640,Otto Lopez,676917,Cade Cavalli,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,6,805300,Jakob Marsee,676917,Cade Cavalli,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,7,691594,Javier Sanoja,676917,Cade Cavalli,R,R,R
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,8,683357,Owen Caissie,676917,Cade Cavalli,L,R,L
+2026-08-29,822690,2026-08-29T20:05:00Z,Miami Marlins,Washington Nationals,away,9,691788,Joe Mack,676917,Cade Cavalli,L,R,L
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,1,680757,Steven Kwan,663738,Daniel Lynch IV,L,L,L
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,2,800050,Chase DeLauter,663738,Daniel Lynch IV,L,L,L
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,3,608070,José Ramírez,663738,Daniel Lynch IV,S,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,4,666176,Jo Adell,663738,Daniel Lynch IV,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,5,682657,Angel Martínez,663738,Daniel Lynch IV,S,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,6,681807,David Fry,663738,Daniel Lynch IV,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,7,694197,Angel Genao,663738,Daniel Lynch IV,S,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,8,595978,Austin Hedges,663738,Daniel Lynch IV,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Cleveland Guardians,Kansas City Royals,home,9,677587,Brayan Rocchio,663738,Daniel Lynch IV,S,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,1,695600,Carter Jensen,656492,Foster Griffin,L,L,L
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,2,677951,Bobby Witt Jr.,656492,Foster Griffin,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,3,695506,Jac Caglianone,656492,Foster Griffin,L,L,L
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,4,521692,Salvador Perez,656492,Foster Griffin,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,5,679845,Nick Loftin,656492,Foster Griffin,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,6,686475,Tyler Tolbert,656492,Foster Griffin,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,7,686555,Isaac Collins,656492,Foster Griffin,S,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,8,683090,Matthew Lugo,656492,Foster Griffin,R,L,R
+2026-08-29,824392,2026-08-29T20:10:00Z,Kansas City Royals,Cleveland Guardians,away,9,571912,Luke Maile,656492,Foster Griffin,R,L,R
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,1,596019,Francisco Lindor,656986,Bennett Sousa,S,L,R
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,2,665742,Juan Soto,656986,Bennett Sousa,L,L,L
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,3,666182,Bo Bichette,656986,Bennett Sousa,R,L,R
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,4,701807,Carson Benge,656986,Bennett Sousa,L,L,L
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,5,676724,Jared Young,656986,Bennett Sousa,L,L,L
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,6,543760,Marcus Semien,656986,Bennett Sousa,R,L,R
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,7,805999,A.J. Ewing,656986,Bennett Sousa,L,L,L
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,8,683146,Brett Baty,656986,Bennett Sousa,L,L,L
+2026-08-29,823582,2026-08-29T20:10:00Z,New York Mets,Houston Astros,home,9,682626,Francisco Alvarez,656986,Bennett Sousa,R,L,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,1,665161,Jeremy Peña,690997,Nolan McLean,R,R,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,2,670541,Yordan Alvarez,690997,Nolan McLean,L,R,L
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,3,670623,Isaac Paredes,690997,Nolan McLean,R,R,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,4,514888,Jose Altuve,690997,Nolan McLean,R,R,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,5,662139,Daulton Varsho,690997,Nolan McLean,L,R,L
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,6,572233,Christian Walker,690997,Nolan McLean,R,R,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,7,666211,Taylor Trammell,690997,Nolan McLean,L,R,L
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,8,669397,Nick Allen,690997,Nolan McLean,R,R,R
+2026-08-29,823582,2026-08-29T20:10:00Z,Houston Astros,New York Mets,away,9,543877,Christian Vázquez,690997,Nolan McLean,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,1,650490,Yandy Díaz,621111,Walker Buehler,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,2,666018,Jonathan Aranda,621111,Walker Buehler,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,3,691406,Junior Caminero,621111,Walker Buehler,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,4,689414,Liam Hicks,621111,Walker Buehler,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,5,802415,Chandler Simpson,621111,Walker Buehler,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,6,676356,Jonny DeLuca,621111,Walker Buehler,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,7,680700,Richie Palacios,621111,Walker Buehler,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,8,656775,Cedric Mullins,621111,Walker Buehler,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,Tampa Bay Rays,San Diego Padres,home,9,670764,Taylor Walls,621111,Walker Buehler,S,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,1,665487,Fernando Tatis Jr.,607259,Nick Martinez,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,2,630105,Jake Cronenworth,607259,Nick Martinez,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,3,592518,Manny Machado,607259,Nick Martinez,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,4,664034,Ty France,607259,Nick Martinez,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,5,701538,Jackson Merrill,607259,Nick Martinez,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,6,669134,Luis Campusano,607259,Nick Martinez,R,R,R
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,7,657757,Gavin Sheets,607259,Nick Martinez,L,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,8,650859,Luis Rengifo,607259,Nick Martinez,S,R,L
+2026-08-29,822936,2026-08-29T20:10:00Z,San Diego Padres,Tampa Bay Rays,away,9,687957,Dustin Harris,607259,Nick Martinez,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,1,686948,Drake Baldwin,688642,Zach Agnos,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,2,660670,Ronald Acuña Jr.,688642,Zach Agnos,R,R,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,3,621566,Matt Olson,688642,Zach Agnos,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,4,643289,Mauricio Dubón,688642,Zach Agnos,R,R,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,5,671739,Michael Harris II,688642,Zach Agnos,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,6,645277,Ozzie Albies,688642,Zach Agnos,S,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,7,573262,Mike Yastrzemski,688642,Zach Agnos,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,8,663586,Austin Riley,688642,Zach Agnos,R,R,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Atlanta Braves,Colorado Rockies,home,9,642086,Dominic Smith,688642,Zach Agnos,L,R,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,1,664983,Jake McCarthy,527048,Martín Pérez,L,L,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,2,694249,Cole Carrigg,527048,Martín Pérez,S,L,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,3,696100,Hunter Goodman,527048,Martín Pérez,R,L,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,4,681198,TJ Rumfield,527048,Martín Pérez,L,L,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,5,681393,Connor Norby,527048,Martín Pérez,R,L,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,6,650489,Willi Castro,527048,Martín Pérez,S,L,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,7,666160,Mickey Moniak,527048,Martín Pérez,L,L,L
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,8,687597,Jordan Beck,527048,Martín Pérez,R,L,R
+2026-08-29,824874,2026-08-29T20:10:00Z,Colorado Rockies,Atlanta Braves,away,9,678662,Ezequiel Tovar,527048,Martín Pérez,R,L,R
