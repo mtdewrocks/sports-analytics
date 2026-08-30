@@ -143,6 +143,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,7,699912,Jose Fernandez,683363,Matt Wilkinson,R,L,R
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,8,691783,Jordan Lawlar,683363,Matt Wilkinson,R,L,R
 2026-08-29,823177,2026-08-29T20:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,9,814439,Ryan Waldschmidt,683363,Matt Wilkinson,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,1,813841,Jonah Cox,683352,Mitch Bratt,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,2,646240,Rafael Devers,683352,Mitch Bratt,L,L,L
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,3,805811,Bryce Eldridge,683352,Mitch Bratt,L,L,L
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,4,808982,Jung Hoo Lee,683352,Mitch Bratt,L,L,L
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,5,694376,Shay Whitcomb,683352,Mitch Bratt,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,6,668800,Andrew Knizner,683352,Mitch Bratt,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,7,687529,Grant McCray,683352,Mitch Bratt,L,L,L
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,8,678545,Osleivis Basabe,683352,Mitch Bratt,R,L,R
+2026-08-29,823176,2026-08-30T02:05:00Z,San Francisco Giants,Arizona Diamondbacks,home,9,683766,Christian Koss,683352,Mitch Bratt,R,L,R
 2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,1,663457,Lars Nootbaar,805074,Yunior Marte,L,R,L
 2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,2,682998,Corbin Carroll,805074,Yunior Marte,L,R,L
 2026-08-29,823176,2026-08-30T02:05:00Z,Arizona Diamondbacks,San Francisco Giants,away,3,672695,Geraldo Perdomo,805074,Yunior Marte,S,R,L
