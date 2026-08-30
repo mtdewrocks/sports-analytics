@@ -233,3 +233,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-08-30,823987,2026-08-30T20:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,7,681082,Bryson Stott,579328,Yusei Kikuchi,L,L,L
 2026-08-30,823987,2026-08-30T20:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,8,592663,J.T. Realmuto,579328,Yusei Kikuchi,R,L,R
 2026-08-30,823987,2026-08-30T20:07:00Z,Philadelphia Phillies,Los Angeles Angels,away,9,656537,Derek Hill,579328,Yusei Kikuchi,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,1,691718,Pete Crow-Armstrong,695505,Chase Burns,L,R,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,2,673548,Seiya Suzuki,695505,Chase Burns,R,R,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,3,683737,Michael Busch,695505,Chase Burns,L,R,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,4,608324,Alex Bregman,695505,Chase Burns,R,R,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,5,664023,Ian Happ,695505,Chase Burns,S,R,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,6,663538,Nico Hoerner,695505,Chase Burns,R,R,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,7,699393,Pedro Ramírez,695505,Chase Burns,S,R,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,8,624424,Michael Conforto,695505,Chase Burns,L,R,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Chicago Cubs,Cincinnati Reds,home,9,665804,Miguel Amaya,695505,Chase Burns,R,R,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,1,667472,Dane Myers,684007,Shota Imanaga,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,2,682829,Elly De La Cruz,684007,Shota Imanaga,S,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,3,701398,Sal Stewart,684007,Shota Imanaga,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,4,663886,Tyler Stephenson,684007,Shota Imanaga,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,5,553993,Eugenio Suárez,684007,Shota Imanaga,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,6,668709,JJ Bleday,684007,Shota Imanaga,L,L,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,7,680574,Matt McLain,684007,Shota Imanaga,R,L,R
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,8,699302,Héctor Rodríguez,684007,Shota Imanaga,L,L,L
+2026-08-30,824636,2026-08-30T23:20:00Z,Cincinnati Reds,Chicago Cubs,away,9,695490,Edwin Arroyo,684007,Shota Imanaga,S,L,R
