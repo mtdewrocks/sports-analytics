@@ -1,11 +1,7 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import pandas as pd
 from app.data.loader import get_mlb_data, get_mlb_props_data
-
-_CENTRAL_TZ = ZoneInfo("America/Chicago")  # matches get_bullpen_logs.py's BALLPARK_TZ
 
 
 def _normalize(name: str) -> str:
@@ -525,23 +521,45 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     if not season.empty:
         season_by_id = season.set_index("pitcher_id").to_dict(orient="index")
 
-    # Anchored on today's actual date, not the max date present in the log --
-    # a probable-starter row for a game that hasn't been played yet (see the
-    # zero-pitch filter in get_bullpen_logs.py) should never be able to push
-    # a future, unplayed day into the columns shown.
-    last_date = pd.Timestamp(datetime.now(_CENTRAL_TZ).date())
+    # Anchored on the most recent date with real data, not today's calendar
+    # date -- the daily pull only ever captures completed games (see the
+    # zero-pitch filter in get_bullpen_logs.py, which drops a probable
+    # starter's all-zero placeholder row for a game that hasn't been played
+    # yet), so today's date simply won't be present in `sub` until there's
+    # an actual finished appearance to report. Anchoring on today's calendar
+    # date instead would always add an empty, incomplete "today" column --
+    # showing 0 pitches (misread as fully fresh) and dragging down the
+    # 3-day/7-day averages by dividing by a day that hasn't happened yet.
+    last_date = sub["date"].max()
     day_list = pd.date_range(end=last_date, periods=days).normalize()
 
     # ---- KPI strip: rolling pitches/IP over 1, 3 and 7 days (bullpen arms only, SP excluded) ----
+    #
+    # Thresholds validated against league-average bullpen workload, computed
+    # two independent ways: public season totals put team relief innings at
+    # ~592 IP/season (~3.7 IP/day over 162 games); separately, 9 innings
+    # minus the ~5.2 IP/start starters have averaged in recent seasons lands
+    # on ~3.8 IP/day. Both agree closely enough to treat ~3.75 IP/day as the
+    # league-average baseline. At the commonly cited 16-17 pitches/inning,
+    # that's roughly 60-65 pitches/day. Four tiers off that baseline:
+    # <=60 fresh (at or below average), 61-75 neutral, 76-85 somewhat tired,
+    # >85 tired (~1.4x average, comfortably above typical).
     def window_totals(n: int) -> Dict[str, Any]:
         cutoff = last_date - pd.Timedelta(days=n - 1)
         w = sub[sub["date"] >= cutoff]
         outs = int(w["outs"].sum())
         pitches = int(w["pitches"].sum())
-        # Rough freshness cut: >85 team pitches/day sustained reads as heavy
-        # bullpen usage -- tune against real workload once data accumulates.
+
         per_day = pitches / n
-        level = "tired" if per_day > 85 else "neutral" if per_day > 60 else "fresh"
+        if per_day > 85:
+            level = "tired"
+        elif per_day > 75:
+            level = "somewhat tired"
+        elif per_day > 60:
+            level = "neutral"
+        else:
+            level = "fresh"
+
         return {"pitches": pitches, "ip": _outs_to_ip(outs), "level": level}
 
     kpis = {"1_day": window_totals(1), "3_day": window_totals(3), "7_day": window_totals(7)}
@@ -595,9 +613,11 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
             "days": day_cells,
         })
 
-    # Closer/setup first: rank by total pitches thrown in the window (proxy
-    # for leverage until roles are tagged from a roster file).
-    relievers.sort(key=lambda r: sum(c["pitches"] for c in r["days"] if c), reverse=True)
+    # Best ERA first -- lets you see at a glance whether the top relievers
+    # are tired, which tells you the weaker arms are next in line. Missing
+    # ERA (no season stats yet, e.g. just recalled) sorts to the bottom
+    # rather than the top, since an unknown is not the same as a good one.
+    relievers.sort(key=lambda r: r["era"] if r["era"] is not None else float("inf"))
 
     # Built from parts rather than strftime("%-m/%-d"), which is platform
     # specific and raises on Windows (see get_pitcher_matchup above).
