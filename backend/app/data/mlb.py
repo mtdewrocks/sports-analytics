@@ -1,7 +1,7 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_mlb_data, get_mlb_props_data, get_bullpen_teams_list
+from app.data.loader import get_mlb_data, get_mlb_props_data
 
 
 def _normalize(name: str) -> str:
@@ -448,15 +448,30 @@ def _outs_to_ip(outs: int) -> str:
     return f"{outs // 3}.{outs % 3}"
 
 
-def get_bullpen_teams() -> List[str]:
-    """Distinct team names available in bullpen_logs, for the team selector.
+# The 30 real MLB teams, exactly as the Stats API names them (matches the
+# "team" strings written into bullpen_logs.parquet, so lookups still line
+# up). Hardcoded rather than read from data on purpose: a pitcher optioned
+# to the minors after starting at the MLB level can get mistagged with his
+# current (minor-league) affiliate during the appearance-log bootstrap --
+# see get_bullpen_logs.py's bootstrap step -- which briefly put "Durham
+# Bulls" in the dropdown. A fixed list can't pick up that kind of leak
+# regardless of what ends up in the data files, and it also means this
+# never requires a network fetch or file read at all.
+MLB_TEAMS = [
+    "Arizona Diamondbacks", "Athletics", "Atlanta Braves", "Baltimore Orioles",
+    "Boston Red Sox", "Chicago Cubs", "Chicago White Sox", "Cincinnati Reds",
+    "Cleveland Guardians", "Colorado Rockies", "Detroit Tigers", "Houston Astros",
+    "Kansas City Royals", "Los Angeles Angels", "Los Angeles Dodgers", "Miami Marlins",
+    "Milwaukee Brewers", "Minnesota Twins", "New York Mets", "New York Yankees",
+    "Philadelphia Phillies", "Pittsburgh Pirates", "San Diego Padres", "San Francisco Giants",
+    "Seattle Mariners", "St. Louis Cardinals", "Tampa Bay Rays", "Texas Rangers",
+    "Toronto Blue Jays", "Washington Nationals",
+]
 
-    Uses the lightweight single-file loader (get_bullpen_teams_list) rather
-    than get_mlb_data()'s full bundle -- that bundle fetches all nine MLB
-    files sequentially, which made the team dropdown wait on season stats,
-    Statcast splits, and percentile files it doesn't actually need.
-    """
-    return get_bullpen_teams_list()
+
+def get_bullpen_teams() -> List[str]:
+    """The 30 MLB teams, for the bullpen page's team selector."""
+    return sorted(MLB_TEAMS)
 
 
 def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
