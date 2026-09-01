@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { getNFLMatchups, getNFLMatchup } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -19,7 +21,6 @@ interface MatchupData {
   is_fallback: boolean;
 }
 
-// Ordinal suffix for a rank number (1 -> 1st, 2 -> 2nd, 3 -> 3rd, 11-13 -> 11th/12th/13th).
 function ordinal(n: number): string {
   const rem100 = n % 100;
   if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
@@ -32,57 +33,20 @@ function ordinal(n: number): string {
 }
 
 // Fixed size everywhere a logo appears -- same dimensions on screen and in
-// the printed/PDF version, since the PDF IS this same markup via the
-// browser's print engine, not a separately rendered document.
-const LOGO_SIZE = 72;
+// the printed/PDF version, since the printed version is this same markup
+// via the browser's print engine, not a separately rendered document.
+const LOGO_SIZE = 56;
 
-function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
+function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
   return (
-    <div style={{
-      flex: 1,
-      minWidth: 320,
-      background: 'white',
-      borderRadius: 8,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        background: '#1a1a2e', color: 'white', padding: '14px 20px',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <img
-          src={`/nfl-logos/${teamAbbr}.jpg`}
-          alt={`${teamAbbr} logo`}
-          width={LOGO_SIZE}
-          height={LOGO_SIZE}
-          style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', borderRadius: 4, background: 'white' }}
-          onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
-        />
-        <span style={{ fontWeight: 700, fontSize: 20 }}>{teamAbbr}</span>
-      </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr style={{ background: '#f0f0f0' }}>
-            <th style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#666' }}>Stat</th>
-            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Value</th>
-            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Rank</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.map((row, i) => (
-            <tr key={row.stat} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-              <td style={{ padding: '7px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
-              <td style={{ padding: '7px 16px', textAlign: 'right', fontWeight: 700, color: '#1a1a2e' }}>
-                {row.value ?? '—'}
-              </td>
-              <td style={{ padding: '7px 16px', textAlign: 'right', color: '#888' }}>
-                {row.rank != null ? ordinal(row.rank) : '—'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <img
+      src={`/nfl-logos/${teamAbbr}.jpg`}
+      alt={`${teamAbbr} logo`}
+      width={LOGO_SIZE}
+      height={LOGO_SIZE}
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain' }}
+      onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+    />
   );
 }
 
@@ -93,6 +57,7 @@ export default function NFLMatchup() {
   const [fetchingMatchups, setFetchingMatchups] = useState(true);
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     getNFLMatchups()
@@ -119,21 +84,57 @@ export default function NFLMatchup() {
     }
   };
 
+  const downloadPdf = async () => {
+    const el = document.getElementById('matchup-report');
+    if (!el || !matchupData) return;
+
+    setDownloadingPdf(true);
+    try {
+      // scale: 2 for a crisp image at print resolution -- the element is
+      // rendered at normal screen size, so a 1:1 canvas would look soft
+      // once placed on a full page.
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+
+      // Fit the image to the page while preserving its aspect ratio --
+      // whichever dimension would overflow first is the constraint.
+      const imgRatio = canvas.width / canvas.height;
+      let renderWidth = maxWidth;
+      let renderHeight = renderWidth / imgRatio;
+      if (renderHeight > maxHeight) {
+        renderHeight = maxHeight;
+        renderWidth = renderHeight * imgRatio;
+      }
+      const x = (pageWidth - renderWidth) / 2;
+      const y = (pageHeight - renderHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
+      pdf.save(`${matchupData.away_team}_at_${matchupData.home_team}.pdf`);
+    } catch (err) {
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  // Pair away/home rows by stat name (they're built from the same ordered
+  // list server-side, so a simple zip is safe) -- one unified table with
+  // the stat name down the middle reads much more like a classic matchup
+  // comparison than two separate side-by-side tables, and naturally fits
+  // one printed page instead of two independently-wrapping blocks.
+  const rows = matchupData
+    ? matchupData.away_stats.map((away, i) => ({ away, home: matchupData.home_stats[i] }))
+    : [];
+
   return (
     <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
-      {/* Only #matchup-report is visible when printing -- the browser's
-          print dialog IS the "download PDF" flow here, so no server-side
-          PDF rendering is involved, and sizing (e.g. the logos above) is
-          identical on screen and on paper by construction. */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #matchup-report, #matchup-report * { visibility: visible; }
-          #matchup-report { position: absolute; left: 0; top: 0; width: 100%; }
-          #no-print { display: none !important; }
-        }
-      `}</style>
-
       <div id="no-print">
         <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>NFL Matchup Preview</h2>
 
@@ -171,14 +172,16 @@ export default function NFLMatchup() {
           </button>
           {matchupData && (
             <button
-              onClick={() => window.print()}
+              onClick={downloadPdf}
+              disabled={downloadingPdf}
               style={{
                 padding: '9px 24px', background: 'white', color: '#1a1a2e',
                 border: '1px solid #1a1a2e', borderRadius: 4, fontWeight: 700, fontSize: 14,
-                cursor: 'pointer',
+                cursor: downloadingPdf ? 'not-allowed' : 'pointer',
+                opacity: downloadingPdf ? 0.6 : 1,
               }}
             >
-              Download PDF
+              {downloadingPdf ? 'Generating PDF...' : 'Download PDF'}
             </button>
           )}
         </div>
@@ -197,22 +200,85 @@ export default function NFLMatchup() {
       </div>
 
       {!loading && matchupData && (
-        <div id="matchup-report">
-          <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
-            {matchupData.away_team} @ {matchupData.home_team}
-          </h2>
+        <div id="matchup-report" style={{ maxWidth: 900, margin: '0 auto' }}>
           {matchupData.is_fallback && (
             <div style={{
               background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
-              borderRadius: 4, padding: '10px 16px', marginBottom: 20, textAlign: 'center', fontSize: 13,
+              borderRadius: 4, padding: '10px 16px', marginBottom: 16, textAlign: 'center', fontSize: 13,
             }}>
               The {matchupData.stats_season! + 1} season hasn't started yet -- these stats are from the{' '}
               {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
           )}
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
-            <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
+
+          <div style={{
+            background: 'white', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden',
+          }}>
+            {/* Header: logo -- team -- @ -- team -- logo, mirrored across center */}
+            <div style={{
+              background: '#1a1a2e', padding: '20px 24px',
+              display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'flex-end' }}>
+                <span style={{ color: 'white', fontWeight: 700, fontSize: 22 }}>{matchupData.away_team}</span>
+                <TeamLogo teamAbbr={matchupData.away_team} />
+              </div>
+              <span style={{ color: '#8890a8', fontWeight: 700, fontSize: 16 }}>@</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'flex-start' }}>
+                <TeamLogo teamAbbr={matchupData.home_team} />
+                <span style={{ color: 'white', fontWeight: 700, fontSize: 22 }}>{matchupData.home_team}</span>
+              </div>
+            </div>
+
+            {/* Column sub-headers */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', background: '#f0f0f0',
+              padding: '8px 16px', fontSize: 11, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4,
+            }}>
+              <div style={{ textAlign: 'center' }}>{matchupData.away_team}</div>
+              <div style={{ textAlign: 'center' }}>Stat</div>
+              <div style={{ textAlign: 'center' }}>{matchupData.home_team}</div>
+            </div>
+
+            {rows.map((row, i) => {
+              // Highlight whichever side ranks better for this stat -- a
+              // quick visual "who has the edge here" read, since that's
+              // the whole point of a matchup comparison for a bettor.
+              const awayBetter = row.away.rank != null && row.home.rank != null && row.away.rank < row.home.rank;
+              const homeBetter = row.away.rank != null && row.home.rank != null && row.home.rank < row.away.rank;
+              const edgeColor = '#1a7a3a';
+
+              return (
+                <div
+                  key={row.away.stat}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', alignItems: 'center',
+                    padding: '9px 16px', background: i % 2 === 0 ? '#fff' : '#fafafa',
+                    borderBottom: '1px solid #f0f0f0',
+                  }}
+                >
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: awayBetter ? edgeColor : '#1a1a2e' }}>
+                      {row.away.value ?? '—'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#555' }}>
+                      {row.away.rank != null ? ordinal(row.away.rank) : '—'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: 13, color: '#555', fontWeight: 600 }}>
+                    {row.away.stat}
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: homeBetter ? edgeColor : '#1a1a2e' }}>
+                      {row.home.value ?? '—'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#555' }}>
+                      {row.home.rank != null ? ordinal(row.home.rank) : '—'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

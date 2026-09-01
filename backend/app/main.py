@@ -98,6 +98,8 @@ def db_test():
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
 if os.path.exists(STATIC_DIR):
+    STATIC_DIR_ABS = os.path.realpath(STATIC_DIR)
+
     assets_dir = os.path.join(STATIC_DIR, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
@@ -108,6 +110,21 @@ if os.path.exists(STATIC_DIR):
         if full_path.startswith(("api/", "auth/", "billing/")):
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Not Found")
+
+        # Serve a real static file if one exists at this path (e.g. anything
+        # from the frontend's public/ folder -- nfl-logos/*.jpg, favicon.svg,
+        # icons.svg -- which previously only worked for /assets and silently
+        # fell through to index.html for everything else, making every
+        # public/ asset 404-as-the-homepage in production).
+        #
+        # realpath + startswith guards against path traversal (e.g.
+        # full_path="../../etc/passwd") since full_path comes straight from
+        # the URL and is otherwise untrusted.
+        if full_path:
+            candidate = os.path.realpath(os.path.join(STATIC_DIR, full_path))
+            if candidate.startswith(STATIC_DIR_ABS + os.sep) and os.path.isfile(candidate):
+                return FileResponse(candidate)
+
         index = os.path.join(STATIC_DIR, "index.html")
         if not os.path.exists(index):
             from fastapi import HTTPException
