@@ -1,7 +1,7 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_mlb_data, get_mlb_props_data
+from app.data.loader import get_mlb_data, get_mlb_props_data, get_bullpen_teams_list
 
 
 def _normalize(name: str) -> str:
@@ -449,11 +449,14 @@ def _outs_to_ip(outs: int) -> str:
 
 
 def get_bullpen_teams() -> List[str]:
-    """Distinct team names available in bullpen_logs, for the team selector."""
-    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
-    if logs.empty or "team" not in logs.columns:
-        return []
-    return sorted(t for t in logs["team"].dropna().unique().tolist() if t)
+    """Distinct team names available in bullpen_logs, for the team selector.
+
+    Uses the lightweight single-file loader (get_bullpen_teams_list) rather
+    than get_mlb_data()'s full bundle -- that bundle fetches all nine MLB
+    files sequentially, which made the team dropdown wait on season stats,
+    Statcast splits, and percentile files it doesn't actually need.
+    """
+    return get_bullpen_teams_list()
 
 
 def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:

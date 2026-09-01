@@ -127,6 +127,26 @@ def get_pitcher_names() -> list:
 
 
 @ttl_cache(MLB_TTL)
+def get_bullpen_teams_list() -> list:
+    """Lightweight loader — the bullpen team dropdown only.
+
+    Same idea as get_pitcher_names() above: reads just bullpen_logs.parquet
+    instead of going through the full get_mlb_data() bundle, which fetches
+    all nine MLB files sequentially and made the dropdown wait on files it
+    doesn't need (season stats, Statcast splits, percentiles, etc.) just to
+    list team names.
+    """
+    base = settings.MLB_BASE_URL
+    try:
+        raw = _fetch_bytes(f"{base}/bullpen_logs.parquet")
+        df = pd.read_parquet(io.BytesIO(raw))
+        return sorted(t for t in df["team"].dropna().unique().tolist() if t)
+    except Exception as e:
+        print(f"Warning: could not load bullpen_logs parquet: {e}")
+        return []
+
+
+@ttl_cache(MLB_TTL)
 def get_mlb_props_data() -> pd.DataFrame:
     """Separate cache for props — only loaded when the MLBProps page is hit."""
     base = settings.MLB_BASE_URL
