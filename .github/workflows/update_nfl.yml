@@ -1,0 +1,60 @@
+name: Update NFL
+
+on:
+  schedule:
+    # 9:07 AM Central during daylight saving time (UTC-5) = 14:07 UTC.
+    # Offset off the top of the hour on purpose -- see update_statcast.yml's
+    # comment on this; :00 schedules are the most likely to be delayed.
+    - cron: "7 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-nfl
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Re-pulls and re-aggregates the whole season's play-by-play each run
+      # -- nflverse republishes the full file, not an incremental daily log,
+      # so there's no bootstrap/incremental split needed here (unlike the
+      # MLB bullpen script). A no-op on days with no new games; harmless.
+      - name: Update NFL play-by-play usage
+        run: python -u backend/app/get_nfl_pbp.py
+
+      # Team offense/defense stats + ranks, for the Matchup page. Depends on
+      # the schedule having at least one completed game each season -- see
+      # that script's error message for what happens before Week 1.
+      - name: Update NFL team stats
+        run: python -u backend/app/get_nfl_weekly_stats.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add backend/data/nfl/player_week_usage.parquet backend/data/nfl/team_stats.parquet
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update NFL play-by-play usage and team stats"
+            git pull --rebase
+            git push
+          fi

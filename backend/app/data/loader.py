@@ -93,20 +93,45 @@ def get_nfl_stats() -> pd.DataFrame:
 
 @ttl_cache(OTHER_TTL)
 def get_nfl_team_stats() -> pd.DataFrame:
-    raw = _fetch_bytes(settings.NFL_TEAM_STATS_URL)
-    return pd.read_excel(io.BytesIO(raw))
+    """Team offense/defense stats + ranks, from get_nfl_weekly_stats.py.
+
+    Replaces the old NFL_TEAM_STATS_URL Excel file (produced by a manually
+    run script) with this repo's own automated pipeline output.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/team_stats.parquet", pd.read_parquet, "nfl team stats")
 
 
 @ttl_cache(OTHER_TTL)
 def get_nfl_schedule() -> pd.DataFrame:
-    raw = _fetch_bytes(settings.NFL_SCHEDULE_URL)
-    return pd.read_excel(io.BytesIO(raw))
+    """Full schedule, pulled directly from nflverse rather than the old
+    manually-uploaded Excel file. Same source get_nfl_weekly_stats.py uses
+    internally for scoring -- not filtered to a season here, so callers can
+    slice whichever season/week they need.
+    """
+    return _load(
+        "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+        lambda buf: pd.read_csv(buf, low_memory=False),
+        "nfl schedule",
+    )
 
 
 @ttl_cache(OTHER_TTL)
 def get_nba_props() -> pd.DataFrame:
     raw = _fetch_bytes(settings.NBA_PROPS_URL)
     return pd.read_excel(io.BytesIO(raw))
+
+
+@ttl_cache(OTHER_TTL)
+def get_nfl_player_week_usage() -> pd.DataFrame:
+    """Target share / rush share, overall and red-zone-only, from get_nfl_pbp.py.
+
+    Points at this repo's own backend/data/nfl/ instead of the legacy
+    sports_analysis repo -- the first piece of NFL data built on the new
+    play-by-play pipeline rather than the old manually-run Excel process.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/player_week_usage.parquet", pd.read_parquet, "nfl player-week usage")
 
 
 @ttl_cache(MLB_TTL)

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     NFL_SCHEDULE_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/schedule.xlsx"
     NBA_PROPS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Basketball_Props.xlsx"
     MLB_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb"
+    NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/nfl"
 
 settings = Settings()
 
