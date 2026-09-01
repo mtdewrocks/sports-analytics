@@ -134,6 +134,17 @@ def get_nfl_player_week_usage() -> pd.DataFrame:
     return _load(f"{base}/player_week_usage.parquet", pd.read_parquet, "nfl player-week usage")
 
 
+@ttl_cache(OTHER_TTL)
+def get_nfl_weekly_defense_ranks() -> pd.DataFrame:
+    """Historical week-by-week defensive ranks, from get_nfl_weekly_defense_ranks.py.
+    Used to show what a defense was ranked ENTERING the week a given game log
+    row was actually played -- team_stats.parquet only has the current
+    snapshot, which can't answer that for a past game.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/weekly_defense_ranks.parquet", pd.read_parquet, "nfl weekly defense ranks")
+
+
 @ttl_cache(MLB_TTL)
 def get_pitcher_names() -> list:
     """Lightweight loader — the pitcher dropdown only.

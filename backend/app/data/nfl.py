@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks
 
 # Stat groups for reference / display
 PASSING_STATS = [
@@ -26,6 +26,16 @@ ALL_STAT_GROUPS = {
     "receiving": RECEIVING_STATS,
     "defense": DEFENSE_STATS,
 }
+
+# Which defensive context applies to a given selected stat. Passing AND
+# receiving both map to pass defense, since receiving yards are the flip
+# side of the same pass-coverage matchup. DEFENSE_STATS (a player's own
+# defensive numbers, e.g. a linebacker's sacks/tackles) intentionally has no
+# mapping -- "what defense did they face" isn't the relevant context for a
+# defensive player's own stat line, and building the equivalent ("what
+# offense did they face") is a different, out-of-scope feature.
+PASS_CONTEXT_STATS = set(PASSING_STATS) | set(RECEIVING_STATS)
+RUSH_CONTEXT_STATS = set(RUSHING_STATS)
 
 
 def _normalize(name: str) -> str:
@@ -78,6 +88,99 @@ def get_available_stats() -> List[str]:
     return ordered
 
 
+def _current_nfl_season() -> int:
+    from datetime import date
+    today = date.today()
+    return today.year if today.month >= 9 else today.year - 1
+
+
+def _defense_context(stat: str, season, week, opponent: str, rank_history: pd.DataFrame) -> Dict[str, Any]:
+    """Pass or rush defensive context for one played game, from the
+    historical weekly-rank file -- entering-that-week ranks, not current
+    ones. Returns an empty dict for a stat with no mapped category (a
+    player's own defensive stats)."""
+    if stat in PASS_CONTEXT_STATS:
+        prefix = "def_pass"
+    elif stat in RUSH_CONTEXT_STATS:
+        prefix = "def_rush"
+    else:
+        return {}
+
+    if rank_history.empty or pd.isna(season) or pd.isna(week):
+        return {}
+
+    match = rank_history[
+        (rank_history["season"] == int(season))
+        & (rank_history["week"] == int(week))
+        & (rank_history["team"].str.upper() == str(opponent).upper())
+    ]
+    if match.empty:
+        return {}
+    row = match.iloc[0]
+
+    def clean(v):
+        return None if pd.isna(v) else round(float(v), 1)
+
+    def clean_rank(v):
+        return None if pd.isna(v) else int(v)
+
+    return {
+        "def_ypg_season": clean(row.get(f"{prefix}_ypg_season")),
+        "def_ypg_rank_season": clean_rank(row.get(f"{prefix}_ypg_rank_season")),
+        "def_ypa_season": clean(row.get(f"{prefix}_ypa_season")),
+        "def_ypa_rank_season": clean_rank(row.get(f"{prefix}_ypa_rank_season")),
+        "def_ypg_last4": clean(row.get(f"{prefix}_ypg_last4")),
+        "def_ypg_rank_last4": clean_rank(row.get(f"{prefix}_ypg_rank_last4")),
+        "def_ypa_last4": clean(row.get(f"{prefix}_ypa_last4")),
+        "def_ypa_rank_last4": clean_rank(row.get(f"{prefix}_ypa_rank_last4")),
+        "def_is_fallback": bool(row.get("is_fallback", False)),
+    }
+
+
+def _upcoming_games(stat: str, player_team: str, season: int) -> List[Dict[str, Any]]:
+    """Remaining schedule for the player's current team, with CURRENT
+    defensive context (team_stats.parquet's latest snapshot) attached --
+    there's no history to look up for a game that hasn't happened yet, so
+    "as of right now" is exactly the right answer here, unlike past games.
+    """
+    if stat not in PASS_CONTEXT_STATS and stat not in RUSH_CONTEXT_STATS:
+        return []
+
+    schedule = get_nfl_schedule()
+    if schedule.empty or not player_team:
+        return []
+
+    season_games = schedule[schedule["season"] == season]
+    upcoming = season_games[
+        season_games["home_score"].isna()
+        & ((season_games["home_team"] == player_team) | (season_games["away_team"] == player_team))
+    ].sort_values("week")
+
+    team_stats = get_nfl_team_stats()
+    prefix = "Defense Pass" if stat in PASS_CONTEXT_STATS else "Defense Rush"
+
+    rows = []
+    for g in upcoming.itertuples():
+        opponent = g.home_team if g.away_team == player_team else g.away_team
+        match = team_stats[team_stats["team"].str.upper() == str(opponent).upper()] if not team_stats.empty else pd.DataFrame()
+        context = {}
+        if not match.empty:
+            row = match.iloc[0]
+            context = {
+                "def_ypg_current": round(float(row.get(f"{prefix} Yards Per Game")), 1) if pd.notna(row.get(f"{prefix} Yards Per Game")) else None,
+                "def_ypg_rank_current": int(row.get(f"Rank - {prefix} Yards Per Game")) if pd.notna(row.get(f"Rank - {prefix} Yards Per Game")) else None,
+                "def_ypa_current": round(float(row.get(f"{prefix} Yards Per Attempt")), 1) if pd.notna(row.get(f"{prefix} Yards Per Attempt")) else None,
+                "def_ypa_rank_current": int(row.get(f"Rank - {prefix} Yards Per Attempt")) if pd.notna(row.get(f"Rank - {prefix} Yards Per Attempt")) else None,
+            }
+        rows.append({
+            "week": int(g.week),
+            "opponent": opponent,
+            "is_upcoming": True,
+            **context,
+        })
+    return rows
+
+
 def get_game_log(
     player: str,
     stat: str = "passing_yards",
@@ -90,10 +193,11 @@ def get_game_log(
     player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
 
     if player_df.empty:
-        return {"games": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
+        return {"games": [], "upcoming": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
 
     week_col = _week_col(df)
     season_col = _season_col(df)
+    team_col = _team_col(df)
 
     # Compute stat values
     stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
@@ -105,7 +209,9 @@ def get_game_log(
         player_df = player_df.sort_values(sort_cols)
         stat_values = player_df["_stat_value"]
 
-    # Build game rows matching NBA shape
+    rank_history = get_nfl_weekly_defense_ranks()
+
+    # Build game rows matching NBA shape, plus defensive context
     game_rows = []
     for _, row in player_df.iterrows():
         week = row.get(week_col) if week_col else None
@@ -118,6 +224,8 @@ def get_game_log(
             "opponent": str(opponent),
             "stat_value": float(row["_stat_value"]),
             "week": int(week) if pd.notna(week) else None,
+            "season": int(season) if pd.notna(season) else None,
+            **_defense_context(stat, season, week, opponent, rank_history),
         })
 
     # Compute over/under counts matching NBA shape
@@ -131,8 +239,19 @@ def get_game_log(
         over = int(sum(1 for x in v if x >= threshold))
         return {"over": over, "total": total, "pct": round(over / total, 4)}
 
+    # Upcoming games for the player's current team -- current-season, since
+    # a player's future schedule beyond the season they've been logging in
+    # isn't a thing yet.
+    upcoming = []
+    if team_col and not player_df.empty:
+        current_team = player_df.iloc[-1].get(team_col)
+        season_for_schedule = _current_nfl_season()
+        if pd.notna(current_team):
+            upcoming = _upcoming_games(stat, str(current_team), season_for_schedule)
+
     return {
         "games": game_rows,
+        "upcoming": upcoming,
         "over_counts": {
             "last5": _over_count(all_vals, 5),
             "last10": _over_count(all_vals, 10),

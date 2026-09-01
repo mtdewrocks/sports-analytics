@@ -10,6 +10,25 @@ interface Game {
   opponent?: string;
   stat_value: number;
   game_date?: string;
+  season?: number;
+  def_ypg_season?: number | null;
+  def_ypg_rank_season?: number | null;
+  def_ypa_season?: number | null;
+  def_ypa_rank_season?: number | null;
+  def_ypg_last4?: number | null;
+  def_ypg_rank_last4?: number | null;
+  def_ypa_last4?: number | null;
+  def_ypa_rank_last4?: number | null;
+  def_is_fallback?: boolean;
+}
+
+interface UpcomingGame {
+  week: number;
+  opponent: string;
+  def_ypg_current?: number | null;
+  def_ypg_rank_current?: number | null;
+  def_ypa_current?: number | null;
+  def_ypa_rank_current?: number | null;
 }
 
 interface OverCount {
@@ -20,6 +39,7 @@ interface OverCount {
 
 interface GameData {
   games: Game[];
+  upcoming: UpcomingGame[];
   over_counts: {
     last5: OverCount;
     last10: OverCount;
@@ -43,6 +63,28 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
+// Same absolute-tier convention as the Matchup page: top 10 of 32 teams,
+// bottom 10, middle 12 -- rather than comparing anything to an opponent.
+function rankColor(rank: number | null | undefined): string {
+  if (rank == null) return '#1a1a2e';
+  if (rank <= 10) return '#1565c0';
+  if (rank >= 23) return '#c62828';
+  return '#1a1a2e';
+}
+
+function ordinal(n: number): string {
+  const rem100 = n % 100;
+  if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+type RankMode = 'season' | 'last4';
+
 export default function NFLGameLog() {
   const [players, setPlayers] = useState<string[]>([]);
   const [stats, setStats] = useState<string[]>([]);
@@ -52,6 +94,7 @@ export default function NFLGameLog() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState<GameData | null>(null);
+  const [rankMode, setRankMode] = useState<RankMode>('season');
 
   useEffect(() => {
     getNFLPlayers()
@@ -80,6 +123,12 @@ export default function NFLGameLog() {
       setLoading(false);
     }
   };
+
+  // Whether this stat has any defensive context at all -- a player's own
+  // defensive stats (sacks, tackles) have no mapped opponent context, so
+  // the extra columns and toggle simply don't render for those.
+  const hasDefContext = !!gameData?.games.some((g) => g.def_ypg_rank_season != null)
+    || !!gameData?.upcoming.some((g) => g.def_ypg_rank_current != null);
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
@@ -151,32 +200,116 @@ export default function NFLGameLog() {
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
-            <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games</h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 }}>
+              <h3 style={{ margin: 0, color: '#1a1a2e' }}>Recent Games</h3>
+              {hasDefContext && (
+                <div style={{ display: 'flex', gap: 4, background: '#f0f0f0', borderRadius: 4, padding: 3 }}>
+                  <button
+                    onClick={() => setRankMode('season')}
+                    style={{
+                      border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
+                      background: rankMode === 'season' ? 'white' : 'transparent',
+                      fontWeight: rankMode === 'season' ? 700 : 400,
+                      color: rankMode === 'season' ? '#1a1a2e' : '#666',
+                    }}
+                  >
+                    Season
+                  </button>
+                  <button
+                    onClick={() => setRankMode('last4')}
+                    style={{
+                      border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
+                      background: rankMode === 'last4' ? 'white' : 'transparent',
+                      fontWeight: rankMode === 'last4' ? 700 : 400,
+                      color: rankMode === 'last4' ? '#1a1a2e' : '#666',
+                    }}
+                  >
+                    Last 4 Games
+                  </button>
+                </div>
+              )}
+            </div>
+
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ background: '#1a1a2e', color: 'white' }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
+                  {hasDefContext && (
+                    <>
+                      <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/G)</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/Att)</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {gameData.games.map((g, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                    <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
-                    <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
-                    <td style={{
-                      padding: '8px 14px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
-                    }}>
-                      {g.stat_value}
-                    </td>
-                  </tr>
-                ))}
+                {gameData.games.map((g, i) => {
+                  const ypgRank = rankMode === 'season' ? g.def_ypg_rank_season : g.def_ypg_rank_last4;
+                  const ypaRank = rankMode === 'season' ? g.def_ypa_rank_season : g.def_ypa_rank_last4;
+                  return (
+                    <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
+                      <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
+                      <td style={{
+                        padding: '8px 14px',
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
+                      }}>
+                        {g.stat_value}
+                      </td>
+                      {hasDefContext && (
+                        <>
+                          <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypgRank) }}>
+                            {ypgRank != null ? ordinal(ypgRank) : '—'}
+                            {g.def_is_fallback && <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (prior yr)</span>}
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypaRank) }}>
+                            {ypaRank != null ? ordinal(ypaRank) : '—'}
+                            {g.def_is_fallback && <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (prior yr)</span>}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+
+            {gameData.upcoming.length > 0 && (
+              <>
+                <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Upcoming</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                  <thead>
+                    <tr style={{ background: '#f0f0f0' }}>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: '#666' }}>Week</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: '#666' }}>Opponent</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: '#666' }}>Opp D Rank (Yds/G)</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: '#666' }}>Opp D Rank (Yds/Att)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gameData.upcoming.map((g, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                        <td style={{ padding: '8px 14px' }}>W{g.week}</td>
+                        <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
+                        <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(g.def_ypg_rank_current) }}>
+                          {g.def_ypg_rank_current != null ? ordinal(g.def_ypg_rank_current) : '—'}
+                          <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (current)</span>
+                        </td>
+                        <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(g.def_ypa_rank_current) }}>
+                          {g.def_ypa_rank_current != null ? ordinal(g.def_ypa_rank_current) : '—'}
+                          <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (current)</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </>
         )}
         {!loading && !error && !gameData && (

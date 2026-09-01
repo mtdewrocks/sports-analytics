@@ -52,26 +52,34 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_stats.py
 
+      # Week-by-week defensive rank history, for context on the Game Log
+      # page (what a defense was ranked entering the week a game was
+      # actually played, not its current rank).
+      - name: Update NFL weekly defense ranks
+        id: weekly_defense_ranks
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_weekly_defense_ranks.py
+
       - name: Commit updated data
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add backend/data/nfl/player_week_usage.parquet backend/data/nfl/team_stats.parquet
+          git add backend/data/nfl/player_week_usage.parquet backend/data/nfl/team_stats.parquet backend/data/nfl/weekly_defense_ranks.parquet
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update NFL play-by-play usage and team stats"
+            git commit -m "Update NFL play-by-play usage, team stats, and weekly defense ranks"
             git pull --rebase
             git push
           fi
 
-      # Only fail the whole run if BOTH scripts failed -- one failing alone
-      # still commits the other's data (see above) and shouldn't page you.
-      - name: Fail if both pulls failed
-        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure'
+      # Only fail the whole run if ALL THREE pulls failed -- any one alone
+      # succeeding still commits real data and shouldn't page you.
+      - name: Fail if all pulls failed
+        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure'
         run: |
-          echo "Both the play-by-play and team-stats pulls failed this run -- check the logs above."
+          echo "All three NFL data pulls failed this run -- check the logs above."
           exit 1
