@@ -35,16 +35,25 @@ jobs:
       # -- nflverse republishes the full file, not an incremental daily log,
       # so there's no bootstrap/incremental split needed here (unlike the
       # MLB bullpen script). A no-op on days with no new games; harmless.
+      #
+      # continue-on-error: a step failing here shouldn't also throw away the
+      # OTHER script's output -- GitHub Actions skips every later step in a
+      # job by default once one fails, which silently zeroed out this whole
+      # run (including the team-stats step, which would have succeeded
+      # fine) the first time this file didn't exist yet for a new season.
       - name: Update NFL play-by-play usage
+        id: pbp
+        continue-on-error: true
         run: python -u backend/app/get_nfl_pbp.py
 
-      # Team offense/defense stats + ranks, for the Matchup page. Depends on
-      # the schedule having at least one completed game each season -- see
-      # that script's error message for what happens before Week 1.
+      # Team offense/defense stats + ranks, for the Matchup page.
       - name: Update NFL team stats
+        id: team_stats
+        continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_stats.py
 
       - name: Commit updated data
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -58,3 +67,11 @@ jobs:
             git pull --rebase
             git push
           fi
+
+      # Only fail the whole run if BOTH scripts failed -- one failing alone
+      # still commits the other's data (see above) and shouldn't page you.
+      - name: Fail if both pulls failed
+        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure'
+        run: |
+          echo "Both the play-by-play and team-stats pulls failed this run -- check the logs above."
+          exit 1

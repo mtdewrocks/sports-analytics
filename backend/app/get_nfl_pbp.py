@@ -49,16 +49,16 @@ TIMEOUT = 120
 RED_ZONE_YARDLINE = 20  # yardline_100 <= this counts as a red-zone play
 
 
-def fetch_pbp(season: int) -> pd.DataFrame:
+def fetch_pbp(season: int) -> pd.DataFrame | None:
+    """Returns None (not an exception) when the season's file doesn't exist
+    yet -- e.g. before Week 1 -- so build() can fall back gracefully instead
+    of the whole script crashing (which, in a multi-step CI job, silently
+    prevented an unrelated *second* script from ever running too, since a
+    failed step blocks the rest of the job by default)."""
     url = NFLVERSE_PBP_URL.format(season=season)
     r = requests.get(url, timeout=TIMEOUT)
     if r.status_code == 404:
-        raise RuntimeError(
-            f"No play-by-play file for {season} yet ({url}). nflverse doesn't "
-            f"publish a season's file until its first games have been played "
-            f"and processed -- if this is before Week 1, pass --season "
-            f"{season - 1} to work against last season's complete data instead."
-        )
+        return None
     r.raise_for_status()
     import io
     return pd.read_parquet(io.BytesIO(r.content))
@@ -112,9 +112,33 @@ def _usage_slice(df: pd.DataFrame, red_zone_only: bool) -> pd.DataFrame:
     return merged
 
 
+REGULAR_SEASON_MAX_WEEK = 18  # weeks 19+ are playoffs -- matches get_nfl_weekly_stats.py
+
+
 def build(season: int) -> pd.DataFrame:
     df = fetch_pbp(season)
-    print(f"{len(df)} plays loaded for {season}")
+    is_fallback = False
+
+    if df is None:
+        # No games played yet this season (e.g. Week 1) -- fall back to last
+        # season's regular season, same reasoning and same week-18 cutoff as
+        # get_nfl_weekly_stats.py's fallback, so the two files tell a
+        # consistent story rather than one reflecting a different season or
+        # including playoff data the other excludes.
+        fallback_season = season - 1
+        print(f"no play-by-play for {season} yet; falling back to {fallback_season} "
+              f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
+        df = fetch_pbp(fallback_season)
+        if df is None:
+            raise RuntimeError(
+                f"No play-by-play available for {season} OR its fallback {fallback_season}. "
+                f"Something's genuinely wrong (not just \"season hasn't started\") -- check "
+                f"https://github.com/nflverse/nflverse-data/releases/tag/pbp directly."
+            )
+        df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
+        is_fallback = True
+
+    print(f"{len(df)} plays loaded" + (f" (fallback season {df['season'].iloc[0]})" if is_fallback else f" for {season}"))
 
     overall = _usage_slice(df, red_zone_only=False)
     red_zone = _usage_slice(df, red_zone_only=True)
@@ -136,6 +160,7 @@ def build(season: int) -> pd.DataFrame:
     merged["target_share"] = (merged["targets"] / team_week_targets).where(team_week_targets > 0)
     merged["air_yards_share"] = (merged["air_yards"] / team_week_air_yards).where(team_week_air_yards > 0)
     merged["rush_share"] = (merged["carries"] / team_week_carries).where(team_week_carries > 0)
+    merged["is_fallback"] = is_fallback
 
     return merged.sort_values(["season", "week", "posteam", "targets"], ascending=[True, True, True, False])
 
