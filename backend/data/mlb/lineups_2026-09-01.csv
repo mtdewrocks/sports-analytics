@@ -206,6 +206,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-01,824313,2026-09-02T00:40:00Z,Colorado Rockies,Baltimore Orioles,home,7,664954,Brett Sullivan,680694,Kyle Bradish,L,R,L
 2026-09-01,824313,2026-09-02T00:40:00Z,Colorado Rockies,Baltimore Orioles,home,8,691182,Adael Amador,680694,Kyle Bradish,S,R,L
 2026-09-01,824313,2026-09-02T00:40:00Z,Colorado Rockies,Baltimore Orioles,home,9,691728,Zac Veen,680694,Kyle Bradish,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,1,702616,Jackson Holliday,687312,Gabriel Hughes,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,2,624413,Pete Alonso,687312,Gabriel Hughes,R,R,R
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,3,683002,Gunnar Henderson,687312,Gabriel Hughes,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,4,687952,Christian Encarnacion-Strand,687312,Gabriel Hughes,R,R,R
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,5,687637,Dylan Beavers,687312,Gabriel Hughes,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,6,694212,Samuel Basallo,687312,Gabriel Hughes,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,7,665750,Leody Taveras,687312,Gabriel Hughes,S,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,8,681297,Colton Cowser,687312,Gabriel Hughes,L,R,L
+2026-09-01,824313,2026-09-02T00:40:00Z,Baltimore Orioles,Colorado Rockies,away,9,665966,Carlos Narváez,687312,Gabriel Hughes,R,R,R
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,1,687263,Zach Neto,543037,Gerrit Cole,R,R,R
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,2,545361,Mike Trout,543037,Gerrit Cole,R,R,R
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,3,685133,Wade Meckler,543037,Gerrit Cole,L,R,L
@@ -215,3 +224,48 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,7,666139,Josh Lowe,543037,Gerrit Cole,L,R,L
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,8,672724,Oswald Peraza,543037,Gerrit Cole,R,R,R
 2026-09-01,823984,2026-09-02T01:38:00Z,Los Angeles Angels,New York Yankees,home,9,623168,Tyler Heineman,543037,Gerrit Cole,S,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,1,700250,Ben Rice,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,2,641355,Cody Bellinger,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,3,671277,Luis García Jr.,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,4,682987,Spencer Jones,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,5,665862,Jazz Chisholm Jr.,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,6,663757,Trent Grisham,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,7,641857,Ryan McMahon,680570,Grayson Rodriguez,L,R,L
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,8,676609,José Caballero,680570,Grayson Rodriguez,R,R,R
+2026-09-01,823984,2026-09-02T01:38:00Z,New York Yankees,Los Angeles Angels,away,9,669224,Austin Wells,680570,Grayson Rodriguez,L,R,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,1,672695,Geraldo Perdomo,666200,Jesús Luzardo,S,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,2,682998,Corbin Carroll,666200,Jesús Luzardo,L,L,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,3,672515,Gabriel Moreno,666200,Jesús Luzardo,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,4,606466,Ketel Marte,666200,Jesús Luzardo,S,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,5,571448,Nolan Arenado,666200,Jesús Luzardo,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,6,545121,Ildemaro Vargas,666200,Jesús Luzardo,S,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,7,694374,Tim Tawa,666200,Jesús Luzardo,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,8,691783,Jordan Lawlar,666200,Jesús Luzardo,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Arizona Diamondbacks,Philadelphia Phillies,home,9,814439,Ryan Waldschmidt,666200,Jesús Luzardo,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,1,656941,Kyle Schwarber,593958,Eduardo Rodriguez,L,L,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,2,607208,Trea Turner,593958,Eduardo Rodriguez,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,3,547180,Bryce Harper,593958,Eduardo Rodriguez,L,L,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,4,650333,Luis Arraez,593958,Eduardo Rodriguez,L,L,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,5,664761,Alec Bohm,593958,Eduardo Rodriguez,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,6,624641,Edmundo Sosa,593958,Eduardo Rodriguez,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,7,681082,Bryson Stott,593958,Eduardo Rodriguez,L,L,L
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,8,592663,J.T. Realmuto,593958,Eduardo Rodriguez,R,L,R
+2026-09-01,825038,2026-09-02T01:40:00Z,Philadelphia Phillies,Arizona Diamondbacks,away,9,656537,Derek Hill,593958,Eduardo Rodriguez,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,1,660271,Shohei Ohtani,700241,Michael McGreevy,L,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,2,518692,Freddie Freeman,700241,Michael McGreevy,L,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,3,605141,Mookie Betts,700241,Michael McGreevy,R,R,R
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,4,571970,Max Muncy,700241,Michael McGreevy,L,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,5,669257,Will Smith,700241,Michael McGreevy,R,R,R
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,6,663656,Kyle Tucker,700241,Michael McGreevy,L,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,7,669242,Tommy Edman,700241,Michael McGreevy,S,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,8,606192,Teoscar Hernández,700241,Michael McGreevy,R,R,R
+2026-09-01,823908,2026-09-02T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,9,690976,Alex Freeland,700241,Michael McGreevy,S,R,L
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,1,665877,José Fermín,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,2,671056,Iván Herrera,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,3,691023,Jordan Walker,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,4,676475,Alec Burleson,641778,Eric Lauer,L,L,L
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,5,695491,Joshua Báez,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,6,699024,Leo Bernal,641778,Eric Lauer,S,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,7,602104,Ramón Urías,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,8,695336,Thomas Saggese,641778,Eric Lauer,R,L,R
+2026-09-01,823908,2026-09-02T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,9,701675,Nathan Church,641778,Eric Lauer,L,L,L
