@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { getNFLMatchups, getNFLMatchup } from '../../api/nfl';
+import { getNFLMatchups, getNFLMatchup, getNFLGameScript } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface StatRow {
@@ -21,6 +21,35 @@ interface MatchupData {
   is_fallback: boolean;
 }
 
+interface PlayerVolume {
+  player: string;
+  season_volume: number | null;
+  season_share: number | null;
+  bucket_volume: number | null;
+  bucket_share: number | null;
+}
+
+interface TeamGameScript {
+  team: string;
+  implied_situation: string;
+  baseline_pass_pct: number | null;
+  projected_pass_pct: number | null;
+  top_rushers: PlayerVolume[];
+  top_receivers: PlayerVolume[];
+  error?: string;
+}
+
+interface GameScriptData {
+  matchup: string;
+  away_team: string;
+  home_team: string;
+  spread_line: number;
+  total_line: number | null;
+  away: TeamGameScript;
+  home: TeamGameScript;
+  error?: string;
+}
+
 function ordinal(n: number): string {
   const rem100 = n % 100;
   if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
@@ -32,18 +61,21 @@ function ordinal(n: number): string {
   }
 }
 
-// Absolute tiers out of 32 teams -- top 10 / bottom 10 / the 12 in between --
-// rather than comparing the two teams in the matchup against each other.
-// A team can be "blue" here even if its opponent is also blue.
-function rankColor(rank: number | null): string {
-  if (rank == null) return '#1a1a2e';
-  if (rank <= 10) return '#1565c0';   // blue: top 10
-  if (rank >= 23) return '#c62828';   // red: bottom 10
-  return '#1a1a2e';                    // black: middle of the pack
+function situationLabel(s: string): string {
+  const labels: Record<string, string> = {
+    trailing_big: 'trailing big', trailing: 'trailing', tied: 'a close game',
+    leading: 'leading', leading_big: 'leading big',
+  };
+  return labels[s] ?? s;
 }
 
-// Fixed size everywhere a logo appears -- same dimensions on screen and in
-// the downloaded PDF, since the PDF is a snapshot of this same markup.
+function rankColor(rank: number | null | undefined): string {
+  if (rank == null) return '#1a1a2e';
+  if (rank <= 10) return '#1565c0';
+  if (rank >= 23) return '#c62828';
+  return '#1a1a2e';
+}
+
 const LOGO_SIZE = 56;
 
 function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
@@ -61,27 +93,17 @@ function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
 
 function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
   return (
-    <div style={{
-      flex: 1,
-      minWidth: 320,
-      background: 'white',
-      borderRadius: 8,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        background: '#1a1a2e', color: 'white', padding: '14px 20px',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
+    <div style={{ flex: 1, minWidth: 320, background: 'white', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+      <div style={{ background: '#1a1a2e', color: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <TeamLogo teamAbbr={teamAbbr} />
         <span style={{ fontWeight: 700, fontSize: 20 }}>{teamAbbr}</span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 16 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 18 }}>
         <thead>
           <tr style={{ background: '#f0f0f0' }}>
-            <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 13, color: '#666' }}>Stat</th>
-            <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: 13, color: '#666' }}>Value</th>
-            <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: 13, color: '#666' }}>Rank</th>
+            <th style={{ padding: '11px 16px', textAlign: 'left', fontSize: 14, color: '#666' }}>Stat</th>
+            <th style={{ padding: '11px 16px', textAlign: 'right', fontSize: 14, color: '#666' }}>Value</th>
+            <th style={{ padding: '11px 16px', textAlign: 'right', fontSize: 14, color: '#666' }}>Rank</th>
           </tr>
         </thead>
         <tbody>
@@ -89,18 +111,71 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
             const color = rankColor(row.rank);
             return (
               <tr key={row.stat} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                <td style={{ padding: '9px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
-                <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 700, color }}>
-                  {row.value ?? '—'}
-                </td>
-                <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color }}>
-                  {row.rank != null ? ordinal(row.rank) : '—'}
-                </td>
+                <td style={{ padding: '10px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
+                <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color }}>{row.value ?? '—'}</td>
+                <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 600, color }}>{row.rank != null ? ordinal(row.rank) : '—'}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function PlayerVolumeTable({ title, players }: { title: string; players: PlayerVolume[] }) {
+  if (players.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#666', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>{title}</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #ddd' }}>
+            <th style={{ textAlign: 'left', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Player</th>
+            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Season</th>
+            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>In script</th>
+          </tr>
+        </thead>
+        <tbody>
+          {players.map((p) => (
+            <tr key={p.player} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <td style={{ padding: '6px', fontWeight: 600 }}>{p.player}</td>
+              <td style={{ padding: '6px', textAlign: 'right' }}>
+                {p.season_volume ?? '—'} <span style={{ color: '#999' }}>({p.season_share ?? '—'}%)</span>
+              </td>
+              <td style={{ padding: '6px', textAlign: 'right' }}>
+                {p.bucket_volume ?? '—'} <span style={{ color: '#999' }}>({p.bucket_share ?? '—'}%)</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
+  if (data.error) {
+    return <div style={{ flex: 1, minWidth: 280, color: '#999', fontSize: 13 }}>{data.error}</div>;
+  }
+  const delta = data.projected_pass_pct != null && data.baseline_pass_pct != null
+    ? data.projected_pass_pct - data.baseline_pass_pct : null;
+  return (
+    <div style={{ flex: 1, minWidth: 280, background: 'white', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{data.team}</div>
+      <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>Implied script: {situationLabel(data.implied_situation)}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 26, fontWeight: 700 }}>{data.projected_pass_pct ?? '—'}%</span>
+        <span style={{ fontSize: 12, color: '#999' }}>projected pass rate</span>
+      </div>
+      <div style={{ fontSize: 12, color: '#999', marginBottom: 14 }}>
+        close-game rate {data.baseline_pass_pct ?? '—'}%
+        {delta != null && (
+          <span style={{ color: delta < 0 ? '#1565c0' : '#c62828', fontWeight: 600 }}> ({delta > 0 ? '+' : ''}{delta.toFixed(1)})</span>
+        )}
+      </div>
+      <PlayerVolumeTable title="Rushers" players={data.top_rushers} />
+      <PlayerVolumeTable title="Receivers" players={data.top_receivers} />
     </div>
   );
 }
@@ -112,6 +187,7 @@ export default function NFLMatchup() {
   const [fetchingMatchups, setFetchingMatchups] = useState(true);
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
+  const [gameScript, setGameScript] = useState<GameScriptData | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
@@ -129,9 +205,14 @@ export default function NFLMatchup() {
     setLoading(true);
     setError('');
     setMatchupData(null);
+    setGameScript(null);
     try {
-      const res = await getNFLMatchup(selectedMatchup);
-      setMatchupData(res.data);
+      const [matchupRes, scriptRes] = await Promise.all([
+        getNFLMatchup(selectedMatchup),
+        getNFLGameScript(selectedMatchup).catch(() => ({ data: null })),
+      ]);
+      setMatchupData(matchupRes.data);
+      setGameScript(scriptRes.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch matchup data.');
     } finally {
@@ -140,32 +221,40 @@ export default function NFLMatchup() {
   };
 
   const downloadPdf = async () => {
-    const el = document.getElementById('matchup-report');
-    if (!el || !matchupData) return;
+    const page1 = document.getElementById('pdf-page-1');
+    const page2 = document.getElementById('pdf-page-2');
+    if (!page1 || !matchupData) return;
 
     setDownloadingPdf(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 24;
-      const maxWidth = pageWidth - margin * 2;
-      const maxHeight = pageHeight - margin * 2;
 
-      const imgRatio = canvas.width / canvas.height;
-      let renderWidth = maxWidth;
-      let renderHeight = renderWidth / imgRatio;
-      if (renderHeight > maxHeight) {
-        renderHeight = maxHeight;
-        renderWidth = renderHeight * imgRatio;
+      const addCanvasPage = async (el: HTMLElement, isFirst: boolean) => {
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const maxWidth = pageWidth - margin * 2;
+        const maxHeight = pageHeight - margin * 2;
+        const imgRatio = canvas.width / canvas.height;
+        let renderWidth = maxWidth;
+        let renderHeight = renderWidth / imgRatio;
+        if (renderHeight > maxHeight) {
+          renderHeight = maxHeight;
+          renderWidth = renderHeight * imgRatio;
+        }
+        const x = (pageWidth - renderWidth) / 2;
+        const y = (pageHeight - renderHeight) / 2;
+        if (!isFirst) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
+      };
+
+      await addCanvasPage(page1, true);
+      if (page2 && gameScript && !gameScript.error) {
+        await addCanvasPage(page2, false);
       }
-      const x = (pageWidth - renderWidth) / 2;
-      const y = (pageHeight - renderHeight) / 2;
 
-      pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
       pdf.save(`${matchupData.away_team}_at_${matchupData.home_team}.pdf`);
     } catch (err) {
       setError('Failed to generate PDF. Please try again.');
@@ -241,24 +330,46 @@ export default function NFLMatchup() {
       </div>
 
       {!loading && matchupData && (
-        <div id="matchup-report">
-          {matchupData.is_fallback && (
-            <div style={{
-              background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
-              borderRadius: 4, padding: '10px 16px', marginBottom: 16, textAlign: 'center', fontSize: 13,
-            }}>
-              The {matchupData.stats_season! + 1} season hasn't started yet -- these stats are from the{' '}
-              {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
+        <>
+          {/* Page 1 of the PDF: the standard team stat comparison */}
+          <div id="pdf-page-1" style={{ maxWidth: 900, margin: '0 auto' }}>
+            {matchupData.is_fallback && (
+              <div style={{
+                background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
+                borderRadius: 4, padding: '10px 16px', marginBottom: 16, textAlign: 'center', fontSize: 13,
+              }}>
+                The {matchupData.stats_season! + 1} season hasn't started yet -- these stats are from the{' '}
+                {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
+              </div>
+            )}
+            <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
+              {matchupData.away_team} @ {matchupData.home_team}
+            </h2>
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+              <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
+              <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
+            </div>
+          </div>
+
+          {/* Page 2 of the PDF: projected game script */}
+          {gameScript && !gameScript.error && (
+            <div id="pdf-page-2" style={{ maxWidth: 900, margin: '32px auto 0' }}>
+              <h3 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 4 }}>Projected Game Script</h3>
+              <div style={{ textAlign: 'center', fontSize: 13, color: '#888', marginBottom: 16 }}>
+                {gameScript.away_team} @ {gameScript.home_team} &middot; spread {gameScript.spread_line > 0 ? '+' : ''}{gameScript.spread_line} (home)
+                {gameScript.total_line != null && <> &middot; O/U {gameScript.total_line}</>}
+              </div>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                <GameScriptTeamPanel data={gameScript.away} />
+                <GameScriptTeamPanel data={gameScript.home} />
+              </div>
+              <div style={{ fontSize: 11, color: '#aaa', textAlign: 'center', marginTop: 16 }}>
+                Projection blends each team's season-long tendency toward its historical rate in the situation
+                the spread implies, weighted more heavily in later quarters -- not a guarantee of how the game plays out.
+              </div>
             </div>
           )}
-          <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
-            {matchupData.away_team} @ {matchupData.home_team}
-          </h2>
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
-            <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

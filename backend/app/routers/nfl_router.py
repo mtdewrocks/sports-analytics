@@ -25,6 +25,10 @@ def matchups(_=Depends(require_access)):
 def matchup(matchup: str = Query(...), _=Depends(require_access)):
     return nfl_data.get_matchup_detail(matchup)
 
+@router.get("/game-script")
+def game_script(matchup: str = Query(...), _=Depends(require_access)):
+    return nfl_data.get_game_script_projection(matchup)
+
 @router.get("/usage/teams")
 def usage_teams(_=Depends(require_access)):
     return nfl_data.get_nfl_teams()

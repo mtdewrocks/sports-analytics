@@ -145,6 +145,26 @@ def get_nfl_weekly_defense_ranks() -> pd.DataFrame:
     return _load(f"{base}/weekly_defense_ranks.parquet", pd.read_parquet, "nfl weekly defense ranks")
 
 
+@ttl_cache(OTHER_TTL)
+def get_nfl_team_game_script() -> pd.DataFrame:
+    """Team pass/run mix by score situation and quarter, from
+    get_nfl_game_script.py. Feeds the Matchup page's game-script projection
+    section.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/team_game_script.parquet", pd.read_parquet, "nfl team game script")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nfl_player_situational_usage() -> pd.DataFrame:
+    """Player carry/target share by score situation, from
+    get_nfl_player_situational_usage.py. Feeds the Matchup page's
+    "who this might shift volume toward" section.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/player_situational_usage.parquet", pd.read_parquet, "nfl player situational usage")
+
+
 @ttl_cache(MLB_TTL)
 def get_pitcher_names() -> list:
     """Lightweight loader — the pitcher dropdown only.

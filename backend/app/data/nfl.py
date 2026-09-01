@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_player_situational_usage
 
 # Stat groups for reference / display
 PASSING_STATS = [
@@ -322,6 +322,140 @@ def get_matchups() -> List[str]:
         for row in upcoming.itertuples()
         if pd.notna(row.away_team) and pd.notna(row.home_team)
     )
+
+
+# Empirically derived from league-wide 2025 play-by-play: the spread in
+# pass rate across score situations, by quarter (4.4 / 5.9 / 10.3 / 42.5
+# points), normalized so Q4 = 1.0. No team is actually "leading big" before
+# the game starts, so blending toward the situation-specific rate more
+# heavily as the game progresses (rather than applying it flat across all
+# four quarters) matches how game state actually diverges from the pregame
+# expectation over time.
+GAME_SCRIPT_QUARTER_WEIGHTS = {1: 0.104, 2: 0.140, 3: 0.243, 4: 1.000}
+
+
+def _implied_situation(margin: float) -> str:
+    """Same one-score-game (8-point) cutoff as get_nfl_game_script.py."""
+    if margin <= -9:
+        return "trailing_big"
+    if margin <= -1:
+        return "trailing"
+    if margin == 0:
+        return "tied"
+    if margin <= 8:
+        return "leading"
+    return "leading_big"
+
+
+def _projected_pass_pct(team_row: pd.Series, situation: str) -> Optional[float]:
+    """Quarter-weighted blend between a team's neutral pass rate and its
+    rate in the spread-implied situation -- see GAME_SCRIPT_QUARTER_WEIGHTS
+    for why this isn't just a flat lookup.
+
+    Uses pass_pct_neutral (close-game rate, within 7 points) rather than
+    pass_pct_overall (plain season average) as the "as if the score didn't
+    matter" baseline. Real 2025 data showed season average is measurably
+    biased by team quality (r=-0.37 with point differential) -- winning
+    teams look artificially run-heavy just from leading more often across
+    the whole season, losing teams look artificially pass-heavy from
+    trailing more. Restricting to close games removes most of that bias
+    (r=0.14) while actually having MORE plays per team to estimate from.
+    """
+    neutral = team_row.get("pass_pct_neutral")
+    situational = team_row.get(f"pass_pct_{situation}")
+    if pd.isna(neutral) or pd.isna(situational):
+        return None
+
+    quarter_values = [
+        (1 - weight) * neutral + weight * situational
+        for weight in GAME_SCRIPT_QUARTER_WEIGHTS.values()
+    ]
+    return round(float(sum(quarter_values) / len(quarter_values)), 1)
+
+
+def get_game_script_projection(matchup: str) -> Dict[str, Any]:
+    """Spread-implied game script for one matchup: each team's projected
+    pass/run mix (season-neutral blended toward their own historical
+    tendency in the situation the spread implies), plus which players'
+    situational carry/target shares stand out -- share AND raw volume both
+    shown together, since a share change alone can be misleading (see the
+    real Jonathan Taylor case: his share of IND's carries rose when
+    trailing big, but his raw carries actually fell -- the team's total
+    volume in that bucket shrank faster than his own did).
+    """
+    parts = [p.strip().upper() for p in matchup.replace("@", " @ ").split("@")]
+    if len(parts) != 2:
+        return {"error": f"Could not parse matchup: {matchup}"}
+    away_team, home_team = parts[0].strip(), parts[1].strip()
+
+    schedule = get_nfl_schedule()
+    game = schedule[
+        (schedule["away_team"].str.upper() == away_team) & (schedule["home_team"].str.upper() == home_team)
+    ]
+    if game.empty:
+        return {"error": f"No scheduled game found for {matchup}"}
+    game_row = game.sort_values("season", ascending=False).iloc[0]
+    spread_line = game_row.get("spread_line")
+    total_line = game_row.get("total_line")
+
+    if pd.isna(spread_line):
+        return {"matchup": matchup, "away_team": away_team, "home_team": home_team, "error": "No line available for this game yet"}
+
+    # spread_line is the home team's spread: negative = home favored by that
+    # many points. Implied full-game margin is the mirror for each side.
+    home_margin = -float(spread_line)
+    away_margin = float(spread_line)
+
+    game_script = get_nfl_team_game_script()
+    situational_usage = get_nfl_player_situational_usage()
+
+    def team_section(team: str, margin: float) -> Dict[str, Any]:
+        situation = _implied_situation(margin)
+        row = game_script[game_script["team"].str.upper() == team]
+        if row.empty:
+            return {"team": team, "implied_situation": situation, "error": "No game script data for this team"}
+        row = row.iloc[0]
+
+        projected_pass_pct = _projected_pass_pct(row, situation)
+        baseline_pass_pct = row.get("pass_pct_neutral")
+
+        def top_players(volume_col: str, n: int = 4) -> List[Dict[str, Any]]:
+            players = situational_usage[situational_usage["team"].str.upper() == team]
+            if players.empty or volume_col not in players.columns:
+                return []
+            players = players.sort_values(volume_col, ascending=False).head(n)
+            out = []
+            for p in players.itertuples():
+                season_share = getattr(p, f"{volume_col}_share", None)
+                bucket_volume = getattr(p, f"{situation}_{volume_col}", None)
+                bucket_share = getattr(p, f"{situation}_{volume_col}_share", None)
+                out.append({
+                    "player": p.player,
+                    "season_volume": None if pd.isna(getattr(p, volume_col)) else round(float(getattr(p, volume_col)), 0),
+                    "season_share": None if season_share is None or pd.isna(season_share) else round(float(season_share) * 100, 1),
+                    "bucket_volume": None if bucket_volume is None or pd.isna(bucket_volume) else round(float(bucket_volume), 0),
+                    "bucket_share": None if bucket_share is None or pd.isna(bucket_share) else round(float(bucket_share) * 100, 1),
+                })
+            return out
+
+        return {
+            "team": team,
+            "implied_situation": situation,
+            "baseline_pass_pct": None if pd.isna(baseline_pass_pct) else round(float(baseline_pass_pct), 1),
+            "projected_pass_pct": projected_pass_pct,
+            "top_rushers": top_players("carries"),
+            "top_receivers": top_players("targets"),
+        }
+
+    return {
+        "matchup": matchup,
+        "away_team": away_team,
+        "home_team": home_team,
+        "spread_line": float(spread_line),
+        "total_line": None if pd.isna(total_line) else float(total_line),
+        "away": team_section(away_team, away_margin),
+        "home": team_section(home_team, home_margin),
+    }
 
 
 def get_matchup_detail(matchup: str) -> Dict[str, Any]:
