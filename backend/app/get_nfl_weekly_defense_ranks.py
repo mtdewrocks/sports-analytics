@@ -135,22 +135,40 @@ def team_defense_last4_bye_safe(weekly_prior: pd.DataFrame) -> pd.DataFrame:
 
 def build(season: int) -> pd.DataFrame:
     weekly = fetch_weekly_stats(season)
+    outer_fallback = False
+
     if weekly is None:
-        print(f"no weekly stats for {season} yet -- nothing to build (Week 1 fallback "
-              f"handles the no-current-season-data case per-row, but this script needs "
-              f"at least the file to exist, even with zero completed games in it)")
-        return pd.DataFrame()
+        # Whole season doesn't exist yet (e.g. before Week 1) -- fall back
+        # entirely to last season's regular season, same as
+        # get_nfl_pbp.py / get_nfl_weekly_stats.py already do. This script
+        # previously only had the narrower per-row Week 1 fallback below,
+        # which assumes the CURRENT season's file exists at all -- it does
+        # nothing if the season hasn't started, unlike its siblings.
+        prior_season = season - 1
+        print(f"no weekly stats for {season} yet; falling back entirely to {prior_season} "
+              f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
+        weekly = fetch_weekly_stats(prior_season)
+        if weekly is None:
+            raise RuntimeError(f"No weekly stats available for {season} or {prior_season}.")
+        weekly = weekly[weekly["week"] <= REGULAR_SEASON_MAX_WEEK]
+        season = prior_season
+        outer_fallback = True
 
     schedule = fetch_schedule(season)
     completed = schedule[schedule["home_score"].notna()]
+    if outer_fallback:
+        completed = completed[completed["week"] <= REGULAR_SEASON_MAX_WEEK]
     if completed.empty:
         print(f"no completed games yet for {season} -- nothing to build")
         return pd.DataFrame()
     latest_week = int(completed["week"].max())
 
-    fallback_season = season - 1
-    print(f"fetching {fallback_season} for the Week 1 fallback")
-    prior_weekly = fetch_weekly_stats(fallback_season)
+    # For a week with no prior games in ITS OWN season (Week 1 of a real
+    # season, or -- when outer_fallback already kicked in -- Week 1 of last
+    # year too), borrow the year before that one's full season as context.
+    two_seasons_back = season - 1
+    print(f"fetching {two_seasons_back} in case week 1 needs it too")
+    prior_weekly = fetch_weekly_stats(two_seasons_back)
     prior_full_season = (
         team_defense_for_window(prior_weekly[prior_weekly["week"] <= REGULAR_SEASON_MAX_WEEK])
         if prior_weekly is not None else pd.DataFrame()
@@ -171,14 +189,16 @@ def build(season: int) -> pd.DataFrame:
         else:
             season_to_date = team_defense_for_window(prior_games)
             last4 = team_defense_last4_bye_safe(prior_games)
-            is_fallback = False
+            # If the whole season we're using is itself a fallback (outer),
+            # every row reflects borrowed data, not just Week 1.
+            is_fallback = outer_fallback
 
         merged = season_to_date.merge(last4, on="team", suffixes=("_season", "_last4"))
         merged["season"] = season
         merged["week"] = week
         merged["is_fallback"] = is_fallback
         rows.append(merged)
-        print(f"  week {week}: {'fallback to ' + str(fallback_season) if is_fallback else 'computed'}")
+        print(f"  week {week}: {'fallback' if is_fallback else 'computed'}")
 
     if not rows:
         return pd.DataFrame()
