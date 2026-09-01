@@ -32,9 +32,18 @@ function ordinal(n: number): string {
   }
 }
 
+// Absolute tiers out of 32 teams -- top 10 / bottom 10 / the 12 in between --
+// rather than comparing the two teams in the matchup against each other.
+// A team can be "blue" here even if its opponent is also blue.
+function rankColor(rank: number | null): string {
+  if (rank == null) return '#1a1a2e';
+  if (rank <= 10) return '#1565c0';   // blue: top 10
+  if (rank >= 23) return '#c62828';   // red: bottom 10
+  return '#1a1a2e';                    // black: middle of the pack
+}
+
 // Fixed size everywhere a logo appears -- same dimensions on screen and in
-// the printed/PDF version, since the printed version is this same markup
-// via the browser's print engine, not a separately rendered document.
+// the downloaded PDF, since the PDF is a snapshot of this same markup.
 const LOGO_SIZE = 56;
 
 function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
@@ -44,9 +53,55 @@ function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
       alt={`${teamAbbr} logo`}
       width={LOGO_SIZE}
       height={LOGO_SIZE}
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain' }}
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', borderRadius: 4, background: 'white' }}
       onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
     />
+  );
+}
+
+function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
+  return (
+    <div style={{
+      flex: 1,
+      minWidth: 320,
+      background: 'white',
+      borderRadius: 8,
+      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        background: '#1a1a2e', color: 'white', padding: '14px 20px',
+        display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <TeamLogo teamAbbr={teamAbbr} />
+        <span style={{ fontWeight: 700, fontSize: 20 }}>{teamAbbr}</span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <thead>
+          <tr style={{ background: '#f0f0f0' }}>
+            <th style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#666' }}>Stat</th>
+            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Value</th>
+            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Rank</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stats.map((row, i) => {
+            const color = rankColor(row.rank);
+            return (
+              <tr key={row.stat} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <td style={{ padding: '7px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
+                <td style={{ padding: '7px 16px', textAlign: 'right', fontWeight: 700, color }}>
+                  {row.value ?? '—'}
+                </td>
+                <td style={{ padding: '7px 16px', textAlign: 'right', fontWeight: 600, color }}>
+                  {row.rank != null ? ordinal(row.rank) : '—'}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -90,9 +145,6 @@ export default function NFLMatchup() {
 
     setDownloadingPdf(true);
     try {
-      // scale: 2 for a crisp image at print resolution -- the element is
-      // rendered at normal screen size, so a 1:1 canvas would look soft
-      // once placed on a full page.
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
 
@@ -103,8 +155,6 @@ export default function NFLMatchup() {
       const maxWidth = pageWidth - margin * 2;
       const maxHeight = pageHeight - margin * 2;
 
-      // Fit the image to the page while preserving its aspect ratio --
-      // whichever dimension would overflow first is the constraint.
       const imgRatio = canvas.width / canvas.height;
       let renderWidth = maxWidth;
       let renderHeight = renderWidth / imgRatio;
@@ -123,15 +173,6 @@ export default function NFLMatchup() {
       setDownloadingPdf(false);
     }
   };
-
-  // Pair away/home rows by stat name (they're built from the same ordered
-  // list server-side, so a simple zip is safe) -- one unified table with
-  // the stat name down the middle reads much more like a classic matchup
-  // comparison than two separate side-by-side tables, and naturally fits
-  // one printed page instead of two independently-wrapping blocks.
-  const rows = matchupData
-    ? matchupData.away_stats.map((away, i) => ({ away, home: matchupData.home_stats[i] }))
-    : [];
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
@@ -200,7 +241,7 @@ export default function NFLMatchup() {
       </div>
 
       {!loading && matchupData && (
-        <div id="matchup-report" style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div id="matchup-report">
           {matchupData.is_fallback && (
             <div style={{
               background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
@@ -210,75 +251,12 @@ export default function NFLMatchup() {
               {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
           )}
-
-          <div style={{
-            background: 'white', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden',
-          }}>
-            {/* Header: logo -- team -- @ -- team -- logo, mirrored across center */}
-            <div style={{
-              background: '#1a1a2e', padding: '20px 24px',
-              display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 16,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'flex-end' }}>
-                <span style={{ color: 'white', fontWeight: 700, fontSize: 22 }}>{matchupData.away_team}</span>
-                <TeamLogo teamAbbr={matchupData.away_team} />
-              </div>
-              <span style={{ color: '#8890a8', fontWeight: 700, fontSize: 16 }}>@</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'flex-start' }}>
-                <TeamLogo teamAbbr={matchupData.home_team} />
-                <span style={{ color: 'white', fontWeight: 700, fontSize: 22 }}>{matchupData.home_team}</span>
-              </div>
-            </div>
-
-            {/* Column sub-headers */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', background: '#f0f0f0',
-              padding: '8px 16px', fontSize: 11, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4,
-            }}>
-              <div style={{ textAlign: 'center' }}>{matchupData.away_team}</div>
-              <div style={{ textAlign: 'center' }}>Stat</div>
-              <div style={{ textAlign: 'center' }}>{matchupData.home_team}</div>
-            </div>
-
-            {rows.map((row, i) => {
-              // Highlight whichever side ranks better for this stat -- a
-              // quick visual "who has the edge here" read, since that's
-              // the whole point of a matchup comparison for a bettor.
-              const awayBetter = row.away.rank != null && row.home.rank != null && row.away.rank < row.home.rank;
-              const homeBetter = row.away.rank != null && row.home.rank != null && row.home.rank < row.away.rank;
-              const edgeColor = '#1a7a3a';
-
-              return (
-                <div
-                  key={row.away.stat}
-                  style={{
-                    display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', alignItems: 'center',
-                    padding: '9px 16px', background: i % 2 === 0 ? '#fff' : '#fafafa',
-                    borderBottom: '1px solid #f0f0f0',
-                  }}
-                >
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: awayBetter ? edgeColor : '#1a1a2e' }}>
-                      {row.away.value ?? '—'}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#555' }}>
-                      {row.away.rank != null ? ordinal(row.away.rank) : '—'}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'center', fontSize: 13, color: '#555', fontWeight: 600 }}>
-                    {row.away.stat}
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: homeBetter ? edgeColor : '#1a1a2e' }}>
-                      {row.home.value ?? '—'}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#555' }}>
-                      {row.home.rank != null ? ordinal(row.home.rank) : '—'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
+            {matchupData.away_team} @ {matchupData.home_team}
+          </h2>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
+            <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
           </div>
         </div>
       )}
