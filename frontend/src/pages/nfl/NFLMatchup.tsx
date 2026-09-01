@@ -76,12 +76,12 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
         <TeamLogo teamAbbr={teamAbbr} />
         <span style={{ fontWeight: 700, fontSize: 20 }}>{teamAbbr}</span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 16 }}>
         <thead>
           <tr style={{ background: '#f0f0f0' }}>
-            <th style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#666' }}>Stat</th>
-            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Value</th>
-            <th style={{ padding: '8px 16px', textAlign: 'right', fontSize: 12, color: '#666' }}>Rank</th>
+            <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 13, color: '#666' }}>Stat</th>
+            <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: 13, color: '#666' }}>Value</th>
+            <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: 13, color: '#666' }}>Rank</th>
           </tr>
         </thead>
         <tbody>
@@ -89,11 +89,11 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
             const color = rankColor(row.rank);
             return (
               <tr key={row.stat} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                <td style={{ padding: '7px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
-                <td style={{ padding: '7px 16px', textAlign: 'right', fontWeight: 700, color }}>
+                <td style={{ padding: '9px 16px', fontWeight: 600, color: '#555' }}>{row.stat}</td>
+                <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 700, color }}>
                   {row.value ?? '—'}
                 </td>
-                <td style={{ padding: '7px 16px', textAlign: 'right', fontWeight: 600, color }}>
+                <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color }}>
                   {row.rank != null ? ordinal(row.rank) : '—'}
                 </td>
               </tr>
