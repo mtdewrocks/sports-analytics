@@ -21,12 +21,12 @@ interface MatchupData {
   is_fallback: boolean;
 }
 
-interface PlayerVolume {
+interface PlayerProjection {
   player: string;
-  season_volume: number | null;
-  season_share: number | null;
-  bucket_volume: number | null;
-  bucket_share: number | null;
+  projected_carries?: number;
+  projected_targets?: number;
+  projected_receptions?: number;
+  projected_yards: number | null;
 }
 
 interface TeamGameScript {
@@ -34,8 +34,8 @@ interface TeamGameScript {
   implied_situation: string;
   baseline_pass_pct: number | null;
   projected_pass_pct: number | null;
-  top_rushers: PlayerVolume[];
-  top_receivers: PlayerVolume[];
+  top_rushers: PlayerProjection[];
+  top_receivers: PlayerProjection[];
   error?: string;
 }
 
@@ -123,7 +123,7 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
   );
 }
 
-function PlayerVolumeTable({ title, players }: { title: string; players: PlayerVolume[] }) {
+function PlayerProjectionTable({ title, players, isReceiving }: { title: string; players: PlayerProjection[]; isReceiving: boolean }) {
   if (players.length === 0) return null;
   return (
     <div style={{ marginBottom: 16 }}>
@@ -132,8 +132,10 @@ function PlayerVolumeTable({ title, players }: { title: string; players: PlayerV
         <thead>
           <tr style={{ borderBottom: '1px solid #ddd' }}>
             <th style={{ textAlign: 'left', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Player</th>
-            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Season</th>
-            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>In script</th>
+            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>
+              {isReceiving ? 'Rec' : 'Carries'}
+            </th>
+            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Yards</th>
           </tr>
         </thead>
         <tbody>
@@ -141,11 +143,9 @@ function PlayerVolumeTable({ title, players }: { title: string; players: PlayerV
             <tr key={p.player} style={{ borderBottom: '1px solid #f0f0f0' }}>
               <td style={{ padding: '6px', fontWeight: 600 }}>{p.player}</td>
               <td style={{ padding: '6px', textAlign: 'right' }}>
-                {p.season_volume ?? '—'} <span style={{ color: '#999' }}>({p.season_share ?? '—'}%)</span>
+                {isReceiving ? (p.projected_receptions ?? '—') : (p.projected_carries ?? '—')}
               </td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>
-                {p.bucket_volume ?? '—'} <span style={{ color: '#999' }}>({p.bucket_share ?? '—'}%)</span>
-              </td>
+              <td style={{ padding: '6px', textAlign: 'right', fontWeight: 600 }}>{p.projected_yards ?? '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -174,8 +174,8 @@ function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
           <span style={{ color: delta < 0 ? '#1565c0' : '#c62828', fontWeight: 600 }}> ({delta > 0 ? '+' : ''}{delta.toFixed(1)})</span>
         )}
       </div>
-      <PlayerVolumeTable title="Rushers" players={data.top_rushers} />
-      <PlayerVolumeTable title="Receivers" players={data.top_receivers} />
+      <PlayerProjectionTable title="Rushers" players={data.top_rushers} isReceiving={false} />
+      <PlayerProjectionTable title="Receivers" players={data.top_receivers} isReceiving={true} />
     </div>
   );
 }

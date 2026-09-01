@@ -74,26 +74,41 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_player_situational_usage.py
 
+      # Current team rosters -- keeps player projections honest about who's
+      # actually still on the team (the usage data above can be a
+      # season-old fallback, which wouldn't otherwise know a player left).
+      - name: Update NFL rosters
+        id: rosters
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_rosters.py
+
       - name: Commit updated data
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add backend/data/nfl/player_week_usage.parquet backend/data/nfl/team_stats.parquet backend/data/nfl/weekly_defense_ranks.parquet backend/data/nfl/team_game_script.parquet backend/data/nfl/player_situational_usage.parquet
+          for f in backend/data/nfl/player_week_usage.parquet \
+                   backend/data/nfl/team_stats.parquet \
+                   backend/data/nfl/weekly_defense_ranks.parquet \
+                   backend/data/nfl/team_game_script.parquet \
+                   backend/data/nfl/player_situational_usage.parquet \
+                   backend/data/nfl/rosters.parquet; do
+            [ -f "$f" ] && git add "$f"
+          done
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update NFL data: usage, team stats, defense ranks, game script"
+            git commit -m "Update NFL data: usage, team stats, defense ranks, game script, rosters"
             git pull --rebase
             git push
           fi
 
-      # Only fail the whole run if ALL FIVE pulls failed -- any one alone
+      # Only fail the whole run if ALL SIX pulls failed -- any one alone
       # succeeding still commits real data and shouldn't page you.
       - name: Fail if all pulls failed
-        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure'
+        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure'
         run: |
-          echo "All five NFL data pulls failed this run -- check the logs above."
+          echo "All six NFL data pulls failed this run -- check the logs above."
           exit 1

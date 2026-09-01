@@ -165,6 +165,17 @@ def get_nfl_player_situational_usage() -> pd.DataFrame:
     return _load(f"{base}/player_situational_usage.parquet", pd.read_parquet, "nfl player situational usage")
 
 
+@ttl_cache(OTHER_TTL)
+def get_nfl_rosters() -> pd.DataFrame:
+    """Current team rosters, from get_nfl_rosters.py -- used to filter
+    player-level projections to players actually still on the team, since
+    the underlying usage data can be a season-old fallback (see that
+    script's docstring for the Mike Evans example).
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/rosters.parquet", pd.read_parquet, "nfl rosters")
+
+
 @ttl_cache(MLB_TTL)
 def get_pitcher_names() -> list:
     """Lightweight loader — the pitcher dropdown only.
