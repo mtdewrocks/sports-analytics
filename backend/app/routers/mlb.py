@@ -22,6 +22,10 @@ def matchup(pitcher: str = Query(...), _=Depends(require_access)):
 def hot_hitters(_=Depends(require_access)):
     return mlb_data.get_hot_hitters()
 
+@router.get("/pitcher-daily-report")
+def pitcher_daily_report(_=Depends(require_access)):
+    return mlb_data.get_pitcher_daily_report()
+
 @router.get("/bullpen/teams")
 def bullpen_teams(_=Depends(require_access)):
     return mlb_data.get_bullpen_teams()

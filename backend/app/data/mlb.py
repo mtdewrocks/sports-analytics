@@ -511,23 +511,30 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     OPENER_OUTS_THRESHOLD = 9  # 3.0 IP -- a "start" shorter than this reads as an opener/bulk role, not a true SP
 
     def recent_role(g: pd.DataFrame) -> str:
-        """SP / OP / RP based on how this pitcher has actually been used
-        lately, not whether he has ever started a game this season.
+        """RP vs. (SP or OP), then SP vs. OP, decided from two different
+        questions rather than one average.
 
-        A credited start (is_starter=True in the boxscore) only counts as a
-        true rotation turn if it actually goes multiple innings -- an
-        "opener" is credited as the starter in the box score but pitches
-        like a reliever, and season-long games_started can't tell the two
-        apart. Looking at the last handful of appearances catches a pitcher
-        who has since moved between roles (e.g. into a season-ending
-        bullpen role after starting earlier in the year), which a
-        season-total field can't.
+        Whether he's *currently pitching in relief* comes from just the
+        single most recent appearance -- averaging across recent starts let
+        a pitcher's established rotation turns outweigh what he actually did
+        in his very next outing (e.g. a starter who'd gone 5+ innings twice,
+        then threw a one-off 4-inning relief outing, still averaged out to
+        "SP" and got excluded from the table, hiding a real relief
+        appearance). The latest appearance alone answers that correctly, and
+        self-corrects the moment he starts again.
+
+        But if his last appearance WAS a start, SP-vs-opener is a strategic
+        role question, not a one-game one -- so that part still averages
+        across his recent starts specifically (ignoring any relief outings
+        mixed in), so a single truncated start (rain delay, early injury
+        exit, a blowout hook) doesn't misclassify a real workhorse starter
+        as an opener just because that one outing happened to be short.
         """
-        recent = g.sort_values("date").tail(5)
-        starts = recent[recent["is_starter"]]
-        if starts.empty:
+        g = g.sort_values("date")
+        if not g.iloc[-1]["is_starter"]:
             return "RP"
-        return "SP" if starts["outs"].mean() >= OPENER_OUTS_THRESHOLD else "OP"
+        recent_starts = g[g["is_starter"]].tail(5)
+        return "SP" if recent_starts["outs"].mean() >= OPENER_OUTS_THRESHOLD else "OP"
 
     role_by_id = {pid: recent_role(g) for pid, g in sub.groupby("pitcher_id")}
     sp_ids = {pid for pid, role in role_by_id.items() if role == "SP"}
@@ -648,3 +655,117 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
         "relievers": relievers,
         "freshness": kpis["3_day"]["level"],
     }
+
+
+# ---------------------------------------------------------------------------
+# Pitcher Daily Report -- one row per starting pitcher across the whole
+# day's slate, combining recent-form averages with today's opposing
+# lineup's toughness. No lines/odds yet (deferred until the sportsbook data
+# question is settled) -- this version shows recent averages and opponent
+# context only, matching the original Excel report with the props-dependent
+# columns removed.
+# ---------------------------------------------------------------------------
+
+# Fixed, absolute thresholds -- NOT percentile-based (the flags previously
+# computed in build_matchups.py used "top/bottom 25% of TODAY'S specific
+# slate," which shifts day to day depending on who else is playing; these
+# mean the same thing every day regardless of the rest of the slate).
+HITTER_FLAG_THRESHOLDS = {
+    "high_k_hitter": ("split_k_pct", "ge", 20),
+    "high_bb_hitter": ("split_bb_pct", "ge", 8.5),
+    "high_avg_hitter": ("split_avg", "ge", 0.270),
+    "low_avg_hitter": ("split_avg", "le", 0.230),
+    "high_iso_hitter": ("split_iso", "ge", 0.200),
+    # No exact threshold given for wOBA -- .370 is a placeholder (a commonly
+    # cited "excellent hitter" cutoff on the standard wOBA scale). Trivial
+    # one-line change once a real number is confirmed.
+    "high_woba_hitter": ("split_woba", "ge", 0.370),
+}
+
+
+def get_pitcher_daily_report() -> List[Dict[str, Any]]:
+    """One row per starting pitcher with a game today: recent-form averages
+    (last up to 10 starts) plus today's opposing lineup's aggregate
+    toughness and count of standout hitters, using fixed thresholds rather
+    than the percentile-based flags build_matchups.py computes for other
+    purposes.
+    """
+    data = get_mlb_data()
+
+    logs = data.get("pitcher_logs", pd.DataFrame())
+    matchups = data.get("matchups", pd.DataFrame())
+    if logs.empty or matchups.empty:
+        return []
+
+    # ---- Recent-form averages, last up to 10 starts per pitcher ----------
+    logs = logs.copy()
+    logs["date"] = pd.to_datetime(logs["date"], errors="coerce")
+    logs = logs[logs["date"].notna()].sort_values(["pitcher_id", "date"], ascending=[True, False])
+    logs["game_num"] = logs.groupby("pitcher_id").cumcount() + 1
+    recent = logs[logs["game_num"] <= 10].copy()
+    recent["outs"] = recent["innings"].apply(_ip_to_outs)
+
+    recent_avg = recent.groupby(["pitcher_id", "pitcher"], as_index=False).agg(
+        games=("game_num", "max"),
+        avg_outs=("outs", "mean"),
+        avg_hits=("hits", "mean"),
+        avg_er=("earned_runs", "mean"),
+        avg_so=("strikeouts", "mean"),
+        avg_bb=("walks", "mean"),
+    )
+
+    # ---- Today's opposing lineup: toughness + standout-hitter counts -----
+    m = matchups.copy()
+    for flag_col, (source_col, op, threshold) in HITTER_FLAG_THRESHOLDS.items():
+        if source_col not in m.columns:
+            m[flag_col] = 0
+            continue
+        vals = pd.to_numeric(m[source_col], errors="coerce")
+        m[flag_col] = (vals >= threshold if op == "ge" else vals <= threshold).fillna(False).astype(int)
+
+    matchup_agg = m.groupby("pitcher", as_index=False).agg(
+        opposing_team=("team", "first"),
+        pitcher_team=("opponent", "first"),
+        opp_avg=("split_avg", "mean"),
+        opp_k_pct=("split_k_pct", "mean"),
+        opp_bb_pct=("split_bb_pct", "mean"),
+        high_k_hitter=("high_k_hitter", "sum"),
+        high_bb_hitter=("high_bb_hitter", "sum"),
+        high_avg_hitter=("high_avg_hitter", "sum"),
+        low_avg_hitter=("low_avg_hitter", "sum"),
+        high_iso_hitter=("high_iso_hitter", "sum"),
+        high_woba_hitter=("high_woba_hitter", "sum"),
+    )
+
+    combined = matchup_agg.merge(
+        recent_avg, left_on="pitcher", right_on="pitcher", how="left"
+    )
+
+    def clean(v, digits=1):
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return None
+        return round(float(v), digits)
+
+    out = []
+    for r in combined.itertuples():
+        out.append({
+            "player": r.pitcher,
+            "team": r.pitcher_team,
+            "opposing_team": r.opposing_team,
+            "games": int(r.games) if pd.notna(getattr(r, "games", None)) else 0,
+            "avg_outs": clean(r.avg_outs),
+            "avg_hits": clean(r.avg_hits),
+            "avg_er": clean(r.avg_er),
+            "avg_so": clean(r.avg_so),
+            "avg_bb": clean(r.avg_bb),
+            "opp_avg": clean(r.opp_avg, 3),
+            "opp_k_pct": clean(r.opp_k_pct),
+            "opp_bb_pct": clean(r.opp_bb_pct),
+            "high_k_hitter": int(r.high_k_hitter),
+            "high_bb_hitter": int(r.high_bb_hitter),
+            "high_avg_hitter": int(r.high_avg_hitter),
+            "low_avg_hitter": int(r.low_avg_hitter),
+            "high_iso_hitter": int(r.high_iso_hitter),
+            "high_woba_hitter": int(r.high_woba_hitter),
+        })
+    return out

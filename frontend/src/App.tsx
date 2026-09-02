@@ -19,6 +19,7 @@ import NFLMismatches from './pages/nfl/NFLMismatches';
 
 import MLBMatchup from './pages/mlb/MLBMatchup';
 import MLBBullpen from './pages/mlb/MLBBullpen';
+import MLBPitcherDailyReport from './pages/mlb/MLBPitcherDailyReport';
 import MLBHotHitters from './pages/mlb/MLBHotHitters';
 import MLBProps from './pages/mlb/MLBProps';
 
@@ -44,6 +45,7 @@ export default function App() {
 
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
           <Route path="/mlb/bullpen" element={<PrivateRoute><MLBBullpen /></PrivateRoute>} />
+          <Route path="/mlb/pitcher-daily-report" element={<PrivateRoute><MLBPitcherDailyReport /></PrivateRoute>} />
           <Route path="/mlb/hot-hitters" element={<PrivateRoute><MLBHotHitters /></PrivateRoute>} />
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
 

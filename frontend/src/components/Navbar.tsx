@@ -160,6 +160,7 @@ export default function Navbar() {
   const mlbItems: DropdownItem[] = [
     { label: 'Matchup', to: '/mlb/matchup' },
     { label: 'Bullpen', to: '/mlb/bullpen' },
+    { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },
     { label: 'Hot Hitters', to: '/mlb/hot-hitters' },
     { label: 'Props', to: '/mlb/props' },
   ];
