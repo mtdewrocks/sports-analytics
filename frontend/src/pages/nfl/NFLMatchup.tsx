@@ -178,40 +178,32 @@ export default function NFLMatchup() {
   };
 
   const downloadPdf = async () => {
-    const page1 = document.getElementById('pdf-page-1');
-    const page2 = document.getElementById('pdf-page-2');
-    if (!page1 || !matchupData) return;
+    const page = document.getElementById('pdf-page-1');
+    if (!page || !matchupData) return;
 
     setDownloadingPdf(true);
     try {
+      const canvas = await html2canvas(page, { scale: 2, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 24;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
 
-      const addCanvasPage = async (el: HTMLElement, isFirst: boolean) => {
-        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
-        const imgData = canvas.toDataURL('image/png');
-        const maxWidth = pageWidth - margin * 2;
-        const maxHeight = pageHeight - margin * 2;
-        const imgRatio = canvas.width / canvas.height;
-        let renderWidth = maxWidth;
-        let renderHeight = renderWidth / imgRatio;
-        if (renderHeight > maxHeight) {
-          renderHeight = maxHeight;
-          renderWidth = renderHeight * imgRatio;
-        }
-        const x = (pageWidth - renderWidth) / 2;
-        const y = (pageHeight - renderHeight) / 2;
-        if (!isFirst) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
-      };
-
-      await addCanvasPage(page1, true);
-      if (page2 && gameScript && !gameScript.error) {
-        await addCanvasPage(page2, false);
+      const imgRatio = canvas.width / canvas.height;
+      let renderWidth = maxWidth;
+      let renderHeight = renderWidth / imgRatio;
+      if (renderHeight > maxHeight) {
+        renderHeight = maxHeight;
+        renderWidth = renderHeight * imgRatio;
       }
+      const x = (pageWidth - renderWidth) / 2;
+      const y = (pageHeight - renderHeight) / 2;
 
+      pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
       pdf.save(`${matchupData.away_team}_at_${matchupData.home_team}.pdf`);
     } catch (err) {
       setError('Failed to generate PDF. Please try again.');
@@ -287,30 +279,27 @@ export default function NFLMatchup() {
       </div>
 
       {!loading && matchupData && (
-        <>
-          {/* Page 1 of the PDF: the standard team stat comparison */}
-          <div id="pdf-page-1" style={{ maxWidth: 900, margin: '0 auto' }}>
-            {matchupData.is_fallback && (
-              <div style={{
-                background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
-                borderRadius: 4, padding: '10px 16px', marginBottom: 16, textAlign: 'center', fontSize: 13,
-              }}>
-                The {matchupData.stats_season! + 1} season hasn't started yet -- these stats are from the{' '}
-                {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
-              </div>
-            )}
-            <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
-              {matchupData.away_team} @ {matchupData.home_team}
-            </h2>
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-              <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
-              <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
+        <div id="pdf-page-1" style={{ maxWidth: 1300, margin: '0 auto' }}>
+          {matchupData.is_fallback && (
+            <div style={{
+              background: '#fff3cd', border: '1px solid #ffe08a', color: '#7a5c00',
+              borderRadius: 4, padding: '10px 16px', marginBottom: 16, textAlign: 'center', fontSize: 13,
+            }}>
+              The {matchupData.stats_season! + 1} season hasn't started yet -- these stats are from the{' '}
+              {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
+          )}
+          <h2 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 20 }}>
+            {matchupData.away_team} @ {matchupData.home_team}
+          </h2>
+
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
+            <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
           </div>
 
-          {/* Page 2 of the PDF: projected game script */}
           {gameScript && !gameScript.error && (
-            <div id="pdf-page-2" style={{ maxWidth: 900, margin: '32px auto 0' }}>
+            <div style={{ marginTop: 32 }}>
               <h3 style={{ textAlign: 'center', color: '#1a1a2e', marginBottom: 4 }}>Projected Game Script</h3>
               <div style={{ textAlign: 'center', fontSize: 13, color: '#888', marginBottom: 16 }}>
                 {gameScript.away_team} @ {gameScript.home_team} &middot; spread {gameScript.spread_line > 0 ? '+' : ''}{gameScript.spread_line} (home)
@@ -326,7 +315,7 @@ export default function NFLMatchup() {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
