@@ -4,6 +4,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
 
 import Landing from './pages/Landing';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Billing from './pages/Billing';
@@ -14,6 +15,7 @@ import NBAProps from './pages/nba/NBAProps';
 
 import NFLGameLog from './pages/nfl/NFLGameLog';
 import NFLMatchup from './pages/nfl/NFLMatchup';
+import NFLMismatches from './pages/nfl/NFLMismatches';
 
 import MLBMatchup from './pages/mlb/MLBMatchup';
 import MLBBullpen from './pages/mlb/MLBBullpen';
@@ -27,6 +29,7 @@ export default function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
@@ -37,6 +40,7 @@ export default function App() {
 
           <Route path="/nfl/game-log" element={<PrivateRoute><NFLGameLog /></PrivateRoute>} />
           <Route path="/nfl/matchup" element={<PrivateRoute><NFLMatchup /></PrivateRoute>} />
+          <Route path="/nfl/mismatches" element={<PrivateRoute><NFLMismatches /></PrivateRoute>} />
 
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
           <Route path="/mlb/bullpen" element={<PrivateRoute><MLBBullpen /></PrivateRoute>} />

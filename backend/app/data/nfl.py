@@ -586,3 +586,151 @@ def get_team_usage(team: str, week: Optional[int] = None) -> Dict[str, Any]:
         "week": week,
         "players": players.fillna(0).to_dict(orient="records"),
     }
+
+
+# ---------------------------------------------------------------------------
+# Weekly league-wide mismatch finder -- scans every game on a week's slate
+# for the biggest statistical edges, instead of checking one matchup at a
+# time on the Matchup page.
+#
+# All six categories share one scoring idea: for a given stat pairing (an
+# offense stat and its comparable defense stat), a mismatch score is
+# (33 - offense_rank) + defense_rank -- how strong this team's offense is,
+# plus how weak the opponent's defense is, in that same stat. For passing,
+# rushing, scoring, and sacks, "offense succeeding" and "defense failing"
+# point the SAME direction (more passing yards is good for the offense and
+# bad for the defense at once), so sorting this score descending always
+# surfaces the biggest one-sided mismatch.
+#
+# Interceptions are the exception -- an offense succeeds by throwing FEW,
+# a defense succeeds by taking MANY, which are opposite directions on the
+# same event. That makes the same two numbers answer two different
+# questions depending on sort direction: sorted one way, it surfaces "this
+# defense should feast on a turnover-prone offense" (score low = bad
+# offense + good takeaway defense); sorted the other way, it surfaces "ball
+# security against a defense that rarely forces turnovers" (score high =
+# both sides point toward a clean game). So interceptions appear as two
+# separate categories below, sharing the same underlying columns but
+# opposite sort directions, rather than one category with an ambiguous
+# "mismatch" framing.
+MISMATCH_CATEGORIES = {
+    "passing": {
+        "label": "Passing Offense vs. Pass Defense",
+        "offense_col": "Pass Yards Per Game", "offense_rank_col": "Rank - Pass Yards Per Game",
+        "defense_col": "Defense Pass Yards Per Game", "defense_rank_col": "Rank - Defense Pass Yards Per Game",
+        "offense_label": "passing offense", "defense_label": "pass defense",
+        "sort": "descending",
+    },
+    "rushing": {
+        "label": "Rushing Offense vs. Run Defense",
+        "offense_col": "Rush Yards Per Game", "offense_rank_col": "Rank - Rush Yards Per Game",
+        "defense_col": "Defense Rush Yards Per Game", "defense_rank_col": "Rank - Defense Rush Yards Per Game",
+        "offense_label": "rushing offense", "defense_label": "run defense",
+        "sort": "descending",
+    },
+    "scoring": {
+        "label": "Scoring Offense vs. Scoring Defense",
+        "offense_col": "score_offense", "offense_rank_col": "Rank - Scoring Offense",
+        "defense_col": "score_defense", "defense_rank_col": "Rank - Scoring Defense",
+        "offense_label": "scoring offense", "defense_label": "scoring defense",
+        "sort": "descending",
+    },
+    "sacks": {
+        "label": "Pass Protection vs. Pass Rush",
+        "offense_col": "Sacks Allowed", "offense_rank_col": "Rank - Sacks Allowed",
+        "defense_col": "Defensive Sacks", "defense_rank_col": "Rank - Defensive Sacks",
+        "offense_label": "pass protection", "defense_label": "pass rush",
+        "sort": "descending",
+    },
+    "takeaways": {
+        "label": "Takeaway Defense vs. Turnover-Prone Offense",
+        "offense_col": "Interceptions Thrown Per Game", "offense_rank_col": "Rank - Interceptions Thrown Per Game",
+        "defense_col": "Defensive Interceptions Per Game", "defense_rank_col": "Rank - Defensive Interceptions Per Game",
+        "offense_label": "ball security", "defense_label": "takeaways",
+        "sort": "ascending",  # low score = bad ball security + good takeaway defense
+    },
+    "ball_security": {
+        "label": "Clean Game (Ball Security vs. Low-Takeaway Defense)",
+        "offense_col": "Interceptions Thrown Per Game", "offense_rank_col": "Rank - Interceptions Thrown Per Game",
+        "defense_col": "Defensive Interceptions Per Game", "defense_rank_col": "Rank - Defensive Interceptions Per Game",
+        "offense_label": "ball security", "defense_label": "low takeaways",
+        "sort": "descending",  # high score = good ball security + defense that rarely forces it anyway
+    },
+}
+
+
+def get_mismatch_categories() -> List[Dict[str, str]]:
+    """Category list for the frontend's dropdown/toggle."""
+    return [{"key": key, "label": cfg["label"]} for key, cfg in MISMATCH_CATEGORIES.items()]
+
+
+def get_weekly_mismatches(category: str, week: Optional[int] = None) -> Dict[str, Any]:
+    """Every game on one week's slate, scored for the given mismatch
+    category, sorted biggest mismatch first (or, for the two interception
+    categories, in whichever direction that category's framing needs)."""
+    config = MISMATCH_CATEGORIES.get(category)
+    if config is None:
+        return {"error": f"Unknown category: {category}"}
+
+    schedule = get_nfl_schedule()
+    if schedule.empty:
+        return {"category": category, "label": config["label"], "week": week, "games": []}
+
+    season = _current_nfl_season()
+    season_games = schedule[schedule["season"] == season]
+    if season_games.empty:
+        return {"category": category, "label": config["label"], "week": week, "games": []}
+
+    if week is None:
+        completed = season_games[season_games["home_score"].notna()]
+        week = int(completed["week"].max()) + 1 if not completed.empty else 1
+
+    week_games = season_games[season_games["week"] == week]
+    team_stats = get_nfl_team_stats()
+
+    def team_row(team: str):
+        match = team_stats[team_stats["team"].str.upper() == team.upper()]
+        return match.iloc[0] if not match.empty else None
+
+    def make_entry(matchup: str, off_team: str, off_row, def_team: str, def_row):
+        off_rank = off_row.get(config["offense_rank_col"])
+        def_rank = def_row.get(config["defense_rank_col"])
+        if pd.isna(off_rank) or pd.isna(def_rank):
+            return None
+        off_value = off_row.get(config["offense_col"])
+        def_value = def_row.get(config["defense_col"])
+        return {
+            "matchup": matchup,
+            "offense_team": off_team,
+            "defense_team": def_team,
+            "offense_rank": int(off_rank),
+            "defense_rank": int(def_rank),
+            "offense_value": round(float(off_value), 1) if pd.notna(off_value) else None,
+            "defense_value": round(float(def_value), 1) if pd.notna(def_value) else None,
+            "score": round(float((33 - off_rank) + def_rank), 1),
+        }
+
+    entries = []
+    for g in week_games.itertuples():
+        home, away = str(g.home_team), str(g.away_team)
+        home_row, away_row = team_row(home), team_row(away)
+        if home_row is None or away_row is None:
+            continue
+        matchup = f"{away} @ {home}"
+        for e in (
+            make_entry(matchup, home, home_row, away, away_row),
+            make_entry(matchup, away, away_row, home, home_row),
+        ):
+            if e:
+                entries.append(e)
+
+    entries.sort(key=lambda e: e["score"], reverse=(config["sort"] == "descending"))
+
+    return {
+        "category": category,
+        "label": config["label"],
+        "offense_label": config["offense_label"],
+        "defense_label": config["defense_label"],
+        "week": week,
+        "games": entries,
+    }

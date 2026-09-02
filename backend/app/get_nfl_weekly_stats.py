@@ -124,11 +124,13 @@ def build(season: int) -> pd.DataFrame:
     new_stat("team_pass_yards", "passing_yards", "sum")
     new_stat("Pass Attempts", "attempts", "sum")
     new_stat("Sacks Allowed", "sacks_suffered", "sum")
+    new_stat("Interceptions Thrown", "passing_interceptions", "sum")
 
     team_stats["games_count"] = team_stats.groupby("team")["week"].transform("nunique")
     team_stats["Plays Per Game"] = team_stats["total_team_plays"] / team_stats["games_count"]
     team_stats["Rush Yards Per Game"] = team_stats["team_rush_yards"] / team_stats["games_count"]
     team_stats["Pass Yards Per Game"] = team_stats["team_pass_yards"] / team_stats["games_count"]
+    team_stats["Interceptions Thrown Per Game"] = team_stats["Interceptions Thrown"] / team_stats["games_count"]
     team_stats["rush_attempts"] = team_stats.groupby("team")["carries"].transform("sum")
 
     team_stats["total_pass_plays"] = team_stats[["attempts", "sacks_suffered"]].sum(axis=1)
@@ -141,6 +143,7 @@ def build(season: int) -> pd.DataFrame:
     offense = team_stats[[
         "team", "Plays Per Game", "run_share", "pass_share", "Yards Per Carry",
         "Yards Per Pass Attempt", "Rush Yards Per Game", "Pass Yards Per Game", "Sacks Allowed",
+        "Interceptions Thrown Per Game",
     ]].drop_duplicates(subset="team", keep="first")
 
     # ---- Defense (== what opponents did against this team) --------------
@@ -156,11 +159,13 @@ def build(season: int) -> pd.DataFrame:
     team_stats["Defense Rush Yards Per Attempt"] = g_opp["rushing_yards"].transform("sum") / team_stats["Defense Rush Attempts"]
     team_stats["Defense Pass Yards Per Attempt"] = g_opp["passing_yards"].transform("sum") / team_stats["Defense Pass Attempts"]
     team_stats["Defensive Sacks"] = g_opp["sacks_suffered"].transform("sum")
+    team_stats["Defensive Interceptions Per Game"] = g_opp["passing_interceptions"].transform("sum") / g_opp["week"].transform("nunique")
 
     defense = team_stats[[
         "opponent_team", "Defense Plays Per Game", "Defense Rush Share", "Defense Pass Share",
         "Defense Rush Yards Per Attempt", "Defense Rush Yards Per Game",
         "Defense Pass Yards Per Attempt", "Defense Pass Yards Per Game", "Defensive Sacks",
+        "Defensive Interceptions Per Game",
     ]].drop_duplicates(subset="opponent_team", keep="first")
 
     # ---- Ranks ------------------------------------------------------------
@@ -171,6 +176,8 @@ def build(season: int) -> pd.DataFrame:
     # Getting sacked is bad -- fewest allowed ranks best. (Bug fix: the
     # source script ranked this the same direction as the stats above.)
     _rank(offense, "Rank - Sacks Allowed", "Sacks Allowed", ascending=True)
+    # Throwing interceptions is bad for an offense -- fewest ranks best.
+    _rank(offense, "Rank - Interceptions Thrown Per Game", "Interceptions Thrown Per Game", ascending=True)
 
     # "Fewest allowed is better" defensive stats.
     for col in ["Defense Plays Per Game", "Defense Rush Share", "Defense Pass Share",
@@ -182,6 +189,9 @@ def build(season: int) -> pd.DataFrame:
     # yards-allowed stats above, which rewarded defenses for recording
     # FEWER sacks.)
     _rank(defense, "Rank - Defensive Sacks", "Defensive Sacks", ascending=False)
+    # Taking interceptions is good for a defense -- most ranks best, same
+    # "more is better for the defense" logic as sacks above.
+    _rank(defense, "Rank - Defensive Interceptions Per Game", "Defensive Interceptions Per Game", ascending=False)
 
     combined = offense.merge(defense, left_on="team", right_on="opponent_team", how="inner")
 

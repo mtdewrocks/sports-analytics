@@ -155,6 +155,7 @@ export default function Navbar() {
   const nflItems: DropdownItem[] = [
     { label: 'Game Log', to: '/nfl/game-log' },
     { label: 'Matchup', to: '/nfl/matchup' },
+    { label: 'Mismatches', to: '/nfl/mismatches' },
   ];
   const mlbItems: DropdownItem[] = [
     { label: 'Matchup', to: '/mlb/matchup' },
@@ -166,7 +167,7 @@ export default function Navbar() {
   return (
     <>
       <nav style={styles.nav}>
-        <Link to="/nba/game-log" style={styles.brand}>Sports Analytics</Link>
+        <Link to="/dashboard" style={styles.brand}>Sports Analytics</Link>
 
         {/* Desktop menu */}
         <ul style={{ ...styles.navLinks, display: 'flex' } as React.CSSProperties}>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +10,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +20,8 @@ export default function Login() {
       const res = await loginApi(email, password);
       const { access_token, user } = res.data;
       login(access_token, user);
-      navigate('/nba/game-log');
+      const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
+      navigate(from || '/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally {
