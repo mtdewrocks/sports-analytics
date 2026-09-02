@@ -294,6 +294,9 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
                 "batting_order": "Batting Order",
                 "split_avg": "Average",
                 "split_woba": "wOBA",
+                "split_obp": "OBP",
+                "split_slg": "SLG",
+                "split_ops": "OPS",
                 "split_iso": "ISO",
                 "split_k_pct": "K%",
                 "split_bb_pct": "BB%",
@@ -302,7 +305,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
             cols = [c for c in display if c in sub.columns]
             sub = sub[cols].rename(columns=display)
 
-            for col in ("Average", "wOBA", "ISO", "Last Week BA"):
+            for col in ("Average", "wOBA", "OBP", "SLG", "OPS", "ISO", "Last Week BA"):
                 if col in sub.columns:
                     sub[col] = pd.to_numeric(sub[col], errors="coerce").round(3)
             for col in ("K%", "BB%"):
@@ -318,6 +321,37 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"Warning: opposing_hitters section failed for {pitcher_name}: {e}")
 
+    # ------------------------------------------------------------------
+    # 6. Pitcher's own rate allowed by handedness -- same source
+    #    (daily_matchups.parquet), but these columns (p_split_*) are the
+    #    pitcher's own stat, constant across every batter of the same hand
+    #    in today's matchup, so just take the first row per hand rather
+    #    than aggregating.
+    # ------------------------------------------------------------------
+    pitcher_splits = {}
+    try:
+        matchups_df = data.get("matchups", pd.DataFrame())
+        if not matchups_df.empty:
+            sub = matchups_df[matchups_df["pitcher"].str.lower().str.strip() == pitcher_norm].copy()
+            p_cols = {
+                "p_split_avg": "avg", "p_split_woba": "woba", "p_split_slg": "slg",
+                "p_split_iso": "iso", "p_split_k_pct": "k_pct", "p_split_bb_pct": "bb_pct",
+                "p_split_hr_pct": "hr_pct",
+            }
+            for hand, label in [("R", "vs_r"), ("L", "vs_l")]:
+                hand_rows = sub[sub["bats"] == hand]
+                if hand_rows.empty:
+                    continue
+                row = hand_rows.iloc[0]
+                entry = {}
+                for src, dest in p_cols.items():
+                    if src in row and pd.notna(row[src]):
+                        entry[dest] = round(float(row[src]), 3 if dest not in ("k_pct", "bb_pct", "hr_pct") else 1)
+                if entry:
+                    pitcher_splits[label] = entry
+    except Exception as e:
+        print(f"Warning: pitcher_splits section failed for {pitcher_name}: {e}")
+
     return {
         "pitcher": pitcher_name,
         "season_stats": season_stats,
@@ -325,6 +359,7 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         "splits": splits,
         "percentiles": percentiles,
         "opposing_hitters": opposing_hitters,
+        "pitcher_splits": pitcher_splits,
     }
 
 
