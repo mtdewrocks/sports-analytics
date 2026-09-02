@@ -29,6 +29,14 @@ def matchup(matchup: str = Query(...), _=Depends(require_access)):
 def game_script(matchup: str = Query(...), _=Depends(require_access)):
     return nfl_data.get_game_script_projection(matchup)
 
+@router.get("/mismatches/categories")
+def mismatch_categories(_=Depends(require_access)):
+    return nfl_data.get_mismatch_categories()
+
+@router.get("/mismatches")
+def mismatches(category: str = Query(...), week: Optional[int] = Query(None), _=Depends(require_access)):
+    return nfl_data.get_weekly_mismatches(category, week)
+
 @router.get("/usage/teams")
 def usage_teams(_=Depends(require_access)):
     return nfl_data.get_nfl_teams()
