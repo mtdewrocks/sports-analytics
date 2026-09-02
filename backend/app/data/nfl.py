@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_player_situational_usage, get_nfl_rosters
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script
 
 # Stat groups for reference / display
 PASSING_STATS = [
@@ -375,13 +375,22 @@ def _projected_pass_pct(team_row: pd.Series, situation: str) -> Optional[float]:
 
 def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     """Spread-implied game script for one matchup: each team's projected
-    pass/run mix (season-neutral blended toward their own historical
-    tendency in the situation the spread implies), plus which players'
-    situational carry/target shares stand out -- share AND raw volume both
-    shown together, since a share change alone can be misleading (see the
-    real Jonathan Taylor case: his share of IND's carries rose when
-    trailing big, but his raw carries actually fell -- the team's total
-    volume in that bucket shrank faster than his own did).
+    pass/run mix, season-neutral (close-game rate) blended toward its own
+    historical tendency in the situation the spread implies.
+
+    Deliberately team-level only. A player-level version (projected
+    carries/targets/yards per player) was built and then removed: every
+    player-level source here is historical play-by-play, which can't know
+    about a player who joined a team this offseason (e.g. a notable free
+    agent signing) -- he simply has zero rows under his new team, while
+    holdover backups who happen to have last-season tape keep showing up
+    normally. That's not a rare edge case, it's a systematic blind spot for
+    any real offseason addition, and it gets worse than just "incomplete":
+    the projection looks confident and precise while quietly being wrong
+    for exactly the situations people care most about. The team-level
+    projection below doesn't have that problem -- it isn't tied to any one
+    player's status, and it's built on a full prior season's real sample
+    rather than a handful of early-season games.
     """
     parts = [p.strip().upper() for p in matchup.replace("@", " @ ").split("@")]
     if len(parts) != 2:
@@ -407,28 +416,6 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     away_margin = float(spread_line)
 
     game_script = get_nfl_team_game_script()
-    situational_usage = get_nfl_player_situational_usage()
-    season_usage = get_nfl_player_week_usage()
-    team_stats = get_nfl_team_stats()
-    rosters = get_nfl_rosters()
-
-    # Season efficiency (yards per carry, catch rate, yards per target) --
-    # this stays a simple season number rather than being split by
-    # situation too, same reasoning as get_nfl_player_situational_usage.py:
-    # splitting efficiency by situation as well would need a much bigger
-    # sample per bucket than a share split does.
-    efficiency = pd.DataFrame()
-    if not season_usage.empty:
-        efficiency = season_usage.groupby(["player_id", "player"], as_index=False).agg(
-            season_carries=("carries", "sum"),
-            season_rushing_yards=("rushing_yards", "sum"),
-            season_targets=("targets", "sum"),
-            season_receptions=("receptions", "sum"),
-            season_receiving_yards=("receiving_yards", "sum"),
-        )
-        efficiency["ypc"] = (efficiency["season_rushing_yards"] / efficiency["season_carries"]).where(efficiency["season_carries"] > 0)
-        efficiency["catch_rate"] = (efficiency["season_receptions"] / efficiency["season_targets"]).where(efficiency["season_targets"] > 0)
-        efficiency["yards_per_target"] = (efficiency["season_receiving_yards"] / efficiency["season_targets"]).where(efficiency["season_targets"] > 0)
 
     def team_section(team: str, margin: float) -> Dict[str, Any]:
         situation = _implied_situation(margin)
@@ -440,73 +427,11 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
         projected_pass_pct = _projected_pass_pct(row, situation)
         baseline_pass_pct = row.get("pass_pct_neutral")
 
-        team_plays_per_game = None
-        if not team_stats.empty:
-            ts_row = team_stats[team_stats["team"].str.upper() == team]
-            if not ts_row.empty:
-                team_plays_per_game = ts_row.iloc[0].get("Plays Per Game")
-
-        def top_players(volume_col: str, n: int = 4) -> List[Dict[str, Any]]:
-            players = situational_usage[situational_usage["team"].str.upper() == team]
-            if players.empty or volume_col not in players.columns:
-                return []
-
-            # Only players CURRENTLY on this team's roster -- the usage
-            # data can be a season-old fallback, which would otherwise
-            # still list someone who's since left (see get_nfl_rosters.py's
-            # docstring). This can't add players who joined the team since
-            # that data was captured; it can only correctly drop the ones
-            # who left.
-            if not rosters.empty:
-                current_ids = set(rosters[rosters["team"].str.upper() == team]["player_id"])
-                players = players[players["player_id"].isin(current_ids)]
-
-            players = players.sort_values(volume_col, ascending=False).head(n)
-            if players.empty or team_plays_per_game is None or projected_pass_pct is None:
-                return []
-
-            projected_pass_share = projected_pass_pct / 100
-            projected_rush_share = 1 - projected_pass_share
-            team_volume_per_game = team_plays_per_game * (
-                projected_pass_share if volume_col == "targets" else projected_rush_share
-            )
-
-            out = []
-            for p in players.itertuples():
-                bucket_share = getattr(p, f"{situation}_{volume_col}_share", None)
-                season_share = getattr(p, f"{volume_col}_share", None)
-                # Prefer the situation-specific share; fall back to season
-                # share if the bucket sample was too thin to produce one.
-                share = bucket_share if bucket_share is not None and not pd.isna(bucket_share) else season_share
-                if share is None or pd.isna(share):
-                    continue
-
-                projected_volume = team_volume_per_game * float(share)
-
-                eff_row = efficiency[efficiency["player_id"] == p.player_id] if not efficiency.empty else pd.DataFrame()
-                eff = eff_row.iloc[0] if not eff_row.empty else None
-
-                entry = {"player": p.player}
-                if volume_col == "carries":
-                    ypc = eff.get("ypc") if eff is not None else None
-                    entry["projected_carries"] = round(float(projected_volume), 1)
-                    entry["projected_yards"] = round(float(projected_volume) * float(ypc), 1) if ypc is not None and pd.notna(ypc) else None
-                else:
-                    catch_rate = eff.get("catch_rate") if eff is not None else None
-                    ypt = eff.get("yards_per_target") if eff is not None else None
-                    entry["projected_targets"] = round(float(projected_volume), 1)
-                    entry["projected_receptions"] = round(float(projected_volume) * float(catch_rate), 1) if catch_rate is not None and pd.notna(catch_rate) else None
-                    entry["projected_yards"] = round(float(projected_volume) * float(ypt), 1) if ypt is not None and pd.notna(ypt) else None
-                out.append(entry)
-            return out
-
         return {
             "team": team,
             "implied_situation": situation,
             "baseline_pass_pct": None if pd.isna(baseline_pass_pct) else round(float(baseline_pass_pct), 1),
             "projected_pass_pct": projected_pass_pct,
-            "top_rushers": top_players("carries"),
-            "top_receivers": top_players("targets"),
         }
 
     return {

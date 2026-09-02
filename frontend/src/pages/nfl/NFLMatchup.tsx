@@ -21,21 +21,11 @@ interface MatchupData {
   is_fallback: boolean;
 }
 
-interface PlayerProjection {
-  player: string;
-  projected_carries?: number;
-  projected_targets?: number;
-  projected_receptions?: number;
-  projected_yards: number | null;
-}
-
 interface TeamGameScript {
   team: string;
   implied_situation: string;
   baseline_pass_pct: number | null;
   projected_pass_pct: number | null;
-  top_rushers: PlayerProjection[];
-  top_receivers: PlayerProjection[];
   error?: string;
 }
 
@@ -123,37 +113,6 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
   );
 }
 
-function PlayerProjectionTable({ title, players, isReceiving }: { title: string; players: PlayerProjection[]; isReceiving: boolean }) {
-  if (players.length === 0) return null;
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#666', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>{title}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid #ddd' }}>
-            <th style={{ textAlign: 'left', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Player</th>
-            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>
-              {isReceiving ? 'Rec' : 'Carries'}
-            </th>
-            <th style={{ textAlign: 'right', padding: '5px 6px', color: '#888', fontWeight: 600 }}>Yards</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((p) => (
-            <tr key={p.player} style={{ borderBottom: '1px solid #f0f0f0' }}>
-              <td style={{ padding: '6px', fontWeight: 600 }}>{p.player}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>
-                {isReceiving ? (p.projected_receptions ?? '—') : (p.projected_carries ?? '—')}
-              </td>
-              <td style={{ padding: '6px', textAlign: 'right', fontWeight: 600 }}>{p.projected_yards ?? '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
   if (data.error) {
     return <div style={{ flex: 1, minWidth: 280, color: '#999', fontSize: 13 }}>{data.error}</div>;
@@ -168,14 +127,12 @@ function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
         <span style={{ fontSize: 26, fontWeight: 700 }}>{data.projected_pass_pct ?? '—'}%</span>
         <span style={{ fontSize: 12, color: '#999' }}>projected pass rate</span>
       </div>
-      <div style={{ fontSize: 12, color: '#999', marginBottom: 14 }}>
+      <div style={{ fontSize: 12, color: '#999' }}>
         close-game rate {data.baseline_pass_pct ?? '—'}%
         {delta != null && (
           <span style={{ color: delta < 0 ? '#1565c0' : '#c62828', fontWeight: 600 }}> ({delta > 0 ? '+' : ''}{delta.toFixed(1)})</span>
         )}
       </div>
-      <PlayerProjectionTable title="Rushers" players={data.top_rushers} isReceiving={false} />
-      <PlayerProjectionTable title="Receivers" players={data.top_receivers} isReceiving={true} />
     </div>
   );
 }
