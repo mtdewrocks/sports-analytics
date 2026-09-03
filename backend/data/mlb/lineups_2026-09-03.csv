@@ -125,3 +125,39 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,7,622761,Jorge Mateo,615698,Cal Quantrill,R,R,R
 2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,8,680700,Richie Palacios,615698,Cal Quantrill,L,R,L
 2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,9,663743,Nick Fortes,615698,Cal Quantrill,R,R,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,1,668227,Randy Arozarena,678022,Jack Perkins,R,R,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,2,686527,Dominic Canzone,678022,Jack Perkins,L,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,3,677594,Julio Rodríguez,678022,Jack Perkins,R,R,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,4,663728,Cal Raleigh,678022,Jack Perkins,S,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,5,647304,Josh Naylor,678022,Jack Perkins,L,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,6,702284,Cole Young,678022,Jack Perkins,L,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,7,703155,Lazaro Montes,678022,Jack Perkins,L,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,8,641487,J.P. Crawford,678022,Jack Perkins,L,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Seattle Mariners,Athletics,home,9,801126,Brock Rodden,678022,Jack Perkins,S,R,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,1,703607,Henry Bolte,807739,Kade Anderson,R,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,2,680869,Zack Gelof,807739,Kade Anderson,R,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,3,671732,Lawrence Butler,807739,Kade Anderson,L,L,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,4,641680,Jonah Heim,807739,Kade Anderson,S,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,5,643446,Jeff McNeil,807739,Kade Anderson,L,L,L
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,6,683021,Michael Stefanic,807739,Kade Anderson,R,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,7,661531,Brian Serven,807739,Kade Anderson,R,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,8,675961,Alika Williams,807739,Kade Anderson,R,L,R
+2026-09-03,823095,2026-09-04T01:40:00Z,Athletics,Seattle Mariners,away,9,691777,Max Muncy,807739,Kade Anderson,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,1,669242,Tommy Edman,687273,Quinn Mathews,S,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,2,605141,Mookie Betts,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,3,606192,Teoscar Hernández,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,4,518692,Freddie Freeman,687273,Quinn Mathews,L,L,L
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,5,669257,Will Smith,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,6,500743,Miguel Rojas,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,7,663656,Kyle Tucker,687273,Quinn Mathews,L,L,L
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,8,669743,Alex Call,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,Los Angeles Dodgers,St. Louis Cardinals,home,9,571771,Enrique Hernández,687273,Quinn Mathews,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,1,665877,José Fermín,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,2,671056,Iván Herrera,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,3,691023,Jordan Walker,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,4,695491,Joshua Báez,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,5,699024,Leo Bernal,669373,Tarik Skubal,S,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,6,602104,Ramón Urías,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,7,695336,Thomas Saggese,669373,Tarik Skubal,R,L,R
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,8,701675,Nathan Church,669373,Tarik Skubal,L,L,L
+2026-09-03,823907,2026-09-04T02:10:00Z,St. Louis Cardinals,Los Angeles Dodgers,away,9,686780,Pedro Pagés,669373,Tarik Skubal,R,L,R
