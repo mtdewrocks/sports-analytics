@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { theme } from '../theme';
 
 const styles: Record<string, React.CSSProperties> = {
   nav: {
-    background: '#1a1a2e',
+    background: theme.bgPage,
     color: 'white',
     padding: '0 24px',
     display: 'flex',
@@ -19,7 +20,7 @@ const styles: Record<string, React.CSSProperties> = {
   brand: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#e94560',
+    color: theme.accent,
     letterSpacing: 0.5,
     textDecoration: 'none',
   },
@@ -47,7 +48,7 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'absolute',
     top: '100%',
     left: 0,
-    background: '#16213e',
+    background: theme.bgCard,
     borderRadius: 6,
     minWidth: 160,
     boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -63,7 +64,7 @@ const styles: Record<string, React.CSSProperties> = {
     textDecoration: 'none',
   },
   logoutBtn: {
-    background: '#e94560',
+    background: theme.accent,
     border: 'none',
     color: 'white',
     cursor: 'pointer',
@@ -84,7 +85,7 @@ const styles: Record<string, React.CSSProperties> = {
   mobileMenu: {
     display: 'none',
     flexDirection: 'column' as const,
-    background: '#16213e',
+    background: theme.bgCard,
     position: 'absolute',
     top: 56,
     left: 0,
@@ -120,12 +121,12 @@ function NavDropdown({ label, items }: { label: string; items: DropdownItem[] })
               style={styles.dropdownLink}
               onClick={() => setOpen(false)}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = '#0f3460';
-                (e.currentTarget as HTMLElement).style.color = 'white';
+                (e.currentTarget as HTMLElement).style.background = theme.bgCardHover;
+                (e.currentTarget as HTMLElement).style.color = theme.textPrimary;
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background = '';
-                (e.currentTarget as HTMLElement).style.color = '#ccc';
+                (e.currentTarget as HTMLElement).style.color = theme.textSecondary;
               }}
             >
               {item.label}
@@ -192,15 +193,15 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div style={{ ...styles.mobileMenu, display: 'flex' }}>
-          <div style={{ padding: '8px 16px', color: '#e94560', fontWeight: 700, fontSize: 13 }}>NBA</div>
+          <div style={{ padding: '8px 16px', color: theme.accent, fontWeight: 700, fontSize: 13 }}>NBA</div>
           {nbaItems.map((i) => (
             <Link key={i.to} to={i.to} style={{ padding: '10px 24px', color: '#ccc', fontSize: 14 }} onClick={() => setMobileOpen(false)}>{i.label}</Link>
           ))}
-          <div style={{ padding: '8px 16px', color: '#e94560', fontWeight: 700, fontSize: 13 }}>NFL</div>
+          <div style={{ padding: '8px 16px', color: theme.accent, fontWeight: 700, fontSize: 13 }}>NFL</div>
           {nflItems.map((i) => (
             <Link key={i.to} to={i.to} style={{ padding: '10px 24px', color: '#ccc', fontSize: 14 }} onClick={() => setMobileOpen(false)}>{i.label}</Link>
           ))}
-          <div style={{ padding: '8px 16px', color: '#e94560', fontWeight: 700, fontSize: 13 }}>MLB</div>
+          <div style={{ padding: '8px 16px', color: theme.accent, fontWeight: 700, fontSize: 13 }}>MLB</div>
           {mlbItems.map((i) => (
             <Link key={i.to} to={i.to} style={{ padding: '10px 24px', color: '#ccc', fontSize: 14 }} onClick={() => setMobileOpen(false)}>{i.label}</Link>
           ))}
