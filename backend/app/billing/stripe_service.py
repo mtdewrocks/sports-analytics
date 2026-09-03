@@ -15,15 +15,22 @@ def get_or_create_customer(user: User, db: Session) -> str:
     db.commit()
     return customer.id
 
-def create_checkout_session(user: User, db: Session) -> str:
+PLAN_PRICE_IDS = {
+    "monthly": lambda: settings.STRIPE_PRICE_ID_MONTHLY,
+    "yearly": lambda: settings.STRIPE_PRICE_ID_YEARLY,
+}
+
+
+def create_checkout_session(user: User, db: Session, plan: str) -> str:
     customer_id = get_or_create_customer(user, db)
+    price_id = PLAN_PRICE_IDS[plan]()
     session = stripe.checkout.Session.create(
         customer=customer_id,
         mode="subscription",
-        line_items=[{"price": settings.STRIPE_PRICE_ID, "quantity": 1}],
+        line_items=[{"price": price_id, "quantity": 1}],
         success_url=f"{settings.FRONTEND_URL}/billing?success=true",
         cancel_url=f"{settings.FRONTEND_URL}/billing?canceled=true",
-        metadata={"user_id": user.id},
+        metadata={"user_id": user.id, "plan": plan},
     )
     return session.url
 

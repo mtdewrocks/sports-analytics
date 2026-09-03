@@ -123,7 +123,10 @@ export default function Landing() {
           }}>
             <div style={{ fontSize: 18, color: '#e94560', fontWeight: 700, marginBottom: 8 }}>All-Access Pass</div>
             <div style={{ fontSize: 52, fontWeight: 800, marginBottom: 4 }}>
-              $5.99<span style={{ fontSize: 20, fontWeight: 400, color: '#aaa' }}>/month</span>
+              $9.99<span style={{ fontSize: 20, fontWeight: 400, color: '#aaa' }}>/month</span>
+            </div>
+            <div style={{ fontSize: 15, color: '#aaa', marginBottom: 20 }}>
+              or $99.99/year
             </div>
             <div style={{
               background: '#0f3460',

@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "sqlite:///./sports_analytics.db"
     STRIPE_SECRET_KEY: str = ""
-    STRIPE_PRICE_ID: str = ""
+    STRIPE_PRICE_ID_MONTHLY: str = ""
+    STRIPE_PRICE_ID_YEARLY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     FRONTEND_URL: str = "http://localhost:5173"
     TRIAL_DAYS: int = 30

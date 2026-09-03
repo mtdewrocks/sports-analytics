@@ -17,6 +17,7 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
+  const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [searchParams] = useSearchParams();
 
   const success = searchParams.get('success');
@@ -32,7 +33,7 @@ export default function Billing() {
   const handleCheckout = async () => {
     setActionLoading(true);
     try {
-      const res = await createCheckout();
+      const res = await createCheckout(plan);
       window.location.href = res.data.checkout_url;
     } catch {
       setError('Failed to start checkout. Please try again.');
@@ -88,7 +89,7 @@ export default function Billing() {
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: '#1a1a2e' }}>Account Status</h2>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 120, background: '#f9fafb', borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: status.has_access ? '#2ecc71' : '#e74c3c' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: status.has_access ? '#3d7fd1' : '#d1483d' }}>
                   {status.has_access ? 'Active' : 'Inactive'}
                 </div>
                 <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Access Status</div>
@@ -122,9 +123,36 @@ export default function Billing() {
               {status.subscription_active ? 'Manage Subscription' : 'Upgrade to Pro'}
             </h2>
             {!status.subscription_active && (
-              <p style={{ color: '#666', fontSize: 14, marginBottom: 20 }}>
-                Subscribe for full access at <strong>$5.99/month</strong>. Cancel anytime.
-              </p>
+              <>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                  <button
+                    onClick={() => setPlan('monthly')}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      border: plan === 'monthly' ? '2px solid #1a1a2e' : '1px solid #ddd',
+                      background: plan === 'monthly' ? '#1a1a2e' : 'white',
+                      color: plan === 'monthly' ? 'white' : '#1a1a2e',
+                    }}
+                  >
+                    Monthly — $9.99/mo
+                  </button>
+                  <button
+                    onClick={() => setPlan('yearly')}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      border: plan === 'yearly' ? '2px solid #1a1a2e' : '1px solid #ddd',
+                      background: plan === 'yearly' ? '#1a1a2e' : 'white',
+                      color: plan === 'yearly' ? 'white' : '#1a1a2e',
+                    }}
+                  >
+                    Annual — $99.99/yr
+                  </button>
+                </div>
+                <p style={{ color: '#666', fontSize: 14, marginBottom: 20 }}>
+                  Subscribe for full access at{' '}
+                  <strong>{plan === 'monthly' ? '$9.99/month' : '$99.99/year'}</strong>. Cancel anytime.
+                </p>
+              </>
             )}
             {status.subscription_active ? (
               <button
@@ -140,7 +168,7 @@ export default function Billing() {
                 disabled={actionLoading}
                 style={{ background: '#e94560', color: 'white', border: 'none', padding: '12px 28px', fontSize: 15, fontWeight: 700, borderRadius: 6, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
               >
-                {actionLoading ? 'Loading...' : 'Start Subscription — $5.99/month'}
+                {actionLoading ? 'Loading...' : `Start Subscription — ${plan === 'monthly' ? '$9.99/month' : '$99.99/year'}`}
               </button>
             )}
           </div>
