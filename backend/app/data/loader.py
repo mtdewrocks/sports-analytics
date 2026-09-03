@@ -214,6 +214,7 @@ def get_mlb_data() -> dict:
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
         # --- Statcast, rebuilt by GitHub Actions ---
         ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
+        ("hitter_game_logs", "Hitter_Game_Logs_2026.parquet", pd.read_parquet),  # player -> current team lookup
         ("pitcher_splits", "pitcher_splits.parquet", pd.read_parquet),  # vs L / vs R
         ("pitcher_percentiles", "pitcher_percentiles.parquet", pd.read_parquet),
         ("hitter_percentiles", "hitter_percentiles.parquet", pd.read_parquet),

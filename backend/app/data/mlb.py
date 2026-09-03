@@ -8,6 +8,26 @@ def _normalize(name: str) -> str:
     return name.strip().lower()
 
 
+import unicodedata
+
+
+def _normalize_loose(name: str) -> str:
+    """Like _normalize(), but also strips accents/diacritics and common
+    generational suffixes (Jr./Sr./II/III/IV). Used only for matching names
+    ACROSS two independent data sources that don't spell these consistently
+    with each other (e.g. "Fernando Tatís" vs. "Fernando Tatis Jr") -- kept
+    separate from _normalize() since being this aggressive isn't safe to
+    apply to every other name-matching call site in this file.
+    """
+    name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    name = name.strip().lower().replace(".", "")
+    tokens = name.split()
+    suffixes = {"jr", "sr", "ii", "iii", "iv"}
+    while tokens and tokens[-1] in suffixes:
+        tokens.pop()
+    return " ".join(tokens)
+
+
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     cols_lower = {c.lower(): c for c in df.columns}
     for c in candidates:
@@ -374,6 +394,18 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
     if hot.empty:
         return []
 
+    # Team lookup -- hot_hitters.parquet has no team column at all, so this
+    # joins one in from each player's most recent logged game. Matched by
+    # normalized name since the two files share no common player_id.
+    team_by_player: Dict[str, str] = {}
+    logs = get_mlb_data().get("hitter_game_logs", pd.DataFrame())
+    if not logs.empty and "Player" in logs.columns and "Team" in logs.columns:
+        logs = logs.copy()
+        logs["Date"] = pd.to_datetime(logs["Date"], errors="coerce")
+        logs = logs[logs["Date"].notna()].sort_values("Date")
+        logs["_key"] = logs["Player"].apply(_normalize_loose)
+        team_by_player = logs.drop_duplicates("_key", keep="last").set_index("_key")["Team"].to_dict()
+
     # "AVG" rather than "BA" -- unambiguous next to OBP/SLG/OPS, and it
     # matches the "Average" column on the matchup table.
     display = {
@@ -395,6 +427,10 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
     }
     cols = [c for c in display if c in hot.columns]
     out = hot[cols].rename(columns=display)
+    out["Team"] = hot["player"].apply(lambda p: team_by_player.get(_normalize_loose(p), ""))
+    # Team right after Player, not tacked on at the end.
+    ordered = ["Player", "Team"] + [c for c in out.columns if c not in ("Player", "Team")]
+    out = out[ordered]
 
     # Nullable dtypes hold pd.NA, which is not JSON serializable.
     out = out.astype(object).where(out.notna(), "")
@@ -595,15 +631,20 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
 
     # ---- KPI strip: rolling pitches/IP over 1, 3 and 7 days (bullpen arms only, SP excluded) ----
     #
-    # Thresholds validated against league-average bullpen workload, computed
-    # two independent ways: public season totals put team relief innings at
-    # ~592 IP/season (~3.7 IP/day over 162 games); separately, 9 innings
-    # minus the ~5.2 IP/start starters have averaged in recent seasons lands
-    # on ~3.8 IP/day. Both agree closely enough to treat ~3.75 IP/day as the
-    # league-average baseline. At the commonly cited 16-17 pitches/inning,
-    # that's roughly 60-65 pitches/day. Four tiers off that baseline:
-    # <=60 fresh (at or below average), 61-75 neutral, 76-85 somewhat tired,
-    # >85 tired (~1.4x average, comfortably above typical).
+    # Thresholds are the real bottom-25th/top-25th percentile of league-wide
+    # bullpen workload for EACH window separately, not one fixed pair reused
+    # everywhere. A longer window's typical range is naturally narrower than
+    # a single day's -- averaging smooths out single-day spikes -- so the
+    # 7-day cutoffs are tighter than the 1-day ones. Computed from
+    # bullpen_logs.parquet across all 30 teams (~2 weeks of real data, since
+    # that file is a rolling window, not a season archive -- these may
+    # shift somewhat as more of the season accumulates naturally into it).
+    WINDOW_THRESHOLDS = {
+        1: (35, 80),
+        3: (45, 70),
+        7: (50, 65),
+    }
+
     def window_totals(n: int) -> Dict[str, Any]:
         cutoff = last_date - pd.Timedelta(days=n - 1)
         w = sub[sub["date"] >= cutoff]
@@ -611,14 +652,13 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
         pitches = int(w["pitches"].sum())
 
         per_day = pitches / n
-        if per_day > 85:
+        fresh_cutoff, tired_cutoff = WINDOW_THRESHOLDS[n]
+        if per_day > tired_cutoff:
             level = "tired"
-        elif per_day > 75:
-            level = "somewhat tired"
-        elif per_day > 60:
-            level = "neutral"
-        else:
+        elif per_day < fresh_cutoff:
             level = "fresh"
+        else:
+            level = "neutral"
 
         return {"pitches": pitches, "ip": _outs_to_ip(outs), "level": level}
 

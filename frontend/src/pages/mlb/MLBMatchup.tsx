@@ -320,7 +320,7 @@ export default function MLBMatchup() {
     if (!el || !matchupData) return;
     setDownloadingPdf(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -540,6 +540,7 @@ export default function MLBMatchup() {
             <img
               src={photoUrl}
               alt={selectedPitcher}
+              crossOrigin="anonymous"
               style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e0e0', flexShrink: 0 }}
             />
             <div>

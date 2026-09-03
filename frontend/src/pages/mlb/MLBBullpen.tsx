@@ -161,22 +161,29 @@ export default function MLBBullpen() {
 
             {/* ── KPI strip ── */}
             {kpis && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
-                {([
-                  { label: 'Last 1 Day', k: kpis['1_day'] },
-                  { label: 'Last 3 Days', k: kpis['3_day'] },
-                  { label: 'Last 7 Days', k: kpis['7_day'] },
-                ] as const).map(({ label, k }) => (
-                  <div key={label} style={{ ...cardStyle, margin: 0, padding: '14px 16px' }}>
-                    <div style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#1a1a2e' }}>
-                      {k.pitches}<span style={{ fontSize: 13, fontWeight: 400, color: '#888' }}> pitches</span>
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 8 }}>
+                  {([
+                    { label: 'Last 1 Day', k: kpis['1_day'] },
+                    { label: 'Last 3 Days', k: kpis['3_day'] },
+                    { label: 'Last 7 Days', k: kpis['7_day'] },
+                  ] as const).map(({ label, k }) => (
+                    <div key={label} style={{ ...cardStyle, margin: 0, padding: '14px 16px' }}>
+                      <div style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: '#1a1a2e' }}>
+                        {k.pitches}<span style={{ fontSize: 13, fontWeight: 400, color: '#888' }}> pitches</span>
+                      </div>
+                      <div style={{ fontSize: 14, color: '#444', marginBottom: 8 }}>{k.ip} IP</div>
+                      <FreshBadge level={k.level} />
                     </div>
-                    <div style={{ fontSize: 14, color: '#444', marginBottom: 8 }}>{k.ip} IP</div>
-                    <FreshBadge level={k.level} />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', marginBottom: 20 }}>
+                  Fresh/Neutral/Tired reflects the bottom 25%, middle 50%, and top 25% of real 2026 league-wide
+                  bullpen workload -- calculated separately for each window, since a 7-day average naturally
+                  runs in a narrower range than a single day's total.
+                </div>
+              </>
             )}
 
             {/* ── Workload table ── */}
