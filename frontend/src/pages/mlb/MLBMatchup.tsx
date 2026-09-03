@@ -101,7 +101,13 @@ function tierHrPct(v: number | null | undefined): string | null {
 }
 
 function cellStyle(color: string | null): React.CSSProperties {
-  return color ? { background: color, fontWeight: 600 } : {};
+  // Verified via WCAG contrast ratios: black text clears the accessibility
+  // threshold (4.5:1) against every one of these five tier colors, including
+  // the two darkest (RED_DARK at 4.71:1, BLUE_DARK at 5.15:1) -- white does
+  // not win against any of them, since none of these colors are as dark in
+  // actual luminance as they look. Previously this left color unset, which
+  // inherited a low-contrast gray from the table's default text color.
+  return color ? { background: color, color: '#000000', fontWeight: 600 } : {};
 }
 
 function pctBarColor(pct: number) {
