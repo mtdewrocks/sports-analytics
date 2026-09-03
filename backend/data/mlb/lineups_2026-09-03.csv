@@ -53,3 +53,75 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,7,805367,Chase Meidroth,686613,Hunter Brown,R,R,R
 2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,8,671976,Tristan Peters,686613,Hunter Brown,L,R,L
 2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,9,668670,Jake Rogers,686613,Hunter Brown,R,R,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,1,677942,Blaze Alexander,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,2,691723,Coby Mayo,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,3,673357,Luis Robert Jr.,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,4,624413,Pete Alonso,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,5,683002,Gunnar Henderson,687562,Jake Bennett,L,L,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,6,687952,Christian Encarnacion-Strand,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,7,665750,Leody Taveras,687562,Jake Bennett,S,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,8,687637,Dylan Beavers,687562,Jake Bennett,L,L,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Baltimore Orioles,Boston Red Sox,home,9,665966,Carlos Narváez,687562,Jake Bennett,R,L,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,1,701350,Roman Anthony,687064,Brandon Young,L,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,2,681508,Mickey Gasper,687064,Brandon Young,S,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,3,668939,Adley Rutschman,687064,Brandon Young,S,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,4,677800,Wilyer Abreu,687064,Brandon Young,L,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,5,686765,Nick Sogard,687064,Brandon Young,S,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,6,702332,Caleb Durbin,687064,Brandon Young,R,R,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,7,680776,Jarren Duran,687064,Brandon Young,L,R,L
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,8,642201,Eli White,687064,Brandon Young,R,R,R
+2026-09-03,824796,2026-09-03T23:15:00Z,Boston Red Sox,Baltimore Orioles,away,9,643396,Isiah Kiner-Falefa,687064,Brandon Young,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,1,691718,Pete Crow-Armstrong,701656,Logan Henderson,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,2,673548,Seiya Suzuki,701656,Logan Henderson,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,3,683737,Michael Busch,701656,Logan Henderson,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,4,608324,Alex Bregman,701656,Logan Henderson,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,5,664023,Ian Happ,701656,Logan Henderson,S,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,6,663538,Nico Hoerner,701656,Logan Henderson,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,7,699393,Pedro Ramírez,701656,Logan Henderson,S,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,8,624424,Michael Conforto,701656,Logan Henderson,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Chicago Cubs,Milwaukee Brewers,home,9,608348,Carson Kelly,701656,Logan Henderson,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,1,694192,Jackson Chourio,592332,Kevin Gausman,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,2,668930,Brice Turang,592332,Kevin Gausman,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,3,661388,William Contreras,592332,Kevin Gausman,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,4,641343,Jake Bauers,592332,Kevin Gausman,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,5,683734,Andrew Vaughn,592332,Kevin Gausman,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,6,592885,Christian Yelich,592332,Kevin Gausman,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,7,669003,Garrett Mitchell,592332,Kevin Gausman,L,R,L
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,8,687401,Joey Ortiz,592332,Kevin Gausman,R,R,R
+2026-09-03,824632,2026-09-03T23:15:00Z,Milwaukee Brewers,Chicago Cubs,away,9,666152,David Hamilton,592332,Kevin Gausman,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,1,695600,Carter Jensen,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,2,677951,Bobby Witt Jr.,645261,Sandy Alcantara,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,3,695506,Jac Caglianone,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,4,521692,Salvador Perez,645261,Sandy Alcantara,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,5,686469,Vinnie Pasquantino,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,6,686681,Michael Massey,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,7,668942,Josh Rojas,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,8,686555,Isaac Collins,645261,Sandy Alcantara,S,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Kansas City Royals,Miami Marlins,home,9,664728,Kyle Isbel,645261,Sandy Alcantara,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,1,681715,Heriberto Hernández,608379,Michael Wacha,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,2,669065,Kyle Stowers,608379,Michael Wacha,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,3,672640,Otto Lopez,608379,Michael Wacha,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,4,665052,Griffin Conine,608379,Michael Wacha,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,5,691594,Javier Sanoja,608379,Michael Wacha,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,6,805300,Jakob Marsee,608379,Michael Wacha,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,7,682663,Agustín Ramírez,608379,Michael Wacha,R,R,R
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,8,691788,Joe Mack,608379,Michael Wacha,L,R,L
+2026-09-03,824069,2026-09-03T23:40:00Z,Miami Marlins,Kansas City Royals,away,9,688363,Graham Pauley,608379,Michael Wacha,L,R,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,1,677649,Ezequiel Duran,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,2,608369,Corey Seager,663556,Shane McClanahan,L,L,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,3,694671,Wyatt Langford,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,4,607043,Brandon Nimmo,663556,Shane McClanahan,L,L,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,5,679822,Justin Foscue,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,6,669394,Jake Burger,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,7,681351,Logan O'Hoppe,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,8,683227,Cody Freeman,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Texas Rangers,Tampa Bay Rays,home,9,553869,Elias Díaz,663556,Shane McClanahan,R,L,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,1,650490,Yandy Díaz,615698,Cal Quantrill,R,R,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,2,802415,Chandler Simpson,615698,Cal Quantrill,L,R,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,3,691406,Junior Caminero,615698,Cal Quantrill,R,R,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,4,666018,Jonathan Aranda,615698,Cal Quantrill,L,R,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,5,676356,Jonny DeLuca,615698,Cal Quantrill,R,R,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,6,656775,Cedric Mullins,615698,Cal Quantrill,L,R,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,7,622761,Jorge Mateo,615698,Cal Quantrill,R,R,R
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,8,680700,Richie Palacios,615698,Cal Quantrill,L,R,L
+2026-09-03,822853,2026-09-04T00:05:00Z,Tampa Bay Rays,Texas Rangers,away,9,663743,Nick Fortes,615698,Cal Quantrill,R,R,R
