@@ -595,12 +595,13 @@ def get_team_usage(team: str, week: Optional[int] = None) -> Dict[str, Any]:
 #
 # All six categories share one scoring idea: for a given stat pairing (an
 # offense stat and its comparable defense stat), a mismatch score is
-# (33 - offense_rank) + defense_rank -- how strong this team's offense is,
-# plus how weak the opponent's defense is, in that same stat. For passing,
-# rushing, scoring, and sacks, "offense succeeding" and "defense failing"
-# point the SAME direction (more passing yards is good for the offense and
-# bad for the defense at once), so sorting this score descending always
-# surfaces the biggest one-sided mismatch.
+# defense_rank - offense_rank -- zero means the two are equally ranked (a
+# neutral matchup), positive means the offense has the edge (its rank number
+# is better than the defense's), negative means the defense has the edge.
+# For passing, rushing, scoring, and sacks, "offense succeeding" and
+# "defense failing" point the SAME direction (more passing yards is good for
+# the offense and bad for the defense at once), so sorting this score
+# descending always surfaces the biggest one-sided mismatch.
 #
 # Interceptions are the exception -- an offense succeeds by throwing FEW,
 # a defense succeeds by taking MANY, which are opposite directions on the
@@ -707,7 +708,7 @@ def get_weekly_mismatches(category: str, week: Optional[int] = None) -> Dict[str
             "defense_rank": int(def_rank),
             "offense_value": round(float(off_value), 1) if pd.notna(off_value) else None,
             "defense_value": round(float(def_value), 1) if pd.notna(def_value) else None,
-            "score": round(float((33 - off_rank) + def_rank), 1),
+            "score": round(float(def_rank - off_rank), 1),
         }
 
     entries = []
