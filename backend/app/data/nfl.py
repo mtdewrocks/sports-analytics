@@ -37,6 +37,16 @@ ALL_STAT_GROUPS = {
 PASS_CONTEXT_STATS = set(PASSING_STATS) | set(RECEIVING_STATS)
 RUSH_CONTEXT_STATS = set(RUSHING_STATS)
 
+# Supplementary raw stats shown in a tooltip alongside the main selected
+# stat -- e.g. hovering a passing_yards row also shows that game's
+# completions/attempts, without a second API call. Only stats the user
+# actually asked for; everything else gets no tooltip.
+STAT_TOOLTIP_FIELDS = {
+    "passing_yards": ["completions", "attempts"],
+    "rushing_yards": ["carries"],
+    "receiving_yards": ["targets", "receptions"],
+}
+
 
 def _normalize(name: str) -> str:
     return name.strip().lower()
@@ -210,6 +220,7 @@ def get_game_log(
         stat_values = player_df["_stat_value"]
 
     rank_history = get_nfl_weekly_defense_ranks()
+    tooltip_fields = STAT_TOOLTIP_FIELDS.get(stat, [])
 
     # Build game rows matching NBA shape, plus defensive context
     game_rows = []
@@ -219,12 +230,19 @@ def get_game_log(
         opponent = row.get("opponent_team") or row.get("home_team") or ""
         label = f"W{int(week)}" if pd.notna(week) else ""
         game_date = f"{int(season)} {label}" if season and label else label or str(season or "")
+
+        tooltip = {}
+        for field in tooltip_fields:
+            val = row.get(field)
+            tooltip[field] = None if val is None or pd.isna(val) else float(val)
+
         game_rows.append({
             "game_date": game_date,
             "opponent": str(opponent),
             "stat_value": float(row["_stat_value"]),
             "week": int(week) if pd.notna(week) else None,
             "season": int(season) if pd.notna(season) else None,
+            "tooltip": tooltip,
             **_defense_context(stat, season, week, opponent, rank_history),
         })
 

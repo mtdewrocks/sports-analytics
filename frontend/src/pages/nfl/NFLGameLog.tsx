@@ -20,6 +20,7 @@ interface Game {
   def_ypa_last4?: number | null;
   def_ypa_rank_last4?: number | null;
   def_is_fallback?: boolean;
+  tooltip?: Record<string, number | null>;
 }
 
 interface UpcomingGame {
@@ -81,6 +82,21 @@ function ordinal(n: number): string {
     case 3: return `${n}rd`;
     default: return `${n}th`;
   }
+}
+
+const TOOLTIP_LABELS: Record<string, string> = {
+  completions: 'Completions',
+  attempts: 'Attempts',
+  carries: 'Carries',
+  targets: 'Targets',
+  receptions: 'Receptions',
+};
+
+function formatTooltip(tooltip?: Record<string, number | null>): string {
+  if (!tooltip || Object.keys(tooltip).length === 0) return '';
+  return Object.entries(tooltip)
+    .map(([key, val]) => `${TOOLTIP_LABELS[key] ?? key}: ${val ?? '—'}`)
+    .join(' \u00b7 ');
 }
 
 type RankMode = 'season' | 'last4';
@@ -253,12 +269,18 @@ export default function NFLGameLog() {
                     <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
                       <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
                       <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
-                      <td style={{
-                        padding: '8px 14px',
-                        textAlign: 'center',
-                        fontWeight: 700,
-                        color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
-                      }}>
+                      <td
+                        title={formatTooltip(g.tooltip)}
+                        style={{
+                          padding: '8px 14px',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
+                          cursor: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'help' : undefined,
+                          textDecoration: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'underline dotted' : undefined,
+                          textUnderlineOffset: 3,
+                        }}
+                      >
                         {g.stat_value}
                       </td>
                       {hasDefContext && (
