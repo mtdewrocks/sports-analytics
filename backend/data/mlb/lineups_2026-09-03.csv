@@ -1,0 +1,55 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,1,687462,Spencer Horwitz,694918,Blade Tidwell,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,2,664040,Brandon Lowe,694918,Blade Tidwell,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,3,668804,Bryan Reynolds,694918,Blade Tidwell,S,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,4,693304,Nick Gonzales,694918,Blade Tidwell,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,5,665833,Oneil Cruz,694918,Blade Tidwell,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,6,663968,Jake Mangum,694918,Blade Tidwell,S,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,7,804668,Rafael Flores Jr.,694918,Blade Tidwell,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,8,694378,Jacob Gonzalez,694918,Blade Tidwell,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,Pittsburgh Pirates,San Francisco Giants,home,9,669707,Jared Triolo,694918,Blade Tidwell,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,1,687551,Drew Gilbert,669199,Lake Bachar,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,2,646240,Rafael Devers,669199,Lake Bachar,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,3,805811,Bryce Eldridge,669199,Lake Bachar,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,4,813841,Jonah Cox,669199,Lake Bachar,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,5,806367,Turner Hill,669199,Lake Bachar,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,6,668800,Andrew Knizner,669199,Lake Bachar,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,7,694376,Shay Whitcomb,669199,Lake Bachar,R,R,R
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,8,801501,Nate Furman,669199,Lake Bachar,L,R,L
+2026-09-03,823337,2026-09-03T16:35:00Z,San Francisco Giants,Pittsburgh Pirates,away,9,683766,Christian Koss,669199,Lake Bachar,R,R,R
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,1,680757,Steven Kwan,667755,José Soriano,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,2,800050,Chase DeLauter,667755,José Soriano,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,3,608070,José Ramírez,667755,José Soriano,S,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,4,666176,Jo Adell,667755,José Soriano,R,R,R
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,5,663993,Nathaniel Lowe,667755,José Soriano,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,6,694197,Angel Genao,667755,José Soriano,S,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,7,683953,Travis Bazzana,667755,José Soriano,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,8,595978,Austin Hedges,667755,José Soriano,R,R,R
+2026-09-03,824388,2026-09-03T17:10:00Z,Cleveland Guardians,Toronto Blue Jays,home,9,677587,Brayan Rocchio,667755,José Soriano,S,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,1,703520,Brett Bateman,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,2,664770,Nathan Lukes,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,3,665489,Vladimir Guerrero Jr.,676440,Tanner Bibee,R,R,R
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,4,660821,Jesús Sánchez,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,5,815873,Sean Keys,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,6,669701,Josh Smith,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,7,665926,Andrés Giménez,676440,Tanner Bibee,L,R,L
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,8,676391,Ernie Clement,676440,Tanner Bibee,R,R,R
+2026-09-03,824388,2026-09-03T17:10:00Z,Toronto Blue Jays,Cleveland Guardians,away,9,678218,Brandon Valenzuela,676440,Tanner Bibee,S,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,1,665161,Jeremy Peña,622491,Luis Castillo,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,2,670541,Yordan Alvarez,622491,Luis Castillo,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,3,670623,Isaac Paredes,622491,Luis Castillo,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,4,514888,Jose Altuve,622491,Luis Castillo,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,5,662139,Daulton Varsho,622491,Luis Castillo,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,6,572233,Christian Walker,622491,Luis Castillo,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,7,666211,Taylor Trammell,622491,Luis Castillo,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,8,673237,Yainer Diaz,622491,Luis Castillo,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Houston Astros,Chicago White Sox,home,9,664774,LaMonte Wade Jr.,622491,Luis Castillo,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,1,803011,Sam Antonacci,686613,Hunter Brown,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,2,808959,Munetaka Murakami,686613,Hunter Brown,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,3,678246,Miguel Vargas,686613,Hunter Brown,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,4,643217,Andrew Benintendi,686613,Hunter Brown,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,5,695731,Braden Montgomery,686613,Hunter Brown,S,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,6,695657,Colson Montgomery,686613,Hunter Brown,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,7,805367,Chase Meidroth,686613,Hunter Brown,R,R,R
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,8,671976,Tristan Peters,686613,Hunter Brown,L,R,L
+2026-09-03,824144,2026-09-03T18:10:00Z,Chicago White Sox,Houston Astros,away,9,668670,Jake Rogers,686613,Hunter Brown,R,R,R
