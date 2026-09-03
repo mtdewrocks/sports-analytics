@@ -34,7 +34,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "mlb"
 #: weighting. Set 2025 to 0.5 to make the current season count double.
 SEASON_WEIGHTS = {
     2025: 1.0,
-    2026: 1.0,
+    2026: 2.0,
 }
 
 #: FIP is scaled so league FIP equals league ERA. Earned runs are not in the

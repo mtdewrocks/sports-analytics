@@ -82,7 +82,9 @@ function tierBb(v: number | null | undefined): string | null {
   if (v < 6.5) return BLUE_MED;
   return null;
 }
-// Pitcher's OWN K rate -- high is good for the pitcher (blue).
+// Pitcher's OWN K rate -- high is good for the pitcher (blue). Only used in
+// the PDF's restored mini split-table; the page relies on the fuller,
+// pooled-season Splits table instead (see the duplicate-stats discussion).
 function tierPitcherKpct(v: number | null | undefined): string | null {
   if (v == null || isNaN(v)) return null;
   if (v > 27) return BLUE_DARK;
@@ -108,8 +110,11 @@ function pctBarColor(pct: number) {
   return '#e74c3c';
 }
 
+const num = (v: any) => (v === '' || v == null ? null : Number(v));
+
 const SEASON_DISPLAY = ['Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'K/IP', 'WHIP'];
 const LOG_COLUMNS = ['Date', 'Opponent', 'W', 'L', 'IP', 'H', 'R', 'ER', 'HR', 'BB', 'SO', 'Pitches'];
+const HITTER_COLUMNS = ['Batting Order', 'Player', 'Bats', 'Average', 'wOBA', 'OBP', 'SLG', 'OPS', 'ISO', 'K%', 'BB%', 'Last Week BA'];
 
 const cardStyle: React.CSSProperties = {
   background: 'white',
@@ -140,6 +145,104 @@ const tdStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
   borderBottom: '1px solid #f0f0f0',
 };
+
+// ── Shared pieces, reused by both the full page and the PDF summary, so the
+// two views can't silently drift out of sync with each other. ─────────────
+
+function GameLogTable({ logs, title }: { logs: Record<string, any>[]; title: string }) {
+  if (logs.length === 0) return null;
+  return (
+    <div style={{ ...cardStyle, flex: 2, minWidth: 400, marginBottom: 0 }}>
+      <div style={cardHeaderStyle}>{title}</div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr>{LOG_COLUMNS.filter((c) => c in logs[0]).map((col) => <th key={col} style={thStyle}>{col}</th>)}</tr>
+          </thead>
+          <tbody>
+            {logs.map((row, i) => (
+              <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                {LOG_COLUMNS.filter((c) => c in row).map((col) => (
+                  <td key={col} style={tdStyle}>{String(row[col] ?? '—')}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function MatchupSummaryTable({ flags }: { flags: { label: string; count: number }[] }) {
+  if (flags.length === 0) return null;
+  return (
+    <div style={{ ...cardStyle, flex: 1, minWidth: 260, marginBottom: 0 }}>
+      <div style={cardHeaderStyle}>Matchup Summary</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <tbody>
+          {flags.map((f) => (
+            <tr key={f.label} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <td style={{ padding: '7px 14px', color: '#444' }}>{f.label}</td>
+              <td style={{ padding: '7px 14px', textAlign: 'right', fontWeight: 700 }}>{f.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
+  if (hitters.length === 0) return null;
+  return (
+    <div style={cardStyle}>
+      <div style={cardHeaderStyle}>Opposing Lineup (batting order)</div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr>
+              {HITTER_COLUMNS.filter((c) => c in hitters[0]).map((col) => <th key={col} style={thStyle}>{col}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {hitters.map((row, i) => {
+              const tierMap: Record<string, string | null> = {
+                'Average': tierAvg(num(row['Average'])),
+                'wOBA': tierWoba(num(row['wOBA'])),
+                'OBP': tierObp(num(row['OBP'])),
+                'SLG': tierSlg(num(row['SLG'])),
+                'OPS': tierOps(num(row['OPS'])),
+                'ISO': tierIso(num(row['ISO'])),
+                'K%': tierKpct(num(row['K%'])),
+                'BB%': tierBb(num(row['BB%'])),
+              };
+              return (
+                <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  {HITTER_COLUMNS.filter((c) => c in row).map((col) => {
+                    const v = row[col];
+                    const displayVal = v === '' || v == null ? '—'
+                      : col === 'Batting Order' ? String(Math.round(Number(v)))
+                      : String(v);
+                    return (
+                      <td key={col} style={{ ...tdStyle, ...cellStyle(tierMap[col] ?? null) }}>
+                        {displayVal}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', padding: '8px 16px' }}>
+        Darker red = tougher matchup for the pitcher; darker blue = more favorable. K% runs opposite
+        the others (a high strikeout rate favors the pitcher).
+      </div>
+    </div>
+  );
+}
 
 function PitcherSplitTable({ label, d }: { label: string; d?: PitcherSplit }) {
   if (!d) return null;
@@ -181,7 +284,7 @@ export default function MLBMatchup() {
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const reportRef = useRef<HTMLDivElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoadingPitchers(true);
@@ -207,7 +310,7 @@ export default function MLBMatchup() {
   };
 
   const downloadPdf = async () => {
-    const el = reportRef.current;
+    const el = pdfRef.current;
     if (!el || !matchupData) return;
     setDownloadingPdf(true);
     try {
@@ -223,7 +326,7 @@ export default function MLBMatchup() {
       let w = maxWidth, h = w / ratio;
       if (h > maxHeight) { h = maxHeight; w = h * ratio; }
       pdf.addImage(imgData, 'PNG', (pageWidth - w) / 2, (pageHeight - h) / 2, w, h);
-      pdf.save(`${selectedPitcher.replace(/\s+/g, '_')}_matchup.pdf`);
+      pdf.save(`${selectedPitcher.replace(/\s+/g, '_')}_matchup_summary.pdf`);
     } catch {
       setError('Failed to generate PDF. Please try again.');
     } finally {
@@ -232,7 +335,9 @@ export default function MLBMatchup() {
   };
 
   const seasonStats = matchupData?.season_stats;
-  const gameLogs = (matchupData?.game_logs ?? []).slice(0, 5);
+  const allGameLogs = matchupData?.game_logs ?? [];
+  const gameLogsFull = allGameLogs.slice(0, 10);   // full page: last 10
+  const gameLogsPdf = allGameLogs.slice(0, 5);      // PDF summary: last 5
   const splits = matchupData?.splits ?? [];
   const percentiles = matchupData?.percentiles ?? [];
   const opposingHitters = matchupData?.opposing_hitters ?? [];
@@ -245,8 +350,9 @@ export default function MLBMatchup() {
 
   const photoUrl = selectedPitcher ? `${IMAGE_BASE}/${encodeURIComponent(selectedPitcher)}.jpg` : '';
 
-  // Matchup summary: count opposing hitters clearing each threshold.
-  const num = (v: any) => (v === '' || v == null ? null : Number(v));
+  // Matchup summary: count opposing hitters clearing each threshold. Shared
+  // by both the page and the PDF, since it's derived from the same
+  // opposingHitters data either way.
   const summaryFlags: { label: string; count: number }[] = opposingHitters.length > 0 ? [
     { label: 'Tough AVG (>.270)', count: opposingHitters.filter((h) => { const c = tierAvg(num(h['Average'])); return c === RED_DARK || c === RED_MED; }).length },
     { label: 'Favorable AVG (<.250)', count: opposingHitters.filter((h) => { const c = tierAvg(num(h['Average'])); return c === BLUE_DARK || c === BLUE_MED; }).length },
@@ -255,6 +361,8 @@ export default function MLBMatchup() {
     { label: 'Tough contact (K%<17)', count: opposingHitters.filter((h) => tierKpct(num(h['K%'])) && [RED_DARK, RED_MED].includes(tierKpct(num(h['K%']))!)).length },
     { label: 'Tough BB (BB%>11)', count: opposingHitters.filter((h) => tierBb(num(h['BB%'])) && [RED_DARK, RED_MED].includes(tierBb(num(h['BB%']))!)).length },
   ] : [];
+
+  const hasPitcherSplits = !!(pitcherSplits.vs_r || pitcherSplits.vs_l);
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: '#f5f6fa' }}>
@@ -289,12 +397,12 @@ export default function MLBMatchup() {
               cursor: downloadingPdf ? 'not-allowed' : 'pointer',
             }}
           >
-            {downloadingPdf ? 'Generating PDF...' : 'Download PDF'}
+            {downloadingPdf ? 'Generating PDF...' : 'Download Matchup Summary Report'}
           </button>
         )}
       </div>
 
-      {/* ── Main Content ── */}
+      {/* ── Main Content (full detail) ── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
         {loading && <LoadingSpinner />}
         {error && (
@@ -304,9 +412,9 @@ export default function MLBMatchup() {
         )}
 
         {!loading && matchupData && (
-          <div ref={reportRef} style={{ background: '#f5f6fa', padding: 4 }}>
+          <div style={{ background: '#f5f6fa', padding: 4 }}>
 
-            {/* ── Pitcher Photo + Season Stats + Splits by hand ── */}
+            {/* ── Pitcher Photo + Season Stats ── */}
             <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
               <img
                 src={photoUrl}
@@ -337,108 +445,15 @@ export default function MLBMatchup() {
                   </table>
                 )}
               </div>
-              {(pitcherSplits.vs_r || pitcherSplits.vs_l) && (
-                <div style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
-                  {pitcherSplits.vs_r && <div style={{ width: 200 }}><PitcherSplitTable label="vs. RHB" d={pitcherSplits.vs_r} /></div>}
-                  {pitcherSplits.vs_l && <div style={{ width: 200 }}><PitcherSplitTable label="vs. LHB" d={pitcherSplits.vs_l} /></div>}
-                </div>
-              )}
             </div>
 
-            {/* ── Last 5 Starts + Matchup Summary side by side ── */}
+            {/* ── Last 10 Starts + Matchup Summary side by side ── */}
             <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
-              {gameLogs.length > 0 && (
-                <div style={{ ...cardStyle, flex: 2, minWidth: 400, marginBottom: 0 }}>
-                  <div style={cardHeaderStyle}>Last 5 Starts</div>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                      <thead>
-                        <tr>{LOG_COLUMNS.filter((c) => c in gameLogs[0]).map((col) => <th key={col} style={thStyle}>{col}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {gameLogs.map((row, i) => (
-                          <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                            {LOG_COLUMNS.filter((c) => c in row).map((col) => (
-                              <td key={col} style={tdStyle}>{String(row[col] ?? '—')}</td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-              {summaryFlags.length > 0 && (
-                <div style={{ ...cardStyle, flex: 1, minWidth: 260, marginBottom: 0 }}>
-                  <div style={cardHeaderStyle}>Matchup Summary</div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <tbody>
-                      {summaryFlags.map((f) => (
-                        <tr key={f.label} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                          <td style={{ padding: '7px 14px', color: '#444' }}>{f.label}</td>
-                          <td style={{ padding: '7px 14px', textAlign: 'right', fontWeight: 700 }}>{f.count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <GameLogTable logs={gameLogsFull} title="Last 10 Starts" />
+              <MatchupSummaryTable flags={summaryFlags} />
             </div>
 
-            {/* ── Opposing Hitters, with conditional formatting ── */}
-            {opposingHitters.length > 0 && (
-              <div style={cardStyle}>
-                <div style={cardHeaderStyle}>Opposing Lineup (batting order)</div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr>
-                        {['Batting Order', 'Player', 'Bats', 'Average', 'wOBA', 'OBP', 'SLG', 'OPS', 'ISO', 'K%', 'BB%', 'Last Week BA']
-                          .filter((c) => c in opposingHitters[0])
-                          .map((col) => <th key={col} style={thStyle}>{col}</th>)}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {opposingHitters.map((row, i) => {
-                        const tierMap: Record<string, string | null> = {
-                          'Average': tierAvg(num(row['Average'])),
-                          'wOBA': tierWoba(num(row['wOBA'])),
-                          'OBP': tierObp(num(row['OBP'])),
-                          'SLG': tierSlg(num(row['SLG'])),
-                          'OPS': tierOps(num(row['OPS'])),
-                          'ISO': tierIso(num(row['ISO'])),
-                          'K%': tierKpct(num(row['K%'])),
-                          'BB%': tierBb(num(row['BB%'])),
-                        };
-                        return (
-                          <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                            {['Batting Order', 'Player', 'Bats', 'Average', 'wOBA', 'OBP', 'SLG', 'OPS', 'ISO', 'K%', 'BB%', 'Last Week BA']
-                              .filter((c) => c in row)
-                              .map((col) => {
-                                const v = row[col];
-                                const displayVal = v === '' || v == null ? '—'
-                                  : col === 'Batting Order' ? String(Math.round(Number(v)))
-                                  : String(v);
-                                return (
-                                  <td key={col} style={{ ...tdStyle, ...cellStyle(tierMap[col] ?? null) }}>
-                                    {displayVal}
-                                  </td>
-                                );
-                              })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', padding: '8px 16px' }}>
-                  Darker red = tougher matchup for the pitcher; darker blue = more favorable. K% runs opposite
-                  the others (a high strikeout rate favors the pitcher).
-                </div>
-              </div>
-            )}
-
-            {/* ── Splits + Percentiles (existing feature, unchanged) ── */}
+            {/* ── Splits + Percentiles (full detail only -- not in the PDF) ── */}
             {(splits.length > 0 || percentiles.length > 0) && (
               <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
                 {splits.length > 0 && (
@@ -461,6 +476,9 @@ export default function MLBMatchup() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', padding: '8px 16px' }}>
+                      2026 plate appearances count double relative to 2025 when the two seasons are combined.
                     </div>
                   </div>
                 )}
@@ -488,6 +506,11 @@ export default function MLBMatchup() {
                 )}
               </div>
             )}
+
+            {/* ── Opposing Hitters, with conditional formatting -- kept as
+                 the LAST section, matching the order used across every PDF
+                 draft we iterated on. ── */}
+            <OpposingLineupTable hitters={opposingHitters} />
           </div>
         )}
 
@@ -497,6 +520,61 @@ export default function MLBMatchup() {
           </div>
         )}
       </div>
+
+      {/* ── Hidden PDF-only layout: a shorter one-page summary, not a
+           screenshot of the full page above. Rendered off-screen at a
+           fixed width so it always captures the same landscape layout
+           regardless of the browser's actual size. ── */}
+      {matchupData && (
+        <div
+          ref={pdfRef}
+          style={{ position: 'fixed', top: 0, left: -10000, width: 1300, background: '#f5f6fa', padding: 12 }}
+        >
+          <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <img
+              src={photoUrl}
+              alt={selectedPitcher}
+              style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e0e0', flexShrink: 0 }}
+            />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18, color: '#1a1a2e', marginBottom: 10 }}>{selectedPitcher}</div>
+              {seasonDisplay.length > 0 && (
+                <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                      {seasonDisplay.map(({ key }) => (
+                        <th key={key} style={{ padding: '7px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{key}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {seasonDisplay.map(({ key, val }) => (
+                        <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: '#1a1a2e', whiteSpace: 'nowrap', borderTop: '1px solid #f0f0f0' }}>
+                          {String(val ?? '—')}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </div>
+            {hasPitcherSplits && (
+              <div style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
+                {pitcherSplits.vs_r && <div style={{ width: 200 }}><PitcherSplitTable label="vs. RHB" d={pitcherSplits.vs_r} /></div>}
+                {pitcherSplits.vs_l && <div style={{ width: 200 }}><PitcherSplitTable label="vs. LHB" d={pitcherSplits.vs_l} /></div>}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+            <GameLogTable logs={gameLogsPdf} title="Last 5 Starts" />
+            <MatchupSummaryTable flags={summaryFlags} />
+          </div>
+
+          <OpposingLineupTable hitters={opposingHitters} />
+        </div>
+      )}
     </div>
   );
 }
