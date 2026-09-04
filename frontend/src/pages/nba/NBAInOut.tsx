@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getNBAPlayers, getNBATeammates, getNBAInOut } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import { theme } from '../../theme';
 
 interface InOutData {
   player: string;
@@ -23,7 +24,7 @@ const DISPLAY_STATS: { key: string; label: string }[] = [
 ];
 
 function DiffCell({ value }: { value: number }) {
-  const color = value > 0.5 ? '#27ae60' : value < -0.5 ? '#e74c3c' : '#333';
+  const color = value > 0.5 ? theme.dataBlue : value < -0.5 ? theme.dataRed : theme.textPrimary;
   return (
     <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color }}>
       {value > 0 ? '+' : ''}{value.toFixed(1)}
@@ -85,11 +86,11 @@ export default function NBAInOut() {
     : teammates;
 
   return (
-    <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 8, color: '#1a1a2e' }}>
+    <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+      <h2 style={{ marginTop: 0, marginBottom: 8, color: theme.textPrimary }}>
         In/Out Analysis{playerA ? ` — ${playerA}` : ''}
       </h2>
-      <p style={{ color: '#666', fontSize: 13, marginBottom: 24, marginTop: 0 }}>
+      <p style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 24, marginTop: 0 }}>
         Compare an anchor player's stats when specific teammates are in vs. out of the lineup.
         "Without" shows games where <strong>all</strong> selected teammates were absent.
       </p>
@@ -99,7 +100,7 @@ export default function NBAInOut() {
 
         {/* Anchor player */}
         <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>
             Anchor Player
           </label>
           <SearchDropdown
@@ -113,7 +114,7 @@ export default function NBAInOut() {
         {/* Teammate checkbox list — only shown once anchor player is selected */}
         {playerA && (
           <div style={{ minWidth: 220 }}>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>
               Exclude Teammates{excluded.length > 0 ? ` (${excluded.length} selected)` : ''}
             </label>
             <input
@@ -125,20 +126,21 @@ export default function NBAInOut() {
               style={{
                 width: '100%', boxSizing: 'border-box',
                 padding: '7px 10px', fontSize: 13,
-                border: '1px solid #ddd', borderRadius: 4,
+                border: `1px solid ${theme.border}`, borderRadius: 4,
                 marginBottom: 4,
-                background: teammates.length === 0 ? '#f5f5f5' : 'white',
+                background: teammates.length === 0 ? theme.bgCardHover : theme.bgCard,
+                color: theme.textPrimary,
               }}
             />
             <div style={{
-              border: '1px solid #ddd', borderRadius: 4,
+              border: `1px solid ${theme.border}`, borderRadius: 4,
               maxHeight: 200, overflowY: 'auto',
-              background: teammates.length === 0 ? '#f5f5f5' : 'white',
+              background: teammates.length === 0 ? theme.bgCardHover : theme.bgCard,
             }}>
               {teammates.length === 0 ? (
-                <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No teammates found</div>
+                <div style={{ padding: '8px 12px', color: theme.textSecondary, fontSize: 13 }}>No teammates found</div>
               ) : filteredTeammates.length === 0 ? (
-                <div style={{ padding: '8px 12px', color: '#aaa', fontSize: 13 }}>No matches</div>
+                <div style={{ padding: '8px 12px', color: theme.textSecondary, fontSize: 13 }}>No matches</div>
               ) : (
                 filteredTeammates.map((t) => (
                   <label
@@ -146,8 +148,8 @@ export default function NBAInOut() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '6px 12px', cursor: 'pointer', fontSize: 13,
-                      background: excluded.includes(t) ? '#f0f4ff' : 'transparent',
-                      borderBottom: '1px solid #f0f0f0',
+                      background: excluded.includes(t) ? theme.bgCardHover : 'transparent',
+                      borderBottom: `1px solid ${theme.border}`, color: theme.textPrimary,
                     }}
                   >
                     <input
@@ -165,7 +167,7 @@ export default function NBAInOut() {
               <button
                 onClick={() => setExcluded([])}
                 style={{
-                  marginTop: 4, fontSize: 12, color: '#999', background: 'none',
+                  marginTop: 4, fontSize: 12, color: theme.textSecondary, background: 'none',
                   border: 'none', cursor: 'pointer', padding: 0,
                 }}
               >
@@ -182,7 +184,7 @@ export default function NBAInOut() {
             disabled={!playerA || excluded.length === 0 || loading}
             style={{
               padding: '9px 28px',
-              background: '#1a1a2e',
+              background: theme.accent,
               color: 'white',
               border: 'none',
               borderRadius: 4,
@@ -200,7 +202,7 @@ export default function NBAInOut() {
 
       {loading && <LoadingSpinner />}
       {error && (
-        <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b', marginBottom: 16 }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
           {error}
         </div>
       )}
@@ -209,25 +211,25 @@ export default function NBAInOut() {
         <>
           <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
             <div style={{
-              background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: 6,
+              background: 'rgba(107,168,240,0.12)', border: `1px solid ${theme.dataBlue}`, borderRadius: 6,
               padding: '10px 20px', fontSize: 14,
             }}>
-              <span style={{ fontWeight: 700, color: '#2e7d32' }}>With {excludeLabel}: </span>
-              <span style={{ color: '#333' }}>{data.games_with} games</span>
+              <span style={{ fontWeight: 700, color: theme.dataBlue }}>With {excludeLabel}: </span>
+              <span style={{ color: theme.textPrimary }}>{data.games_with} games</span>
             </div>
             <div style={{
-              background: '#fce4ec', border: '1px solid #f48fb1', borderRadius: 6,
+              background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 6,
               padding: '10px 20px', fontSize: 14,
             }}>
-              <span style={{ fontWeight: 700, color: '#c62828' }}>Without {excludeLabel}: </span>
-              <span style={{ color: '#333' }}>{data.games_without} games</span>
+              <span style={{ fontWeight: 700, color: theme.dataRed }}>Without {excludeLabel}: </span>
+              <span style={{ color: theme.textPrimary }}>{data.games_without} games</span>
             </div>
           </div>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Stat</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>With</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>Without</th>
@@ -241,12 +243,12 @@ export default function NBAInOut() {
                   if (withVal === null && withoutVal === null) return null;
                   const diff = (withoutVal ?? 0) - (withVal ?? 0);
                   return (
-                    <tr key={key} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                      <td style={{ padding: '8px 14px', fontWeight: 700, color: '#1a1a2e' }}>{label}</td>
-                      <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                    <tr key={key} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
+                      <td style={{ padding: '8px 14px', fontWeight: 700, color: theme.textPrimary }}>{label}</td>
+                      <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>
                         {withVal !== null ? withVal.toFixed(1) : '—'}
                       </td>
-                      <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                      <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>
                         {withoutVal !== null ? withoutVal.toFixed(1) : '—'}
                       </td>
                       <DiffCell value={diff} />
@@ -260,7 +262,7 @@ export default function NBAInOut() {
       )}
 
       {!loading && !error && !data && (
-        <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 60 }}>
+        <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
           Select an anchor player, check at least one teammate to exclude, then click "Analyze".
         </div>
       )}

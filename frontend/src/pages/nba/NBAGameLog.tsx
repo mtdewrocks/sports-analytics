@@ -4,6 +4,7 @@ import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import { theme } from '../../theme';
 
 const STAT_OPTIONS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tov', '3pm', 'pra', 'blk_stl', 'reb_ast', 'pts_ast', 'pts_reb'];
 
@@ -42,9 +43,11 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: 8,
   marginBottom: 16,
-  border: '1px solid #ddd',
+  border: `1px solid ${theme.border}`,
   borderRadius: 4,
   boxSizing: 'border-box',
+  background: theme.bgPage,
+  color: theme.textPrimary,
 };
 
 export default function NBAGameLog() {
@@ -110,8 +113,8 @@ export default function NBAGameLog() {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
       {/* Sidebar */}
-      <div style={{ width: 240, background: '#f8f9fa', padding: '16px 16px', height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>NBA Game Log</h3>
+      <div style={{ width: 240, background: theme.bgCard, padding: '16px 16px', height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+        <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: theme.textPrimary }}>NBA Game Log</h3>
 
         <label style={labelStyle}>Player</label>
         <div style={{ position: 'relative', marginBottom: 16 }}>
@@ -130,8 +133,8 @@ export default function NBAGameLog() {
           {showPlayerDropdown && playerSearch.length > 0 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
-              background: 'white', border: '1px solid #ddd', borderRadius: 4,
-              maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 4,
+              maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
             }}>
               {players
                 .filter((p) => p.toLowerCase().includes(playerSearch.toLowerCase()))
@@ -144,16 +147,16 @@ export default function NBAGameLog() {
                       setShowPlayerDropdown(false);
                     }}
                     style={{
-                      padding: '8px 12px', cursor: 'pointer', fontSize: 13,
+                      padding: '8px 12px', cursor: 'pointer', fontSize: 13, color: theme.textPrimary,
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f4ff')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = theme.bgCardHover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = theme.bgCard)}
                   >
                     {p}
                   </div>
                 ))}
               {players.filter((p) => p.toLowerCase().includes(playerSearch.toLowerCase())).length === 0 && (
-                <div style={{ padding: '8px 12px', color: '#999', fontSize: 13 }}>No players found</div>
+                <div style={{ padding: '8px 12px', color: theme.textMuted, fontSize: 13 }}>No players found</div>
               )}
             </div>
           )}
@@ -234,7 +237,7 @@ export default function NBAGameLog() {
           style={{
             width: '100%',
             padding: '10px 0',
-            background: '#1a1a2e',
+            background: theme.accent,
             color: 'white',
             border: 'none',
             borderRadius: 4,
@@ -249,24 +252,24 @@ export default function NBAGameLog() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', background: theme.bgPage }}>
         {loading && <LoadingSpinner />}
         {error && (
-          <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b' }}>
+          <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed }}>
             {error}
           </div>
         )}
         {!loading && !error && gameData && (
           <>
-            <h2 style={{ marginTop: 0, color: '#1a1a2e' }}>
+            <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
               {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
-            <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Recent Games (Last 10)</h3>
+            <h3 style={{ marginTop: 28, marginBottom: 12, color: theme.textPrimary }}>Recent Games (Last 10)</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Date</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>MIN</th>
@@ -278,19 +281,19 @@ export default function NBAGameLog() {
               </thead>
               <tbody>
                 {[...gameData.games].slice(-10).reverse().map((g, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                     <td style={{ padding: '8px 14px' }}>{g.game_date}</td>
                     <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
-                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                       {g.min ?? '—'}
                     </td>
-                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                       {g.fga != null ? g.fga : '—'}
                     </td>
-                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                       {g.fgm != null && g.fga != null ? `${g.fgm}-${g.fga}` : '—'}
                     </td>
-                    <td style={{ padding: '8px 14px', textAlign: 'center', color: '#555' }}>
+                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                       {g.fgm != null && g.fga != null && g.fga > 0
                         ? `${Math.round((g.fgm / g.fga) * 100)}%`
                         : '—'}
@@ -299,7 +302,7 @@ export default function NBAGameLog() {
                       padding: '8px 14px',
                       textAlign: 'center',
                       fontWeight: 700,
-                      color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#2ecc71' : '#e74c3c',
+                      color: g.stat_value > (parseFloat(thresholdStr) || 0) ? theme.dataBlue : theme.dataRed,
                     }}>
                       {g.stat_value}
                     </td>
@@ -310,7 +313,7 @@ export default function NBAGameLog() {
           </>
         )}
         {!loading && !error && !gameData && (
-          <div style={{ color: '#999', marginTop: 60, textAlign: 'center', fontSize: 16 }}>
+          <div style={{ color: theme.textSecondary, marginTop: 60, textAlign: 'center', fontSize: 16, background: theme.bgPage, minHeight: '100%' }}>
             Select a player and click "Get Stats" to view game log.
           </div>
         )}

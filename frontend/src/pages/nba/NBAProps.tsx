@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getNBAPlayers, getNBAProps } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import { theme } from '../../theme';
 
 const MARKETS = [
   { label: 'Points',          value: 'points' },
@@ -33,11 +34,13 @@ interface Prop {
 
 const selectStyle: React.CSSProperties = {
   padding: '8px 12px',
-  border: '1px solid #ddd',
+  border: `1px solid ${theme.border}`,
   borderRadius: 4,
   fontSize: 14,
   minWidth: 160,
   height: 38,
+  background: theme.bgCard,
+  color: theme.textPrimary,
 };
 
 export default function NBAProps() {
@@ -76,13 +79,13 @@ export default function NBAProps() {
   };
 
   return (
-    <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>NBA Props</h2>
+    <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+      <h2 style={{ marginTop: 0, marginBottom: 24, color: theme.textPrimary }}>NBA Props</h2>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
         <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Player</label>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>Player</label>
           <SearchDropdown
             players={players}
             value={playerFilter}
@@ -92,14 +95,14 @@ export default function NBAProps() {
           />
         </div>
         <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Market</label>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>Market</label>
           <select style={selectStyle} value={marketFilter} onChange={(e) => setMarketFilter(e.target.value)}>
             <option value="">-- All Markets --</option>
             {MARKETS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Side</label>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>Side</label>
           <select style={selectStyle} value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
             <option value="">-- Both --</option>
             <option value="over">Over</option>
@@ -107,7 +110,7 @@ export default function NBAProps() {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Sportsbook</label>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>Sportsbook</label>
           <select style={selectStyle} value={bookmakerFilter} onChange={(e) => setBookmakerFilter(e.target.value)}>
             <option value="">-- All Books --</option>
             {SPORTSBOOKS.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -118,7 +121,7 @@ export default function NBAProps() {
           disabled={loading}
           style={{
             padding: '9px 24px',
-            background: '#1a1a2e',
+            background: theme.accent,
             color: 'white',
             border: 'none',
             borderRadius: 4,
@@ -135,7 +138,7 @@ export default function NBAProps() {
 
       {loading && <LoadingSpinner />}
       {error && (
-        <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b', marginBottom: 16 }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
           {error}
         </div>
       )}
@@ -143,7 +146,7 @@ export default function NBAProps() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>
-              <tr style={{ background: '#1a1a2e', color: 'white' }}>
+              <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                 <th style={{ padding: '10px 14px', textAlign: 'left' }}>Player</th>
                 <th style={{ padding: '10px 14px', textAlign: 'left' }}>Market</th>
                 <th style={{ padding: '10px 14px', textAlign: 'center' }}>Line</th>
@@ -154,14 +157,14 @@ export default function NBAProps() {
             </thead>
             <tbody>
               {props.map((p, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                  <td style={{ padding: '8px 14px', fontWeight: 600 }}>{p.player}</td>
-                  <td style={{ padding: '8px 14px', color: '#555' }}>{p.market}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center' }}>{p.line}</td>
+                <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
+                  <td style={{ padding: '8px 14px', fontWeight: 600, color: theme.textPrimary }}>{p.player}</td>
+                  <td style={{ padding: '8px 14px', color: theme.textSecondary }}>{p.market}</td>
+                  <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{p.line}</td>
                   <td style={{ padding: '8px 14px', textAlign: 'center' }}>
                     <span style={{
-                      background: p.side === 'over' ? '#d5f5e3' : '#fdecea',
-                      color: p.side === 'over' ? '#1e8449' : '#c0392b',
+                      background: p.side === 'over' ? 'rgba(107,168,240,0.18)' : 'rgba(244,87,63,0.18)',
+                      color: p.side === 'over' ? theme.dataBlue : theme.dataRed,
                       padding: '2px 10px',
                       borderRadius: 12,
                       fontWeight: 700,
@@ -171,19 +174,19 @@ export default function NBAProps() {
                       {p.side}
                     </span>
                   </td>
-                  <td style={{ padding: '8px 14px' }}>{p.bookmaker}</td>
-                  <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 14px', color: theme.textPrimary }}>{p.bookmaker}</td>
+                  <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: theme.textPrimary }}>
                     {p.odds > 0 ? `+${p.odds}` : p.odds}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: 10, fontSize: 13, color: '#999' }}>{props.length} result{props.length !== 1 ? 's' : ''}</div>
+          <div style={{ marginTop: 10, fontSize: 13, color: theme.textSecondary }}>{props.length} result{props.length !== 1 ? 's' : ''}</div>
         </div>
       )}
       {!loading && !error && props.length === 0 && (
-        <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 60 }}>
+        <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
           Use the filters above and click "Search" to find props.
         </div>
       )}
