@@ -8,26 +8,6 @@ def _normalize(name: str) -> str:
     return name.strip().lower()
 
 
-import unicodedata
-
-
-def _normalize_loose(name: str) -> str:
-    """Like _normalize(), but also strips accents/diacritics and common
-    generational suffixes (Jr./Sr./II/III/IV). Used only for matching names
-    ACROSS two independent data sources that don't spell these consistently
-    with each other (e.g. "Fernando Tatís" vs. "Fernando Tatis Jr") -- kept
-    separate from _normalize() since being this aggressive isn't safe to
-    apply to every other name-matching call site in this file.
-    """
-    name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
-    name = name.strip().lower().replace(".", "")
-    tokens = name.split()
-    suffixes = {"jr", "sr", "ii", "iii", "iv"}
-    while tokens and tokens[-1] in suffixes:
-        tokens.pop()
-    return " ".join(tokens)
-
-
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     cols_lower = {c.lower(): c for c in df.columns}
     for c in candidates:
@@ -394,17 +374,17 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
     if hot.empty:
         return []
 
-    # Team lookup -- hot_hitters.parquet has no team column at all, so this
-    # joins one in from each player's most recent logged game. Matched by
-    # normalized name since the two files share no common player_id.
-    team_by_player: Dict[str, str] = {}
-    logs = get_mlb_data().get("hitter_game_logs", pd.DataFrame())
-    if not logs.empty and "Player" in logs.columns and "Team" in logs.columns:
-        logs = logs.copy()
-        logs["Date"] = pd.to_datetime(logs["Date"], errors="coerce")
-        logs = logs[logs["Date"].notna()].sort_values("Date")
-        logs["_key"] = logs["Player"].apply(_normalize_loose)
-        team_by_player = logs.drop_duplicates("_key", keep="last").set_index("_key")["Team"].to_dict()
+    # Team lookup -- joined on player_id against a fresh daily roster
+    # snapshot (get_mlb_rosters.py), not fuzzy name matching against a
+    # game log. This is both more robust (no accent/suffix mismatches) and
+    # more complete (every active player has a roster spot, regardless of
+    # whether they've appeared in a recent box score).
+    team_by_id: Dict[int, str] = {}
+    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
+    if not rosters.empty and "player_id" in rosters.columns and "team" in rosters.columns:
+        team_by_id = rosters.dropna(subset=["player_id"]).set_index(
+            rosters["player_id"].astype(int)
+        )["team"].to_dict()
 
     # "AVG" rather than "BA" -- unambiguous next to OBP/SLG/OPS, and it
     # matches the "Average" column on the matchup table.
@@ -427,7 +407,12 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
     }
     cols = [c for c in display if c in hot.columns]
     out = hot[cols].rename(columns=display)
-    out["Team"] = hot["player"].apply(lambda p: team_by_player.get(_normalize_loose(p), ""))
+    if "player_id" in hot.columns:
+        out["Team"] = hot["player_id"].apply(
+            lambda pid: team_by_id.get(int(pid), "") if pd.notna(pid) else ""
+        )
+    else:
+        out["Team"] = ""
     # Team right after Player, not tacked on at the end.
     ordered = ["Player", "Team"] + [c for c in out.columns if c not in ("Player", "Team")]
     out = out[ordered]

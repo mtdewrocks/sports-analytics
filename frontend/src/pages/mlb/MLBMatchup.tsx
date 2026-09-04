@@ -36,8 +36,8 @@ interface MatchupData {
 // from its intended "nothing notable here" meaning. ──────────────────────
 const RED_DARK = theme.dataRed;
 const RED_MED = '#c2645a';
-const BLUE_MED = '#6f97cc';
-const BLUE_DARK = theme.dataBlue;
+const BLUE_MED = '#0ea5e9';
+const BLUE_DARK = '#1d4ed8';
 const NEUTRAL = theme.bgCardHover;
 
 function tier5(v: number | null | undefined, t90: number, t75: number, t25: number, t10: number): string | null {
@@ -110,13 +110,14 @@ function tierHrPct(v: number | null | undefined): string | null {
 
 function cellStyle(color: string | null): React.CSSProperties {
   // Verified via WCAG contrast ratios against each specific fill: black
-  // text clears 4.5:1 on all four bright tiers (RED_DARK 6.28, RED_MED
-  // 5.26, BLUE_MED 6.97, BLUE_DARK 8.48). NEUTRAL is the one exception --
-  // it's now a DARK fill (blends into the dark table), so it needs light
-  // text instead (16.17:1), not the black used for the other four.
+  // text clears 4.5:1 on RED_DARK (6.28), RED_MED (5.26), and BLUE_MED
+  // (7.58). Two colors need light text instead: NEUTRAL is a dark fill
+  // (blends into the dark table, 16.17:1 with light text), and BLUE_DARK
+  // is a more saturated royal blue that actually FAILS with black text
+  // (3.13:1) but passes comfortably with theme.textPrimary (5.37:1).
   if (!color) return {};
-  const textColor = color === NEUTRAL ? theme.textPrimary : '#000000';
-  return { background: color, color: textColor, fontWeight: 600 };
+  const useLightText = color === NEUTRAL || color === BLUE_DARK;
+  return { background: color, color: useLightText ? theme.textPrimary : '#000000', fontWeight: 600 };
 }
 
 function pctBarColor(pct: number) {

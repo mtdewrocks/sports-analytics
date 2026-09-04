@@ -46,6 +46,14 @@ jobs:
       - name: Pull season starters
         run: python -u backend/app/get_starters.py
 
+      # Fresh active-roster snapshot for all 30 teams, refreshed on every
+      # run -- the player -> team lookup used by the Hot Hitters page. Not
+      # dependent on a player having appeared in a recent game, so a trade
+      # or call-up is correct within the hour instead of waiting for (or
+      # permanently missing, as the old game-log-based lookup did).
+      - name: Pull current MLB rosters
+        run: python -u backend/app/get_mlb_rosters.py
+
       # Only fetches photos that are missing, so this is a no-op on a normal
       # run and costs nothing.
       - name: Download missing pitcher photos
@@ -70,6 +78,7 @@ jobs:
           day="$(TZ=America/Chicago date +%F)"
 
           for path in "backend/data/mlb/starters.parquet" \
+                      "backend/data/mlb/mlb_rosters.parquet" \
                       "backend/data/mlb/lineups_${day}.csv" \
                       "backend/data/mlb/daily_matchups.parquet"; do
             if [ -f "$path" ]; then
