@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBillingStatus, createCheckout, createPortal } from '../api/billing';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { theme } from '../theme';
 
 interface BillingStatus {
   has_access: boolean;
@@ -53,29 +54,29 @@ export default function Billing() {
   };
 
   const card: React.CSSProperties = {
-    background: 'white',
+    background: theme.bgCard,
     borderRadius: 12,
     padding: '32px',
     marginBottom: 24,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
   };
 
   return (
-    <div style={{ maxWidth: 640, margin: '40px auto', padding: '0 24px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1a1a2e', marginBottom: 24 }}>Billing & Subscription</h1>
+    <div style={{ maxWidth: 640, margin: '40px auto', padding: '0 24px', background: theme.bgPage, minHeight: '100vh' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.textPrimary, marginBottom: 24 }}>Billing & Subscription</h1>
 
       {success && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', padding: '12px 16px', borderRadius: 8, marginBottom: 20, fontWeight: 600 }}>
+        <div style={{ background: 'rgba(29,158,117,0.12)', border: `1px solid ${theme.accent}`, color: theme.accent, padding: '12px 16px', borderRadius: 8, marginBottom: 20, fontWeight: 600 }}>
           Subscription activated successfully! Welcome aboard.
         </div>
       )}
       {canceled && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '12px 16px', borderRadius: 8, marginBottom: 20 }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, color: theme.dataRed, padding: '12px 16px', borderRadius: 8, marginBottom: 20 }}>
           Checkout was canceled. No charges were made.
         </div>
       )}
       {error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '12px 16px', borderRadius: 8, marginBottom: 20 }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, color: theme.dataRed, padding: '12px 16px', borderRadius: 8, marginBottom: 20 }}>
           {error}
         </div>
       )}
@@ -86,32 +87,32 @@ export default function Billing() {
         <>
           {/* Status Card */}
           <div style={card}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: '#1a1a2e' }}>Account Status</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: theme.textPrimary }}>Account Status</h2>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 120, background: '#f9fafb', borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: status.has_access ? '#3d7fd1' : '#d1483d' }}>
+              <div style={{ flex: 1, minWidth: 120, background: theme.bgCardHover, borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: status.has_access ? theme.dataBlue : theme.dataRed }}>
                   {status.has_access ? 'Active' : 'Inactive'}
                 </div>
-                <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Access Status</div>
+                <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4 }}>Access Status</div>
               </div>
               {status.trial_active && status.days_remaining !== null && (
-                <div style={{ flex: 1, minWidth: 120, background: '#eff6ff', borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: '#2563eb' }}>{status.days_remaining}</div>
-                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Trial Days Left</div>
+                <div style={{ flex: 1, minWidth: 120, background: theme.bgCardHover, borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: theme.dataBlue }}>{status.days_remaining}</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4 }}>Trial Days Left</div>
                 </div>
               )}
               {status.trial_ends_at && (
-                <div style={{ flex: 1, minWidth: 160, background: '#f9fafb', borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>
+                <div style={{ flex: 1, minWidth: 160, background: theme.bgCardHover, borderRadius: 8, padding: '16px 20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: theme.textPrimary }}>
                     {new Date(status.trial_ends_at).toLocaleDateString()}
                   </div>
-                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Trial Ends</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4 }}>Trial Ends</div>
                 </div>
               )}
             </div>
 
             {status.subscription_active && (
-              <div style={{ marginTop: 16, padding: '10px 14px', background: '#f0fdf4', borderRadius: 6, color: '#15803d', fontSize: 14 }}>
+              <div style={{ marginTop: 16, padding: '10px 14px', background: 'rgba(29,158,117,0.12)', borderRadius: 6, color: theme.accent, fontSize: 14 }}>
                 Subscription status: <strong>{status.subscription_status}</strong>
               </div>
             )}
@@ -119,7 +120,7 @@ export default function Billing() {
 
           {/* Action Card */}
           <div style={card}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#1a1a2e' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: theme.textPrimary }}>
               {status.subscription_active ? 'Manage Subscription' : 'Upgrade to Pro'}
             </h2>
             {!status.subscription_active && (
@@ -129,9 +130,9 @@ export default function Billing() {
                     onClick={() => setPlan('monthly')}
                     style={{
                       flex: 1, padding: '10px 0', borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                      border: plan === 'monthly' ? '2px solid #1a1a2e' : '1px solid #ddd',
-                      background: plan === 'monthly' ? '#1a1a2e' : 'white',
-                      color: plan === 'monthly' ? 'white' : '#1a1a2e',
+                      border: plan === 'monthly' ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`,
+                      background: plan === 'monthly' ? theme.accent : theme.bgCardHover,
+                      color: plan === 'monthly' ? 'white' : theme.textPrimary,
                     }}
                   >
                     Monthly — $9.99/mo
@@ -140,15 +141,15 @@ export default function Billing() {
                     onClick={() => setPlan('yearly')}
                     style={{
                       flex: 1, padding: '10px 0', borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                      border: plan === 'yearly' ? '2px solid #1a1a2e' : '1px solid #ddd',
-                      background: plan === 'yearly' ? '#1a1a2e' : 'white',
-                      color: plan === 'yearly' ? 'white' : '#1a1a2e',
+                      border: plan === 'yearly' ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`,
+                      background: plan === 'yearly' ? theme.accent : theme.bgCardHover,
+                      color: plan === 'yearly' ? 'white' : theme.textPrimary,
                     }}
                   >
                     Annual — $99.99/yr
                   </button>
                 </div>
-                <p style={{ color: '#666', fontSize: 14, marginBottom: 20 }}>
+                <p style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 20 }}>
                   Subscribe for full access at{' '}
                   <strong>{plan === 'monthly' ? '$9.99/month' : '$99.99/year'}</strong>. Cancel anytime.
                 </p>
@@ -158,7 +159,7 @@ export default function Billing() {
               <button
                 onClick={handlePortal}
                 disabled={actionLoading}
-                style={{ background: '#1a1a2e', color: 'white', border: 'none', padding: '12px 28px', fontSize: 15, fontWeight: 700, borderRadius: 6, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
+                style={{ background: theme.accent, color: 'white', border: 'none', padding: '12px 28px', fontSize: 15, fontWeight: 700, borderRadius: 6, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
               >
                 {actionLoading ? 'Loading...' : 'Manage Subscription'}
               </button>
@@ -166,7 +167,7 @@ export default function Billing() {
               <button
                 onClick={handleCheckout}
                 disabled={actionLoading}
-                style={{ background: '#e94560', color: 'white', border: 'none', padding: '12px 28px', fontSize: 15, fontWeight: 700, borderRadius: 6, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
+                style={{ background: theme.accent, color: 'white', border: 'none', padding: '12px 28px', fontSize: 15, fontWeight: 700, borderRadius: 6, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
               >
                 {actionLoading ? 'Loading...' : `Start Subscription — ${plan === 'monthly' ? '$9.99/month' : '$99.99/year'}`}
               </button>
@@ -175,7 +176,7 @@ export default function Billing() {
 
           {/* Included Features */}
           <div style={card}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: '#1a1a2e' }}>What's Included</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: theme.textPrimary }}>What's Included</h2>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {[
                 'Full NBA game log analysis with filters',
@@ -187,9 +188,9 @@ export default function Billing() {
                 'Back-to-back and 3-in-4 filters',
                 'Export-ready tables and charts',
               ].map((f) => (
-                <li key={f} style={{ padding: '10px 0', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <span style={{ color: '#2ecc71', fontWeight: 700 }}>✓</span>
-                  <span style={{ color: '#374151', fontSize: 14 }}>{f}</span>
+                <li key={f} style={{ padding: '10px 0', borderBottom: `1px solid ${theme.border}`, display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <span style={{ color: theme.accent, fontWeight: 700 }}>✓</span>
+                  <span style={{ color: theme.textPrimary, fontSize: 14 }}>{f}</span>
                 </li>
               ))}
             </ul>

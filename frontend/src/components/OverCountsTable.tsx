@@ -1,3 +1,5 @@
+import { theme } from '../theme';
+
 interface OverCount { over: number; total: number; pct: number; }
 interface OverCountsTableProps {
   over_counts: { last5: OverCount; last10: OverCount; season: OverCount };
@@ -13,7 +15,7 @@ function formatPct(pct: number): string {
 
 function pctColor(pct: number): string {
   const val = pct > 1 ? pct / 100 : pct;
-  return val >= 0.6 ? '#2ecc71' : val >= 0.4 ? '#f39c12' : '#e74c3c';
+  return val >= 0.6 ? theme.dataBlue : val >= 0.4 ? '#9ca3af' : theme.dataRed;
 }
 
 export default function OverCountsTable({ over_counts, threshold, stat }: OverCountsTableProps) {
@@ -25,12 +27,12 @@ export default function OverCountsTable({ over_counts, threshold, stat }: OverCo
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h4 style={{ marginBottom: 8, color: '#1a1a2e' }}>
+      <h4 style={{ marginBottom: 8, color: theme.textPrimary }}>
         Over {threshold} {stat.toUpperCase()}
       </h4>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
         <thead>
-          <tr style={{ background: '#1a1a2e', color: 'white' }}>
+          <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
             <th style={{ padding: '8px 12px', textAlign: 'left' }}>Period</th>
             <th style={{ padding: '8px 12px', textAlign: 'center' }}>Over</th>
             <th style={{ padding: '8px 12px', textAlign: 'center' }}>Total</th>
@@ -39,10 +41,10 @@ export default function OverCountsTable({ over_counts, threshold, stat }: OverCo
         </thead>
         <tbody>
           {periods.map(({ label, data }) => (
-            <tr key={label} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '8px 12px', color: '#555' }}>{label}</td>
-              <td style={{ padding: '8px 12px', textAlign: 'center' }}>{data.over}</td>
-              <td style={{ padding: '8px 12px', textAlign: 'center' }}>{data.total}</td>
+            <tr key={label} style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <td style={{ padding: '8px 12px', color: theme.textSecondary }}>{label}</td>
+              <td style={{ padding: '8px 12px', textAlign: 'center', color: theme.textPrimary }}>{data.over}</td>
+              <td style={{ padding: '8px 12px', textAlign: 'center', color: theme.textPrimary }}>{data.total}</td>
               <td style={{
                 padding: '8px 12px', textAlign: 'center',
                 fontWeight: 'bold', color: pctColor(data.pct),

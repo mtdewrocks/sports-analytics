@@ -2,6 +2,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine,
   ResponsiveContainer, Cell, CartesianGrid,
 } from 'recharts';
+import { theme } from '../theme';
 
 interface Game { game_date?: string; week?: number; stat_value: number; opponent?: string; }
 interface StatChartProps { games: Game[]; threshold: number; stat: string; }
@@ -17,26 +18,26 @@ export default function StatChart({ games, threshold, stat }: StatChartProps) {
           angle={-45}
           textAnchor="end"
           interval={0}
-          tick={{ fontSize: 10 }}
-          axisLine={{ stroke: '#ddd' }}
+          tick={{ fontSize: 10, fill: theme.textSecondary }}
+          axisLine={{ stroke: theme.border }}
           tickLine={false}
         />
         <YAxis
-          axisLine={{ stroke: '#ddd' }}
+          axisLine={{ stroke: theme.border }}
           tickLine={false}
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: theme.textSecondary }}
           width={36}
         />
         <Tooltip formatter={(v) => [v ?? '', stat.toUpperCase()]} />
         <ReferenceLine
           y={threshold}
-          stroke="#e74c3c"
+          stroke={theme.dataRed}
           strokeDasharray="5 5"
-          label={{ value: `Line: ${threshold}`, fill: '#e74c3c', fontSize: 12, position: 'insideTopRight' }}
+          label={{ value: `Line: ${threshold}`, fill: theme.dataRed, fontSize: 12, position: 'insideTopRight' }}
         />
         <Bar dataKey="stat_value" name={stat} radius={[3, 3, 0, 0]}>
           {games.map((g, i) => (
-            <Cell key={i} fill={g.stat_value >= threshold ? '#2ecc71' : '#e74c3c'} />
+            <Cell key={i} fill={g.stat_value >= threshold ? theme.dataBlue : theme.dataRed} />
           ))}
         </Bar>
       </BarChart>
