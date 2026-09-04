@@ -278,7 +278,7 @@ export default function NFLGameLog() {
                           padding: '8px 14px',
                           textAlign: 'center',
                           fontWeight: 700,
-                          color: g.stat_value > (parseFloat(thresholdStr) || 0) ? '#3d7fd1' : '#d1483d',
+                          color: g.stat_value > (parseFloat(thresholdStr) || 0) ? theme.dataBlue : theme.dataRed,
                           cursor: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'help' : undefined,
                           textDecoration: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'underline dotted' : undefined,
                           textUnderlineOffset: 3,

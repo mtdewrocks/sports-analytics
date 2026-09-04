@@ -85,7 +85,7 @@ function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
 function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
   return (
     <div style={{ flex: 1, minWidth: 320, background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
-      <div style={{ background: theme.bgCardHover, color: theme.textPrimary, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: theme.bgCardHover, color: theme.textPrimary, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
         <TeamLogo teamAbbr={teamAbbr} />
         <span style={{ fontWeight: 700, fontSize: 20 }}>{teamAbbr}</span>
       </div>
