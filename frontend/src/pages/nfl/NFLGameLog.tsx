@@ -4,6 +4,7 @@ import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import { theme } from '../../theme';
 
 interface Game {
   week?: number;
@@ -59,7 +60,9 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: 8,
   marginBottom: 16,
-  border: '1px solid #ddd',
+  border: `1px solid ${theme.border}`,
+  background: theme.bgPage,
+  color: theme.textPrimary,
   borderRadius: 4,
   boxSizing: 'border-box',
 };
@@ -67,10 +70,10 @@ const inputStyle: React.CSSProperties = {
 // Same absolute-tier convention as the Matchup page: top 10 of 32 teams,
 // bottom 10, middle 12 -- rather than comparing anything to an opponent.
 function rankColor(rank: number | null | undefined): string {
-  if (rank == null) return '#1a1a2e';
-  if (rank <= 10) return '#1565c0';
-  if (rank >= 23) return '#c62828';
-  return '#1a1a2e';
+  if (rank == null) return theme.textPrimary;
+  if (rank <= 10) return theme.dataBlue;
+  if (rank >= 23) return theme.dataRed;
+  return theme.textPrimary;
 }
 
 function ordinal(n: number): string {
@@ -149,8 +152,8 @@ export default function NFLGameLog() {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
       {/* Sidebar */}
-      <div style={{ width: 280, background: '#f8f9fa', padding: 20, height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>NFL Game Log</h3>
+      <div style={{ width: 280, background: theme.bgCard, padding: 20, height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+        <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: theme.textPrimary }}>NFL Game Log</h3>
 
         <label style={labelStyle}>Player</label>
         <div style={{ marginBottom: 16 }}>
@@ -187,7 +190,7 @@ export default function NFLGameLog() {
           style={{
             width: '100%',
             padding: '10px 0',
-            background: '#1a1a2e',
+            background: theme.accent,
             color: 'white',
             border: 'none',
             borderRadius: 4,
@@ -202,32 +205,32 @@ export default function NFLGameLog() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 24, overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: 24, overflowY: 'auto', background: theme.bgPage }}>
         {loading && <LoadingSpinner />}
         {error && (
-          <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b' }}>
+          <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed }}>
             {error}
           </div>
         )}
         {!loading && !error && gameData && (
           <>
-            <h2 style={{ marginTop: 0, color: '#1a1a2e' }}>
+            <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
               {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 }}>
-              <h3 style={{ margin: 0, color: '#1a1a2e' }}>Recent Games</h3>
+              <h3 style={{ margin: 0, color: theme.textPrimary }}>Recent Games</h3>
               {hasDefContext && (
-                <div style={{ display: 'flex', gap: 4, background: '#f0f0f0', borderRadius: 4, padding: 3 }}>
+                <div style={{ display: 'flex', gap: 4, background: theme.bgCard, borderRadius: 4, padding: 3 }}>
                   <button
                     onClick={() => setRankMode('season')}
                     style={{
                       border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
-                      background: rankMode === 'season' ? 'white' : 'transparent',
+                      background: rankMode === 'season' ? theme.bgCardHover : 'transparent',
                       fontWeight: rankMode === 'season' ? 700 : 400,
-                      color: rankMode === 'season' ? '#1a1a2e' : '#666',
+                      color: rankMode === 'season' ? theme.textPrimary : theme.textSecondary,
                     }}
                   >
                     Season
@@ -236,9 +239,9 @@ export default function NFLGameLog() {
                     onClick={() => setRankMode('last4')}
                     style={{
                       border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
-                      background: rankMode === 'last4' ? 'white' : 'transparent',
+                      background: rankMode === 'last4' ? theme.bgCardHover : 'transparent',
                       fontWeight: rankMode === 'last4' ? 700 : 400,
-                      color: rankMode === 'last4' ? '#1a1a2e' : '#666',
+                      color: rankMode === 'last4' ? theme.textPrimary : theme.textSecondary,
                     }}
                   >
                     Last 4 Games
@@ -249,7 +252,7 @@ export default function NFLGameLog() {
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
@@ -266,7 +269,7 @@ export default function NFLGameLog() {
                   const ypgRank = rankMode === 'season' ? g.def_ypg_rank_season : g.def_ypg_rank_last4;
                   const ypaRank = rankMode === 'season' ? g.def_ypa_rank_season : g.def_ypa_rank_last4;
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                    <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                       <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
                       <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
                       <td
@@ -287,11 +290,11 @@ export default function NFLGameLog() {
                         <>
                           <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypgRank) }}>
                             {ypgRank != null ? ordinal(ypgRank) : '—'}
-                            {g.def_is_fallback && <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (prior yr)</span>}
+                            {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
                           </td>
                           <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypaRank) }}>
                             {ypaRank != null ? ordinal(ypaRank) : '—'}
-                            {g.def_is_fallback && <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (prior yr)</span>}
+                            {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
                           </td>
                         </>
                       )}
@@ -303,28 +306,28 @@ export default function NFLGameLog() {
 
             {gameData.upcoming.length > 0 && (
               <>
-                <h3 style={{ marginTop: 28, marginBottom: 12, color: '#1a1a2e' }}>Upcoming</h3>
+                <h3 style={{ marginTop: 28, marginBottom: 12, color: theme.textPrimary }}>Upcoming</h3>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                   <thead>
-                    <tr style={{ background: '#f0f0f0' }}>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: '#666' }}>Week</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: '#666' }}>Opponent</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: '#666' }}>Opp D Rank (Yds/G)</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: '#666' }}>Opp D Rank (Yds/Att)</th>
+                    <tr style={{ background: theme.bgCard }}>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: theme.textSecondary }}>Week</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 12, color: theme.textSecondary }}>Opponent</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: theme.textSecondary }}>Opp D Rank (Yds/G)</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: 12, color: theme.textSecondary }}>Opp D Rank (Yds/Att)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {gameData.upcoming.map((g, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                         <td style={{ padding: '8px 14px' }}>W{g.week}</td>
                         <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
                         <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(g.def_ypg_rank_current) }}>
                           {g.def_ypg_rank_current != null ? ordinal(g.def_ypg_rank_current) : '—'}
-                          <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (current)</span>
+                          <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (current)</span>
                         </td>
                         <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(g.def_ypa_rank_current) }}>
                           {g.def_ypa_rank_current != null ? ordinal(g.def_ypa_rank_current) : '—'}
-                          <span style={{ fontSize: 11, color: '#999', fontWeight: 400 }}> (current)</span>
+                          <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (current)</span>
                         </td>
                       </tr>
                     ))}
@@ -335,7 +338,7 @@ export default function NFLGameLog() {
           </>
         )}
         {!loading && !error && !gameData && (
-          <div style={{ color: '#999', marginTop: 60, textAlign: 'center', fontSize: 16 }}>
+          <div style={{ color: theme.textSecondary, marginTop: 60, textAlign: 'center', fontSize: 16, background: theme.bgPage, minHeight: '100%' }}>
             Select a player and stat, then click "Get Stats".
           </div>
         )}

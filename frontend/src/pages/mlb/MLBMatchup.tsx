@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import { getMLBPitchers, getMLBMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import { theme } from '../../theme';
 
 const IMAGE_BASE = 'https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb/pitcher_images';
 
@@ -25,12 +26,19 @@ interface MatchupData {
 // ── Colorblind-safe tier system: red = tough matchup for the pitcher,
 // blue = favorable, gray = neutral. Blue/red stays distinguishable for the
 // common (red-green) forms of color blindness, since blue sits outside
-// that confusion line entirely. ──────────────────────────────────────────
-const RED_DARK = '#d1483d';
-const RED_MED = '#f0b3ac';
-const BLUE_MED = '#96bff5';
-const BLUE_DARK = '#3d7fd1';
-const NEUTRAL = '#eeeeee';
+// that confusion line entirely.
+//
+// Redesigned for the dark theme: DARK now means "most vivid/visible tier"
+// (matching theme.dataRed/dataBlue) rather than "most saturated pastel" as
+// in the old light-mode version, and NEUTRAL is now a dark fill that blends
+// into the dark table -- the old light gray NEUTRAL (#eeeeee) would stand
+// out as its own highlight against a dark background, which is backwards
+// from its intended "nothing notable here" meaning. ──────────────────────
+const RED_DARK = theme.dataRed;
+const RED_MED = '#c2645a';
+const BLUE_MED = '#6f97cc';
+const BLUE_DARK = theme.dataBlue;
+const NEUTRAL = theme.bgCardHover;
 
 function tier5(v: number | null | undefined, t90: number, t75: number, t25: number, t10: number): string | null {
   if (v == null || isNaN(v)) return null;
@@ -101,19 +109,20 @@ function tierHrPct(v: number | null | undefined): string | null {
 }
 
 function cellStyle(color: string | null): React.CSSProperties {
-  // Verified via WCAG contrast ratios: black text clears the accessibility
-  // threshold (4.5:1) against every one of these five tier colors, including
-  // the two darkest (RED_DARK at 4.71:1, BLUE_DARK at 5.15:1) -- white does
-  // not win against any of them, since none of these colors are as dark in
-  // actual luminance as they look. Previously this left color unset, which
-  // inherited a low-contrast gray from the table's default text color.
-  return color ? { background: color, color: '#000000', fontWeight: 600 } : {};
+  // Verified via WCAG contrast ratios against each specific fill: black
+  // text clears 4.5:1 on all four bright tiers (RED_DARK 6.28, RED_MED
+  // 5.26, BLUE_MED 6.97, BLUE_DARK 8.48). NEUTRAL is the one exception --
+  // it's now a DARK fill (blends into the dark table), so it needs light
+  // text instead (16.17:1), not the black used for the other four.
+  if (!color) return {};
+  const textColor = color === NEUTRAL ? theme.textPrimary : '#000000';
+  return { background: color, color: textColor, fontWeight: 600 };
 }
 
 function pctBarColor(pct: number) {
-  if (pct >= 70) return '#2ecc71';
-  if (pct >= 40) return '#f39c12';
-  return '#e74c3c';
+  if (pct >= 70) return theme.dataBlue;
+  if (pct >= 40) return '#9ca3af';
+  return theme.dataRed;
 }
 
 const num = (v: any) => (v === '' || v == null ? null : Number(v));
@@ -123,15 +132,15 @@ const LOG_COLUMNS = ['Date', 'Opponent', 'W', 'L', 'IP', 'H', 'R', 'ER', 'HR', '
 const HITTER_COLUMNS = ['Batting Order', 'Player', 'Bats', 'Average', 'wOBA', 'OBP', 'SLG', 'OPS', 'ISO', 'K%', 'BB%', 'Last Week BA'];
 
 const cardStyle: React.CSSProperties = {
-  background: 'white',
+  background: theme.bgCard,
   borderRadius: 8,
-  boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+  boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
   marginBottom: 20,
   overflow: 'hidden',
 };
 const cardHeaderStyle: React.CSSProperties = {
-  background: '#1a1a2e',
-  color: 'white',
+  background: theme.bgCardHover,
+  color: theme.textPrimary,
   padding: '10px 16px',
   fontWeight: 700,
   fontSize: 14,
@@ -140,16 +149,17 @@ const cardHeaderStyle: React.CSSProperties = {
 const thStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontWeight: 600,
-  color: '#333',
+  color: theme.textPrimary,
   whiteSpace: 'nowrap',
-  background: '#f0f0f0',
+  background: theme.bgCardHover,
   textAlign: 'center',
 };
 const tdStyle: React.CSSProperties = {
   padding: '7px 12px',
   textAlign: 'center',
   whiteSpace: 'nowrap',
-  borderBottom: '1px solid #f0f0f0',
+  borderBottom: `1px solid ${theme.border}`,
+  color: theme.textPrimary,
 };
 
 // ── Shared pieces, reused by both the full page and the PDF summary, so the
@@ -167,7 +177,7 @@ function GameLogTable({ logs, title }: { logs: Record<string, any>[]; title: str
           </thead>
           <tbody>
             {logs.map((row, i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+              <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
                 {LOG_COLUMNS.filter((c) => c in row).map((col) => (
                   <td key={col} style={tdStyle}>{String(row[col] ?? '—')}</td>
                 ))}
@@ -188,9 +198,9 @@ function MatchupSummaryTable({ flags }: { flags: { label: string; count: number 
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <tbody>
           {flags.map((f) => (
-            <tr key={f.label} style={{ borderBottom: '1px solid #f0f0f0' }}>
-              <td style={{ padding: '7px 14px', color: '#444' }}>{f.label}</td>
-              <td style={{ padding: '7px 14px', textAlign: 'right', fontWeight: 700 }}>{f.count}</td>
+            <tr key={f.label} style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <td style={{ padding: '7px 14px', color: theme.textSecondary }}>{f.label}</td>
+              <td style={{ padding: '7px 14px', textAlign: 'right', fontWeight: 700, color: theme.textPrimary }}>{f.count}</td>
             </tr>
           ))}
         </tbody>
@@ -224,7 +234,7 @@ function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
                 'BB%': tierBb(num(row['BB%'])),
               };
               return (
-                <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
                   {HITTER_COLUMNS.filter((c) => c in row).map((col) => {
                     const v = row[col];
                     const displayVal = v === '' || v == null ? '—'
@@ -242,7 +252,7 @@ function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
           </tbody>
         </table>
       </div>
-      <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', padding: '8px 16px' }}>
+      <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 16px' }}>
         Darker red = tougher matchup for the pitcher; darker blue = more favorable. K% runs opposite
         the others (a high strikeout rate favors the pitcher).
       </div>
@@ -264,14 +274,14 @@ function PitcherSplitTable({ label, d }: { label: string; d?: PitcherSplit }) {
   return (
     <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
       <thead>
-        <tr style={{ background: '#1a1a2e', color: 'white' }}>
+        <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
           <th colSpan={2} style={{ padding: '7px 12px', fontWeight: 700 }}>{label}</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((r) => (
-          <tr key={r.stat} style={{ borderBottom: '1px solid #eee' }}>
-            <td style={{ padding: '6px 12px', fontWeight: 600, color: '#444' }}>{r.stat}</td>
+          <tr key={r.stat} style={{ borderBottom: `1px solid ${theme.border}` }}>
+            <td style={{ padding: '6px 12px', fontWeight: 600, color: theme.textSecondary }}>{r.stat}</td>
             <td style={{ padding: '6px 12px', textAlign: 'center', ...cellStyle(r.color) }}>
               {r.val != null ? r.fmt(r.val) : '—'}
             </td>
@@ -320,7 +330,7 @@ export default function MLBMatchup() {
     if (!el || !matchupData) return;
     setDownloadingPdf(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: theme.bgPage, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -371,18 +381,18 @@ export default function MLBMatchup() {
   const hasPitcherSplits = !!(pitcherSplits.vs_r || pitcherSplits.vs_l);
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: '#f5f6fa' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: theme.bgPage }}>
 
       {/* ── Left Sidebar ── */}
       <div style={{
-        width: 220, flexShrink: 0, background: '#1a1a2e', padding: '20px 14px',
+        width: 220, flexShrink: 0, background: theme.bgCard, padding: '20px 14px',
         overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16,
       }}>
         <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>MLB Matchup</div>
         <div>
-          <div style={{ color: '#aaa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
+          <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
           {loadingPitchers ? (
-            <div style={{ color: '#aaa', fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
+            <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
           ) : (
             <SearchDropdown
               players={pitchers}
@@ -398,7 +408,7 @@ export default function MLBMatchup() {
             onClick={downloadPdf}
             disabled={downloadingPdf}
             style={{
-              padding: '9px 0', background: downloadingPdf ? '#555' : 'white', color: downloadingPdf ? '#ccc' : '#1a1a2e',
+              padding: '9px 0', background: downloadingPdf ? theme.bgCardHover : theme.accent, color: downloadingPdf ? theme.textMuted : 'white',
               border: 'none', borderRadius: 4, fontWeight: 700, fontSize: 13,
               cursor: downloadingPdf ? 'not-allowed' : 'pointer',
             }}
@@ -412,13 +422,13 @@ export default function MLBMatchup() {
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
         {loading && <LoadingSpinner />}
         {error && (
-          <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
             {error}
           </div>
         )}
 
         {!loading && matchupData && (
-          <div style={{ background: '#f5f6fa', padding: 4 }}>
+          <div style={{ background: theme.bgPage, padding: 4 }}>
 
             {/* ── Pitcher Photo + Season Stats ── */}
             <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -426,14 +436,14 @@ export default function MLBMatchup() {
                 src={photoUrl}
                 alt={selectedPitcher}
                 onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
-                style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e0e0', flexShrink: 0 }}
+                style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${theme.border}`, flexShrink: 0 }}
               />
               <div>
-                <div style={{ fontWeight: 700, fontSize: 18, color: '#1a1a2e', marginBottom: 10 }}>{selectedPitcher}</div>
+                <div style={{ fontWeight: 700, fontSize: 18, color: theme.textPrimary, marginBottom: 10 }}>{selectedPitcher}</div>
                 {seasonDisplay.length > 0 && (
                   <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
-                      <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                      <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                         {seasonDisplay.map(({ key }) => (
                           <th key={key} style={{ padding: '7px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{key}</th>
                         ))}
@@ -442,7 +452,7 @@ export default function MLBMatchup() {
                     <tbody>
                       <tr>
                         {seasonDisplay.map(({ key, val }) => (
-                          <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: '#1a1a2e', whiteSpace: 'nowrap', borderTop: '1px solid #f0f0f0' }}>
+                          <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: theme.textPrimary, whiteSpace: 'nowrap', borderTop: `1px solid ${theme.border}` }}>
                             {String(val ?? '—')}
                           </td>
                         ))}
@@ -472,7 +482,7 @@ export default function MLBMatchup() {
                         </thead>
                         <tbody>
                           {splits.map((row, i) => (
-                            <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                            <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
                               {splitsColumns.map((col) => (
                                 <td key={col} style={{ ...tdStyle, fontWeight: col === 'Statistic' ? 600 : 400 }}>
                                   {String(row[col] ?? '—')}
@@ -483,7 +493,7 @@ export default function MLBMatchup() {
                         </tbody>
                       </table>
                     </div>
-                    <div style={{ fontSize: 11, color: '#999', fontStyle: 'italic', padding: '8px 16px' }}>
+                    <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 16px' }}>
                       2026 plate appearances count double relative to 2025 when the two seasons are combined.
                     </div>
                   </div>
@@ -498,10 +508,10 @@ export default function MLBMatchup() {
                         return (
                           <div key={i} style={{ marginBottom: 10 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
-                              <span style={{ fontWeight: 600, color: '#444' }}>{row.Statistic}</span>
+                              <span style={{ fontWeight: 600, color: theme.textSecondary }}>{row.Statistic}</span>
                               <span style={{ fontWeight: 700, color }}>{pct}th</span>
                             </div>
-                            <div style={{ background: '#eee', borderRadius: 4, height: 10, overflow: 'hidden' }}>
+                            <div style={{ background: theme.bgCardHover, borderRadius: 4, height: 10, overflow: 'hidden' }}>
                               <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: color, borderRadius: 4, transition: 'width 0.4s ease' }} />
                             </div>
                           </div>
@@ -521,7 +531,7 @@ export default function MLBMatchup() {
         )}
 
         {!loading && !error && !matchupData && (
-          <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 80 }}>
+          <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 80 }}>
             Select a pitcher to load matchup data.
           </div>
         )}
@@ -534,21 +544,21 @@ export default function MLBMatchup() {
       {matchupData && (
         <div
           ref={pdfRef}
-          style={{ position: 'fixed', top: 0, left: -10000, width: 1300, background: '#f5f6fa', padding: 12 }}
+          style={{ position: 'fixed', top: 0, left: -10000, width: 1300, background: theme.bgPage, padding: 12 }}
         >
           <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <img
               src={photoUrl}
               alt={selectedPitcher}
               crossOrigin="anonymous"
-              style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e0e0', flexShrink: 0 }}
+              style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${theme.border}`, flexShrink: 0 }}
             />
             <div>
-              <div style={{ fontWeight: 700, fontSize: 18, color: '#1a1a2e', marginBottom: 10 }}>{selectedPitcher}</div>
+              <div style={{ fontWeight: 700, fontSize: 18, color: theme.textPrimary, marginBottom: 10 }}>{selectedPitcher}</div>
               {seasonDisplay.length > 0 && (
                 <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                    <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                       {seasonDisplay.map(({ key }) => (
                         <th key={key} style={{ padding: '7px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{key}</th>
                       ))}
@@ -557,7 +567,7 @@ export default function MLBMatchup() {
                   <tbody>
                     <tr>
                       {seasonDisplay.map(({ key, val }) => (
-                        <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: '#1a1a2e', whiteSpace: 'nowrap', borderTop: '1px solid #f0f0f0' }}>
+                        <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: theme.textPrimary, whiteSpace: 'nowrap', borderTop: `1px solid ${theme.border}` }}>
                           {String(val ?? '—')}
                         </td>
                       ))}

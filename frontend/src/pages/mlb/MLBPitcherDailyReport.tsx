@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getMLBPitcherDailyReport } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { theme } from '../../theme';
 
 interface PitcherRow {
   player: string;
@@ -83,31 +84,31 @@ export default function MLBPitcherDailyReport() {
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 6, color: '#1a1a2e' }}>MLB Pitcher Daily Report</h2>
-      <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
+    <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
+      <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>MLB Pitcher Daily Report</h2>
+      <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
         Every starting pitcher on today's slate -- recent-form averages (last up to 10 starts) alongside
         today's opposing lineup's toughness. Click a column to sort.
       </div>
 
       {loading && <LoadingSpinner />}
       {error && (
-        <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b' }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed }}>
           {error}
         </div>
       )}
 
       {!loading && !error && rows.length === 0 && (
-        <div style={{ color: '#999', textAlign: 'center', marginTop: 40 }}>
+        <div style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 40 }}>
           No starting pitchers found for today's slate.
         </div>
       )}
 
       {!loading && !error && rows.length > 0 && (
-        <div style={{ background: 'white', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
+        <div style={{ background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13, minWidth: 1200 }}>
             <thead>
-              <tr style={{ background: '#1a1a2e', color: 'white' }}>
+              <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                 {columns.map((col) => (
                   <th
                     key={col.key}
@@ -124,10 +125,10 @@ export default function MLBPitcherDailyReport() {
             </thead>
             <tbody>
               {sorted.map((r, i) => (
-                <tr key={r.player} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <tr key={r.player} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage, color: theme.textPrimary }}>
                   <td style={{ padding: '7px 10px', fontWeight: 600 }}>{r.player}</td>
-                  <td style={{ padding: '7px 10px', color: '#666' }}>{r.team}</td>
-                  <td style={{ padding: '7px 10px', color: '#666' }}>{r.opposing_team}</td>
+                  <td style={{ padding: '7px 10px', color: theme.textSecondary }}>{r.team}</td>
+                  <td style={{ padding: '7px 10px', color: theme.textSecondary }}>{r.opposing_team}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.games}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.avg_outs ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.avg_hits ?? '—'}</td>
@@ -150,7 +151,7 @@ export default function MLBPitcherDailyReport() {
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: '#aaa', marginTop: 16, textAlign: 'center' }}>
+      <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16, textAlign: 'center' }}>
         "Hi/Lo X" columns count how many opposing batters clear a fixed threshold (e.g. K% ≥ 20, AVG ≥ .270)
         against this pitcher's specific throwing hand -- not a ranking relative to today's other games.
       </div>

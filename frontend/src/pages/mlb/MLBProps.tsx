@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getMLBProps } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { theme } from '../../theme';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,7 @@ function formatOdds(n: number): string {
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const labelStyle: React.CSSProperties = {
-  color: '#aaa',
+  color: theme.textSecondary,
   fontSize: 11,
   fontWeight: 600,
   textTransform: 'uppercase',
@@ -53,9 +54,9 @@ const selectStyle: React.CSSProperties = {
   padding: '7px 10px',
   fontSize: 12,
   borderRadius: 4,
-  border: '1px solid #3a3a5c',
-  background: '#2a2a4a',
-  color: 'white',
+  border: `1px solid ${theme.border}`,
+  background: theme.bgCardHover,
+  color: theme.textPrimary,
   marginBottom: 14,
   boxSizing: 'border-box',
   cursor: 'pointer',
@@ -66,15 +67,15 @@ const inputStyle: React.CSSProperties = {
   padding: '7px 10px',
   fontSize: 12,
   borderRadius: 4,
-  border: '1px solid #3a3a5c',
-  background: '#2a2a4a',
-  color: 'white',
+  border: `1px solid ${theme.border}`,
+  background: theme.bgCardHover,
+  color: theme.textPrimary,
   boxSizing: 'border-box',
   outline: 'none',
 };
 
 const dividerStyle: React.CSSProperties = {
-  borderBottom: '1px solid #2a2a4a',
+  borderBottom: `1px solid ${theme.border}`,
   margin: '14px 0',
 };
 
@@ -177,13 +178,13 @@ export default function MLBProps() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: '#f5f6fa' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: theme.bgPage }}>
 
       {/* ── Left Sidebar ── */}
       <div style={{
         width: 210,
         flexShrink: 0,
-        background: '#1a1a2e',
+        background: theme.bgCard,
         padding: '18px 14px',
         overflowY: 'auto',
         display: 'flex',
@@ -209,8 +210,8 @@ export default function MLBProps() {
           {showPlayerDrop && playerSearch.length > 0 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 300,
-              background: 'white', border: '1px solid #ddd', borderRadius: 4,
-              maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+              background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 4,
+              maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
             }}>
               {uniquePlayers
                 .filter(p => p.toLowerCase().includes(playerSearch.toLowerCase()))
@@ -219,14 +220,14 @@ export default function MLBProps() {
                   <div
                     key={p}
                     onMouseDown={() => { setSelectedPlayer(p); setPlayerSearch(p); setShowPlayerDrop(false); }}
-                    style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 12, color: '#333' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#eef2ff')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'white')}
+                    style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 12, color: theme.textPrimary }}
+                    onMouseEnter={e => (e.currentTarget.style.background = theme.bgCardHover)}
+                    onMouseLeave={e => (e.currentTarget.style.background = theme.bgCard)}
                   >{p}</div>
                 ))
               }
               {uniquePlayers.filter(p => p.toLowerCase().includes(playerSearch.toLowerCase())).length === 0 && (
-                <div style={{ padding: '7px 10px', color: '#999', fontSize: 12 }}>No players found</div>
+                <div style={{ padding: '7px 10px', color: theme.textMuted, fontSize: 12 }}>No players found</div>
               )}
             </div>
           )}
@@ -264,7 +265,7 @@ export default function MLBProps() {
             <button
               onClick={toggleAllBooks}
               style={{
-                background: 'none', border: 'none', color: '#4a9eff', fontSize: 10,
+                background: 'none', border: 'none', color: theme.accent, fontSize: 10,
                 cursor: 'pointer', padding: 0, fontWeight: 600, textTransform: 'uppercase',
               }}
             >
@@ -277,9 +278,9 @@ export default function MLBProps() {
                 type="checkbox"
                 checked={selectedBooks.has(book)}
                 onChange={() => toggleBook(book)}
-                style={{ accentColor: '#4a9eff', cursor: 'pointer' }}
+                style={{ accentColor: theme.accent, cursor: 'pointer' }}
               />
-              <span style={{ color: selectedBooks.has(book) ? '#e0e0e0' : '#666', fontSize: 12 }}>
+              <span style={{ color: selectedBooks.has(book) ? theme.textPrimary : theme.textMuted, fontSize: 12 }}>
                 {book.replace(/_/g, ' ')}
               </span>
             </label>
@@ -292,24 +293,24 @@ export default function MLBProps() {
         {loading && <LoadingSpinner />}
 
         {error && (
-          <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
             {error}
           </div>
         )}
 
         {!loading && displayProps.length > 0 && (
           <>
-            <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>
               {displayProps.length} line{displayProps.length !== 1 ? 's' : ''}
               {filteredProps.length !== displayProps.length && ` (${filteredProps.length} before min-odds filter)`}
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ background: '#1a1a2e', color: 'white' }}>
+                  <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                     <th style={{
                       padding: '10px 16px', textAlign: 'left', whiteSpace: 'nowrap',
-                      minWidth: 260, position: 'sticky', left: 0, background: '#1a1a2e', zIndex: 2,
+                      minWidth: 260, position: 'sticky', left: 0, background: theme.bgCardHover, zIndex: 2,
                     }}>
                       Line
                     </th>
@@ -332,12 +333,12 @@ export default function MLBProps() {
                     const bestOdds = oddsArr.length > 0 ? Math.max(...oddsArr) : null;
 
                     return (
-                      <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa', borderBottom: '1px solid #eee' }}>
+                      <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage, borderBottom: `1px solid ${theme.border}` }}>
                         <td style={{
                           padding: '8px 16px', whiteSpace: 'nowrap', fontWeight: 500, fontSize: 13,
-                          position: 'sticky', left: 0,
-                          background: i % 2 === 0 ? '#fff' : '#fafafa', zIndex: 1,
-                          borderRight: '1px solid #e8e8e8',
+                          position: 'sticky', left: 0, color: theme.textPrimary,
+                          background: i % 2 === 0 ? theme.bgCard : theme.bgPage, zIndex: 1,
+                          borderRight: `1px solid ${theme.border}`,
                         }}>
                           {String(row['line_id'] ?? '—')}
                         </td>
@@ -349,7 +350,7 @@ export default function MLBProps() {
                             <td key={book} style={{
                               padding: '8px 14px', textAlign: 'center', whiteSpace: 'nowrap',
                               background: isBest ? '#d4edda' : 'transparent',
-                              color: isBest ? '#155724' : passes ? '#222' : '#ccc',
+                              color: isBest ? '#155724' : passes ? theme.textPrimary : theme.textMuted,
                               fontWeight: isBest ? 700 : 400,
                             }}>
                               {passes && odds !== null ? formatOdds(Math.round(odds)) : '—'}
@@ -366,13 +367,13 @@ export default function MLBProps() {
         )}
 
         {!loading && !error && displayProps.length === 0 && allProps.length > 0 && (
-          <div style={{ color: '#999', textAlign: 'center', fontSize: 15, marginTop: 80 }}>
+          <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 15, marginTop: 80 }}>
             No props match the current filters.
           </div>
         )}
 
         {!loading && !error && allProps.length === 0 && (
-          <div style={{ color: '#999', textAlign: 'center', fontSize: 15, marginTop: 80 }}>
+          <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 15, marginTop: 80 }}>
             No MLB props data available.
           </div>
         )}

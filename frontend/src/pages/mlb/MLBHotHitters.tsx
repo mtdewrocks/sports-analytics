@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getMLBHotHitters } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { theme } from '../../theme';
 
 interface SortConfig {
   key: string;
@@ -52,12 +53,12 @@ export default function MLBHotHitters() {
   }, [hitters, sortConfig]);
 
   return (
-    <div style={{ padding: 24, minHeight: 'calc(100vh - 60px)' }}>
-      <h2 style={{ marginTop: 0, marginBottom: 24, color: '#1a1a2e' }}>Hot Hitters — Last 7 Days</h2>
+    <div style={{ padding: 24, minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+      <h2 style={{ marginTop: 0, marginBottom: 24, color: theme.textPrimary }}>Hot Hitters — Last 7 Days</h2>
 
       {loading && <LoadingSpinner />}
       {error && (
-        <div style={{ background: '#fdecea', border: '1px solid #e74c3c', borderRadius: 4, padding: 16, color: '#c0392b' }}>
+        <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed }}>
           {error}
         </div>
       )}
@@ -65,7 +66,7 @@ export default function MLBHotHitters() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>
-              <tr style={{ background: '#1a1a2e', color: 'white' }}>
+              <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                 {columns.map((col) => (
                   <th
                     key={col}
@@ -90,7 +91,7 @@ export default function MLBHotHitters() {
             </thead>
             <tbody>
               {sortedHitters.map((row, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage, color: theme.textPrimary }}>
                   {columns.map((col) => (
                     <td key={col} style={{ padding: '8px 14px', whiteSpace: 'nowrap' }}>
                       {String(row[col] ?? '—')}
@@ -100,11 +101,11 @@ export default function MLBHotHitters() {
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: 10, fontSize: 13, color: '#999' }}>{sortedHitters.length} player{sortedHitters.length !== 1 ? 's' : ''}</div>
+          <div style={{ marginTop: 10, fontSize: 13, color: theme.textSecondary }}>{sortedHitters.length} player{sortedHitters.length !== 1 ? 's' : ''}</div>
         </div>
       )}
       {!loading && !error && sortedHitters.length === 0 && (
-        <div style={{ color: '#999', textAlign: 'center', fontSize: 16, marginTop: 60 }}>
+        <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
           No hot hitters data available today.
         </div>
       )}

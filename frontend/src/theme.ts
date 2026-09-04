@@ -38,5 +38,9 @@ export const theme = {
   // Data-viz colors verified for dark backgrounds (see file header) --
   // NOT the same hex as the light-mode versions (#3d7fd1 / #d1483d).
   dataBlue: '#6ba8f0',
-  dataRed: '#e57c72',
+  dataRed: '#f4573f',
+
+  // Warning/fallback banner text (e.g. "season hasn't started, showing
+  // last year's data"). Verified via contrast check against bgCard: 8.02:1.
+  warningText: '#e8a33d',
 } as const;
