@@ -1,0 +1,28 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,1,680757,Steven Kwan,672456,Keider Montero,L,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,2,800050,Chase DeLauter,672456,Keider Montero,L,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,3,608070,José Ramírez,672456,Keider Montero,S,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,4,666176,Jo Adell,672456,Keider Montero,R,R,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,5,663993,Nathaniel Lowe,672456,Keider Montero,L,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,6,694197,Angel Genao,672456,Keider Montero,S,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,7,683953,Travis Bazzana,672456,Keider Montero,L,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,8,672275,Patrick Bailey,672456,Keider Montero,S,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Cleveland Guardians,Detroit Tigers,home,9,677587,Brayan Rocchio,672456,Keider Montero,S,R,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,1,650402,Gleyber Torres,671106,Logan Allen,R,L,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,2,805808,Kevin McGonigle,671106,Logan Allen,L,L,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,3,701678,Hao-Yu Lee,671106,Logan Allen,R,L,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,4,693307,Dillon Dingler,671106,Logan Allen,R,L,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,5,682985,Riley Greene,671106,Logan Allen,L,L,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,6,701162,Ben Malgeri,671106,Logan Allen,R,L,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,7,679529,Spencer Torkelson,671106,Logan Allen,R,L,R
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,8,703601,Max Clark,671106,Logan Allen,L,L,L
+2026-09-04,824424,2026-09-04T18:10:00Z,Detroit Tigers,Cleveland Guardians,away,9,595879,Javier Báez,671106,Logan Allen,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,1,667472,Dane Myers,675660,Shane Drohan,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,2,682829,Elly De La Cruz,675660,Shane Drohan,S,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,3,701398,Sal Stewart,675660,Shane Drohan,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,4,663886,Tyler Stephenson,675660,Shane Drohan,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,5,553993,Eugenio Suárez,675660,Shane Drohan,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,6,668709,JJ Bleday,675660,Shane Drohan,L,L,L
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,7,680574,Matt McLain,675660,Shane Drohan,R,L,R
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,8,699302,Héctor Rodríguez,675660,Shane Drohan,L,L,L
+2026-09-04,824471,2026-09-04T22:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,9,695490,Edwin Arroyo,675660,Shane Drohan,S,L,R
