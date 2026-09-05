@@ -146,6 +146,18 @@ def get_nfl_weekly_defense_ranks() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_defense_by_position() -> pd.DataFrame:
+    """Historical week-by-week defensive ranks split by the OPPONENT'S
+    POSITION (rushing vs RB/QB, receiving vs RB/WR/TE), from
+    get_nfl_defense_by_position.py. Same entering-the-week timing as
+    get_nfl_weekly_defense_ranks() above, just with a position split the
+    team-level file can't provide.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/weekly_defense_by_position.parquet", pd.read_parquet, "nfl defense by position")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nfl_team_game_script() -> pd.DataFrame:
     """Team pass/run mix by score situation and quarter, from
     get_nfl_game_script.py. Feeds the Matchup page's game-script projection

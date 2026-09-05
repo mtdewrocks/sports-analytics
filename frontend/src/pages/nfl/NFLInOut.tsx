@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getNBAPlayers, getNBATeammates, getNBAInOut, getNBABeneficiary } from '../../api/nba';
+import { getNFLPlayers, getNFLTeammates, getNFLInOut } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import { theme } from '../../theme';
@@ -13,28 +13,12 @@ interface InOutData {
   without: Record<string, number | null>;
 }
 
-interface BeneficiaryRow {
-  player: string;
-  with: number;
-  without: number;
-  delta: number;
-  games_with: number;
-  games_without: number;
-}
-interface BeneficiaryData {
-  excluded_player: string;
-  stat: string;
-  results: BeneficiaryRow[];
-}
-
 const DISPLAY_STATS: { key: string; label: string }[] = [
-  { key: 'min',     label: 'MIN' },
-  { key: 'pts',     label: 'PTS' },
-  { key: 'reb',     label: 'REB' },
-  { key: 'ast',     label: 'AST' },
-  { key: 'pts_ast', label: 'PTS+AST' },
-  { key: 'pts_reb', label: 'PTS+REB' },
-  { key: 'pra',     label: 'PTS+REB+AST' },
+  { key: 'carries',         label: 'Carries' },
+  { key: 'rushing_yards',   label: 'Rush Yds' },
+  { key: 'targets',         label: 'Targets' },
+  { key: 'receptions',      label: 'Receptions' },
+  { key: 'receiving_yards', label: 'Rec Yds' },
 ];
 
 function DiffCell({ value }: { value: number }) {
@@ -46,8 +30,7 @@ function DiffCell({ value }: { value: number }) {
   );
 }
 
-export default function NBAInOut() {
-  const [mode, setMode] = useState<'specific' | 'beneficiary'>('beneficiary');
+export default function NFLInOut() {
   const [players, setPlayers] = useState<string[]>([]);
   const [teammates, setTeammates] = useState<string[]>([]);
   const [playerA, setPlayerA] = useState('');
@@ -57,33 +40,15 @@ export default function NBAInOut() {
   const [error, setError] = useState('');
   const [data, setData] = useState<InOutData | null>(null);
 
-  // Beneficiary mode: just "who's out" + which stat, no anchor needed --
-  // scans every teammate automatically instead of one at a time.
-  const [outPlayer, setOutPlayer] = useState('');
-  const [beneficiaryStat, setBeneficiaryStat] = useState('min');
-  const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
-  const [beneficiaryLoading, setBeneficiaryLoading] = useState(false);
-  const [beneficiaryError, setBeneficiaryError] = useState('');
-
   useEffect(() => {
-    if (!outPlayer) { setBeneficiaryData(null); return; }
-    setBeneficiaryLoading(true);
-    setBeneficiaryError('');
-    getNBABeneficiary(outPlayer, beneficiaryStat)
-      .then((res) => setBeneficiaryData(res.data))
-      .catch((err) => setBeneficiaryError(err?.response?.data?.detail || 'Failed to fetch beneficiary data.'))
-      .finally(() => setBeneficiaryLoading(false));
-  }, [outPlayer, beneficiaryStat]);
-
-  useEffect(() => {
-    getNBAPlayers()
+    getNFLPlayers()
       .then((res) => setPlayers(res.data))
       .catch(() => setPlayers([]));
   }, []);
 
   useEffect(() => {
     if (!playerA) { setTeammates([]); setExcluded([]); setTmFilter(''); setData(null); return; }
-    getNBATeammates(playerA)
+    getNFLTeammates(playerA)
       .then((res) => setTeammates(res.data))
       .catch(() => setTeammates([]));
     setExcluded([]);
@@ -103,7 +68,7 @@ export default function NBAInOut() {
     setError('');
     setData(null);
     try {
-      const res = await getNBAInOut(playerA, excluded);
+      const res = await getNFLInOut(playerA, excluded);
       setData(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch in/out data.');
@@ -120,127 +85,11 @@ export default function NBAInOut() {
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
-      <h2 style={{ marginTop: 0, marginBottom: 8, color: theme.textPrimary }}>NBA In/Out Analysis</h2>
-      <p style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 20, marginTop: 0 }}>
-        See how a player being out shifts the rest of the roster's numbers.
-      </p>
-
-      <div style={{ display: 'flex', gap: 4, background: theme.bgCard, borderRadius: 6, padding: 3, marginBottom: 24, width: 'fit-content' }}>
-        <button
-          onClick={() => setMode('beneficiary')}
-          style={{
-            padding: '7px 16px', fontSize: 13, fontWeight: 700, borderRadius: 4, border: 'none', cursor: 'pointer',
-            background: mode === 'beneficiary' ? theme.bgCardHover : 'transparent',
-            color: mode === 'beneficiary' ? theme.textPrimary : theme.textSecondary,
-          }}
-        >
-          Who Benefits Most
-        </button>
-        <button
-          onClick={() => setMode('specific')}
-          style={{
-            padding: '7px 16px', fontSize: 13, fontWeight: 700, borderRadius: 4, border: 'none', cursor: 'pointer',
-            background: mode === 'specific' ? theme.bgCardHover : 'transparent',
-            color: mode === 'specific' ? theme.textPrimary : theme.textSecondary,
-          }}
-        >
-          Specific Matchup
-        </button>
-      </div>
-
-      {mode === 'beneficiary' && (
-        <>
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 28 }}>
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>
-                Player Out
-              </label>
-              <SearchDropdown players={players} value={outPlayer} onSelect={setOutPlayer} placeholder="Search by first or last name..." />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>
-                Stat
-              </label>
-              <select
-                value={beneficiaryStat}
-                onChange={(e) => setBeneficiaryStat(e.target.value)}
-                style={{ padding: '8px 12px', fontSize: 13, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary }}
-              >
-                {DISPLAY_STATS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {beneficiaryLoading && <LoadingSpinner />}
-          {beneficiaryError && (
-            <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
-              {beneficiaryError}
-            </div>
-          )}
-
-          {!beneficiaryLoading && beneficiaryData && (
-            beneficiaryData.results.length === 0 ? (
-              <div style={{ color: theme.textSecondary, fontSize: 14 }}>
-                Not enough games with {outPlayer} both in and out of the lineup to say anything reliable yet.
-              </div>
-            ) : (
-              <>
-                <div style={{
-                  background: 'rgba(107,168,240,0.12)', border: `1px solid ${theme.dataBlue}`, borderRadius: 8,
-                  padding: '18px 22px', marginBottom: 20, maxWidth: 480,
-                }}>
-                  <div style={{ color: theme.textSecondary, fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Biggest Beneficiary</div>
-                  <div style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                    {beneficiaryData.results[0].player}
-                  </div>
-                  <div style={{ color: theme.dataBlue, fontSize: 15, fontWeight: 600 }}>
-                    +{beneficiaryData.results[0].delta.toFixed(1)} {DISPLAY_STATS.find((s) => s.key === beneficiaryStat)?.label} when {outPlayer} is out
-                  </div>
-                  <div style={{ color: theme.textSecondary, fontSize: 12, marginTop: 4 }}>
-                    {beneficiaryData.results[0].with.toFixed(1)} with &rarr; {beneficiaryData.results[0].without.toFixed(1)} without
-                    {' '}({beneficiaryData.results[0].games_with} / {beneficiaryData.results[0].games_without} games)
-                  </div>
-                </div>
-
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, maxWidth: 640 }}>
-                  <thead>
-                    <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
-                      <th style={{ padding: '8px 14px', textAlign: 'left' }}>Player</th>
-                      <th style={{ padding: '8px 14px', textAlign: 'center' }}>With</th>
-                      <th style={{ padding: '8px 14px', textAlign: 'center' }}>Without</th>
-                      <th style={{ padding: '8px 14px', textAlign: 'center' }}>Diff</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {beneficiaryData.results.map((r, i) => (
-                      <tr key={r.player} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
-                        <td style={{ padding: '7px 14px', color: theme.textPrimary, fontWeight: i === 0 ? 700 : 400 }}>{r.player}</td>
-                        <td style={{ padding: '7px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.with.toFixed(1)}</td>
-                        <td style={{ padding: '7px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.without.toFixed(1)}</td>
-                        <DiffCell value={r.delta} />
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 10 }}>
-                  Only includes teammates with at least 3 games both with and without {outPlayer} -- a thin sample on either side is too noisy to trust.
-                </div>
-              </>
-            )
-          )}
-
-          {!beneficiaryLoading && !beneficiaryError && !beneficiaryData && (
-            <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
-              Select a player to see who benefits most when they're out.
-            </div>
-          )}
-        </>
-      )}
-
-      {mode === 'specific' && (
-      <>
+      <h2 style={{ marginTop: 0, marginBottom: 8, color: theme.textPrimary }}>
+        NFL In/Out Analysis{playerA ? ` — ${playerA}` : ''}
+      </h2>
       <p style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 24, marginTop: 0 }}>
-        Compare an anchor player's stats when specific teammates are in vs. out of the lineup.
+        Compare a player's carries/targets/receptions for games a specific teammate played versus games they didn't.
         "Without" shows games where <strong>all</strong> selected teammates were absent.
       </p>
 
@@ -250,7 +99,7 @@ export default function NBAInOut() {
         {/* Anchor player */}
         <div>
           <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 4, color: theme.textPrimary }}>
-            Anchor Player
+            Player
           </label>
           <SearchDropdown
             players={players}
@@ -407,15 +256,16 @@ export default function NBAInOut() {
               </tbody>
             </table>
           </div>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 10 }}>
+            A 17-game season means these samples are often small -- check the game counts above before reading too much into a small difference.
+          </div>
         </>
       )}
 
       {!loading && !error && !data && (
         <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
-          Select an anchor player, check at least one teammate to exclude, then click "Analyze".
+          Select a player, check at least one teammate to exclude, then click "Analyze".
         </div>
-      )}
-      </>
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import NBAProps from './pages/nba/NBAProps';
 
 import NFLGameLog from './pages/nfl/NFLGameLog';
 import NFLMatchup from './pages/nfl/NFLMatchup';
+import NFLFantasyMatchup from './pages/nfl/NFLFantasyMatchup';
 import NFLMismatches from './pages/nfl/NFLMismatches';
 
 import MLBMatchup from './pages/mlb/MLBMatchup';
@@ -41,6 +42,7 @@ export default function App() {
 
           <Route path="/nfl/game-log" element={<PrivateRoute><NFLGameLog /></PrivateRoute>} />
           <Route path="/nfl/matchup" element={<PrivateRoute><NFLMatchup /></PrivateRoute>} />
+          <Route path="/nfl/fantasy-matchup" element={<PrivateRoute><NFLFantasyMatchup /></PrivateRoute>} />
           <Route path="/nfl/mismatches" element={<PrivateRoute><NFLMismatches /></PrivateRoute>} />
 
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />

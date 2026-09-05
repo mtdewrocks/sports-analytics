@@ -31,6 +31,10 @@ def game_log(
 def in_out(player: str = Query(...), exclude: List[str] = Query(default=[]), _=Depends(require_access)):
     return nba_data.get_in_out(player, exclude)
 
+@router.get("/in-out/beneficiary")
+def in_out_beneficiary(excluded_player: str = Query(...), stat: str = Query("min"), _=Depends(require_access)):
+    return nba_data.get_biggest_beneficiary(excluded_player, stat)
+
 @router.get("/props")
 def props(
     player: Optional[str] = Query(None),

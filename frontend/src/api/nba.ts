@@ -11,4 +11,6 @@ export const getNBAInOut = (player: string, exclude: string[]) => {
   exclude.forEach((e) => qs.append('exclude', e));
   return client.get(`/api/nba/in-out?${qs.toString()}`);
 };
+export const getNBABeneficiary = (excludedPlayer: string, stat: string = 'min') =>
+  client.get('/api/nba/in-out/beneficiary', { params: { excluded_player: excludedPlayer, stat } });
 export const getNBAProps = (params: Record<string, any>) => client.get('/api/nba/props', { params });

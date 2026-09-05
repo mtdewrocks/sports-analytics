@@ -156,6 +156,7 @@ export default function Navbar() {
   const nflItems: DropdownItem[] = [
     { label: 'Game Log', to: '/nfl/game-log' },
     { label: 'Matchup', to: '/nfl/matchup' },
+    { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
     { label: 'Mismatches', to: '/nfl/mismatches' },
   ];
   const mlbItems: DropdownItem[] = [

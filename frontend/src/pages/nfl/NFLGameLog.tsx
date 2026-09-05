@@ -76,6 +76,13 @@ function rankColor(rank: number | null | undefined): string {
   return theme.textPrimary;
 }
 
+function formatStatLabel(stat: string): string {
+  return stat
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 function ordinal(n: number): string {
   const rem100 = n % 100;
   if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
@@ -169,7 +176,7 @@ export default function NFLGameLog() {
         <label style={labelStyle}>Stat</label>
         <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
           <option value="">-- Select Stat --</option>
-          {stats.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          {stats.map((s) => <option key={s} value={s}>{formatStatLabel(s)}</option>)}
         </select>
 
         <label style={labelStyle}>Threshold</label>
@@ -215,7 +222,7 @@ export default function NFLGameLog() {
         {!loading && !error && gameData && (
           <>
             <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
-              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
+              {selectedPlayer} — {formatStatLabel(selectedStat)} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
@@ -255,7 +262,7 @@ export default function NFLGameLog() {
                 <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
                   {hasDefContext && (
                     <>
                       <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/G)</th>

@@ -82,6 +82,16 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_rosters.py
 
+      # Defensive yards allowed split by the OPPONENT'S POSITION (rushing
+      # vs RB/QB, receiving vs RB/WR/TE) -- feeds the Fantasy Matchup page
+      # and the Game Log page's Opp D Rank column, since a team-level-only
+      # rank can't tell "bad against RBs specifically" from "bad against
+      # the pass generally."
+      - name: Update NFL defense by position
+        id: defense_by_position
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_defense_by_position.py
+
       - name: Commit updated data
         if: always()
         run: |
@@ -93,7 +103,8 @@ jobs:
                    backend/data/nfl/weekly_defense_ranks.parquet \
                    backend/data/nfl/team_game_script.parquet \
                    backend/data/nfl/player_situational_usage.parquet \
-                   backend/data/nfl/rosters.parquet; do
+                   backend/data/nfl/rosters.parquet \
+                   backend/data/nfl/weekly_defense_by_position.parquet; do
             [ -f "$f" ] && git add "$f"
           done
 
@@ -105,10 +116,10 @@ jobs:
             git push
           fi
 
-      # Only fail the whole run if ALL SIX pulls failed -- any one alone
+      # Only fail the whole run if ALL SEVEN pulls failed -- any one alone
       # succeeding still commits real data and shouldn't page you.
       - name: Fail if all pulls failed
-        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure'
+        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure' && steps.defense_by_position.outcome == 'failure'
         run: |
-          echo "All six NFL data pulls failed this run -- check the logs above."
+          echo "All seven NFL data pulls failed this run -- check the logs above."
           exit 1

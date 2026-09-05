@@ -391,6 +391,373 @@ def _projected_pass_pct(team_row: pd.Series, situation: str) -> Optional[float]:
     return round(float(sum(quarter_values) / len(quarter_values)), 1)
 
 
+# ── Fantasy Matchup: compare 2-4 players side by side ──────────────────────
+#
+# Position-specific stat sets -- a QB and a WR have nothing useful to
+# compare on a shared stat grid, so each player gets their own
+# position-appropriate rows instead. Two "kind"s:
+#   - "avg": a counting stat, averaged per game (e.g. targets/game)
+#   - "ratio": numerator/denominator computed from SEASON TOTALS, not an
+#     average of each game's own ratio (yards-per-carry needs total yards
+#     over total carries, not the mean of each game's YPC, which would let
+#     a single small-sample game distort the season number)
+#
+# Each stat's "def" tag says which defensive category applies:
+#   - "pass": always the team-level pass defense (only QBs pass, so the
+#     existing team-level number IS the position-specific one already)
+#   - "rush": position-specific for RB/QB (the only two scoped for rushing
+#     splits -- see get_nfl_defense_by_position.py's own scope note),
+#     team-level rush defense as the fallback for any other position
+#   - "rec": position-specific for RB/WR/TE, team-level PASS defense as
+#     the fallback (receiving yards move with a defense's overall pass
+#     defense as a rough proxy when there's no position split for it)
+POSITION_STAT_SETS: Dict[str, List[Dict[str, Any]]] = {
+    "QB": [
+        {"label": "Pass Att/G", "col": "attempts", "kind": "avg", "def": "pass"},
+        {"label": "Completions/G", "col": "completions", "kind": "avg", "def": "pass"},
+        {"label": "Pass Yds/G", "col": "passing_yards", "kind": "avg", "def": "pass"},
+        {"label": "Pass TD/G", "col": "passing_tds", "kind": "avg", "def": "pass"},
+        {"label": "INT/G", "col": "passing_interceptions", "kind": "avg", "def": "pass"},
+        {"label": "Rush Att/G", "col": "carries", "kind": "avg", "def": "rush"},
+        {"label": "Rush Yds/G", "col": "rushing_yards", "kind": "avg", "def": "rush"},
+    ],
+    "RB": [
+        {"label": "Carries/G", "col": "carries", "kind": "avg", "def": "rush"},
+        {"label": "Yds/Carry", "num": "rushing_yards", "den": "carries", "kind": "ratio", "def": "rush"},
+        {"label": "Rush Yds/G", "col": "rushing_yards", "kind": "avg", "def": "rush"},
+        {"label": "Targets/G", "col": "targets", "kind": "avg", "def": "rec"},
+        {"label": "Receptions/G", "col": "receptions", "kind": "avg", "def": "rec"},
+        {"label": "Rec Yds/G", "col": "receiving_yards", "kind": "avg", "def": "rec"},
+    ],
+    "WR": [
+        {"label": "Targets/G", "col": "targets", "kind": "avg", "def": "rec"},
+        {"label": "Receptions/G", "col": "receptions", "kind": "avg", "def": "rec"},
+        {"label": "Rec Yds/G", "col": "receiving_yards", "kind": "avg", "def": "rec"},
+        {"label": "Yds/Reception", "num": "receiving_yards", "den": "receptions", "kind": "ratio", "def": "rec"},
+        {"label": "Rec TD/G", "col": "receiving_tds", "kind": "avg", "def": "rec"},
+    ],
+    "TE": [
+        {"label": "Targets/G", "col": "targets", "kind": "avg", "def": "rec"},
+        {"label": "Receptions/G", "col": "receptions", "kind": "avg", "def": "rec"},
+        {"label": "Rec Yds/G", "col": "receiving_yards", "kind": "avg", "def": "rec"},
+        {"label": "Rec TD/G", "col": "receiving_tds", "kind": "avg", "def": "rec"},
+    ],
+}
+
+# Position-specific defense column, keyed by (category, position). Only the
+# combinations get_nfl_defense_by_position.py actually computes -- anything
+# else falls back to team-level in _defense_rank_for below.
+_POSITION_DEFENSE_COL = {
+    ("rush", "RB"): "def_rb_rush_ypg",
+    ("rush", "QB"): "def_qb_rush_ypg",
+    ("rec", "RB"): "def_rb_rec_ypg",
+    ("rec", "WR"): "def_wr_rec_ypg",
+    ("rec", "TE"): "def_te_rec_ypg",
+}
+
+
+def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str]) -> tuple:
+    """Most recent known team and position_group for a player, from their
+    own game log rows -- the last row is their most current team (handles
+    a mid-season trade) and position."""
+    if player_df.empty:
+        return None, None
+    last_row = player_df.iloc[-1]
+    team = last_row.get(team_col) if team_col else None
+    position = last_row.get("position_group") or last_row.get("position")
+    return (str(team) if pd.notna(team) else None), (str(position) if pd.notna(position) else None)
+
+
+def _next_game_for_team(team: str, season: int) -> Optional[Dict[str, Any]]:
+    """The single soonest unplayed game for a team, or None if their season
+    is over / hasn't been scheduled."""
+    schedule = get_nfl_schedule()
+    if schedule.empty or not team:
+        return None
+    season_games = schedule[schedule["season"] == season]
+    upcoming = season_games[
+        season_games["home_score"].isna()
+        & ((season_games["home_team"] == team) | (season_games["away_team"] == team))
+    ].sort_values("week")
+    if upcoming.empty:
+        return None
+    g = upcoming.iloc[0]
+    is_home = g["home_team"] == team
+    opponent = g["away_team"] if is_home else g["home_team"]
+    return {"week": int(g["week"]), "opponent": str(opponent), "is_home": bool(is_home)}
+
+
+def _defense_rank_for(category: str, position: Optional[str], opponent: str) -> Dict[str, Any]:
+    """Current defensive rank for one stat category against one opponent,
+    preferring a position-specific split where get_nfl_defense_by_position.py
+    covers it, falling back to team-level otherwise (see POSITION_STAT_SETS'
+    module comment for exactly which combinations are covered and why)."""
+    position_col = _POSITION_DEFENSE_COL.get((category, position))
+    if position_col:
+        by_pos = get_nfl_defense_by_position()
+        if not by_pos.empty:
+            latest_week = by_pos["week"].max()
+            match = by_pos[(by_pos["week"] == latest_week) & (by_pos["team"].str.upper() == opponent.upper())]
+            col = f"{position_col}_season"
+            rank_col = f"{position_col}_rank_season"
+            if not match.empty and rank_col in match.columns and pd.notna(match.iloc[0][rank_col]):
+                row = match.iloc[0]
+                return {
+                    "def_ypg": round(float(row[col]), 1) if pd.notna(row[col]) else None,
+                    "def_rank": int(row[rank_col]),
+                    "granularity": position or "position",
+                }
+
+    # Fallback: team-level, from the current snapshot (team_stats.parquet),
+    # same source _upcoming_games() already uses for "as of right now".
+    team_stats = get_nfl_team_stats()
+    if team_stats.empty:
+        return {"def_ypg": None, "def_rank": None, "granularity": "team"}
+    prefix = "Defense Pass" if category in ("pass", "rec") else "Defense Rush"
+    match = team_stats[team_stats["team"].str.upper() == opponent.upper()]
+    if match.empty:
+        return {"def_ypg": None, "def_rank": None, "granularity": "team"}
+    row = match.iloc[0]
+    ypg = row.get(f"{prefix} Yards Per Game")
+    rank = row.get(f"Rank - {prefix} Yards Per Game")
+    return {
+        "def_ypg": round(float(ypg), 1) if pd.notna(ypg) else None,
+        "def_rank": int(rank) if pd.notna(rank) else None,
+        "granularity": "team",
+    }
+
+
+def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
+    """Side-by-side current-week comparison for 2-4 players: position-
+    specific season stat averages with opponent defensive context, plus
+    the same projected game script shown on the Matchup page, reused
+    directly rather than recomputed."""
+    df = get_nfl_stats()
+    col = _player_col(df)
+    team_col = _team_col(df)
+    season = _current_nfl_season()
+
+    results = []
+    for player in players:
+        player_norm = _normalize(player)
+        player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
+        if player_df.empty:
+            results.append({"player": player, "error": "No stats found for this player"})
+            continue
+
+        team, position = _player_team_and_position(player_df, team_col)
+        stat_set = POSITION_STAT_SETS.get(position or "", [])
+        games_played = max(int(len(player_df)), 1)
+
+        stats = []
+        for spec in stat_set:
+            if spec["kind"] == "avg":
+                total = pd.to_numeric(player_df.get(spec["col"]), errors="coerce").fillna(0).sum()
+                value = round(float(total) / games_played, 1)
+            else:
+                num = pd.to_numeric(player_df.get(spec["num"]), errors="coerce").fillna(0).sum()
+                den = pd.to_numeric(player_df.get(spec["den"]), errors="coerce").fillna(0).sum()
+                value = round(float(num) / den, 1) if den else None
+            stats.append({"label": spec["label"], "value": value, "def_category": spec["def"]})
+
+        next_game = _next_game_for_team(team, season) if team else None
+        game_script = None
+        if next_game:
+            for s in stats:
+                rank_info = _defense_rank_for(s["def_category"], position, next_game["opponent"])
+                s["def_rank"] = rank_info["def_rank"]
+                s["def_ypg"] = rank_info["def_ypg"]
+                s["def_granularity"] = rank_info["granularity"]
+
+            away, home = (team, next_game["opponent"]) if not next_game["is_home"] else (next_game["opponent"], team)
+            projection = get_game_script_projection(f"{away} @ {home}")
+            if "error" not in projection:
+                game_script = projection["home"] if next_game["is_home"] else projection["away"]
+
+        results.append({
+            "player": player,
+            "team": team,
+            "position": position,
+            "opponent": next_game["opponent"] if next_game else None,
+            "is_home": next_game["is_home"] if next_game else None,
+            "week": next_game["week"] if next_game else None,
+            "stats": stats,
+            "game_script": game_script,
+        })
+
+    return {"mode": "current_week", "players": results}
+
+
+def get_fantasy_matchup_season(players: List[str]) -> Dict[str, Any]:
+    """Remaining-schedule comparison for 2-4 players: every remaining week
+    for each player's team, with the opponent's defensive rank (position-
+    specific where covered) and an explicit row for a bye week rather than
+    silently skipping that week number, which reads as a data gap."""
+    df = get_nfl_stats()
+    col = _player_col(df)
+    team_col = _team_col(df)
+    season = _current_nfl_season()
+    schedule = get_nfl_schedule()
+
+    results = []
+    for player in players:
+        player_norm = _normalize(player)
+        player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
+        if player_df.empty:
+            results.append({"player": player, "error": "No stats found for this player"})
+            continue
+
+        team, position = _player_team_and_position(player_df, team_col)
+        rem_schedule = []
+        if team and not schedule.empty:
+            season_games = schedule[schedule["season"] == season]
+            team_games = season_games[
+                season_games["home_score"].isna()
+                & ((season_games["home_team"] == team) | (season_games["away_team"] == team))
+            ].sort_values("week")
+
+            if not team_games.empty:
+                played_weeks = set(team_games["week"].astype(int))
+                full_range = range(int(team_games["week"].min()), int(team_games["week"].max()) + 1)
+                primary_category = "rush" if position in ("RB", "QB") else "rec" if position in ("WR", "TE") else "pass"
+
+                for week in full_range:
+                    if week not in played_weeks:
+                        rem_schedule.append({"week": week, "is_bye": True})
+                        continue
+                    g = team_games[team_games["week"] == week].iloc[0]
+                    is_home = g["home_team"] == team
+                    opponent = str(g["away_team"] if is_home else g["home_team"])
+                    rank_info = _defense_rank_for(primary_category, position, opponent)
+                    rem_schedule.append({
+                        "week": week,
+                        "is_bye": False,
+                        "opponent": opponent,
+                        "is_home": bool(is_home),
+                        "def_rank": rank_info["def_rank"],
+                        "def_granularity": rank_info["granularity"],
+                    })
+
+        results.append({
+            "player": player,
+            "team": team,
+            "position": position,
+            "schedule": rem_schedule,
+        })
+
+    return {"mode": "season", "players": results}
+
+
+# ── NFL In/Out: who picks up more volume when a teammate is out ───────────
+#
+# NFL's box-score stats file has no way to distinguish "played and recorded
+# a zero" from "wasn't active that week" -- unlike NBA's data, which has an
+# explicit played/game_played column. get_nfl_snap_counts() (real snap
+# participation, sourced from Pro Football Reference via nflverse) fills
+# that gap: presence in that file for a given player-week is treated as
+# "played," matching real data (~5.8% of games for a normally-regular
+# player show up at under half their usual snap share while still
+# technically playing -- checked directly rather than assumed -- but that's
+# infrequent enough that a simple played/did-not-play split is fine for
+# this rather than adding a third "limited" category).
+IN_OUT_STATS = ["carries", "rushing_yards", "targets", "receptions", "receiving_yards"]
+
+
+def _normalize_loose(name: str) -> str:
+    """Like _normalize(), but also strips common generational suffixes
+    (Jr./Sr./II/III/IV). Used only for matching names BETWEEN the box-score
+    stats file and get_nfl_snap_counts() -- two independent sources with no
+    shared player ID, confirmed to spell suffixes inconsistently with each
+    other (e.g. "Brian Robinson" vs. "Brian Robinson Jr."). Kept separate
+    from _normalize() since being this aggressive isn't necessary or safe
+    for every other name-matching call site in this file.
+    """
+    name = name.strip().lower().replace(".", "")
+    tokens = name.split()
+    suffixes = {"jr", "sr", "ii", "iii", "iv"}
+    while tokens and tokens[-1] in suffixes:
+        tokens.pop()
+    return " ".join(tokens)
+
+
+def get_nfl_teammates(player: str) -> List[str]:
+    """Every player who has shared a team with *player* in a game, per
+    get_nfl_snap_counts() -- mirrors get_teammates() in data/nba.py."""
+    snaps = get_nfl_snap_counts()
+    if snaps.empty:
+        return []
+    player_norm = _normalize_loose(player)
+    player_rows = snaps[snaps["player"].apply(_normalize_loose) == player_norm]
+    if player_rows.empty:
+        return []
+    team_games = player_rows[["game_id", "team"]].drop_duplicates()
+    merged = snaps.merge(team_games, on=["game_id", "team"])
+    teammates = merged["player"].dropna().unique().tolist()
+    return sorted(t for t in teammates if _normalize_loose(t) != player_norm)
+
+
+def get_nfl_in_out(player_a: str, exclude: List[str]) -> Dict[str, Any]:
+    """Compare player_a's volume stats (carries/targets/receptions/yards)
+    for weeks a specific teammate (or teammates) played versus weeks they
+    didn't -- same with/without logic as data/nba.py's get_in_out(), keyed
+    on (season, week) instead of (date, team) to match NFL's weekly rather
+    than nightly schedule.
+    """
+    exclude = [e for e in (exclude or []) if e]
+    stats_df = get_nfl_stats()
+    snaps = get_nfl_snap_counts()
+    col = _player_col(stats_df)
+    season_col = _season_col(stats_df)
+    week_col = _week_col(stats_df)
+
+    if snaps.empty or not season_col or not week_col:
+        return {"player": player_a, "exclude": exclude, "games_with": 0, "games_without": 0, "with": {}, "without": {}}
+
+    player_norm = _normalize(player_a)
+    anchor_df = stats_df[stats_df[col].str.lower().str.strip() == player_norm].copy()
+    if anchor_df.empty:
+        return {"player": player_a, "exclude": exclude, "games_with": 0, "games_without": 0, "with": {}, "without": {}}
+
+    # (season, week) pairs where a given player actually played, from real
+    # snap participation -- not just "recorded a stat."
+    def played_weeks(name: str) -> set:
+        norm = _normalize_loose(name)
+        rows = snaps[snaps["player"].apply(_normalize_loose) == norm]
+        return set(zip(rows["season"], rows["week"]))
+
+    anchor_df["_key"] = list(zip(anchor_df[season_col], anchor_df[week_col]))
+    exc_key_sets = [played_weeks(e) for e in exclude]
+
+    anchor_keys = set(anchor_df["_key"])
+    with_keys = anchor_keys.copy()
+    for eks in exc_key_sets:
+        with_keys = with_keys & eks
+    without_keys = anchor_keys.copy()
+    for eks in exc_key_sets:
+        without_keys = without_keys - eks
+
+    df_with = anchor_df[anchor_df["_key"].isin(with_keys)]
+    df_without = anchor_df[anchor_df["_key"].isin(without_keys)]
+
+    def avg_stats(sub_df: pd.DataFrame) -> Dict[str, Optional[float]]:
+        result = {}
+        for s in IN_OUT_STATS:
+            if s not in sub_df.columns:
+                continue
+            vals = pd.to_numeric(sub_df[s], errors="coerce").dropna()
+            result[s] = round(float(vals.mean()), 2) if len(vals) > 0 else None
+        return result
+
+    return {
+        "player": player_a,
+        "exclude": exclude,
+        "games_with": len(with_keys),
+        "games_without": len(without_keys),
+        "with": avg_stats(df_with),
+        "without": avg_stats(df_without),
+    }
+
+
 def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     """Spread-implied game script for one matchup: each team's projected
     pass/run mix, season-neutral (close-game rate) blended toward its own

@@ -352,6 +352,41 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     }
 
 
+def get_biggest_beneficiary(excluded_player: str, stat: str = "min", min_games: int = 3) -> dict:
+    """Given one player who is OUT, find which teammate's stat increases the
+    most -- rather than requiring the user to manually check each teammate
+    one at a time via get_in_out(). Reuses get_in_out() and get_teammates()
+    directly instead of duplicating the with/without logic.
+
+    min_games: both the "with" and "without" sample need at least this many
+    games, or a teammate is skipped entirely -- a "without" average built
+    from a single game is too noisy to call someone a genuine beneficiary,
+    and would be exactly the kind of result most likely to misleadingly
+    top this ranking if left in.
+    """
+    teammates = get_teammates(excluded_player)
+    results = []
+    for teammate in teammates:
+        cmp = get_in_out(teammate, [excluded_player])
+        with_val = cmp.get("with", {}).get(stat)
+        without_val = cmp.get("without", {}).get(stat)
+        if with_val is None or without_val is None:
+            continue
+        if cmp["games_with"] < min_games or cmp["games_without"] < min_games:
+            continue
+        results.append({
+            "player": teammate,
+            "with": with_val,
+            "without": without_val,
+            "delta": round(without_val - with_val, 2),
+            "games_with": cmp["games_with"],
+            "games_without": cmp["games_without"],
+        })
+
+    results.sort(key=lambda r: r["delta"], reverse=True)
+    return {"excluded_player": excluded_player, "stat": stat, "results": results}
+
+
 ALLOWED_BOOKS = {
     "betmgm", "draftkings", "espnbet", "fanatics", "fanduel",
     "fliff", "hardrockbet", "prizepicks", "underdog", "williamhill_us",

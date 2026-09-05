@@ -50,6 +50,13 @@ const inputStyle: React.CSSProperties = {
   color: theme.textPrimary,
 };
 
+function formatStatLabel(stat: string): string {
+  return stat
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export default function NBAGameLog() {
   const [players, setPlayers] = useState<string[]>([]);
   const [teammates, setTeammates] = useState<string[]>([]);
@@ -164,7 +171,7 @@ export default function NBAGameLog() {
 
         <label style={labelStyle}>Stat</label>
         <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
-          {STAT_OPTIONS.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          {STAT_OPTIONS.map((s) => <option key={s} value={s}>{formatStatLabel(s)}</option>)}
         </select>
 
         <label style={labelStyle}>Threshold</label>
@@ -262,7 +269,7 @@ export default function NBAGameLog() {
         {!loading && !error && gameData && (
           <>
             <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
-              {selectedPlayer} — {selectedStat.toUpperCase()} (Line: {parseFloat(thresholdStr) || 0})
+              {selectedPlayer} — {formatStatLabel(selectedStat)} (Line: {parseFloat(thresholdStr) || 0})
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
@@ -276,7 +283,7 @@ export default function NBAGameLog() {
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>FGA</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>FG%</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>{selectedStat.toUpperCase()}</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
                 </tr>
               </thead>
               <tbody>
