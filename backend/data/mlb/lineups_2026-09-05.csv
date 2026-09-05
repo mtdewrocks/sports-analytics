@@ -224,15 +224,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,7,687859,Troy Johnston,669461,Matthew Liberatore,L,L,L
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,8,691182,Adael Amador,669461,Matthew Liberatore,S,L,R
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,9,678662,Ezequiel Tovar,669461,Matthew Liberatore,R,L,R
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,1,663494,Bryan Torres,690279,Mason Adams,L,R,L
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,2,671056,Iván Herrera,690279,Mason Adams,R,R,R
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,3,676475,Alec Burleson,690279,Mason Adams,L,R,L
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,4,691023,Jordan Walker,690279,Mason Adams,R,R,R
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,5,699024,Leo Bernal,690279,Mason Adams,S,R,L
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,6,695491,Joshua Báez,690279,Mason Adams,R,R,R
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,7,669357,Nolan Gorman,690279,Mason Adams,L,R,L
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,8,695336,Thomas Saggese,690279,Mason Adams,R,R,R
+2026-09-05,824310,2026-09-06T00:10:00Z,St. Louis Cardinals,Colorado Rockies,away,9,701675,Nathan Church,690279,Mason Adams,L,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,1,669242,Tommy Edman,676917,Cade Cavalli,S,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,2,518692,Freddie Freeman,676917,Cade Cavalli,L,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,3,605141,Mookie Betts,676917,Cade Cavalli,R,R,R
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,4,571970,Max Muncy,676917,Cade Cavalli,L,R,L
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,5,663656,Kyle Tucker,676917,Cade Cavalli,L,R,L
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,6,606192,Teoscar Hernández,676917,Cade Cavalli,R,R,R
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,7,687221,Dalton Rushing,676917,Cade Cavalli,L,R,L
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,8,690976,Alex Freeland,676917,Cade Cavalli,S,R,L
-2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,9,676439,Hunter Feduccia,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,4,663656,Kyle Tucker,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,5,606192,Teoscar Hernández,676917,Cade Cavalli,R,R,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,6,676439,Hunter Feduccia,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,7,690976,Alex Freeland,676917,Cade Cavalli,S,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,8,669743,Alex Call,676917,Cade Cavalli,R,R,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,9,571771,Enrique Hernández,676917,Cade Cavalli,R,R,R
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,1,695578,James Wood,607192,Tyler Glasnow,L,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,2,695734,Daylen Lile,607192,Tyler Glasnow,L,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,3,694673,Abimelec Ortiz,607192,Tyler Glasnow,L,R,L
@@ -242,3 +251,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,7,677588,José Tena,607192,Tyler Glasnow,L,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,8,660688,Keibert Ruiz,607192,Tyler Glasnow,S,R,L
 2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,9,686611,Dylan Crews,607192,Tyler Glasnow,R,R,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,1,668227,Randy Arozarena,605488,Jeffrey Springs,R,L,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,2,686527,Dominic Canzone,605488,Jeffrey Springs,L,L,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,3,677594,Julio Rodríguez,605488,Jeffrey Springs,R,L,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,4,663728,Cal Raleigh,605488,Jeffrey Springs,S,L,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,5,647304,Josh Naylor,605488,Jeffrey Springs,L,L,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,6,641487,J.P. Crawford,605488,Jeffrey Springs,L,L,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,7,621493,Taylor Ward,605488,Jeffrey Springs,R,L,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,8,702284,Cole Young,605488,Jeffrey Springs,L,L,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Seattle Mariners,Athletics,home,9,642215,Weston Wilson,605488,Jeffrey Springs,R,L,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,1,703607,Henry Bolte,669923,George Kirby,R,R,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,2,643446,Jeff McNeil,669923,George Kirby,L,R,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,3,680869,Zack Gelof,669923,George Kirby,R,R,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,4,671732,Lawrence Butler,669923,George Kirby,L,R,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,5,641680,Jonah Heim,669923,George Kirby,S,R,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,6,691777,Max Muncy,669923,George Kirby,R,R,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,7,622268,Donovan Walton,669923,George Kirby,L,R,L
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,8,675961,Alika Williams,669923,George Kirby,R,R,R
+2026-09-05,823094,2026-09-06T01:40:00Z,Athletics,Seattle Mariners,away,9,672016,Denzel Clarke,669923,George Kirby,R,R,R
