@@ -428,10 +428,12 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     if pd.isna(spread_line):
         return {"matchup": matchup, "away_team": away_team, "home_team": home_team, "error": "No line available for this game yet"}
 
-    # spread_line is the home team's spread: negative = home favored by that
-    # many points. Implied full-game margin is the mirror for each side.
-    home_margin = -float(spread_line)
-    away_margin = float(spread_line)
+    # spread_line is the home team's spread: POSITIVE = home favored by that
+    # many points (confirmed against real data -- LAC @ +10.5 home was
+    # actually a 10.5-point favorite, the opposite of the initially assumed
+    # convention). Implied full-game margin is the mirror for each side.
+    home_margin = float(spread_line)
+    away_margin = -float(spread_line)
 
     game_script = get_nfl_team_game_script()
 

@@ -322,24 +322,26 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
         print(f"Warning: opposing_hitters section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
-    # 6. Pitcher's own rate allowed by handedness -- same source
-    #    (daily_matchups.parquet), but these columns (p_split_*) are the
-    #    pitcher's own stat, constant across every batter of the same hand
-    #    in today's matchup, so just take the first row per hand rather
-    #    than aggregating.
+    # 6. Pitcher's own rate allowed by handedness -- sourced from the same
+    #    pitcher_splits.parquet used for the Splits table above (see section
+    #    3), NOT from daily_matchups.parquet. That file requires the day's
+    #    lineup to have posted before it produces any rows at all, even
+    #    though a pitcher's own AVG/wOBA/etc. vs each hand has nothing to do
+    #    with who's actually in the opposing lineup. This is available as
+    #    soon as the starter is known and pitcher_splits.parquet has been
+    #    built, matching the same ID-based join as section 3.
     # ------------------------------------------------------------------
     pitcher_splits = {}
     try:
-        matchups_df = data.get("matchups", pd.DataFrame())
-        if not matchups_df.empty:
-            sub = matchups_df[matchups_df["pitcher"].str.lower().str.strip() == pitcher_norm].copy()
+        splits_source = data.get("pitcher_splits", pd.DataFrame())
+        if not splits_source.empty and starter is not None:
+            sub = splits_source[splits_source["player_id"] == int(starter["pitcher_id"])].copy()
             p_cols = {
-                "p_split_avg": "avg", "p_split_woba": "woba", "p_split_slg": "slg",
-                "p_split_iso": "iso", "p_split_k_pct": "k_pct", "p_split_bb_pct": "bb_pct",
-                "p_split_hr_pct": "hr_pct",
+                "avg": "avg", "woba": "woba", "slg": "slg", "iso": "iso",
+                "k_pct": "k_pct", "bb_pct": "bb_pct", "hr_rate": "hr_pct",
             }
-            for hand, label in [("R", "vs_r"), ("L", "vs_l")]:
-                hand_rows = sub[sub["bats"] == hand]
+            for raw_hand, label in [("R", "vs_r"), ("L", "vs_l")]:
+                hand_rows = sub[sub["split"] == f"vs {raw_hand}"]
                 if hand_rows.empty:
                     continue
                 row = hand_rows.iloc[0]

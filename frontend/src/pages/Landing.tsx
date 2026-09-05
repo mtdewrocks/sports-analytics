@@ -1,8 +1,10 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { theme } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', color: theme.textPrimary, background: theme.bgPage }}>
@@ -22,36 +24,59 @@ export default function Landing() {
             Data-driven insights for NBA, NFL &amp; MLB betting and fantasy sports
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => navigate('/register')}
-              style={{
-                background: theme.accent,
-                color: 'white',
-                border: 'none',
-                padding: '14px 36px',
-                fontSize: 16,
-                fontWeight: 700,
-                borderRadius: 8,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = theme.accentHover)}
-              onMouseLeave={(e) => (e.currentTarget.style.background = theme.accent)}
-            >
-              Get Started Free
-            </button>
-            <Link to="/login" style={{
-              background: 'transparent',
-              color: theme.textSecondary,
-              border: `1px solid ${theme.border}`,
-              padding: '14px 36px',
-              fontSize: 16,
-              borderRadius: 8,
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}>
-              Already have an account? Login
-            </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  background: theme.accent,
+                  color: 'white',
+                  border: 'none',
+                  padding: '14px 36px',
+                  fontSize: 16,
+                  fontWeight: 700,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = theme.accentHover)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = theme.accent)}
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/register')}
+                  style={{
+                    background: theme.accent,
+                    color: 'white',
+                    border: 'none',
+                    padding: '14px 36px',
+                    fontSize: 16,
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = theme.accentHover)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = theme.accent)}
+                >
+                  Get Started Free
+                </button>
+                <Link to="/login" style={{
+                  background: 'transparent',
+                  color: theme.textSecondary,
+                  border: `1px solid ${theme.border}`,
+                  padding: '14px 36px',
+                  fontSize: 16,
+                  borderRadius: 8,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}>
+                  Already have an account? Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -157,7 +182,7 @@ export default function Landing() {
               ))}
             </ul>
             <button
-              onClick={() => navigate('/register')}
+              onClick={() => navigate(isAuthenticated ? '/billing' : '/register')}
               style={{
                 background: theme.accent,
                 color: 'white',
@@ -170,7 +195,7 @@ export default function Landing() {
                 cursor: 'pointer',
               }}
             >
-              Start Free Trial
+              {isAuthenticated ? 'Manage Subscription' : 'Start Free Trial'}
             </button>
           </div>
         </div>
