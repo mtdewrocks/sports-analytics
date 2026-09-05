@@ -80,6 +80,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,823335,2026-09-05T22:40:00Z,Pittsburgh Pirates,Los Angeles Angels,home,7,669707,Jared Triolo,579328,Yusei Kikuchi,R,L,R
 2026-09-05,823335,2026-09-05T22:40:00Z,Pittsburgh Pirates,Los Angeles Angels,home,8,663968,Jake Mangum,579328,Yusei Kikuchi,S,L,R
 2026-09-05,823335,2026-09-05T22:40:00Z,Pittsburgh Pirates,Los Angeles Angels,home,9,694377,Nick Yorke,579328,Yusei Kikuchi,R,L,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,1,687263,Zach Neto,677952,Braxton Ashcraft,R,R,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,2,545361,Mike Trout,677952,Braxton Ashcraft,R,R,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,3,685133,Wade Meckler,677952,Braxton Ashcraft,L,R,L
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,4,687093,Vaughn Grissom,677952,Braxton Ashcraft,R,R,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,5,694208,Moisés Ballesteros,677952,Braxton Ashcraft,L,R,L
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,6,695681,Christian Moore,677952,Braxton Ashcraft,R,R,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,7,666139,Josh Lowe,677952,Braxton Ashcraft,L,R,L
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,8,694203,Denzer Guzman,677952,Braxton Ashcraft,R,R,R
+2026-09-05,823335,2026-09-05T22:40:00Z,Los Angeles Angels,Pittsburgh Pirates,away,9,624428,Adam Frazier,677952,Braxton Ashcraft,L,R,L
 2026-09-05,824468,2026-09-05T22:40:00Z,Cincinnati Reds,Milwaukee Brewers,home,1,699302,Héctor Rodríguez,669160,Dustin May,L,R,L
 2026-09-05,824468,2026-09-05T22:40:00Z,Cincinnati Reds,Milwaukee Brewers,home,2,682829,Elly De La Cruz,669160,Dustin May,S,R,L
 2026-09-05,824468,2026-09-05T22:40:00Z,Cincinnati Reds,Milwaukee Brewers,home,3,701398,Sal Stewart,669160,Dustin May,R,R,R
@@ -125,6 +134,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,822850,2026-09-05T23:05:00Z,Texas Rangers,Tampa Bay Rays,home,7,694497,Evan Carter,656876,Drew Rasmussen,L,R,L
 2026-09-05,822850,2026-09-05T23:05:00Z,Texas Rangers,Tampa Bay Rays,home,8,683227,Cody Freeman,656876,Drew Rasmussen,R,R,R
 2026-09-05,822850,2026-09-05T23:05:00Z,Texas Rangers,Tampa Bay Rays,home,9,643376,Danny Jansen,656876,Drew Rasmussen,R,R,R
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,1,650490,Yandy Díaz,594798,Jacob deGrom,R,R,R
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,2,666018,Jonathan Aranda,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,3,691406,Junior Caminero,594798,Jacob deGrom,R,R,R
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,4,689414,Liam Hicks,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,5,802415,Chandler Simpson,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,6,683748,Victor Mesa Jr.,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,7,656775,Cedric Mullins,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,8,680700,Richie Palacios,594798,Jacob deGrom,L,R,L
+2026-09-05,822850,2026-09-05T23:05:00Z,Tampa Bay Rays,Texas Rangers,away,9,670764,Taylor Walls,594798,Jacob deGrom,S,R,L
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,1,695600,Carter Jensen,453286,Max Scherzer,L,R,L
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,2,677951,Bobby Witt Jr.,453286,Max Scherzer,R,R,R
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,3,695506,Jac Caglianone,453286,Max Scherzer,L,R,L
@@ -134,6 +152,24 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,7,670231,John Rave,453286,Max Scherzer,L,R,L
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,8,668942,Josh Rojas,453286,Max Scherzer,L,R,L
 2026-09-05,824066,2026-09-05T23:10:00Z,Kansas City Royals,Toronto Blue Jays,home,9,686555,Isaac Collins,453286,Max Scherzer,S,R,L
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,1,703520,Brett Bateman,607625,Seth Lugo,L,R,L
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,2,543807,George Springer,607625,Seth Lugo,R,R,R
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,3,665489,Vladimir Guerrero Jr.,607625,Seth Lugo,R,R,R
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,4,672386,Alejandro Kirk,607625,Seth Lugo,R,R,R
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,5,664770,Nathan Lukes,607625,Seth Lugo,L,R,L
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,6,672960,Kazuma Okamoto,607625,Seth Lugo,R,R,R
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,7,665926,Andrés Giménez,607625,Seth Lugo,L,R,L
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,8,676391,Ernie Clement,607625,Seth Lugo,R,R,R
+2026-09-05,824066,2026-09-05T23:10:00Z,Toronto Blue Jays,Kansas City Royals,away,9,664702,Myles Straw,607625,Seth Lugo,R,R,R
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,1,803011,Sam Antonacci,671737,Taj Bradley,L,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,2,678246,Miguel Vargas,671737,Taj Bradley,R,R,R
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,3,808959,Munetaka Murakami,671737,Taj Bradley,L,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,4,643217,Andrew Benintendi,671737,Taj Bradley,L,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,5,695657,Colson Montgomery,671737,Taj Bradley,L,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,6,695731,Braden Montgomery,671737,Taj Bradley,S,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,7,805367,Chase Meidroth,671737,Taj Bradley,R,R,R
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,8,671976,Tristan Peters,671737,Taj Bradley,L,R,L
+2026-09-05,824553,2026-09-05T23:10:00Z,Chicago White Sox,Minnesota Twins,home,9,668670,Jake Rogers,671737,Taj Bradley,R,R,R
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,1,807712,Luke Keaschall,641743,Anthony Kay,R,L,R
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,2,701785,Kaelen Culpepper,641743,Anthony Kay,R,L,R
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,3,680777,Ryan Jeffers,641743,Anthony Kay,R,L,R
@@ -143,6 +179,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,7,686797,Brooks Lee,641743,Anthony Kay,S,L,R
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,8,694224,Gabriel Gonzalez,641743,Anthony Kay,R,L,R
 2026-09-05,824553,2026-09-05T23:10:00Z,Minnesota Twins,Chicago White Sox,away,9,668952,Ryan Kreidler,641743,Anthony Kay,R,L,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,1,665161,Jeremy Peña,694297,Brandon Pfaadt,R,R,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,2,670541,Yordan Alvarez,694297,Brandon Pfaadt,L,R,L
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,3,670623,Isaac Paredes,694297,Brandon Pfaadt,R,R,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,4,514888,Jose Altuve,694297,Brandon Pfaadt,R,R,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,5,662139,Daulton Varsho,694297,Brandon Pfaadt,L,R,L
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,6,572233,Christian Walker,694297,Brandon Pfaadt,R,R,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,7,673237,Yainer Diaz,694297,Brandon Pfaadt,R,R,R
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,8,666211,Taylor Trammell,694297,Brandon Pfaadt,L,R,L
+2026-09-05,824145,2026-09-05T23:15:00Z,Houston Astros,Arizona Diamondbacks,home,9,701358,Cam Smith,694297,Brandon Pfaadt,R,R,R
 2026-09-05,824145,2026-09-05T23:15:00Z,Arizona Diamondbacks,Houston Astros,away,1,663457,Lars Nootbaar,814490,Ethan Pecko,L,R,L
 2026-09-05,824145,2026-09-05T23:15:00Z,Arizona Diamondbacks,Houston Astros,away,2,672695,Geraldo Perdomo,814490,Ethan Pecko,S,R,L
 2026-09-05,824145,2026-09-05T23:15:00Z,Arizona Diamondbacks,Houston Astros,away,3,672515,Gabriel Moreno,814490,Ethan Pecko,R,R,R
@@ -161,6 +206,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,823257,2026-09-05T23:15:00Z,San Diego Padres,New York Yankees,home,7,666023,Freddy Fermin,607074,Carlos Rodón,R,L,R
 2026-09-05,823257,2026-09-05T23:15:00Z,San Diego Padres,New York Yankees,home,8,630105,Jake Cronenworth,607074,Carlos Rodón,L,L,L
 2026-09-05,823257,2026-09-05T23:15:00Z,San Diego Padres,New York Yankees,home,9,669392,Samad Taylor,607074,Carlos Rodón,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,1,502671,Paul Goldschmidt,592662,Robbie Ray,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,2,641355,Cody Bellinger,592662,Robbie Ray,L,L,L
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,3,642708,Amed Rosario,592662,Robbie Ray,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,4,700250,Ben Rice,592662,Robbie Ray,L,L,L
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,5,671218,Heliot Ramos,592662,Robbie Ray,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,6,806146,George Lombard Jr.,592662,Robbie Ray,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,7,682987,Spencer Jones,592662,Robbie Ray,L,L,L
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,8,676609,José Caballero,592662,Robbie Ray,R,L,R
+2026-09-05,823257,2026-09-05T23:15:00Z,New York Yankees,San Diego Padres,away,9,669224,Austin Wells,592662,Robbie Ray,L,L,L
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,1,664983,Jake McCarthy,669461,Matthew Liberatore,L,L,L
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,2,681393,Connor Norby,669461,Matthew Liberatore,R,L,R
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,3,696100,Hunter Goodman,669461,Matthew Liberatore,R,L,R
@@ -170,3 +224,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,7,687859,Troy Johnston,669461,Matthew Liberatore,L,L,L
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,8,691182,Adael Amador,669461,Matthew Liberatore,S,L,R
 2026-09-05,824310,2026-09-06T00:10:00Z,Colorado Rockies,St. Louis Cardinals,home,9,678662,Ezequiel Tovar,669461,Matthew Liberatore,R,L,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,1,669242,Tommy Edman,676917,Cade Cavalli,S,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,2,518692,Freddie Freeman,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,3,605141,Mookie Betts,676917,Cade Cavalli,R,R,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,4,571970,Max Muncy,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,5,663656,Kyle Tucker,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,6,606192,Teoscar Hernández,676917,Cade Cavalli,R,R,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,7,687221,Dalton Rushing,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,8,690976,Alex Freeland,676917,Cade Cavalli,S,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Los Angeles Dodgers,Washington Nationals,home,9,676439,Hunter Feduccia,676917,Cade Cavalli,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,1,695578,James Wood,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,2,695734,Daylen Lile,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,3,694673,Abimelec Ortiz,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,4,682928,CJ Abrams,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,5,691781,Brady House,607192,Tyler Glasnow,R,R,R
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,6,678391,Jorbit Vivas,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,7,677588,José Tena,607192,Tyler Glasnow,L,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,8,660688,Keibert Ruiz,607192,Tyler Glasnow,S,R,L
+2026-09-05,823904,2026-09-06T01:10:00Z,Washington Nationals,Los Angeles Dodgers,away,9,686611,Dylan Crews,607192,Tyler Glasnow,R,R,R
