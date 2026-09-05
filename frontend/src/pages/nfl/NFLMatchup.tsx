@@ -25,6 +25,7 @@ interface MatchupData {
 interface TeamGameScript {
   team: string;
   implied_situation: string;
+  implied_total: number | null;
   baseline_pass_pct: number | null;
   projected_pass_pct: number | null;
   error?: string;
@@ -124,6 +125,12 @@ function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
     <div style={{ flex: 1, minWidth: 280, background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: theme.textPrimary }}>{data.team}</div>
       <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>Implied script: {situationLabel(data.implied_situation)}</div>
+      {data.implied_total != null && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+          <span style={{ fontSize: 32, fontWeight: 700, color: theme.textPrimary }}>{data.implied_total}</span>
+          <span style={{ fontSize: 12, color: theme.textSecondary }}>projected points</span>
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
         <span style={{ fontSize: 26, fontWeight: 700, color: theme.textPrimary }}>{data.projected_pass_pct ?? '—'}%</span>
         <span style={{ fontSize: 12, color: theme.textSecondary }}>projected pass rate</span>

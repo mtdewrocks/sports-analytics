@@ -10,9 +10,19 @@ const MIN_PLAYERS = 2;
 interface StatRow {
   label: string;
   value: number | null;
-  def_rank?: number | null;
-  def_ypg?: number | null;
-  def_granularity?: string;
+}
+interface MatchupContextLine {
+  label: string;
+  value: number | null;
+  rank: number | null;
+  rank_word: string;
+  granularity?: string;
+  favorable: boolean | null;
+}
+interface MatchupContext {
+  opp_defense: MatchupContextLine[];
+  opp_pass_rush: MatchupContextLine | null;
+  own_pass_block: MatchupContextLine | null;
 }
 interface CurrentWeekPlayer {
   player: string;
@@ -23,7 +33,8 @@ interface CurrentWeekPlayer {
   is_home?: boolean;
   week?: number;
   stats?: StatRow[];
-  game_script?: { implied_situation: string; baseline_pass_pct: number | null; projected_pass_pct: number | null } | null;
+  matchup_context?: MatchupContext | null;
+  game_script?: { implied_situation: string; implied_total: number | null; baseline_pass_pct: number | null; projected_pass_pct: number | null } | null;
 }
 interface ScheduleRow {
   week: number;
@@ -41,11 +52,22 @@ interface SeasonPlayer {
   schedule?: ScheduleRow[];
 }
 
-function rankColor(rank: number | null | undefined): string {
-  if (rank == null) return theme.textSecondary;
-  if (rank <= 10) return theme.dataBlue;
-  if (rank >= 23) return theme.dataRed;
+function favorableColor(favorable: boolean | null): string {
+  if (favorable === true) return theme.dataBlue;
+  if (favorable === false) return theme.dataRed;
   return theme.textPrimary;
+}
+
+function ContextLine({ line }: { line: MatchupContextLine }) {
+  const asterisk = line.granularity && line.granularity !== 'team' ? '*' : '';
+  return (
+    <div style={{ fontSize: 12, color: theme.textPrimary, marginBottom: 3 }}>
+      {line.label}:{' '}
+      <span style={{ color: favorableColor(line.favorable), fontWeight: 600 }}>
+        {line.value ?? '—'} ({line.rank != null ? `${line.rank}${asterisk} ${line.rank_word}` : '—'})
+      </span>
+    </div>
+  );
 }
 
 const cardStyle: React.CSSProperties = {
@@ -77,24 +99,44 @@ function CurrentWeekCard({ p }: { p: CurrentWeekPlayer }) {
             <tr key={s.label}>
               <td style={{ padding: '3px 0', color: theme.textSecondary }}>{s.label}</td>
               <td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{s.value ?? '—'}</td>
-              <td style={{ textAlign: 'right', paddingLeft: 8, color: rankColor(s.def_rank), fontWeight: 600 }}>
-                {s.def_rank != null ? `${s.def_rank}${s.def_granularity && s.def_granularity !== 'team' ? '*' : ''}` : ''}
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {p.matchup_context && (
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${theme.border}` }}>
+          <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 6 }}>Matchup Context</div>
+          {p.matchup_context.opp_defense.map((line) => <ContextLine key={line.label} line={line} />)}
+          {p.matchup_context.opp_pass_rush && <ContextLine line={p.matchup_context.opp_pass_rush} />}
+          {p.matchup_context.own_pass_block && <ContextLine line={p.matchup_context.own_pass_block} />}
+        </div>
+      )}
       {p.game_script && (
         <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${theme.border}` }}>
           <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 }}>Projected Script</div>
           <div style={{ color: theme.textPrimary, fontSize: 13 }}>
             {p.game_script.implied_situation.replace('_', ' ')} &middot;{' '}
             <span style={{ color: theme.dataBlue, fontWeight: 700 }}>{p.game_script.projected_pass_pct ?? '—'}% pass rate</span>
+            {p.game_script.implied_total != null && (
+              <> &middot; <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{p.game_script.implied_total} proj. pts</span></>
+            )}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+// Season mode's backend still returns a raw rank rather than an explicit
+// favorable boolean (unlike Current Week mode's matchup_context) -- kept
+// as its own small helper rather than reusing favorableColor, since a raw
+// yards-allowed rank direction isn't guaranteed to generalize the same way
+// once other rank types get added to Season mode later.
+function seasonRankColor(rank: number | null | undefined): string {
+  if (rank == null) return theme.textSecondary;
+  if (rank <= 10) return theme.dataRed;
+  if (rank >= 23) return theme.dataBlue;
+  return theme.textPrimary;
 }
 
 function SeasonCard({ p }: { p: SeasonPlayer }) {
@@ -129,7 +171,7 @@ function SeasonCard({ p }: { p: SeasonPlayer }) {
               <tr key={row.week} style={{ borderTop: `1px solid ${theme.border}` }}>
                 <td style={{ padding: '4px 0', color: theme.textSecondary }}>{row.week}</td>
                 <td style={{ color: theme.textPrimary }}>{row.is_home ? 'vs' : '@'} {row.opponent}</td>
-                <td style={{ textAlign: 'right', color: rankColor(row.def_rank), fontWeight: 600 }}>
+                <td style={{ textAlign: 'right', color: seasonRankColor(row.def_rank), fontWeight: 600 }}>
                   {row.def_rank ?? '—'}{row.def_granularity && row.def_granularity !== 'team' ? '*' : ''}
                 </td>
               </tr>

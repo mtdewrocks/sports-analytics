@@ -456,6 +456,59 @@ _POSITION_DEFENSE_COL = {
 }
 
 
+def _team_pass_rush_and_block(stats_df: pd.DataFrame, team_col: str, week_col: str) -> tuple:
+    """Team-level pass rush generated (def_sacks + def_qb_hits, summed
+    across all of a team's defenders) and pass protection (sacks_suffered,
+    summed across whichever QB(s) played), both per game with ranks.
+
+    Both columns already exist in the same weekly stats file used
+    everywhere else in this module -- no new data pull needed, this is
+    just an aggregation that hadn't been built yet.
+
+    Returns (pass_rush_df, pass_block_df), each indexed by team.
+    """
+    games_played = stats_df.groupby(team_col)[week_col].nunique()
+
+    rush = stats_df.groupby(team_col, as_index=False).agg(
+        def_sacks=("def_sacks", "sum"), def_qb_hits=("def_qb_hits", "sum"),
+    )
+    rush["games"] = rush[team_col].map(games_played)
+    rush["pressure_pg"] = (rush["def_sacks"].fillna(0) + rush["def_qb_hits"].fillna(0)) / rush["games"].replace(0, pd.NA)
+    # More pressure generated = tougher on the passing game = rank 1 for
+    # the HIGHEST value, opposite direction from a yards-allowed rank.
+    rush["rank_most"] = rush["pressure_pg"].rank(ascending=False, method="min")
+
+    block = stats_df.groupby(team_col, as_index=False).agg(sacks_suffered=("sacks_suffered", "sum"))
+    block["games"] = block[team_col].map(games_played)
+    block["sacks_allowed_pg"] = block["sacks_suffered"].fillna(0) / block["games"].replace(0, pd.NA)
+    # Fewer sacks allowed = better protection = rank 1 for the LOWEST value.
+    block["rank_fewest"] = block["sacks_allowed_pg"].rank(ascending=True, method="min")
+
+    return rush.set_index(team_col), block.set_index(team_col)
+
+
+def _favorable_from_rank(rank: Optional[float], low_rank_is_favorable: bool, total_teams: int = 32) -> Optional[bool]:
+    """True = favorable for the offense/player, False = tough, None =
+    roughly average. Same top-10/bottom-10 threshold already used for
+    color elsewhere in this file, just returned as an explicit boolean
+    instead of a rank number the frontend would have to re-interpret.
+
+    low_rank_is_favorable matters because "rank 1" means opposite things
+    depending on the stat: for yards allowed or pressure generated, rank 1
+    is the TOUGHEST for the offense (unfavorable). For a team's OWN sacks
+    allowed, rank 1 is the BEST protection (favorable) -- the same
+    generic "low rank = tough" assumption doesn't hold for both, and
+    getting this backwards for one specific case already happened once
+    reasoning about it by hand, hence making the direction an explicit
+    parameter instead of leaving it implicit."""
+    if rank is None:
+        return None
+    top_10, bottom_10 = (rank <= 10), (rank >= total_teams - 9)
+    if low_rank_is_favorable:
+        return True if top_10 else (False if bottom_10 else None)
+    return False if top_10 else (True if bottom_10 else None)
+
+
 def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str]) -> tuple:
     """Most recent known team and position_group for a player, from their
     own game log rows -- the last row is their most current team (handles
@@ -529,13 +582,20 @@ def _defense_rank_for(category: str, position: Optional[str], opponent: str) -> 
 
 def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
     """Side-by-side current-week comparison for 2-4 players: position-
-    specific season stat averages with opponent defensive context, plus
-    the same projected game script shown on the Matchup page, reused
-    directly rather than recomputed."""
+    specific season stat averages, a single consolidated matchup-context
+    block (not repeated per stat row -- every pass-catching stat shares
+    the same underlying defensive category, so showing it five times was
+    pure redundancy), plus the same projected game script shown on the
+    Matchup page, reused directly rather than recomputed."""
     df = get_nfl_stats()
     col = _player_col(df)
     team_col = _team_col(df)
+    week_col = _week_col(df)
     season = _current_nfl_season()
+
+    pass_rush_df, pass_block_df = (pd.DataFrame(), pd.DataFrame())
+    if team_col and week_col:
+        pass_rush_df, pass_block_df = _team_pass_rush_and_block(df, team_col, week_col)
 
     results = []
     for player in players:
@@ -550,6 +610,7 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
         games_played = max(int(len(player_df)), 1)
 
         stats = []
+        categories_seen = []
         for spec in stat_set:
             if spec["kind"] == "avg":
                 total = pd.to_numeric(player_df.get(spec["col"]), errors="coerce").fillna(0).sum()
@@ -558,18 +619,64 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                 num = pd.to_numeric(player_df.get(spec["num"]), errors="coerce").fillna(0).sum()
                 den = pd.to_numeric(player_df.get(spec["den"]), errors="coerce").fillna(0).sum()
                 value = round(float(num) / den, 1) if den else None
-            stats.append({"label": spec["label"], "value": value, "def_category": spec["def"]})
+            stats.append({"label": spec["label"], "value": value})
+            if spec["def"] not in categories_seen:
+                categories_seen.append(spec["def"])
 
         next_game = _next_game_for_team(team, season) if team else None
         game_script = None
+        matchup_context = None
         if next_game:
-            for s in stats:
-                rank_info = _defense_rank_for(s["def_category"], position, next_game["opponent"])
-                s["def_rank"] = rank_info["def_rank"]
-                s["def_ypg"] = rank_info["def_ypg"]
-                s["def_granularity"] = rank_info["granularity"]
+            opponent = next_game["opponent"]
 
-            away, home = (team, next_game["opponent"]) if not next_game["is_home"] else (next_game["opponent"], team)
+            # One opponent-defense line per UNIQUE category in this
+            # player's stat set (usually just one), not one per stat row.
+            opp_defense = []
+            for category in categories_seen:
+                rank_info = _defense_rank_for(category, position, opponent)
+                if rank_info["def_rank"] is None:
+                    continue
+                label = "Opp Rush Defense" if category == "rush" else "Opp Pass Defense"
+                opp_defense.append({
+                    "label": label,
+                    "value": rank_info["def_ypg"],
+                    "rank": rank_info["def_rank"],
+                    "rank_word": "fewest",
+                    "granularity": rank_info["granularity"],
+                    "favorable": _favorable_from_rank(rank_info["def_rank"], low_rank_is_favorable=False),  # rank 1 = toughest defense = unfavorable
+                })
+
+            opp_pass_rush = None
+            if opponent.upper() in pass_rush_df.index:
+                row = pass_rush_df.loc[opponent.upper()]
+                if pd.notna(row["pressure_pg"]):
+                    opp_pass_rush = {
+                        "label": "Opp Pass Rush",
+                        "value": round(float(row["pressure_pg"]), 1),
+                        "rank": int(row["rank_most"]),
+                        "rank_word": "most",
+                        "favorable": _favorable_from_rank(row["rank_most"], low_rank_is_favorable=False),  # rank 1 = most pressure = unfavorable
+                    }
+
+            own_pass_block = None
+            if team and team.upper() in pass_block_df.index:
+                row = pass_block_df.loc[team.upper()]
+                if pd.notna(row["sacks_allowed_pg"]):
+                    own_pass_block = {
+                        "label": "Own Pass Block",
+                        "value": round(float(row["sacks_allowed_pg"]), 1),
+                        "rank": int(row["rank_fewest"]),
+                        "rank_word": "fewest",
+                        "favorable": _favorable_from_rank(row["rank_fewest"], low_rank_is_favorable=True),  # rank 1 = fewest sacks allowed = best protection = favorable
+                    }
+
+            matchup_context = {
+                "opp_defense": opp_defense,
+                "opp_pass_rush": opp_pass_rush,
+                "own_pass_block": own_pass_block,
+            }
+
+            away, home = (team, opponent) if not next_game["is_home"] else (opponent, team)
             projection = get_game_script_projection(f"{away} @ {home}")
             if "error" not in projection:
                 game_script = projection["home"] if next_game["is_home"] else projection["away"]
@@ -582,6 +689,7 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
             "is_home": next_game["is_home"] if next_game else None,
             "week": next_game["week"] if next_game else None,
             "stats": stats,
+            "matchup_context": matchup_context,
             "game_script": game_script,
         })
 
@@ -806,9 +914,18 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
 
     def team_section(team: str, margin: float) -> Dict[str, Any]:
         situation = _implied_situation(margin)
+
+        # Verified formula: this team's implied point total is half the
+        # game total, shifted by half their margin -- confirmed against a
+        # real example (PHI home, spread 8.5, total 47.5 -> PHI implied
+        # 28.0, DAL implied 19.5, sums back to the full 47.5). Works
+        # uniformly for both home and away since `margin` passed in here
+        # is already correctly signed for whichever side is being built.
+        implied_total = None if pd.isna(total_line) else round(float(total_line) / 2 + margin / 2, 1)
+
         row = game_script[game_script["team"].str.upper() == team]
         if row.empty:
-            return {"team": team, "implied_situation": situation, "error": "No game script data for this team"}
+            return {"team": team, "implied_situation": situation, "implied_total": implied_total, "error": "No game script data for this team"}
         row = row.iloc[0]
 
         projected_pass_pct = _projected_pass_pct(row, situation)
@@ -817,6 +934,7 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
         return {
             "team": team,
             "implied_situation": situation,
+            "implied_total": implied_total,
             "baseline_pass_pct": None if pd.isna(baseline_pass_pct) else round(float(baseline_pass_pct), 1),
             "projected_pass_pct": projected_pass_pct,
         }
