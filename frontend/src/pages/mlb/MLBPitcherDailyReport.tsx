@@ -16,12 +16,12 @@ interface PitcherRow {
   opp_avg: number | null;
   opp_k_pct: number | null;
   opp_bb_pct: number | null;
-  high_k_hitter: number;
-  high_bb_hitter: number;
-  high_avg_hitter: number;
-  low_avg_hitter: number;
-  high_iso_hitter: number;
-  high_woba_hitter: number;
+  high_k_hitter: number | null;
+  high_bb_hitter: number | null;
+  high_avg_hitter: number | null;
+  low_avg_hitter: number | null;
+  high_iso_hitter: number | null;
+  high_woba_hitter: number | null;
 }
 
 type SortKey = keyof PitcherRow;
@@ -49,6 +49,7 @@ const columns: { key: SortKey; label: string; align?: 'left' | 'right' }[] = [
 
 export default function MLBPitcherDailyReport() {
   const [rows, setRows] = useState<PitcherRow[]>([]);
+  const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('player');
@@ -56,7 +57,10 @@ export default function MLBPitcherDailyReport() {
 
   useEffect(() => {
     getMLBPitcherDailyReport()
-      .then((res) => setRows(res.data))
+      .then((res) => {
+        setDate(res.data.date);
+        setRows(res.data.pitchers);
+      })
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to fetch pitcher report.'))
       .finally(() => setLoading(false));
   }, []);
@@ -86,9 +90,16 @@ export default function MLBPitcherDailyReport() {
   return (
     <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>MLB Pitcher Daily Report</h2>
+      {date && (
+        <div style={{ fontSize: 14, color: theme.textPrimary, fontWeight: 600, marginBottom: 4 }}>
+          {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </div>
+      )}
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
         Every starting pitcher on today's slate -- recent-form averages (last up to 10 starts) alongside
-        today's opposing lineup's toughness. Click a column to sort.
+        today's opposing lineup's toughness. Opponent-lineup columns show a dash until that specific
+        game's lineup has posted; a pitcher's own recent-form stats appear as soon as they're announced
+        as today's starter. Click a column to sort.
       </div>
 
       {loading && <LoadingSpinner />}
@@ -138,12 +149,12 @@ export default function MLBPitcherDailyReport() {
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_avg ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_k_pct ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_bb_pct ?? '—'}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_k_hitter}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_bb_hitter}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_avg_hitter}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.low_avg_hitter}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_iso_hitter}</td>
-                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_woba_hitter}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_k_hitter ?? '—'}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_bb_hitter ?? '—'}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_avg_hitter ?? '—'}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.low_avg_hitter ?? '—'}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_iso_hitter ?? '—'}</td>
+                  <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_woba_hitter ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

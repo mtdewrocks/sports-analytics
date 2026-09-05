@@ -745,89 +745,115 @@ HITTER_FLAG_THRESHOLDS = {
 }
 
 
-def get_pitcher_daily_report() -> List[Dict[str, Any]]:
+def get_pitcher_daily_report() -> Dict[str, Any]:
     """One row per starting pitcher with a game today: recent-form averages
     (last up to 10 starts) plus today's opposing lineup's aggregate
     toughness and count of standout hitters, using fixed thresholds rather
     than the percentile-based flags build_matchups.py computes for other
     purposes.
+
+    Driven by probable_starters.parquet (today's announced starters,
+    independent of lineups) rather than daily_matchups.parquet (which has
+    ZERO rows until a lineup has actually posted) -- a pitcher's own recent
+    form and the fact that they're starting today are both known well
+    before the lineup, so every starter shows up immediately. Only the
+    opposing-lineup columns (opp_avg, opp_k_pct, the high_*_hitter counts)
+    come through as None for a given pitcher until that specific game's
+    lineup exists, rather than the whole pitcher not appearing at all.
     """
     data = get_mlb_data()
 
+    probable = data.get("probable_starters", pd.DataFrame())
     logs = data.get("pitcher_logs", pd.DataFrame())
     matchups = data.get("matchups", pd.DataFrame())
-    if logs.empty or matchups.empty:
-        return []
+
+    if probable.empty:
+        return {"date": None, "pitchers": []}
+
+    today = str(probable["date"].iloc[0]) if "date" in probable.columns else None
 
     # ---- Recent-form averages, last up to 10 starts per pitcher ----------
-    logs = logs.copy()
-    logs["date"] = pd.to_datetime(logs["date"], errors="coerce")
-    logs = logs[logs["date"].notna()].sort_values(["pitcher_id", "date"], ascending=[True, False])
-    logs["game_num"] = logs.groupby("pitcher_id").cumcount() + 1
-    recent = logs[logs["game_num"] <= 10].copy()
-    recent["outs"] = recent["innings"].apply(_ip_to_outs)
+    recent_avg = pd.DataFrame()
+    if not logs.empty:
+        logs = logs.copy()
+        logs["date"] = pd.to_datetime(logs["date"], errors="coerce")
+        logs = logs[logs["date"].notna()].sort_values(["pitcher_id", "date"], ascending=[True, False])
+        logs["game_num"] = logs.groupby("pitcher_id").cumcount() + 1
+        recent = logs[logs["game_num"] <= 10].copy()
+        recent["outs"] = recent["innings"].apply(_ip_to_outs)
 
-    recent_avg = recent.groupby(["pitcher_id", "pitcher"], as_index=False).agg(
-        games=("game_num", "max"),
-        avg_outs=("outs", "mean"),
-        avg_hits=("hits", "mean"),
-        avg_er=("earned_runs", "mean"),
-        avg_so=("strikeouts", "mean"),
-        avg_bb=("walks", "mean"),
-    )
+        recent_avg = recent.groupby(["pitcher_id", "pitcher"], as_index=False).agg(
+            games=("game_num", "max"),
+            avg_outs=("outs", "mean"),
+            avg_hits=("hits", "mean"),
+            avg_er=("earned_runs", "mean"),
+            avg_so=("strikeouts", "mean"),
+            avg_bb=("walks", "mean"),
+        )
 
     # ---- Today's opposing lineup: toughness + standout-hitter counts -----
-    m = matchups.copy()
-    for flag_col, (source_col, op, threshold) in HITTER_FLAG_THRESHOLDS.items():
-        if source_col not in m.columns:
-            m[flag_col] = 0
-            continue
-        vals = pd.to_numeric(m[source_col], errors="coerce")
-        m[flag_col] = (vals >= threshold if op == "ge" else vals <= threshold).fillna(False).astype(int)
+    # Deliberately allowed to stay empty if no lineup has posted for anyone
+    # yet -- the merge below then leaves these columns as None rather than
+    # dropping any pitcher from the report.
+    matchup_agg = pd.DataFrame()
+    if not matchups.empty:
+        m = matchups.copy()
+        for flag_col, (source_col, op, threshold) in HITTER_FLAG_THRESHOLDS.items():
+            if source_col not in m.columns:
+                m[flag_col] = 0
+                continue
+            vals = pd.to_numeric(m[source_col], errors="coerce")
+            m[flag_col] = (vals >= threshold if op == "ge" else vals <= threshold).fillna(False).astype(int)
 
-    matchup_agg = m.groupby("pitcher", as_index=False).agg(
-        opposing_team=("team", "first"),
-        pitcher_team=("opponent", "first"),
-        opp_avg=("split_avg", "mean"),
-        opp_k_pct=("split_k_pct", "mean"),
-        opp_bb_pct=("split_bb_pct", "mean"),
-        high_k_hitter=("high_k_hitter", "sum"),
-        high_bb_hitter=("high_bb_hitter", "sum"),
-        high_avg_hitter=("high_avg_hitter", "sum"),
-        low_avg_hitter=("low_avg_hitter", "sum"),
-        high_iso_hitter=("high_iso_hitter", "sum"),
-        high_woba_hitter=("high_woba_hitter", "sum"),
-    )
+        matchup_agg = m.groupby("pitcher", as_index=False).agg(
+            opp_avg=("split_avg", "mean"),
+            opp_k_pct=("split_k_pct", "mean"),
+            opp_bb_pct=("split_bb_pct", "mean"),
+            high_k_hitter=("high_k_hitter", "sum"),
+            high_bb_hitter=("high_bb_hitter", "sum"),
+            high_avg_hitter=("high_avg_hitter", "sum"),
+            low_avg_hitter=("low_avg_hitter", "sum"),
+            high_iso_hitter=("high_iso_hitter", "sum"),
+            high_woba_hitter=("high_woba_hitter", "sum"),
+        )
 
-    combined = matchup_agg.merge(
-        recent_avg, left_on="pitcher", right_on="pitcher", how="left"
-    )
+    # Driving table: every announced starter today, regardless of whether
+    # anything else below has data for them yet.
+    combined = probable[["pitcher", "team", "opponent"]].drop_duplicates(subset=["pitcher"]).copy()
+    if not recent_avg.empty:
+        combined = combined.merge(recent_avg.drop(columns=["pitcher_id"]), on="pitcher", how="left")
+    if not matchup_agg.empty:
+        combined = combined.merge(matchup_agg, on="pitcher", how="left")
 
     def clean(v, digits=1):
         if v is None or (isinstance(v, float) and pd.isna(v)):
             return None
         return round(float(v), digits)
 
+    def clean_int(v):
+        return int(v) if pd.notna(v) else None
+
     out = []
-    for r in combined.itertuples():
+    for _, r in combined.iterrows():
         out.append({
-            "player": r.pitcher,
-            "team": r.pitcher_team,
-            "opposing_team": r.opposing_team,
-            "games": int(r.games) if pd.notna(getattr(r, "games", None)) else 0,
-            "avg_outs": clean(r.avg_outs),
-            "avg_hits": clean(r.avg_hits),
-            "avg_er": clean(r.avg_er),
-            "avg_so": clean(r.avg_so),
-            "avg_bb": clean(r.avg_bb),
-            "opp_avg": clean(r.opp_avg, 3),
-            "opp_k_pct": clean(r.opp_k_pct),
-            "opp_bb_pct": clean(r.opp_bb_pct),
-            "high_k_hitter": int(r.high_k_hitter),
-            "high_bb_hitter": int(r.high_bb_hitter),
-            "high_avg_hitter": int(r.high_avg_hitter),
-            "low_avg_hitter": int(r.low_avg_hitter),
-            "high_iso_hitter": int(r.high_iso_hitter),
-            "high_woba_hitter": int(r.high_woba_hitter),
+            "player": r["pitcher"],
+            "team": r["team"],
+            "opposing_team": r["opponent"],
+            "games": clean_int(r.get("games")) or 0,
+            "avg_outs": clean(r.get("avg_outs")),
+            "avg_hits": clean(r.get("avg_hits")),
+            "avg_er": clean(r.get("avg_er")),
+            "avg_so": clean(r.get("avg_so")),
+            "avg_bb": clean(r.get("avg_bb")),
+            "opp_avg": clean(r.get("opp_avg"), 3),
+            "opp_k_pct": clean(r.get("opp_k_pct")),
+            "opp_bb_pct": clean(r.get("opp_bb_pct")),
+            "high_k_hitter": clean_int(r.get("high_k_hitter")),
+            "high_bb_hitter": clean_int(r.get("high_bb_hitter")),
+            "high_avg_hitter": clean_int(r.get("high_avg_hitter")),
+            "low_avg_hitter": clean_int(r.get("low_avg_hitter")),
+            "high_iso_hitter": clean_int(r.get("high_iso_hitter")),
+            "high_woba_hitter": clean_int(r.get("high_woba_hitter")),
         })
-    return out
+
+    return {"date": today, "pitchers": out}

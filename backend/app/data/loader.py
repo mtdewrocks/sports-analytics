@@ -76,6 +76,30 @@ def _load(url: str, reader, key: str) -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_snap_counts() -> pd.DataFrame:
+    """Snap-by-snap participation from nflverse (sourced from Pro Football
+    Reference), pulled directly like get_nfl_schedule() rather than from the
+    app's own re-hosted files. Used as the "did this player actually play"
+    signal for the NFL In/Out page -- presence in this file for a given
+    game_id is a real played/inactive signal, unlike the box-score stats
+    file (which has no way to distinguish "played and recorded a zero" from
+    "wasn't active that week" -- this file mirrors the explicit 'played'
+    column NBA's data already has).
+
+    Falls back to last season if the current one has no games yet, same
+    convention as the rest of this app's NFL pulls.
+    """
+    from datetime import date
+    season = date.today().year if date.today().month >= 9 else date.today().year - 1
+    url = f"https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season}.csv"
+    df = _load(url, lambda buf: pd.read_csv(buf, low_memory=False), "nfl snap counts")
+    if df.empty:
+        prior_url = f"https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season - 1}.csv"
+        df = _load(prior_url, lambda buf: pd.read_csv(buf, low_memory=False), "nfl snap counts (prior season fallback)")
+    return df
+
+
+@ttl_cache(OTHER_TTL)
 def get_nba_data() -> pd.DataFrame:
     raw = _fetch_bytes(settings.NBA_STATS_URL)
     df = pd.read_parquet(io.BytesIO(raw))
@@ -224,6 +248,7 @@ def get_mlb_data() -> dict:
         ("pitcher_logs", "pitcher_logs.parquet", pd.read_parquet),  # recent game logs
         ("bullpen_logs", "bullpen_logs.parquet", pd.read_parquet),  # all appearances, for bullpen workload
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
+        ("probable_starters", "probable_starters.parquet", pd.read_parquet),  # today's starters, no lineup required
         # --- Statcast, rebuilt by GitHub Actions ---
         ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
         ("mlb_rosters", "mlb_rosters.parquet", pd.read_parquet),    # player_id -> current team lookup

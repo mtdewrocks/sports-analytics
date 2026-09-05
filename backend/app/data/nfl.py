@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts
 
 # Stat groups for reference / display
 PASSING_STATS = [

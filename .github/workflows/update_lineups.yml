@@ -54,6 +54,17 @@ jobs:
       - name: Pull current MLB rosters
         run: python -u backend/app/get_mlb_rosters.py
 
+      # Today's probable starters, independent of whether lineups have
+      # posted -- feeds the Pitcher Daily Report's pitcher list, which
+      # should show every starter right away rather than waiting on
+      # lineups. get_lineups_chatgpt.py below already fetches this exact
+      # info internally, but only keeps it attached to a batter row, so it
+      # gets silently discarded on every early-day run before lineups post.
+      - name: Pull probable starters
+        id: probable_starters
+        continue-on-error: true
+        run: python -u backend/app/get_probable_starters.py
+
       # Only fetches photos that are missing, so this is a no-op on a normal
       # run and costs nothing.
       - name: Download missing pitcher photos
@@ -79,6 +90,7 @@ jobs:
 
           for path in "backend/data/mlb/starters.parquet" \
                       "backend/data/mlb/mlb_rosters.parquet" \
+                      "backend/data/mlb/probable_starters.parquet" \
                       "backend/data/mlb/lineups_${day}.csv" \
                       "backend/data/mlb/daily_matchups.parquet"; do
             if [ -f "$path" ]; then
