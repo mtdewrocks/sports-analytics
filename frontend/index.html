@@ -5,6 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sports Analytics</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K989L1W3ZM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // send_page_view disabled -- this is a single-page app, so the page
+      // never actually reloads on navigation between routes. Left on its
+      // default, GA4 would only ever see one page view per visit no matter
+      // how many pages someone actually browsed. usePageTracking (in
+      // App.tsx) fires page_view manually on every route change instead,
+      // including the very first one, so there's exactly one code path for
+      // every page view rather than the default handling the first and a
+      // custom one handling the rest.
+      gtag('config', 'G-K989L1W3ZM', { send_page_view: false });
+    </script>
   </head>
   <body>
     <div id="root"></div>
