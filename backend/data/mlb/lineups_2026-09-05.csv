@@ -1,0 +1,28 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,1,596019,Francisco Lindor,683627,Anthony Molina,S,R,L
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,2,665742,Juan Soto,683627,Anthony Molina,L,R,L
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,3,666182,Bo Bichette,683627,Anthony Molina,R,R,R
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,4,701807,Carson Benge,683627,Anthony Molina,L,R,L
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,5,676724,Jared Young,683627,Anthony Molina,L,R,L
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,6,543760,Marcus Semien,683627,Anthony Molina,R,R,R
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,7,805999,A.J. Ewing,683627,Anthony Molina,L,R,L
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,8,682626,Francisco Alvarez,683627,Anthony Molina,R,R,R
+2026-09-05,823577,2026-09-05T20:10:00Z,New York Mets,San Francisco Giants,home,9,683146,Brett Baty,683627,Anthony Molina,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,1,669065,Kyle Stowers,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,2,681715,Heriberto Hernández,665871,Javier Assad,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,3,665052,Griffin Conine,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,4,672640,Otto Lopez,665871,Javier Assad,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,5,805300,Jakob Marsee,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,6,683357,Owen Caissie,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,7,691788,Joe Mack,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,8,688363,Graham Pauley,665871,Javier Assad,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Miami Marlins,Chicago Cubs,home,9,691594,Javier Sanoja,665871,Javier Assad,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,1,691718,Pete Crow-Armstrong,687473,Ryan Gusto,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,2,673548,Seiya Suzuki,687473,Ryan Gusto,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,3,683737,Michael Busch,687473,Ryan Gusto,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,4,608324,Alex Bregman,687473,Ryan Gusto,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,5,664023,Ian Happ,687473,Ryan Gusto,S,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,6,663538,Nico Hoerner,687473,Ryan Gusto,R,R,R
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,7,699393,Pedro Ramírez,687473,Ryan Gusto,S,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,8,624424,Michael Conforto,687473,Ryan Gusto,L,R,L
+2026-09-05,823823,2026-09-05T20:10:00Z,Chicago Cubs,Miami Marlins,away,9,665804,Miguel Amaya,687473,Ryan Gusto,R,R,R
