@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters
 
 # Stat groups for reference / display
 PASSING_STATS = [
@@ -487,6 +487,21 @@ def _team_pass_rush_and_block(stats_df: pd.DataFrame, team_col: str, week_col: s
     return rush.set_index(team_col), block.set_index(team_col)
 
 
+def _matchup_rank(raw_rank: Optional[float], low_rank_is_favorable: bool, total_teams: int = 32) -> Optional[int]:
+    """Reframes a raw stat-based rank into a matchup-oriented rank where 1
+    ALWAYS means the easiest matchup for the offense/player, regardless of
+    which direction the underlying stat's own natural ranking runs.
+    Without this, "32nd fewest yards allowed" -- correct, but requires
+    realizing rank 32-of-32 fewest actually means the MOST allowed, i.e.
+    the best matchup -- reads as confusing or backwards, which is exactly
+    what a real user reported. Same low_rank_is_favorable parameter as
+    _favorable_from_rank, for the same reason: which direction is
+    favorable genuinely differs per stat, so it's never left implicit."""
+    if raw_rank is None:
+        return None
+    return int(raw_rank) if low_rank_is_favorable else int(total_teams + 1 - raw_rank)
+
+
 def _favorable_from_rank(rank: Optional[float], low_rank_is_favorable: bool, total_teams: int = 32) -> Optional[bool]:
     """True = favorable for the offense/player, False = tough, None =
     roughly average. Same top-10/bottom-10 threshold already used for
@@ -509,10 +524,28 @@ def _favorable_from_rank(rank: Optional[float], low_rank_is_favorable: bool, tot
     return False if top_10 else (True if bottom_10 else None)
 
 
-def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str]) -> tuple:
-    """Most recent known team and position_group for a player, from their
-    own game log rows -- the last row is their most current team (handles
-    a mid-season trade) and position."""
+def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str], player_name: Optional[str] = None) -> tuple:
+    """Current team and position_group for a player -- prefers the current
+    roster (get_nfl_rosters.py) over the game log's own team/position
+    columns, since a recent trade or signing means the game log's last
+    row still shows wherever they last actually played, not where they
+    are now (confirmed real: Kenneth Walker III's game log still showed
+    Seattle after he signed with Kansas City). Falls back to the game
+    log's own team/position if the player isn't found on a current
+    roster (e.g. game log has data but the roster pull is stale/missing).
+    """
+    if player_name:
+        rosters = get_nfl_rosters()
+        if not rosters.empty and "full_name" in rosters.columns:
+            name_norm = _normalize_loose(player_name)
+            match = rosters[rosters["full_name"].apply(_normalize_loose) == name_norm]
+            if not match.empty:
+                row = match.iloc[0]
+                team = row.get("team")
+                position = row.get("position")
+                if pd.notna(team):
+                    return str(team), (str(position) if pd.notna(position) else None)
+
     if player_df.empty:
         return None, None
     last_row = player_df.iloc[-1]
@@ -605,7 +638,7 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
             results.append({"player": player, "error": "No stats found for this player"})
             continue
 
-        team, position = _player_team_and_position(player_df, team_col)
+        team, position = _player_team_and_position(player_df, team_col, player)
         stat_set = POSITION_STAT_SETS.get(position or "", [])
         games_played = max(int(len(player_df)), 1)
 
@@ -640,8 +673,8 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                 opp_defense.append({
                     "label": label,
                     "value": rank_info["def_ypg"],
-                    "rank": rank_info["def_rank"],
-                    "rank_word": "fewest",
+                    "rank": _matchup_rank(rank_info["def_rank"], low_rank_is_favorable=False),
+                    "rank_word": "easiest",
                     "granularity": rank_info["granularity"],
                     "favorable": _favorable_from_rank(rank_info["def_rank"], low_rank_is_favorable=False),  # rank 1 = toughest defense = unfavorable
                 })
@@ -653,8 +686,8 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                     opp_pass_rush = {
                         "label": "Opp Pass Rush",
                         "value": round(float(row["pressure_pg"]), 1),
-                        "rank": int(row["rank_most"]),
-                        "rank_word": "most",
+                        "rank": _matchup_rank(row["rank_most"], low_rank_is_favorable=False),
+                        "rank_word": "easiest",
                         "favorable": _favorable_from_rank(row["rank_most"], low_rank_is_favorable=False),  # rank 1 = most pressure = unfavorable
                     }
 
@@ -665,8 +698,8 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                     own_pass_block = {
                         "label": "Own Pass Block",
                         "value": round(float(row["sacks_allowed_pg"]), 1),
-                        "rank": int(row["rank_fewest"]),
-                        "rank_word": "fewest",
+                        "rank": _matchup_rank(row["rank_fewest"], low_rank_is_favorable=True),
+                        "rank_word": "easiest",
                         "favorable": _favorable_from_rank(row["rank_fewest"], low_rank_is_favorable=True),  # rank 1 = fewest sacks allowed = best protection = favorable
                     }
 
@@ -715,7 +748,7 @@ def get_fantasy_matchup_season(players: List[str]) -> Dict[str, Any]:
             results.append({"player": player, "error": "No stats found for this player"})
             continue
 
-        team, position = _player_team_and_position(player_df, team_col)
+        team, position = _player_team_and_position(player_df, team_col, player)
         rem_schedule = []
         if team and not schedule.empty:
             season_games = schedule[schedule["season"] == season]

@@ -249,6 +249,7 @@ def get_mlb_data() -> dict:
         ("bullpen_logs", "bullpen_logs.parquet", pd.read_parquet),  # all appearances, for bullpen workload
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
         ("probable_starters", "probable_starters.parquet", pd.read_parquet),  # today's starters, no lineup required
+        ("schedule_results", "schedule_results.parquet", pd.read_parquet),  # completed games -- records, recent form, head-to-head
         # --- Statcast, rebuilt by GitHub Actions ---
         ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
         ("mlb_rosters", "mlb_rosters.parquet", pd.read_parquet),    # player_id -> current team lookup

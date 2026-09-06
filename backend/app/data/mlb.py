@@ -745,6 +745,103 @@ HITTER_FLAG_THRESHOLDS = {
 }
 
 
+# ── MLB Matchup: team records, recent form, head-to-head ───────────────────
+LAST_N_FORM_GAMES = 10
+
+
+def _team_games(schedule: pd.DataFrame, team: str) -> pd.DataFrame:
+    """Every completed game a team has played, sorted chronologically,
+    with that team's own perspective (runs_for/runs_against/won) attached
+    -- so a caller doesn't need to separately handle the home/away cases."""
+    home = schedule[schedule["home_team"] == team].copy()
+    home["runs_for"], home["runs_against"] = home["home_score"], home["away_score"]
+    away = schedule[schedule["away_team"] == team].copy()
+    away["runs_for"], away["runs_against"] = away["away_score"], away["home_score"]
+
+    games = pd.concat([home, away], ignore_index=True)
+    if games.empty:
+        return games
+    games["won"] = games["runs_for"] > games["runs_against"]
+    games["date"] = pd.to_datetime(games["date"], errors="coerce")
+    return games.sort_values("date")
+
+
+def get_team_record_and_form(team: str, last_n: int = LAST_N_FORM_GAMES) -> Dict[str, Any]:
+    """Season record plus recent form (last N games record + run
+    differential) for one team, both derived from the same completed-games
+    source -- a team's full-season strength and its current trajectory are
+    often genuinely different stories (a good team playing poorly lately,
+    or vice versa), so both are surfaced rather than just the season line.
+    """
+    schedule = get_mlb_data().get("schedule_results", pd.DataFrame())
+    if schedule.empty:
+        return {"team": team, "wins": None, "losses": None, "last_n": None}
+
+    games = _team_games(schedule, team)
+    if games.empty:
+        return {"team": team, "wins": None, "losses": None, "last_n": None}
+
+    wins = int(games["won"].sum())
+    losses = int(len(games) - wins)
+
+    recent = games.tail(last_n)
+    recent_wins = int(recent["won"].sum())
+    recent_losses = int(len(recent) - recent_wins)
+    run_diff = round(float((recent["runs_for"] - recent["runs_against"]).mean()), 1) if not recent.empty else None
+
+    return {
+        "team": team,
+        "wins": wins,
+        "losses": losses,
+        "last_n": {
+            "games": len(recent),
+            "wins": recent_wins,
+            "losses": recent_losses,
+            "avg_run_diff": run_diff,
+        },
+    }
+
+
+def get_head_to_head(team_a: str, team_b: str) -> Dict[str, Any]:
+    """This season's completed games between two specific teams -- record
+    and average runs scored by each, from the same completed-games source
+    used for team_record_and_form. Team-name matching is exact (both teams
+    already come from the same MLB Stats API naming convention used
+    throughout this file), so no normalization is needed here."""
+    schedule = get_mlb_data().get("schedule_results", pd.DataFrame())
+    if schedule.empty:
+        return {"team_a": team_a, "team_b": team_b, "games": 0}
+
+    matchups = schedule[
+        ((schedule["home_team"] == team_a) & (schedule["away_team"] == team_b))
+        | ((schedule["home_team"] == team_b) & (schedule["away_team"] == team_a))
+    ]
+    if matchups.empty:
+        return {"team_a": team_a, "team_b": team_b, "games": 0}
+
+    team_a_runs, team_b_runs, team_a_wins = [], [], 0
+    for _, g in matchups.iterrows():
+        if g["home_team"] == team_a:
+            a_score, b_score = g["home_score"], g["away_score"]
+        else:
+            a_score, b_score = g["away_score"], g["home_score"]
+        team_a_runs.append(a_score)
+        team_b_runs.append(b_score)
+        if a_score > b_score:
+            team_a_wins += 1
+
+    games = len(matchups)
+    return {
+        "team_a": team_a,
+        "team_b": team_b,
+        "games": games,
+        "team_a_wins": team_a_wins,
+        "team_b_wins": games - team_a_wins,
+        "team_a_avg_runs": round(sum(team_a_runs) / games, 1),
+        "team_b_avg_runs": round(sum(team_b_runs) / games, 1),
+    }
+
+
 def get_pitcher_daily_report() -> Dict[str, Any]:
     """One row per starting pitcher with a game today: recent-form averages
     (last up to 10 starts) plus today's opposing lineup's aggregate
