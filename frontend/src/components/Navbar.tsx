@@ -161,7 +161,7 @@ export default function Navbar() {
     { label: 'Mismatches', to: '/nfl/mismatches' },
   ];
   const mlbItems: DropdownItem[] = [
-    { label: 'Matchup', to: '/mlb/matchup' },
+    { label: 'Pitcher Matchup', to: '/mlb/matchup' },
     { label: 'Team Matchup', to: '/mlb/team-matchup' },
     { label: 'Bullpen', to: '/mlb/bullpen' },
     { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },

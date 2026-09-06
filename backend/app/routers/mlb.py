@@ -26,9 +26,9 @@ def hot_hitters(_=Depends(require_access)):
 def pitcher_daily_report(_=Depends(require_access)):
     return mlb_data.get_pitcher_daily_report()
 
-@router.get("/matchup-teams")
-def matchup_teams(_=Depends(require_access)):
-    return mlb_data.get_mlb_matchup_teams()
+@router.get("/todays-matchups")
+def todays_matchups(_=Depends(require_access)):
+    return mlb_data.get_mlb_todays_matchups()
 
 @router.get("/team-matchup")
 def team_matchup(team_a: str = Query(...), team_b: str = Query(...), _=Depends(require_access)):

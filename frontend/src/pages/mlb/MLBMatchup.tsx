@@ -326,11 +326,30 @@ export default function MLBMatchup() {
     }
   };
 
+  // html2canvas snapshots the DOM as it is right now -- if the pitcher photo
+  // (a remote image, not guaranteed to be cached) hasn't finished loading
+  // yet, that region just renders blank with no error. Explicitly wait for
+  // every image inside the target element first.
+  const waitForImages = (el: HTMLElement): Promise<void[]> => {
+    const imgs = Array.from(el.querySelectorAll('img'));
+    return Promise.all(
+      imgs.map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // don't hang the export on a broken image
+          setTimeout(() => resolve(), 5000); // safety net either way
+        });
+      })
+    );
+  };
+
   const downloadPdf = async () => {
     const el = pdfRef.current;
     if (!el || !matchupData) return;
     setDownloadingPdf(true);
     try {
+      await waitForImages(el);
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: theme.bgPage, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
@@ -389,7 +408,7 @@ export default function MLBMatchup() {
         width: 220, flexShrink: 0, background: theme.bgCard, padding: '20px 14px',
         overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16,
       }}>
-        <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>MLB Matchup</div>
+        <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>MLB Pitcher Matchup</div>
         <div>
           <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
           {loadingPitchers ? (

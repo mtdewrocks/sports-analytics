@@ -842,10 +842,25 @@ def get_head_to_head(team_a: str, team_b: str) -> Dict[str, Any]:
     }
 
 
-def get_mlb_matchup_teams() -> List[str]:
-    """The 30 MLB teams, for the MLB Matchup page's team selectors --
-    same source as the Bullpen page's."""
-    return sorted(MLB_TEAMS)
+def get_mlb_todays_matchups() -> List[Dict[str, Any]]:
+    """Today's actual scheduled games, not an arbitrary pick-any-two-teams
+    list -- comparing two teams that aren't even playing each other isn't
+    a real matchup. One row per game_pk is enough to know both sides (each
+    row already carries both "team" and "opponent" regardless of whether
+    that specific game's opponent pitcher has been announced yet)."""
+    probable = get_mlb_data().get("probable_starters", pd.DataFrame())
+    if probable.empty:
+        return []
+
+    matchups = []
+    for game_pk, group in probable.groupby("game_pk"):
+        row = group.iloc[0]
+        if "is_home" not in row or pd.isna(row.get("is_home")):
+            continue
+        home, away = (row["team"], row["opponent"]) if row["is_home"] else (row["opponent"], row["team"])
+        matchups.append({"game_pk": int(game_pk), "away_team": away, "home_team": home, "label": f"{away} @ {home}"})
+
+    return sorted(matchups, key=lambda m: m["label"])
 
 
 def get_mlb_team_matchup(team_a: str, team_b: str) -> Dict[str, Any]:

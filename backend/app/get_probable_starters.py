@@ -64,6 +64,7 @@ def build(day: str) -> pd.DataFrame:
                 "pitcher": starter.get("fullName", ""),
                 "team": team["name"],
                 "opponent": game["teams"][opp]["team"]["name"],
+                "is_home": side == "home",
             })
     return pd.DataFrame(rows)
 

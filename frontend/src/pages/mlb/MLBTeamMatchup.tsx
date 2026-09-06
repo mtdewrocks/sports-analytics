@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
-import { getMLBMatchupTeams, getMLBTeamMatchup } from '../../api/mlb';
+import { getMLBTodaysMatchups, getMLBTeamMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { theme } from '../../theme';
+
+interface TodaysMatchup {
+  game_pk: number;
+  away_team: string;
+  home_team: string;
+  label: string;
+}
 
 interface LastN {
   games: number;
@@ -61,28 +68,35 @@ function RecordCard({ record }: { record: TeamRecord }) {
 }
 
 export default function MLBTeamMatchup() {
-  const [teams, setTeams] = useState<string[]>([]);
-  const [teamA, setTeamA] = useState('');
-  const [teamB, setTeamB] = useState('');
+  const [matchups, setMatchups] = useState<TodaysMatchup[]>([]);
+  const [selectedPk, setSelectedPk] = useState<string>('');
   const [data, setData] = useState<TeamMatchupData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMatchups, setLoadingMatchups] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getMLBMatchupTeams()
-      .then((res) => setTeams(res.data))
-      .catch(() => setTeams([]));
+    getMLBTodaysMatchups()
+      .then((res) => {
+        setMatchups(res.data);
+        if (res.data.length > 0) setSelectedPk(String(res.data[0].game_pk));
+      })
+      .catch(() => setMatchups([]))
+      .finally(() => setLoadingMatchups(false));
   }, []);
 
+  const selected = matchups.find((m) => String(m.game_pk) === selectedPk);
+
   useEffect(() => {
-    if (!teamA || !teamB || teamA === teamB) { setData(null); return; }
+    if (!selected) { setData(null); return; }
     setLoading(true);
     setError('');
-    getMLBTeamMatchup(teamA, teamB)
+    getMLBTeamMatchup(selected.away_team, selected.home_team)
       .then((res) => setData(res.data))
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to load matchup.'))
       .finally(() => setLoading(false));
-  }, [teamA, teamB]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPk]);
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
@@ -92,23 +106,19 @@ export default function MLBTeamMatchup() {
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
-        <select
-          value={teamA}
-          onChange={(e) => setTeamA(e.target.value)}
-          style={{ padding: '8px 12px', fontSize: 14, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary, minWidth: 220 }}
-        >
-          <option value="">Select team...</option>
-          {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <span style={{ color: theme.textSecondary, fontSize: 14 }}>vs.</span>
-        <select
-          value={teamB}
-          onChange={(e) => setTeamB(e.target.value)}
-          style={{ padding: '8px 12px', fontSize: 14, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary, minWidth: 220 }}
-        >
-          <option value="">Select team...</option>
-          {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        {loadingMatchups ? (
+          <div style={{ color: theme.textSecondary, fontSize: 14 }}>Loading today's matchups...</div>
+        ) : matchups.length === 0 ? (
+          <div style={{ color: theme.textSecondary, fontSize: 14 }}>No games found for today yet.</div>
+        ) : (
+          <select
+            value={selectedPk}
+            onChange={(e) => setSelectedPk(e.target.value)}
+            style={{ padding: '8px 12px', fontSize: 14, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary, minWidth: 280 }}
+          >
+            {matchups.map((m) => <option key={m.game_pk} value={m.game_pk}>{m.label}</option>)}
+          </select>
+        )}
       </div>
 
       {loading && <LoadingSpinner />}
@@ -151,9 +161,9 @@ export default function MLBTeamMatchup() {
         </>
       )}
 
-      {!loading && !error && !data && (
+      {!loading && !error && !data && !loadingMatchups && matchups.length > 0 && (
         <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 60 }}>
-          Select two different teams to compare.
+          Select a matchup above.
         </div>
       )}
     </div>
