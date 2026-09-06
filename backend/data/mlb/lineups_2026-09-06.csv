@@ -251,3 +251,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-06,824552,2026-09-06T22:20:00Z,Minnesota Twins,Chicago White Sox,away,7,663616,Trevor Larnach,663542,Bryan Hudson,L,L,L
 2026-09-06,824552,2026-09-06T22:20:00Z,Minnesota Twins,Chicago White Sox,away,8,701785,Kaelen Culpepper,663542,Bryan Hudson,R,L,R
 2026-09-06,824552,2026-09-06T22:20:00Z,Minnesota Twins,Chicago White Sox,away,9,805805,Walker Jenkins,663542,Bryan Hudson,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,1,669242,Tommy Edman,674841,Andrew Alvarez,S,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,2,605141,Mookie Betts,674841,Andrew Alvarez,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,3,669257,Will Smith,674841,Andrew Alvarez,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,4,518692,Freddie Freeman,674841,Andrew Alvarez,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,5,606192,Teoscar Hernández,674841,Andrew Alvarez,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,6,663656,Kyle Tucker,674841,Andrew Alvarez,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,7,500743,Miguel Rojas,674841,Andrew Alvarez,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,8,571970,Max Muncy,674841,Andrew Alvarez,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,9,571771,Enrique Hernández,674841,Andrew Alvarez,R,L,R
