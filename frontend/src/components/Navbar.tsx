@@ -157,10 +157,12 @@ export default function Navbar() {
     { label: 'Game Log', to: '/nfl/game-log' },
     { label: 'Matchup', to: '/nfl/matchup' },
     { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
+    { label: 'In/Out', to: '/nfl/in-out' },
     { label: 'Mismatches', to: '/nfl/mismatches' },
   ];
   const mlbItems: DropdownItem[] = [
     { label: 'Matchup', to: '/mlb/matchup' },
+    { label: 'Team Matchup', to: '/mlb/team-matchup' },
     { label: 'Bullpen', to: '/mlb/bullpen' },
     { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },
     { label: 'Hot Hitters', to: '/mlb/hot-hitters' },

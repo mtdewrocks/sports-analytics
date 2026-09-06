@@ -65,6 +65,13 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_probable_starters.py
 
+      # Full-season completed game scores -- team records, recent form,
+      # and head-to-head for the MLB Matchup page, all from one pull.
+      - name: Pull schedule results
+        id: schedule_results
+        continue-on-error: true
+        run: python -u backend/app/get_mlb_schedule_results.py
+
       # Only fetches photos that are missing, so this is a no-op on a normal
       # run and costs nothing.
       - name: Download missing pitcher photos
@@ -91,6 +98,7 @@ jobs:
           for path in "backend/data/mlb/starters.parquet" \
                       "backend/data/mlb/mlb_rosters.parquet" \
                       "backend/data/mlb/probable_starters.parquet" \
+                      "backend/data/mlb/schedule_results.parquet" \
                       "backend/data/mlb/lineups_${day}.csv" \
                       "backend/data/mlb/daily_matchups.parquet"; do
             if [ -f "$path" ]; then

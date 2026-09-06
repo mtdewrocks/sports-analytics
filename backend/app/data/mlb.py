@@ -842,6 +842,23 @@ def get_head_to_head(team_a: str, team_b: str) -> Dict[str, Any]:
     }
 
 
+def get_mlb_matchup_teams() -> List[str]:
+    """The 30 MLB teams, for the MLB Matchup page's team selectors --
+    same source as the Bullpen page's."""
+    return sorted(MLB_TEAMS)
+
+
+def get_mlb_team_matchup(team_a: str, team_b: str) -> Dict[str, Any]:
+    """Combined record/recent-form for both teams plus head-to-head, in
+    one response -- the frontend needs all three together for the header
+    and head-to-head section, so this avoids three separate round trips."""
+    return {
+        "team_a": get_team_record_and_form(team_a),
+        "team_b": get_team_record_and_form(team_b),
+        "head_to_head": get_head_to_head(team_a, team_b),
+    }
+
+
 def get_pitcher_daily_report() -> Dict[str, Any]:
     """One row per starting pitcher with a game today: recent-form averages
     (last up to 10 starts) plus today's opposing lineup's aggregate
