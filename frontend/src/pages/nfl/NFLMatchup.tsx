@@ -26,6 +26,8 @@ interface TeamGameScript {
   team: string;
   implied_situation: string;
   implied_total: number | null;
+  weekly_scoring_rank: number | null;
+  weekly_scoring_favorable: boolean | null;
   baseline_pass_pct: number | null;
   projected_pass_pct: number | null;
   error?: string;
@@ -83,7 +85,11 @@ function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
   );
 }
 
-function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
+function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable }: {
+  teamAbbr: string; stats: StatRow[]; impliedTotal?: number | null;
+  weeklyRank?: number | null; weeklyFavorable?: boolean | null;
+}) {
+  const badgeColor = weeklyFavorable === true ? theme.dataBlue : weeklyFavorable === false ? theme.dataRed : theme.textSecondary;
   return (
     <div style={{ flex: 1, minWidth: 320, background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
       <div style={{ background: theme.bgCardHover, color: theme.textPrimary, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -99,6 +105,19 @@ function TeamCard({ teamAbbr, stats }: { teamAbbr: string; stats: StatRow[] }) {
           </tr>
         </thead>
         <tbody>
+          {impliedTotal != null && (
+            <tr style={{ borderBottom: `1px solid ${theme.border}`, background: theme.bgCard }}>
+              <td style={{ padding: '10px 16px', fontWeight: 600, color: theme.textPrimary }}>Projected Points</td>
+              <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color: theme.textPrimary }}>{impliedTotal}</td>
+              <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                {weeklyRank != null && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: badgeColor, border: `1px solid ${badgeColor}`, borderRadius: 4, padding: '2px 6px' }}>
+                    {ordinal(weeklyRank)} WK
+                  </span>
+                )}
+              </td>
+            </tr>
+          )}
           {stats.map((row, i) => {
             const color = rankColor(row.rank);
             return (
@@ -125,12 +144,6 @@ function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
     <div style={{ flex: 1, minWidth: 280, background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: theme.textPrimary }}>{data.team}</div>
       <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>Implied script: {situationLabel(data.implied_situation)}</div>
-      {data.implied_total != null && (
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 32, fontWeight: 700, color: theme.textPrimary }}>{data.implied_total}</span>
-          <span style={{ fontSize: 12, color: theme.textSecondary }}>projected points</span>
-        </div>
-      )}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
         <span style={{ fontSize: 26, fontWeight: 700, color: theme.textPrimary }}>{data.projected_pass_pct ?? '—'}%</span>
         <span style={{ fontSize: 12, color: theme.textSecondary }}>projected pass rate</span>
@@ -297,13 +310,32 @@ export default function NFLMatchup() {
               {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
           )}
-          <h2 style={{ textAlign: 'center', color: theme.textPrimary, marginBottom: 20 }}>
-            {matchupData.away_team} @ {matchupData.home_team}
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{ background: theme.bgCard, borderRadius: 8, padding: '18px 32px', textAlign: 'center', minWidth: 220 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, marginBottom: 6 }}>
+                {matchupData.away_team} @ {matchupData.home_team}
+              </div>
+              {gameScript?.total_line != null && (
+                <div style={{ fontSize: 26, fontWeight: 700, color: theme.textPrimary }}>O/U {gameScript.total_line}</div>
+              )}
+            </div>
+          </div>
 
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <TeamCard teamAbbr={matchupData.away_team} stats={matchupData.away_stats} />
-            <TeamCard teamAbbr={matchupData.home_team} stats={matchupData.home_stats} />
+            <TeamCard
+              teamAbbr={matchupData.away_team}
+              stats={matchupData.away_stats}
+              impliedTotal={gameScript?.away?.implied_total}
+              weeklyRank={gameScript?.away?.weekly_scoring_rank}
+              weeklyFavorable={gameScript?.away?.weekly_scoring_favorable}
+            />
+            <TeamCard
+              teamAbbr={matchupData.home_team}
+              stats={matchupData.home_stats}
+              impliedTotal={gameScript?.home?.implied_total}
+              weeklyRank={gameScript?.home?.weekly_scoring_rank}
+              weeklyFavorable={gameScript?.home?.weekly_scoring_favorable}
+            />
           </div>
 
           {gameScript && !gameScript.error && (

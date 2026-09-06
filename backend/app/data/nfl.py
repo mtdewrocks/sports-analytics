@@ -866,6 +866,27 @@ def get_nfl_in_out(player_a: str, exclude: List[str]) -> Dict[str, Any]:
     }
 
 
+def _weekly_scoring_ranks(season: int, week: int) -> Dict[str, int]:
+    """Rank every team's implied point total for one specific week (not a
+    season-long average -- how this week's projection compares to this
+    week's other 31 teams). Reuses the exact same spread+total formula as
+    team_section() below. Rank 1 = highest projected total that week."""
+    schedule = get_nfl_schedule()
+    week_games = schedule[(schedule["season"] == season) & (schedule["week"] == week)]
+
+    implied: Dict[str, float] = {}
+    for _, g in week_games.iterrows():
+        spread_line, total_line = g.get("spread_line"), g.get("total_line")
+        if pd.isna(spread_line) or pd.isna(total_line):
+            continue
+        home_team, away_team = str(g["home_team"]).upper(), str(g["away_team"]).upper()
+        implied[home_team] = float(total_line) / 2 + float(spread_line) / 2
+        implied[away_team] = float(total_line) / 2 - float(spread_line) / 2
+
+    ranked = sorted(implied.items(), key=lambda x: x[1], reverse=True)
+    return {team: i + 1 for i, (team, _) in enumerate(ranked)}
+
+
 def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     """Spread-implied game script for one matchup: each team's projected
     pass/run mix, season-neutral (close-game rate) blended toward its own
@@ -911,6 +932,7 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     away_margin = -float(spread_line)
 
     game_script = get_nfl_team_game_script()
+    weekly_ranks = _weekly_scoring_ranks(int(game_row["season"]), int(game_row["week"])) if pd.notna(game_row.get("week")) else {}
 
     def team_section(team: str, margin: float) -> Dict[str, Any]:
         situation = _implied_situation(margin)
@@ -923,9 +945,23 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
         # is already correctly signed for whichever side is being built.
         implied_total = None if pd.isna(total_line) else round(float(total_line) / 2 + margin / 2, 1)
 
+        # Weekly (not season-long) scoring rank -- rank 1 = most points
+        # generally means MORE fantasy production for that team's players,
+        # the opposite direction from a yards-allowed rank where rank 1 is
+        # tough for the offense. Explicit low_rank_is_favorable=True here
+        # for the same reason it's explicit everywhere else in this file:
+        # getting this backwards for one specific stat already happened
+        # once, so the direction is never left implicit.
+        weekly_rank = weekly_ranks.get(team.upper())
+        weekly_rank_favorable = _favorable_from_rank(weekly_rank, low_rank_is_favorable=True) if weekly_rank else None
+
         row = game_script[game_script["team"].str.upper() == team]
         if row.empty:
-            return {"team": team, "implied_situation": situation, "implied_total": implied_total, "error": "No game script data for this team"}
+            return {
+                "team": team, "implied_situation": situation, "implied_total": implied_total,
+                "weekly_scoring_rank": weekly_rank, "weekly_scoring_favorable": weekly_rank_favorable,
+                "error": "No game script data for this team",
+            }
         row = row.iloc[0]
 
         projected_pass_pct = _projected_pass_pct(row, situation)
@@ -935,6 +971,8 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
             "team": team,
             "implied_situation": situation,
             "implied_total": implied_total,
+            "weekly_scoring_rank": weekly_rank,
+            "weekly_scoring_favorable": weekly_rank_favorable,
             "baseline_pass_pct": None if pd.isna(baseline_pass_pct) else round(float(baseline_pass_pct), 1),
             "projected_pass_pct": projected_pass_pct,
         }
