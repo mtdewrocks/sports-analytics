@@ -170,3 +170,57 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,7,681351,Logan O'Hoppe,693855,Ian Seymour,R,L,R
 2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,8,553869,Elias Díaz,693855,Ian Seymour,R,L,R
 2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,9,683227,Cody Freeman,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,1,650490,Yandy Díaz,669022,MacKenzie Gore,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,2,666018,Jonathan Aranda,669022,MacKenzie Gore,L,L,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,3,691406,Junior Caminero,669022,MacKenzie Gore,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,4,668723,Ryan Vilade,669022,MacKenzie Gore,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,5,802415,Chandler Simpson,669022,MacKenzie Gore,L,L,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,6,676356,Jonny DeLuca,669022,MacKenzie Gore,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,7,622761,Jorge Mateo,669022,MacKenzie Gore,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,8,683748,Victor Mesa Jr.,669022,MacKenzie Gore,L,L,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Tampa Bay Rays,Texas Rangers,away,9,663743,Nick Fortes,669022,MacKenzie Gore,R,L,R
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,1,664983,Jake McCarthy,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,2,687859,Troy Johnston,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,3,694249,Cole Carrigg,681517,Kyle Leahy,S,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,4,681198,TJ Rumfield,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,5,666160,Mickey Moniak,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,6,691182,Adael Amador,681517,Kyle Leahy,S,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,7,664954,Brett Sullivan,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,8,605353,Vimael Machín,681517,Kyle Leahy,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,Colorado Rockies,St. Louis Cardinals,home,9,678662,Ezequiel Tovar,681517,Kyle Leahy,R,R,R
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,1,663494,Bryan Torres,685299,Tanner Gordon,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,2,671056,Iván Herrera,685299,Tanner Gordon,R,R,R
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,3,676475,Alec Burleson,685299,Tanner Gordon,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,4,691023,Jordan Walker,685299,Tanner Gordon,R,R,R
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,5,699024,Leo Bernal,685299,Tanner Gordon,S,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,6,695491,Joshua Báez,685299,Tanner Gordon,R,R,R
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,7,669357,Nolan Gorman,685299,Tanner Gordon,L,R,L
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,8,695336,Thomas Saggese,685299,Tanner Gordon,R,R,R
+2026-09-06,824309,2026-09-06T19:10:00Z,St. Louis Cardinals,Colorado Rockies,away,9,701675,Nathan Church,685299,Tanner Gordon,L,R,L
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,1,703607,Henry Bolte,693433,Bryan Woo,R,R,R
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,2,643446,Jeff McNeil,693433,Bryan Woo,L,R,L
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,3,680869,Zack Gelof,693433,Bryan Woo,R,R,R
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,4,671732,Lawrence Butler,693433,Bryan Woo,L,R,L
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,5,666126,Carlos Cortes,693433,Bryan Woo,L,R,L
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,6,691777,Max Muncy,693433,Bryan Woo,R,R,R
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,7,622268,Donovan Walton,693433,Bryan Woo,L,R,L
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,8,675961,Alika Williams,693433,Bryan Woo,R,R,R
+2026-09-06,823091,2026-09-06T20:10:00Z,Athletics,Seattle Mariners,away,9,661531,Brian Serven,693433,Bryan Woo,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,1,665487,Fernando Tatis Jr.,543037,Gerrit Cole,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,2,630105,Jake Cronenworth,543037,Gerrit Cole,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,3,592518,Manny Machado,543037,Gerrit Cole,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,4,664034,Ty France,543037,Gerrit Cole,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,5,701538,Jackson Merrill,543037,Gerrit Cole,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,6,669134,Luis Campusano,543037,Gerrit Cole,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,7,687957,Dustin Harris,543037,Gerrit Cole,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,8,593428,Xander Bogaerts,543037,Gerrit Cole,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,San Diego Padres,New York Yankees,home,9,806956,Ethan Salas,543037,Gerrit Cole,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,1,700250,Ben Rice,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,2,641355,Cody Bellinger,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,3,671277,Luis García Jr.,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,4,682987,Spencer Jones,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,5,665862,Jazz Chisholm Jr.,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,6,691176,Jasson Domínguez,650633,Michael King,S,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,7,806146,George Lombard Jr.,650633,Michael King,R,R,R
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,8,641857,Ryan McMahon,650633,Michael King,L,R,L
+2026-09-06,823253,2026-09-06T20:10:00Z,New York Yankees,San Diego Padres,away,9,669224,Austin Wells,650633,Michael King,L,R,L
