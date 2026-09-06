@@ -1,0 +1,172 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,1,667472,Dane Myers,690986,Kyle Harrison,R,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,2,682829,Elly De La Cruz,690986,Kyle Harrison,S,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,3,701398,Sal Stewart,690986,Kyle Harrison,R,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,4,663886,Tyler Stephenson,690986,Kyle Harrison,R,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,5,553993,Eugenio Suárez,690986,Kyle Harrison,R,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,6,668709,JJ Bleday,690986,Kyle Harrison,L,L,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,7,680574,Matt McLain,690986,Kyle Harrison,R,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,8,682877,Juan Brito,690986,Kyle Harrison,S,L,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Cincinnati Reds,Milwaukee Brewers,home,9,699302,Héctor Rodríguez,690986,Kyle Harrison,L,L,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,1,686217,Sal Frelick,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,2,592885,Christian Yelich,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,3,694192,Jackson Chourio,663903,Brady Singer,R,R,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,4,641343,Jake Bauers,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,5,669003,Garrett Mitchell,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,6,668930,Brice Turang,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,7,806198,Cooper Pratt,663903,Brady Singer,R,R,R
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,8,666310,Bo Naylor,663903,Brady Singer,L,R,L
+2026-09-06,824469,2026-09-06T16:10:00Z,Milwaukee Brewers,Cincinnati Reds,away,9,666152,David Hamilton,663903,Brady Singer,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,1,656941,Kyle Schwarber,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,2,607208,Trea Turner,641816,Tyler Mahle,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,3,547180,Bryce Harper,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,4,650333,Luis Arraez,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,5,664761,Alec Bohm,641816,Tyler Mahle,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,6,681082,Bryson Stott,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,7,669016,Brandon Marsh,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,8,702222,Justin Crawford,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Philadelphia Phillies,Atlanta Braves,home,9,596117,Garrett Stubbs,641816,Tyler Mahle,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,1,686948,Drake Baldwin,605400,Aaron Nola,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,2,660670,Ronald Acuña Jr.,605400,Aaron Nola,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,3,621566,Matt Olson,605400,Aaron Nola,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,4,671739,Michael Harris II,605400,Aaron Nola,L,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,5,643289,Mauricio Dubón,605400,Aaron Nola,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,6,645277,Ozzie Albies,605400,Aaron Nola,S,R,L
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,7,669221,Sean Murphy,605400,Aaron Nola,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,8,663586,Austin Riley,605400,Aaron Nola,R,R,R
+2026-09-06,823417,2026-09-06T17:10:00Z,Atlanta Braves,Philadelphia Phillies,away,9,573262,Mike Yastrzemski,605400,Aaron Nola,L,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,1,677942,Blaze Alexander,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,2,624413,Pete Alonso,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,3,691723,Coby Mayo,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,4,687952,Christian Encarnacion-Strand,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,5,683002,Gunnar Henderson,801139,Payton Tolle,L,L,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,6,677956,Rece Hinds,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,7,665750,Leody Taveras,801139,Payton Tolle,S,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,8,665966,Carlos Narváez,801139,Payton Tolle,R,L,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Baltimore Orioles,Boston Red Sox,home,9,681297,Colton Cowser,801139,Payton Tolle,L,L,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,1,701350,Roman Anthony,680694,Kyle Bradish,L,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,2,681508,Mickey Gasper,680694,Kyle Bradish,S,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,3,668939,Adley Rutschman,680694,Kyle Bradish,S,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,4,596115,Trevor Story,680694,Kyle Bradish,R,R,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,5,686765,Nick Sogard,680694,Kyle Bradish,S,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,6,702332,Caleb Durbin,680694,Kyle Bradish,R,R,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,7,680776,Jarren Duran,680694,Kyle Bradish,L,R,L
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,8,655316,Andruw Monasterio,680694,Kyle Bradish,R,R,R
+2026-09-06,824794,2026-09-06T17:35:00Z,Boston Red Sox,Baltimore Orioles,away,9,642201,Eli White,680694,Kyle Bradish,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,1,804606,Konnor Griffin,700712,Walbert Ureña,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,2,664040,Brandon Lowe,700712,Walbert Ureña,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,3,668804,Bryan Reynolds,700712,Walbert Ureña,S,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,4,693304,Nick Gonzales,700712,Walbert Ureña,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,5,665833,Oneil Cruz,700712,Walbert Ureña,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,6,699013,Esmerlyn Valdez,700712,Walbert Ureña,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,7,687462,Spencer Horwitz,700712,Walbert Ureña,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,8,694378,Jacob Gonzalez,700712,Walbert Ureña,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Pittsburgh Pirates,Los Angeles Angels,home,9,680779,Henry Davis,700712,Walbert Ureña,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,1,687263,Zach Neto,694973,Paul Skenes,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,2,545361,Mike Trout,694973,Paul Skenes,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,3,685133,Wade Meckler,694973,Paul Skenes,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,4,687093,Vaughn Grissom,694973,Paul Skenes,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,5,694208,Moisés Ballesteros,694973,Paul Skenes,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,6,695681,Christian Moore,694973,Paul Skenes,R,R,R
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,7,666139,Josh Lowe,694973,Paul Skenes,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,8,624428,Adam Frazier,694973,Paul Skenes,L,R,L
+2026-09-06,823336,2026-09-06T17:35:00Z,Los Angeles Angels,Pittsburgh Pirates,away,9,623168,Tyler Heineman,694973,Paul Skenes,S,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,1,680757,Steven Kwan,695549,Jackson Jobe,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,2,683953,Travis Bazzana,695549,Jackson Jobe,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,3,666176,Jo Adell,695549,Jackson Jobe,R,R,R
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,4,663993,Nathaniel Lowe,695549,Jackson Jobe,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,5,682657,Angel Martínez,695549,Jackson Jobe,S,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,6,694197,Angel Genao,695549,Jackson Jobe,S,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,7,672275,Patrick Bailey,695549,Jackson Jobe,S,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,8,690984,Petey Halpin,695549,Jackson Jobe,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Cleveland Guardians,Detroit Tigers,home,9,677587,Brayan Rocchio,695549,Jackson Jobe,S,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,1,805808,Kevin McGonigle,668909,Gavin Williams,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,2,701678,Hao-Yu Lee,668909,Gavin Williams,R,R,R
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,3,690993,Colt Keith,668909,Gavin Williams,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,4,682985,Riley Greene,668909,Gavin Williams,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,5,693307,Dillon Dingler,668909,Gavin Williams,R,R,R
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,6,814430,Brett Callahan,668909,Gavin Williams,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,7,701162,Ben Malgeri,668909,Gavin Williams,R,R,R
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,8,703601,Max Clark,668909,Gavin Williams,L,R,L
+2026-09-06,824385,2026-09-06T17:40:00Z,Detroit Tigers,Cleveland Guardians,away,9,807726,John Peck,668909,Gavin Williams,R,R,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,1,596019,Francisco Lindor,702885,Cesar Perdomo,S,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,2,665742,Juan Soto,702885,Cesar Perdomo,L,L,L
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,3,666182,Bo Bichette,702885,Cesar Perdomo,R,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,4,701807,Carson Benge,702885,Cesar Perdomo,L,L,L
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,5,668901,Mark Vientos,702885,Cesar Perdomo,R,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,6,543760,Marcus Semien,702885,Cesar Perdomo,R,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,7,703492,Nick Morabito,702885,Cesar Perdomo,R,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,8,805999,A.J. Ewing,702885,Cesar Perdomo,L,L,L
+2026-09-06,823578,2026-09-06T17:40:00Z,New York Mets,San Francisco Giants,home,9,620443,Luis Torrens,702885,Cesar Perdomo,R,L,R
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,1,687551,Drew Gilbert,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,2,646240,Rafael Devers,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,3,805811,Bryce Eldridge,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,4,813841,Jonah Cox,681035,Christian Scott,R,R,R
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,5,808982,Jung Hoo Lee,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,6,678545,Osleivis Basabe,681035,Christian Scott,R,R,R
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,7,687529,Grant McCray,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,8,701852,Drew Cavanaugh,681035,Christian Scott,L,R,L
+2026-09-06,823578,2026-09-06T17:40:00Z,San Francisco Giants,New York Mets,away,9,683766,Christian Koss,681035,Christian Scott,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,1,669065,Kyle Stowers,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,2,665052,Griffin Conine,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,3,683357,Owen Caissie,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,4,805300,Jakob Marsee,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,5,681715,Heriberto Hernández,605280,Clay Holmes,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,6,691788,Joe Mack,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,7,672640,Otto Lopez,605280,Clay Holmes,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,8,688363,Graham Pauley,605280,Clay Holmes,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Miami Marlins,Chicago Cubs,home,9,691594,Javier Sanoja,605280,Clay Holmes,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,1,691718,Pete Crow-Armstrong,663969,Tyler Phillips,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,2,673548,Seiya Suzuki,663969,Tyler Phillips,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,3,683737,Michael Busch,663969,Tyler Phillips,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,4,608324,Alex Bregman,663969,Tyler Phillips,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,5,664023,Ian Happ,663969,Tyler Phillips,S,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,6,663538,Nico Hoerner,663969,Tyler Phillips,R,R,R
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,7,699393,Pedro Ramírez,663969,Tyler Phillips,S,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,8,624424,Michael Conforto,663969,Tyler Phillips,L,R,L
+2026-09-06,823822,2026-09-06T17:40:00Z,Chicago Cubs,Miami Marlins,away,9,608348,Carson Kelly,663969,Tyler Phillips,R,R,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,1,665161,Jeremy Peña,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,2,670541,Yordan Alvarez,593958,Eduardo Rodriguez,L,L,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,3,670623,Isaac Paredes,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,4,514888,Jose Altuve,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,5,572233,Christian Walker,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,6,676369,Nelson Velázquez,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,7,662139,Daulton Varsho,593958,Eduardo Rodriguez,L,L,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,8,701358,Cam Smith,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Houston Astros,Arizona Diamondbacks,home,9,543877,Christian Vázquez,593958,Eduardo Rodriguez,R,L,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,1,672695,Geraldo Perdomo,663567,Peter Lambert,S,R,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,2,606466,Ketel Marte,663567,Peter Lambert,S,R,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,3,672515,Gabriel Moreno,663567,Peter Lambert,R,R,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,4,571448,Nolan Arenado,663567,Peter Lambert,R,R,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,5,682998,Corbin Carroll,663567,Peter Lambert,L,R,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,6,694371,Tommy Troy,663567,Peter Lambert,R,R,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,7,543510,James McCann,663567,Peter Lambert,R,R,R
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,8,545121,Ildemaro Vargas,663567,Peter Lambert,S,R,L
+2026-09-06,824142,2026-09-06T18:10:00Z,Arizona Diamondbacks,Houston Astros,away,9,691783,Jordan Lawlar,663567,Peter Lambert,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,1,670231,John Rave,681293,Spencer Arrighetti,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,2,677951,Bobby Witt Jr.,681293,Spencer Arrighetti,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,3,686469,Vinnie Pasquantino,681293,Spencer Arrighetti,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,4,521692,Salvador Perez,681293,Spencer Arrighetti,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,5,668942,Josh Rojas,681293,Spencer Arrighetti,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,6,679845,Nick Loftin,681293,Spencer Arrighetti,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,7,686555,Isaac Collins,681293,Spencer Arrighetti,S,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,8,571912,Luke Maile,681293,Spencer Arrighetti,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Kansas City Royals,Toronto Blue Jays,home,9,664728,Kyle Isbel,681293,Spencer Arrighetti,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,1,703520,Brett Bateman,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,2,664770,Nathan Lukes,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,3,665489,Vladimir Guerrero Jr.,677976,Randy Dobnak,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,4,660821,Jesús Sánchez,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,5,672960,Kazuma Okamoto,677976,Randy Dobnak,R,R,R
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,6,815873,Sean Keys,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,7,669701,Josh Smith,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,8,665926,Andrés Giménez,677976,Randy Dobnak,L,R,L
+2026-09-06,824065,2026-09-06T18:10:00Z,Toronto Blue Jays,Kansas City Royals,away,9,678218,Brandon Valenzuela,677976,Randy Dobnak,S,R,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,1,677649,Ezequiel Duran,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,2,608369,Corey Seager,693855,Ian Seymour,L,L,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,3,679822,Justin Foscue,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,4,607043,Brandon Nimmo,693855,Ian Seymour,L,L,L
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,5,694671,Wyatt Langford,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,6,669394,Jake Burger,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,7,681351,Logan O'Hoppe,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,8,553869,Elias Díaz,693855,Ian Seymour,R,L,R
+2026-09-06,822848,2026-09-06T18:35:00Z,Texas Rangers,Tampa Bay Rays,home,9,683227,Cody Freeman,693855,Ian Seymour,R,L,R
