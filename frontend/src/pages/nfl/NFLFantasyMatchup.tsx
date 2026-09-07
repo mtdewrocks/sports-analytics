@@ -118,7 +118,7 @@ function CurrentWeekCard({ p }: { p: CurrentWeekPlayer }) {
             {p.game_script.implied_situation.replace('_', ' ')} &middot;{' '}
             <span style={{ color: theme.dataBlue, fontWeight: 700 }}>{p.game_script.projected_pass_pct ?? '—'}% pass rate</span>
             {p.game_script.implied_total != null && (
-              <> &middot; <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{p.game_script.implied_total} proj. pts</span></>
+              <> &middot; <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{p.game_script.implied_total} projected team points (this game)</span></>
             )}
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function NFLFantasyMatchup() {
       )}
 
       <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16 }}>
-        * = position-specific defensive rank (e.g. rushing yards allowed to RBs specifically). No asterisk = team-level rank, used as a fallback where a position-specific split isn't available yet.
+        * = yards allowed to this specific position only. "Total Team" lines (no asterisk) show the full team defensive total for comparison, since the position-specific number alone can look unfamiliar without it.
       </div>
     </div>
   );

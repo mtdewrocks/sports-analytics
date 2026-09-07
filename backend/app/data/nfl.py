@@ -446,7 +446,7 @@ POSITION_STAT_SETS: Dict[str, List[Dict[str, Any]]] = {
 
 # Position-specific defense column, keyed by (category, position). Only the
 # combinations get_nfl_defense_by_position.py actually computes -- anything
-# else falls back to team-level in _defense_rank_for below.
+# else falls back to team-level via _team_level_defense below.
 _POSITION_DEFENSE_COL = {
     ("rush", "RB"): "def_rb_rush_ypg",
     ("rush", "QB"): "def_qb_rush_ypg",
@@ -573,44 +573,50 @@ def _next_game_for_team(team: str, season: int) -> Optional[Dict[str, Any]]:
     return {"week": int(g["week"]), "opponent": str(opponent), "is_home": bool(is_home)}
 
 
-def _defense_rank_for(category: str, position: Optional[str], opponent: str) -> Dict[str, Any]:
-    """Current defensive rank for one stat category against one opponent,
-    preferring a position-specific split where get_nfl_defense_by_position.py
-    covers it, falling back to team-level otherwise (see POSITION_STAT_SETS'
-    module comment for exactly which combinations are covered and why)."""
+def _position_specific_defense(category: str, position: Optional[str], opponent: str) -> Optional[Dict[str, Any]]:
+    """Position-specific rank, only when get_nfl_defense_by_position.py
+    actually covers this (category, position) combination -- returns None
+    otherwise rather than falling back, since the caller now shows the
+    team-level number as its own separate line rather than a substitute."""
     position_col = _POSITION_DEFENSE_COL.get((category, position))
-    if position_col:
-        by_pos = get_nfl_defense_by_position()
-        if not by_pos.empty:
-            latest_week = by_pos["week"].max()
-            match = by_pos[(by_pos["week"] == latest_week) & (by_pos["team"].str.upper() == opponent.upper())]
-            col = f"{position_col}_season"
-            rank_col = f"{position_col}_rank_season"
-            if not match.empty and rank_col in match.columns and pd.notna(match.iloc[0][rank_col]):
-                row = match.iloc[0]
-                return {
-                    "def_ypg": round(float(row[col]), 1) if pd.notna(row[col]) else None,
-                    "def_rank": int(row[rank_col]),
-                    "granularity": position or "position",
-                }
+    if not position_col:
+        return None
+    by_pos = get_nfl_defense_by_position()
+    if by_pos.empty:
+        return None
+    latest_week = by_pos["week"].max()
+    match = by_pos[(by_pos["week"] == latest_week) & (by_pos["team"].str.upper() == opponent.upper())]
+    col = f"{position_col}_season"
+    rank_col = f"{position_col}_rank_season"
+    if match.empty or rank_col not in match.columns or pd.isna(match.iloc[0][rank_col]):
+        return None
+    row = match.iloc[0]
+    return {
+        "def_ypg": round(float(row[col]), 1) if pd.notna(row[col]) else None,
+        "def_rank": int(row[rank_col]),
+    }
 
-    # Fallback: team-level, from the current snapshot (team_stats.parquet),
-    # same source _upcoming_games() already uses for "as of right now".
+
+def _team_level_defense(category: str, opponent: str) -> Optional[Dict[str, Any]]:
+    """Team-level rank (team_stats.parquet, same source _upcoming_games()
+    uses for 'as of right now') -- shown as its own line now, not just a
+    fallback for when the position-specific split is missing. Verified
+    against real data to use the identical rank-1-equals-fewest-yards
+    convention as the position-specific file, so the same matchup-rank
+    transform applies safely to both."""
     team_stats = get_nfl_team_stats()
     if team_stats.empty:
-        return {"def_ypg": None, "def_rank": None, "granularity": "team"}
+        return None
     prefix = "Defense Pass" if category in ("pass", "rec") else "Defense Rush"
     match = team_stats[team_stats["team"].str.upper() == opponent.upper()]
     if match.empty:
-        return {"def_ypg": None, "def_rank": None, "granularity": "team"}
+        return None
     row = match.iloc[0]
     ypg = row.get(f"{prefix} Yards Per Game")
     rank = row.get(f"Rank - {prefix} Yards Per Game")
-    return {
-        "def_ypg": round(float(ypg), 1) if pd.notna(ypg) else None,
-        "def_rank": int(rank) if pd.notna(rank) else None,
-        "granularity": "team",
-    }
+    if pd.isna(ypg) or pd.isna(rank):
+        return None
+    return {"def_ypg": round(float(ypg), 1), "def_rank": int(rank)}
 
 
 def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
@@ -666,18 +672,31 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
             # player's stat set (usually just one), not one per stat row.
             opp_defense = []
             for category in categories_seen:
-                rank_info = _defense_rank_for(category, position, opponent)
-                if rank_info["def_rank"] is None:
-                    continue
-                label = "Opp Rush Defense" if category == "rush" else "Opp Pass Defense"
-                opp_defense.append({
-                    "label": label,
-                    "value": rank_info["def_ypg"],
-                    "rank": _matchup_rank(rank_info["def_rank"], low_rank_is_favorable=False),
-                    "rank_word": "easiest",
-                    "granularity": rank_info["granularity"],
-                    "favorable": _favorable_from_rank(rank_info["def_rank"], low_rank_is_favorable=False),  # rank 1 = toughest defense = unfavorable
-                })
+                is_rush = category == "rush"
+                stat_word = "Rush Yds" if is_rush else "Rec Yds"
+                team_stat_word = "Rush D" if is_rush else "Pass D"
+
+                pos_info = _position_specific_defense(category, position, opponent)
+                if pos_info:
+                    opp_defense.append({
+                        "label": f"{stat_word} Allowed to {position}s",
+                        "value": pos_info["def_ypg"],
+                        "rank": _matchup_rank(pos_info["def_rank"], low_rank_is_favorable=False),
+                        "rank_word": "easiest",
+                        "granularity": position,
+                        "favorable": _favorable_from_rank(pos_info["def_rank"], low_rank_is_favorable=False),
+                    })
+
+                team_info = _team_level_defense(category, opponent)
+                if team_info:
+                    opp_defense.append({
+                        "label": f"Total Team {team_stat_word}",
+                        "value": team_info["def_ypg"],
+                        "rank": _matchup_rank(team_info["def_rank"], low_rank_is_favorable=False),
+                        "rank_word": "easiest",
+                        "granularity": "team",
+                        "favorable": _favorable_from_rank(team_info["def_rank"], low_rank_is_favorable=False),
+                    })
 
             opp_pass_rush = None
             if opponent.upper() in pass_rush_df.index:
@@ -769,14 +788,18 @@ def get_fantasy_matchup_season(players: List[str]) -> Dict[str, Any]:
                     g = team_games[team_games["week"] == week].iloc[0]
                     is_home = g["home_team"] == team
                     opponent = str(g["away_team"] if is_home else g["home_team"])
-                    rank_info = _defense_rank_for(primary_category, position, opponent)
+                    rank_info = _position_specific_defense(primary_category, position, opponent)
+                    granularity = position
+                    if not rank_info:
+                        rank_info = _team_level_defense(primary_category, opponent)
+                        granularity = "team"
                     rem_schedule.append({
                         "week": week,
                         "is_bye": False,
                         "opponent": opponent,
                         "is_home": bool(is_home),
-                        "def_rank": rank_info["def_rank"],
-                        "def_granularity": rank_info["granularity"],
+                        "def_rank": rank_info["def_rank"] if rank_info else None,
+                        "def_granularity": granularity,
                     })
 
         results.append({
