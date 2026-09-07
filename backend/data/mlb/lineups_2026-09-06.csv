@@ -260,3 +260,12 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,7,500743,Miguel Rojas,674841,Andrew Alvarez,R,L,R
 2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,8,571970,Max Muncy,674841,Andrew Alvarez,L,L,L
 2026-09-06,823903,2026-09-07T02:10:00Z,Los Angeles Dodgers,Washington Nationals,home,9,571771,Enrique Hernández,674841,Andrew Alvarez,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,1,695578,James Wood,680736,Justin Wrobleski,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,2,686611,Dylan Crews,680736,Justin Wrobleski,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,3,665953,Andrés Chaparro,680736,Justin Wrobleski,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,4,682928,CJ Abrams,680736,Justin Wrobleski,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,5,691781,Brady House,680736,Justin Wrobleski,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,6,695734,Daylen Lile,680736,Justin Wrobleski,L,L,L
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,7,695670,Harry Ford,680736,Justin Wrobleski,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,8,696285,Jacob Young,680736,Justin Wrobleski,R,L,R
+2026-09-06,823903,2026-09-07T02:10:00Z,Washington Nationals,Los Angeles Dodgers,away,9,683083,Nasim Nuñez,680736,Justin Wrobleski,S,L,R
