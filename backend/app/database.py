@@ -34,3 +34,25 @@ def create_tables():
         logger.info("Database tables ready.")
     except Exception as e:
         logger.warning("create_tables warning (safe to ignore if tables already exist): %s", e)
+    _add_column_if_missing("users", "has_permanent_access", "BOOLEAN NOT NULL DEFAULT FALSE")
+
+
+def _add_column_if_missing(table: str, column: str, ddl_type: str) -> None:
+    """create_all() only creates tables that don't exist yet -- it never
+    alters an existing table to add a new column, which matters here since
+    `users` already has real rows in production. Checked via SQLAlchemy's
+    inspector (works the same on SQLite and Postgres) rather than a raw
+    dialect-specific "ADD COLUMN IF NOT EXISTS", which SQLite doesn't
+    support the same way Postgres does."""
+    import logging
+    from sqlalchemy import inspect, text
+    logger = logging.getLogger(__name__)
+    try:
+        existing = {c["name"] for c in inspect(engine).get_columns(table)}
+        if column in existing:
+            return
+        with engine.begin() as conn:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl_type}"))
+        logger.info(f"Added missing column {table}.{column}.")
+    except Exception as e:
+        logger.warning(f"_add_column_if_missing({table}.{column}) warning: {e}")

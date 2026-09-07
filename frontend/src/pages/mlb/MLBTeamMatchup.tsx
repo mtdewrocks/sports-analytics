@@ -9,7 +9,6 @@ interface TodaysMatchup {
   home_team: string;
   label: string;
 }
-
 interface LastN {
   games: number;
   wins: number;
@@ -31,38 +30,216 @@ interface HeadToHead {
   team_a_avg_runs?: number;
   team_b_avg_runs?: number;
 }
+interface HandSplit {
+  k_pct: number;
+  bb_pct: number;
+  woba: number;
+  iso: number;
+}
+interface PitcherInfo {
+  pitcher: string;
+  vs_l: HandSplit | null;
+  vs_r: HandSplit | null;
+}
+interface BullpenKpi {
+  pitches: number;
+  ip: string;
+  level: string;
+}
+interface RecentPerformance {
+  days: number;
+  era: number;
+  whip: number;
+  ip: number;
+}
+interface BullpenInfo {
+  freshness: string;
+  kpis: Record<string, BullpenKpi>;
+  recent_performance: RecentPerformance | null;
+}
+interface LineupAverages {
+  avg?: number;
+  woba?: number;
+  iso?: number;
+  k_pct?: number;
+  bb_pct?: number;
+  batters: number;
+}
+interface HittingWindow {
+  woba: number;
+  pa: number;
+}
+interface HittingVsHandedness {
+  vs_hand: string;
+  season?: HittingWindow;
+  last_30_days?: HittingWindow;
+}
 interface TeamMatchupData {
   team_a: TeamRecord;
   team_b: TeamRecord;
   head_to_head: HeadToHead;
+  team_a_pitcher: PitcherInfo | null;
+  team_b_pitcher: PitcherInfo | null;
+  team_a_bullpen: BullpenInfo;
+  team_b_bullpen: BullpenInfo;
+  team_a_lineup_vs_b: LineupAverages | null;
+  team_b_lineup_vs_a: LineupAverages | null;
+  team_a_hitting_vs_b: HittingVsHandedness | null;
+  team_b_hitting_vs_a: HittingVsHandedness | null;
 }
 
-function RecordCard({ record }: { record: TeamRecord }) {
+const freshnessColor = (level: string) =>
+  level === 'fresh' ? theme.dataBlue : level === 'tired' ? theme.dataRed : theme.textPrimary;
+
+function PitcherSplitTable({ pitcher }: { pitcher: PitcherInfo }) {
+  const rows: { label: string; key: keyof HandSplit; digits: number }[] = [
+    { label: 'K%', key: 'k_pct', digits: 1 },
+    { label: 'BB%', key: 'bb_pct', digits: 1 },
+    { label: 'wOBA', key: 'woba', digits: 3 },
+    { label: 'ISO', key: 'iso', digits: 3 },
+  ];
+  return (
+    <div>
+      <div style={{ color: theme.textPrimary, fontWeight: 700, fontSize: 14 }}>{pitcher.pitcher}</div>
+      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', padding: '2px 0', color: theme.textSecondary, fontWeight: 600 }}></th>
+            <th style={{ textAlign: 'right', padding: '2px 0', color: theme.textSecondary, fontWeight: 600 }}>vs LHB</th>
+            <th style={{ textAlign: 'right', padding: '2px 0', color: theme.textSecondary, fontWeight: 600 }}>vs RHB</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ label, key, digits }) => (
+            <tr key={key}>
+              <td style={{ padding: '2px 0', color: theme.textSecondary }}>{label}</td>
+              <td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>
+                {pitcher.vs_l?.[key] != null ? pitcher.vs_l[key].toFixed(digits) : '—'}
+              </td>
+              <td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>
+                {pitcher.vs_r?.[key] != null ? pitcher.vs_r[key].toFixed(digits) : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function HittingVsHandBlock({ hitting, teamName }: { hitting: HittingVsHandedness | null; teamName: string }) {
+  if (!hitting) return null;
+  const handLabel = hitting.vs_hand === 'L' ? 'LHP' : 'RHP';
+  return (
+    <div>
+      <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 }}>
+        {teamName} wOBA vs {handLabel}
+      </div>
+      <div style={{ fontSize: 12, color: theme.textPrimary }}>
+        {hitting.season && <>Season: <strong>{hitting.season.woba.toFixed(3)}</strong></>}
+        {hitting.last_30_days && <> &middot; L30d: <strong>{hitting.last_30_days.woba.toFixed(3)}</strong></>}
+      </div>
+    </div>
+  );
+}
+
+function BullpenBlock({ bullpen }: { bullpen: BullpenInfo }) {
+  const perf = bullpen.recent_performance;
+  return (
+    <div>
+      <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 }}>Bullpen</div>
+      <div style={{ fontSize: 12, color: theme.textPrimary }}>
+        Fatigue (3d): <strong style={{ color: freshnessColor(bullpen.kpis?.['3_day']?.level ?? '') }}>
+          {bullpen.kpis?.['3_day']?.level ? bullpen.kpis['3_day'].level[0].toUpperCase() + bullpen.kpis['3_day'].level.slice(1) : '—'}
+        </strong>
+        {perf && (
+          <>
+            {' '}&middot; ERA/WHIP (L{perf.days}d):{' '}
+            <strong style={{ color: theme.textPrimary }}>{perf.era.toFixed(2)}/{perf.whip.toFixed(2)}</strong>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LineupBlock({ lineup, teamName, pitcherName }: { lineup: LineupAverages | null; teamName: string; pitcherName?: string }) {
+  return (
+    <div>
+      <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 6 }}>
+        Today's {teamName} Lineup{pitcherName ? ` vs. ${pitcherName}` : ''}
+      </div>
+      {lineup ? (
+        <>
+          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4 }}>{lineup.batters} batters, straight average</div>
+          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>AVG</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.avg?.toFixed(3) ?? '—'}</td></tr>
+              <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>wOBA</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.woba?.toFixed(3) ?? '—'}</td></tr>
+              <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>ISO</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.iso?.toFixed(3) ?? '—'}</td></tr>
+              <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>BB%</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.bb_pct?.toFixed(1) ?? '—'}</td></tr>
+              <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>K%</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.k_pct?.toFixed(1) ?? '—'}</td></tr>
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <div style={{ background: 'rgba(107,168,240,0.1)', border: `1px solid ${theme.dataBlue}`, borderRadius: 6, padding: '8px 10px', fontSize: 11, color: theme.dataBlue }}>
+          Available once today's lineup posts.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TeamCard({
+  record, pitcher, bullpen, lineup, hitting, opponentPitcherName,
+}: {
+  record: TeamRecord; pitcher: PitcherInfo | null; bullpen: BullpenInfo;
+  lineup: LineupAverages | null; hitting: HittingVsHandedness | null; opponentPitcherName?: string;
+}) {
   const diff = record.last_n?.avg_run_diff;
   const diffColor = diff == null ? theme.textPrimary : diff > 0 ? theme.dataBlue : diff < 0 ? theme.dataRed : theme.textPrimary;
   return (
-    <div style={{ flex: 1, minWidth: 260, background: theme.bgCard, borderRadius: 8, padding: 18 }}>
-      <div style={{ fontSize: 18, fontWeight: 700, color: theme.textPrimary, marginBottom: 4 }}>{record.team}</div>
+    <div style={{ flex: 1, minWidth: 300, background: theme.bgCard, borderRadius: 8, padding: 18 }}>
+      <div style={{ fontSize: 18, fontWeight: 700, color: theme.textPrimary, marginBottom: 2 }}>{record.team}</div>
       {record.wins != null ? (
-        <>
-          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 12 }}>
-            {record.wins}-{record.losses} season
-          </div>
+        <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 12 }}>
+          {record.wins}-{record.losses} season
           {record.last_n && (
-            <div style={{ fontSize: 13, color: theme.textPrimary }}>
-              Last {record.last_n.games}: <strong>{record.last_n.wins}-{record.last_n.losses}</strong>
-              {diff != null && (
-                <>
-                  {' '}&middot; avg run diff:{' '}
-                  <strong style={{ color: diffColor }}>{diff > 0 ? '+' : ''}{diff}</strong>
-                </>
-              )}
-            </div>
+            <>
+              {' '}&middot; Last {record.last_n.games}: {record.last_n.wins}-{record.last_n.losses}
+              {diff != null && <> &middot; run diff: <strong style={{ color: diffColor }}>{diff > 0 ? '+' : ''}{diff}</strong></>}
+            </>
           )}
-        </>
+        </div>
       ) : (
-        <div style={{ fontSize: 13, color: theme.textSecondary }}>No completed games found for this team yet.</div>
+        <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 12 }}>No completed games found yet.</div>
       )}
+
+      {pitcher && (
+        <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10, marginBottom: 10 }}>
+          <PitcherSplitTable pitcher={pitcher} />
+        </div>
+      )}
+
+      {hitting && (
+        <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10, marginBottom: 10 }}>
+          <HittingVsHandBlock hitting={hitting} teamName={record.team} />
+        </div>
+      )}
+
+      <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10, marginBottom: 10 }}>
+        <BullpenBlock bullpen={bullpen} />
+      </div>
+
+      <div style={{ borderTop: `2px dashed ${theme.border}`, paddingTop: 10 }}>
+        {!lineup && (
+          <div style={{ fontSize: 10, color: theme.textMuted, textTransform: 'uppercase', marginBottom: 6, textAlign: 'center' }}>
+            &mdash; pending lineup &mdash;
+          </div>
+        )}
+        <LineupBlock lineup={lineup} teamName={record.team} pitcherName={opponentPitcherName} />
+      </div>
     </div>
   );
 }
@@ -99,10 +276,10 @@ export default function MLBTeamMatchup() {
   }, [selectedPk]);
 
   return (
-    <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>MLB Team Matchup</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
-        Compare two teams' records, recent form, and head-to-head results this season.
+        Compare today's actual matchups -- records, recent form, starting pitchers, bullpen, and (once posted) lineup splits.
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
@@ -131,8 +308,22 @@ export default function MLBTeamMatchup() {
       {!loading && !error && data && (
         <>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
-            <RecordCard record={data.team_a} />
-            <RecordCard record={data.team_b} />
+            <TeamCard
+              record={data.team_a}
+              pitcher={data.team_a_pitcher}
+              bullpen={data.team_a_bullpen}
+              lineup={data.team_a_lineup_vs_b}
+              hitting={data.team_a_hitting_vs_b}
+              opponentPitcherName={data.team_b_pitcher?.pitcher}
+            />
+            <TeamCard
+              record={data.team_b}
+              pitcher={data.team_b_pitcher}
+              bullpen={data.team_b_bullpen}
+              lineup={data.team_b_lineup_vs_a}
+              hitting={data.team_b_hitting_vs_a}
+              opponentPitcherName={data.team_a_pitcher?.pitcher}
+            />
           </div>
 
           <div style={{ background: theme.bgCard, borderRadius: 8, padding: 18, marginBottom: 24 }}>
@@ -153,10 +344,6 @@ export default function MLBTeamMatchup() {
             ) : (
               <div style={{ fontSize: 14, color: theme.textSecondary }}>These teams haven't played each other yet this season.</div>
             )}
-          </div>
-
-          <div style={{ background: theme.bgCardHover, borderRadius: 8, padding: '14px 18px', fontSize: 13, color: theme.textSecondary }}>
-            Starting pitcher stats, bullpen fatigue and performance, and lineup batting splits are still being built for this page.
           </div>
         </>
       )}

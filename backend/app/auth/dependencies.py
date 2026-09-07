@@ -19,6 +19,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 def require_access(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
+    if user.has_permanent_access:
+        return user
     trial_ok = user.trial_ends_at > datetime.utcnow()
     sub = db.query(Subscription).filter(Subscription.user_id == user.id, Subscription.status == "active").first()
     if not trial_ok and not sub:

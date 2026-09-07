@@ -254,6 +254,7 @@ def get_mlb_data() -> dict:
         ("hot_hitters", "hot_hitters.parquet", pd.read_parquet),    # hot hitters table
         ("mlb_rosters", "mlb_rosters.parquet", pd.read_parquet),    # player_id -> current team lookup
         ("pitcher_splits", "pitcher_splits.parquet", pd.read_parquet),  # vs L / vs R
+        ("team_hitting_splits", "team_hitting_splits.parquet", pd.read_parquet),  # team wOBA vs LHP/RHP, season + L30
         ("pitcher_percentiles", "pitcher_percentiles.parquet", pd.read_parquet),
         ("hitter_percentiles", "hitter_percentiles.parquet", pd.read_parquet),
     ]

@@ -19,6 +19,12 @@ class User(Base):
     state = Column(String(50), nullable=True)
     favorite_sport = Column(String(50), nullable=True)
     favorite_teams = Column(String(500), nullable=True)
+    # Bypasses trial/subscription checks entirely when True. Deliberately
+    # NOT settable through any API route or admin UI -- only ever flipped
+    # by a direct database update, so there is nothing in the source code
+    # (which may not stay private forever) that identifies which account
+    # has it or how to grant it to a new one.
+    has_permanent_access = Column(Boolean, default=False, nullable=False, server_default="false")
     subscriptions = relationship("Subscription", back_populates="user")
 
 class Subscription(Base):

@@ -547,7 +547,7 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     season = get_mlb_data().get("season_pitching_stats", pd.DataFrame())
     empty = {
         "team": team, "days": [], "kpis": {}, "relievers": [],
-        "freshness": "unknown",
+        "freshness": "unknown", "recent_performance": None,
     }
     if logs.empty:
         return empty
@@ -710,12 +710,35 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     # specific and raises on Windows (see get_pitcher_matchup above).
     day_labels = [f"{d.strftime('%a')} {d.month}/{d.day}" for d in day_list]
 
+    # Recent PERFORMANCE (ERA/WHIP), not just workload -- a well-rested
+    # bullpen that's been getting hit hard is a different risk than a tired
+    # one that's been lights-out, so both are surfaced. Reuses the exact
+    # same reliever-only `sub` and `last_date` as the fatigue KPIs above,
+    # so the two numbers can never disagree about who counts as a reliever.
+    PERFORMANCE_WINDOW_DAYS = 7
+    perf_cutoff = last_date - pd.Timedelta(days=PERFORMANCE_WINDOW_DAYS - 1)
+    perf_window = sub[sub["date"] >= perf_cutoff]
+    perf_outs = int(perf_window["outs"].sum())
+    recent_performance = None
+    if perf_outs > 0:
+        earned_runs = pd.to_numeric(perf_window["earned_runs"], errors="coerce").fillna(0).sum()
+        hits = pd.to_numeric(perf_window["hits"], errors="coerce").fillna(0).sum()
+        walks = pd.to_numeric(perf_window["walks"], errors="coerce").fillna(0).sum()
+        ip = perf_outs / 3
+        recent_performance = {
+            "days": PERFORMANCE_WINDOW_DAYS,
+            "era": round(earned_runs * 9 / ip, 2),
+            "whip": round((hits + walks) / ip, 2),
+            "ip": round(ip, 1),
+        }
+
     return {
         "team": team,
         "days": day_labels,
         "kpis": kpis,
         "relievers": relievers,
         "freshness": kpis["3_day"]["level"],
+        "recent_performance": recent_performance,
     }
 
 
@@ -863,14 +886,135 @@ def get_mlb_todays_matchups() -> List[Dict[str, Any]]:
     return sorted(matchups, key=lambda m: m["label"])
 
 
+def _team_starter_and_splits(team: str) -> Optional[Dict[str, Any]]:
+    """Today's probable starter for one team, plus their season K%/BB%/
+    wOBA/ISO split vs LHB and vs RHB (pitcher_splits.parquet) -- shown as
+    two columns rather than one blended number, since a matchup page's
+    whole point is knowing how this pitcher fares against the specific
+    mix of hitters he's facing today, and a blended number throws that
+    away (a pitcher dominant against one side and mediocre against the
+    other looks identical to an average pitcher on a blended figure)."""
+    probable = get_mlb_data().get("probable_starters", pd.DataFrame())
+    if probable.empty:
+        return None
+    match = probable[probable["team"] == team]
+    if match.empty:
+        return None
+    row = match.iloc[0]
+    pitcher_name, pitcher_id = row.get("pitcher"), row.get("pitcher_id")
+
+    splits_source = get_mlb_data().get("pitcher_splits", pd.DataFrame())
+    vs_l, vs_r = None, None
+    if not splits_source.empty and pd.notna(pitcher_id):
+        sub = splits_source[splits_source["player_id"] == int(pitcher_id)]
+        cols = {"k_pct": "k_pct", "bb_pct": "bb_pct", "woba": "woba", "iso": "iso"}
+        for raw_hand, target in [("L", "vs_l"), ("R", "vs_r")]:
+            hand_row = sub[sub["split"] == f"vs {raw_hand}"]
+            if hand_row.empty:
+                continue
+            r = hand_row.iloc[0]
+            entry = {dest: round(float(r[src]), 3 if dest in ("woba", "iso") else 1)
+                     for src, dest in cols.items() if src in r and pd.notna(r[src])}
+            if target == "vs_l":
+                vs_l = entry
+            else:
+                vs_r = entry
+
+    return {"pitcher": pitcher_name, "vs_l": vs_l, "vs_r": vs_r}
+
+
+def _team_lineup_averages(team: str) -> Optional[Dict[str, Any]]:
+    """Straight (not plate-appearance-weighted) average of today's actual
+    starting lineup's AVG/wOBA/ISO/BB%/K%, already split vs. the specific
+    opposing starter's throwing hand by daily_matchups.parquet itself.
+    Straight average rather than PA-weighted deliberately: today's 9
+    starters will each get roughly the same 3-4 at-bats in this one game,
+    so the season-long-imbalance problem PA-weighting exists to solve
+    doesn't apply here. Returns None (not zeros) until the lineup posts --
+    daily_matchups.parquet has no rows for a team at all until then."""
+    matchups = get_mlb_data().get("matchups", pd.DataFrame())
+    if matchups.empty:
+        return None
+    sub = matchups[matchups["team"] == team]
+    if sub.empty:
+        return None
+
+    cols = {"split_avg": "avg", "split_woba": "woba", "split_iso": "iso", "split_k_pct": "k_pct", "split_bb_pct": "bb_pct"}
+    out = {}
+    for src, dest in cols.items():
+        if src not in sub.columns:
+            continue
+        vals = pd.to_numeric(sub[src], errors="coerce").dropna()
+        if len(vals) > 0:
+            out[dest] = round(float(vals.mean()), 3 if dest in ("avg", "woba", "iso") else 1)
+    out["batters"] = len(sub)
+    return out
+
+
+def _team_hitting_vs_handedness(team: str, opponent_pitcher_id: Optional[int]) -> Optional[Dict[str, Any]]:
+    """This team's own wOBA vs. the specific throwing hand of the
+    opponent's starter -- season-pooled (2025+2026, same convention as
+    pitcher_splits.parquet) and last 30 days, from
+    build_team_hitting_splits.py. Available early (doesn't need a posted
+    lineup), unlike the today's-lineup averages section elsewhere on this
+    page -- this is a team-wide figure, not specific to today's 9 starters.
+    """
+    if pd.isna(opponent_pitcher_id):
+        return None
+    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+    if starters_df.empty:
+        return None
+    match = starters_df[starters_df["pitcher_id"] == int(opponent_pitcher_id)]
+    if match.empty:
+        return None
+    throws = match.iloc[0].get("throws")
+    if throws not in ("L", "R"):
+        return None
+
+    splits_source = get_mlb_data().get("team_hitting_splits", pd.DataFrame())
+    if splits_source.empty:
+        return None
+    sub = splits_source[(splits_source["team"] == team) & (splits_source["split"] == f"vs {throws}")]
+    if sub.empty:
+        return None
+
+    out = {"vs_hand": throws}
+    for window in ("season", "last_30_days"):
+        row = sub[sub["window"] == window]
+        if not row.empty:
+            out[window] = {"woba": float(row.iloc[0]["woba"]), "pa": int(row.iloc[0]["pa"])}
+    return out if len(out) > 1 else None
+
+
 def get_mlb_team_matchup(team_a: str, team_b: str) -> Dict[str, Any]:
-    """Combined record/recent-form for both teams plus head-to-head, in
-    one response -- the frontend needs all three together for the header
-    and head-to-head section, so this avoids three separate round trips."""
+    """Combined record/recent-form, starting pitcher splits, bullpen
+    status, team-wide hitting-vs-handedness, and lineup averages for both
+    teams, plus head-to-head -- one response so the frontend doesn't need
+    eight separate round trips. Each team's pitcher/lineup/hitting context
+    is keyed off the OTHER team (a team's own lineup faces the OPPONENT's
+    pitcher, not its own)."""
+    team_a_pitcher = _team_starter_and_splits(team_a)
+    team_b_pitcher = _team_starter_and_splits(team_b)
+    probable = get_mlb_data().get("probable_starters", pd.DataFrame())
+
+    def pitcher_id_for(team: str) -> Optional[int]:
+        if probable.empty:
+            return None
+        match = probable[probable["team"] == team]
+        return match.iloc[0].get("pitcher_id") if not match.empty else None
+
     return {
         "team_a": get_team_record_and_form(team_a),
         "team_b": get_team_record_and_form(team_b),
         "head_to_head": get_head_to_head(team_a, team_b),
+        "team_a_pitcher": team_a_pitcher,
+        "team_b_pitcher": team_b_pitcher,
+        "team_a_bullpen": get_bullpen_status(team_a),
+        "team_b_bullpen": get_bullpen_status(team_b),
+        "team_a_lineup_vs_b": _team_lineup_averages(team_a),
+        "team_b_lineup_vs_a": _team_lineup_averages(team_b),
+        "team_a_hitting_vs_b": _team_hitting_vs_handedness(team_a, pitcher_id_for(team_b)),
+        "team_b_hitting_vs_a": _team_hitting_vs_handedness(team_b, pitcher_id_for(team_a)),
     }
 
 
