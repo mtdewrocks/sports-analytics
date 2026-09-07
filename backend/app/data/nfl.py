@@ -413,8 +413,8 @@ def _projected_pass_pct(team_row: pd.Series, situation: str) -> Optional[float]:
 #     defense as a rough proxy when there's no position split for it)
 POSITION_STAT_SETS: Dict[str, List[Dict[str, Any]]] = {
     "QB": [
-        {"label": "Pass Att/G", "col": "attempts", "kind": "avg", "def": "pass"},
         {"label": "Completions/G", "col": "completions", "kind": "avg", "def": "pass"},
+        {"label": "Pass Att/G", "col": "attempts", "kind": "avg", "def": "pass"},
         {"label": "Pass Yds/G", "col": "passing_yards", "kind": "avg", "def": "pass"},
         {"label": "Pass TD/G", "col": "passing_tds", "kind": "avg", "def": "pass"},
         {"label": "INT/G", "col": "passing_interceptions", "kind": "avg", "def": "pass"},
