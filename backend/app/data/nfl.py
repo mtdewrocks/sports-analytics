@@ -301,6 +301,8 @@ MATCHUP_STAT_ROWS = [
     ("Defense Pass Yards Per Attempt", "Defense Pass Yards Per Attempt", "Rank - Defense Pass Yards Per Attempt"),
     ("Defense Rush Yards Per Game", "Defense Rush Yards Per Game", "Rank - Defense Rush Yards Per Game"),
     ("Defense Rush Yards Per Attempt", "Defense Rush Yards Per Attempt", "Rank - Defense Rush Yards Per Attempt"),
+    ("Sacks + QB Hits Allowed (Per Game)", "Sacks + QB Hits Allowed Per Game", "Rank - Sacks + QB Hits Allowed"),
+    ("Defensive Sacks + QB Hits (Per Game)", "Defensive Sacks + QB Hits Per Game", "Rank - Defensive Sacks + QB Hits"),
 ]
 
 
@@ -454,48 +456,6 @@ _POSITION_DEFENSE_COL = {
     ("rec", "WR"): "def_wr_rec_ypg",
     ("rec", "TE"): "def_te_rec_ypg",
 }
-
-
-def _team_pass_rush_and_block(stats_df: pd.DataFrame, team_col: str, week_col: str) -> tuple:
-    """Team-level pass rush generated (def_sacks + def_qb_hits, summed
-    across all of a team's defenders) and pass protection (sacks_suffered
-    + QB hits allowed, both per game with ranks.
-
-    QB hits allowed (the offense's own side) isn't a column that exists
-    directly -- there's no "qb_hits_suffered" stat. But def_qb_hits is
-    recorded per DEFENDER per week with an opponent_team column already
-    attached, so grouping by opponent_team instead of the defender's own
-    team gives exactly "QB hits inflicted on team X's offense" -- the same
-    underlying data, just aggregated from the other side. This makes Own
-    Pass Block a genuinely symmetric sacks+hits figure instead of a
-    sacks-only number sitting next to a sacks+hits opponent figure, which
-    was real, reported user-facing confusion, not just an unlabeled detail.
-
-    No new data pull needed either way -- all of this comes from the same
-    weekly stats file already used everywhere else in this module.
-
-    Returns (pass_rush_df, pass_block_df), each indexed by team.
-    """
-    games_played = stats_df.groupby(team_col)[week_col].nunique()
-
-    rush = stats_df.groupby(team_col, as_index=False).agg(
-        def_sacks=("def_sacks", "sum"), def_qb_hits=("def_qb_hits", "sum"),
-    )
-    rush["games"] = rush[team_col].map(games_played)
-    rush["pressure_pg"] = (rush["def_sacks"].fillna(0) + rush["def_qb_hits"].fillna(0)) / rush["games"].replace(0, pd.NA)
-    # More pressure generated = tougher on the passing game = rank 1 for
-    # the HIGHEST value, opposite direction from a yards-allowed rank.
-    rush["rank_most"] = rush["pressure_pg"].rank(ascending=False, method="min")
-
-    block = stats_df.groupby(team_col, as_index=False).agg(sacks_suffered=("sacks_suffered", "sum"))
-    hits_allowed = stats_df.groupby("opponent_team")["def_qb_hits"].sum().rename("hits_allowed")
-    block = block.merge(hits_allowed, left_on=team_col, right_index=True, how="left")
-    block["games"] = block[team_col].map(games_played)
-    block["pressure_allowed_pg"] = (block["sacks_suffered"].fillna(0) + block["hits_allowed"].fillna(0)) / block["games"].replace(0, pd.NA)
-    # Fewer sacks+hits allowed = better protection = rank 1 for the LOWEST value.
-    block["rank_fewest"] = block["pressure_allowed_pg"].rank(ascending=True, method="min")
-
-    return rush.set_index(team_col), block.set_index(team_col)
 
 
 def _matchup_rank(raw_rank: Optional[float], low_rank_is_favorable: bool, total_teams: int = 32) -> Optional[int]:
@@ -667,12 +627,8 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
     df = get_nfl_stats()
     col = _player_col(df)
     team_col = _team_col(df)
-    week_col = _week_col(df)
     season = _current_nfl_season()
-
-    pass_rush_df, pass_block_df = (pd.DataFrame(), pd.DataFrame())
-    if team_col and week_col:
-        pass_rush_df, pass_block_df = _team_pass_rush_and_block(df, team_col, week_col)
+    team_stats_df = get_nfl_team_stats()
 
     results = []
     for player in players:
@@ -737,28 +693,36 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                     })
 
             opp_pass_rush = None
-            if opponent.upper() in pass_rush_df.index:
-                row = pass_rush_df.loc[opponent.upper()]
-                if pd.notna(row["pressure_pg"]):
-                    opp_pass_rush = {
-                        "label": "Opp Sacks + QB Hits",
-                        "value": round(float(row["pressure_pg"]), 1),
-                        "rank": _matchup_rank(row["rank_most"], low_rank_is_favorable=False),
-                        "rank_word": "easiest",
-                        "favorable": _favorable_from_rank(row["rank_most"], low_rank_is_favorable=False),  # rank 1 = most pressure = unfavorable
-                    }
+            if not team_stats_df.empty:
+                match = team_stats_df[team_stats_df["opponent_team"].str.upper() == opponent.upper()]
+                if not match.empty:
+                    row = match.iloc[0]
+                    value = row.get("Defensive Sacks + QB Hits Per Game")
+                    rank = row.get("Rank - Defensive Sacks + QB Hits")
+                    if pd.notna(value) and pd.notna(rank):
+                        opp_pass_rush = {
+                            "label": "Opp Sacks + QB Hits",
+                            "value": round(float(value), 1),
+                            "rank": _matchup_rank(int(rank), low_rank_is_favorable=False),
+                            "rank_word": "easiest",
+                            "favorable": _favorable_from_rank(int(rank), low_rank_is_favorable=False),  # rank 1 = most pressure = unfavorable
+                        }
 
             own_pass_block = None
-            if team and team.upper() in pass_block_df.index:
-                row = pass_block_df.loc[team.upper()]
-                if pd.notna(row["pressure_allowed_pg"]):
-                    own_pass_block = {
-                        "label": "Own Sacks + QB Hits Allowed",
-                        "value": round(float(row["pressure_allowed_pg"]), 1),
-                        "rank": _matchup_rank(row["rank_fewest"], low_rank_is_favorable=True),
-                        "rank_word": "easiest",
-                        "favorable": _favorable_from_rank(row["rank_fewest"], low_rank_is_favorable=True),  # rank 1 = fewest sacks+hits allowed = best protection = favorable
-                    }
+            if team and not team_stats_df.empty:
+                match = team_stats_df[team_stats_df["team"].str.upper() == team.upper()]
+                if not match.empty:
+                    row = match.iloc[0]
+                    value = row.get("Sacks + QB Hits Allowed Per Game")
+                    rank = row.get("Rank - Sacks + QB Hits Allowed")
+                    if pd.notna(value) and pd.notna(rank):
+                        own_pass_block = {
+                            "label": "Own Sacks + QB Hits Allowed",
+                            "value": round(float(value), 1),
+                            "rank": _matchup_rank(int(rank), low_rank_is_favorable=True),
+                            "rank_word": "easiest",
+                            "favorable": _favorable_from_rank(int(rank), low_rank_is_favorable=True),  # rank 1 = fewest sacks+hits allowed = best protection = favorable
+                        }
 
             matchup_context = {
                 "opp_defense": opp_defense,

@@ -126,11 +126,21 @@ def build(season: int) -> pd.DataFrame:
     new_stat("Sacks Allowed", "sacks_suffered", "sum")
     new_stat("Interceptions Thrown", "passing_interceptions", "sum")
 
+    # QB hits allowed (offense side) has no column of its own -- there's no
+    # "qb_hits_suffered" stat. But def_qb_hits is recorded per DEFENDER with
+    # an opponent_team column already attached, so grouping by opponent_team
+    # instead of the defender's own team gives exactly "QB hits inflicted on
+    # team X's offense" -- same technique already used for Defensive Sacks
+    # below, just applied to hits instead of sacks.
+    team_stats["QB Hits Allowed"] = team_stats.groupby("opponent_team")["def_qb_hits"].transform("sum")
+    team_stats["Sacks + QB Hits Allowed"] = team_stats["Sacks Allowed"] + team_stats["QB Hits Allowed"]
+
     team_stats["games_count"] = team_stats.groupby("team")["week"].transform("nunique")
     team_stats["Plays Per Game"] = team_stats["total_team_plays"] / team_stats["games_count"]
     team_stats["Rush Yards Per Game"] = team_stats["team_rush_yards"] / team_stats["games_count"]
     team_stats["Pass Yards Per Game"] = team_stats["team_pass_yards"] / team_stats["games_count"]
     team_stats["Interceptions Thrown Per Game"] = team_stats["Interceptions Thrown"] / team_stats["games_count"]
+    team_stats["Sacks + QB Hits Allowed Per Game"] = team_stats["Sacks + QB Hits Allowed"] / team_stats["games_count"]
     team_stats["rush_attempts"] = team_stats.groupby("team")["carries"].transform("sum")
 
     team_stats["total_pass_plays"] = team_stats[["attempts", "sacks_suffered"]].sum(axis=1)
@@ -143,7 +153,8 @@ def build(season: int) -> pd.DataFrame:
     offense = team_stats[[
         "team", "Plays Per Game", "run_share", "pass_share", "Yards Per Carry",
         "Yards Per Pass Attempt", "Rush Yards Per Game", "Pass Yards Per Game", "Sacks Allowed",
-        "Interceptions Thrown Per Game",
+        "QB Hits Allowed", "Sacks + QB Hits Allowed", "Sacks + QB Hits Allowed Per Game",
+        "Interceptions Thrown Per Game", "games_count",
     ]].drop_duplicates(subset="team", keep="first")
 
     # ---- Defense (== what opponents did against this team) --------------
@@ -161,10 +172,19 @@ def build(season: int) -> pd.DataFrame:
     team_stats["Defensive Sacks"] = g_opp["sacks_suffered"].transform("sum")
     team_stats["Defensive Interceptions Per Game"] = g_opp["passing_interceptions"].transform("sum") / g_opp["week"].transform("nunique")
 
+    # Unlike QB Hits Allowed above, def_qb_hits is already correctly
+    # attributed to the DEFENDER'S OWN team directly -- no opponent_team
+    # flip needed here, just a normal groupby the same as any other
+    # defense-generated stat.
+    team_stats["Defensive QB Hits"] = team_stats.groupby("team")["def_qb_hits"].transform("sum")
+    team_stats["Defensive Sacks + QB Hits"] = team_stats["Defensive Sacks"] + team_stats["Defensive QB Hits"]
+    team_stats["Defensive Sacks + QB Hits Per Game"] = team_stats["Defensive Sacks + QB Hits"] / team_stats["games_count"]
+
     defense = team_stats[[
         "opponent_team", "Defense Plays Per Game", "Defense Rush Share", "Defense Pass Share",
         "Defense Rush Yards Per Attempt", "Defense Rush Yards Per Game",
         "Defense Pass Yards Per Attempt", "Defense Pass Yards Per Game", "Defensive Sacks",
+        "Defensive QB Hits", "Defensive Sacks + QB Hits", "Defensive Sacks + QB Hits Per Game",
         "Defensive Interceptions Per Game",
     ]].drop_duplicates(subset="opponent_team", keep="first")
 
@@ -176,6 +196,8 @@ def build(season: int) -> pd.DataFrame:
     # Getting sacked is bad -- fewest allowed ranks best. (Bug fix: the
     # source script ranked this the same direction as the stats above.)
     _rank(offense, "Rank - Sacks Allowed", "Sacks Allowed", ascending=True)
+    _rank(offense, "Rank - QB Hits Allowed", "QB Hits Allowed", ascending=True)
+    _rank(offense, "Rank - Sacks + QB Hits Allowed", "Sacks + QB Hits Allowed Per Game", ascending=True)
     # Throwing interceptions is bad for an offense -- fewest ranks best.
     _rank(offense, "Rank - Interceptions Thrown Per Game", "Interceptions Thrown Per Game", ascending=True)
 
@@ -189,6 +211,8 @@ def build(season: int) -> pd.DataFrame:
     # yards-allowed stats above, which rewarded defenses for recording
     # FEWER sacks.)
     _rank(defense, "Rank - Defensive Sacks", "Defensive Sacks", ascending=False)
+    _rank(defense, "Rank - Defensive QB Hits", "Defensive QB Hits", ascending=False)
+    _rank(defense, "Rank - Defensive Sacks + QB Hits", "Defensive Sacks + QB Hits Per Game", ascending=False)
     # Taking interceptions is good for a defense -- most ranks best, same
     # "more is better for the defense" logic as sacks above.
     _rank(defense, "Rank - Defensive Interceptions Per Game", "Defensive Interceptions Per Game", ascending=False)
