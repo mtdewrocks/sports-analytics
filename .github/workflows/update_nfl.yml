@@ -92,6 +92,34 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_defense_by_position.py
 
+      # Season-to-date team win/loss records -- feeds the parlay pace
+      # tracker (build_pace_feed.py below), and generally reusable for
+      # any future team-record based feature (recent form, head-to-head).
+      - name: Update NFL schedule and results
+        id: schedule_results
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_schedule_results.py
+
+      # Player-week passing/rushing/receiving box scores -- the other
+      # input the pace feed needs. player_week_usage.parquet (pbp step
+      # above) has no passing stats at all, since it was built for
+      # target/carry share, not QB box scores.
+      - name: Update NFL player box stats
+        id: player_box_stats
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_player_box_stats.py
+
+      # Aggregates the two steps above into the small JSON the "On Pace"
+      # parlay tracker fetches directly from GitHub. Depends on both, but
+      # continue-on-error like everything else here -- if either pull
+      # above failed this run, this just rebuilds from whatever version of
+      # those two files is already checked into the repo instead of
+      # crashing the job.
+      - name: Build parlay pace feed
+        id: pace_feed
+        continue-on-error: true
+        run: python -u backend/app/build_pace_feed.py
+
       - name: Commit updated data
         if: always()
         run: |
@@ -104,22 +132,25 @@ jobs:
                    backend/data/nfl/team_game_script.parquet \
                    backend/data/nfl/player_situational_usage.parquet \
                    backend/data/nfl/rosters.parquet \
-                   backend/data/nfl/weekly_defense_by_position.parquet; do
+                   backend/data/nfl/weekly_defense_by_position.parquet \
+                   backend/data/nfl/schedule_results.parquet \
+                   backend/data/nfl/player_box_stats.parquet \
+                   backend/data/nfl/on_pace_feed.json; do
             [ -f "$f" ] && git add "$f"
           done
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update NFL data: usage, team stats, defense ranks, game script, rosters"
+            git commit -m "Update NFL data: usage, team stats, defense ranks, game script, rosters, pace feed"
             git pull --rebase
             git push
           fi
 
-      # Only fail the whole run if ALL SEVEN pulls failed -- any one alone
+      # Only fail the whole run if ALL TEN pulls failed -- any one alone
       # succeeding still commits real data and shouldn't page you.
       - name: Fail if all pulls failed
-        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure' && steps.defense_by_position.outcome == 'failure'
+        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure' && steps.defense_by_position.outcome == 'failure' && steps.schedule_results.outcome == 'failure' && steps.player_box_stats.outcome == 'failure' && steps.pace_feed.outcome == 'failure'
         run: |
-          echo "All seven NFL data pulls failed this run -- check the logs above."
+          echo "All ten NFL data pulls failed this run -- check the logs above."
           exit 1
