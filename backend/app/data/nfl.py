@@ -458,12 +458,21 @@ _POSITION_DEFENSE_COL = {
 
 def _team_pass_rush_and_block(stats_df: pd.DataFrame, team_col: str, week_col: str) -> tuple:
     """Team-level pass rush generated (def_sacks + def_qb_hits, summed
-    across all of a team's defenders) and pass protection (sacks_suffered,
-    summed across whichever QB(s) played), both per game with ranks.
+    across all of a team's defenders) and pass protection (sacks_suffered
+    + QB hits allowed, both per game with ranks.
 
-    Both columns already exist in the same weekly stats file used
-    everywhere else in this module -- no new data pull needed, this is
-    just an aggregation that hadn't been built yet.
+    QB hits allowed (the offense's own side) isn't a column that exists
+    directly -- there's no "qb_hits_suffered" stat. But def_qb_hits is
+    recorded per DEFENDER per week with an opponent_team column already
+    attached, so grouping by opponent_team instead of the defender's own
+    team gives exactly "QB hits inflicted on team X's offense" -- the same
+    underlying data, just aggregated from the other side. This makes Own
+    Pass Block a genuinely symmetric sacks+hits figure instead of a
+    sacks-only number sitting next to a sacks+hits opponent figure, which
+    was real, reported user-facing confusion, not just an unlabeled detail.
+
+    No new data pull needed either way -- all of this comes from the same
+    weekly stats file already used everywhere else in this module.
 
     Returns (pass_rush_df, pass_block_df), each indexed by team.
     """
@@ -479,10 +488,12 @@ def _team_pass_rush_and_block(stats_df: pd.DataFrame, team_col: str, week_col: s
     rush["rank_most"] = rush["pressure_pg"].rank(ascending=False, method="min")
 
     block = stats_df.groupby(team_col, as_index=False).agg(sacks_suffered=("sacks_suffered", "sum"))
+    hits_allowed = stats_df.groupby("opponent_team")["def_qb_hits"].sum().rename("hits_allowed")
+    block = block.merge(hits_allowed, left_on=team_col, right_index=True, how="left")
     block["games"] = block[team_col].map(games_played)
-    block["sacks_allowed_pg"] = block["sacks_suffered"].fillna(0) / block["games"].replace(0, pd.NA)
-    # Fewer sacks allowed = better protection = rank 1 for the LOWEST value.
-    block["rank_fewest"] = block["sacks_allowed_pg"].rank(ascending=True, method="min")
+    block["pressure_allowed_pg"] = (block["sacks_suffered"].fillna(0) + block["hits_allowed"].fillna(0)) / block["games"].replace(0, pd.NA)
+    # Fewer sacks+hits allowed = better protection = rank 1 for the LOWEST value.
+    block["rank_fewest"] = block["pressure_allowed_pg"].rank(ascending=True, method="min")
 
     return rush.set_index(team_col), block.set_index(team_col)
 
@@ -552,6 +563,33 @@ def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str], 
     team = last_row.get(team_col) if team_col else None
     position = last_row.get("position_group") or last_row.get("position")
     return (str(team) if pd.notna(team) else None), (str(position) if pd.notna(position) else None)
+
+
+def _team_record(team: str, season: int) -> Optional[Dict[str, int]]:
+    """Season win-loss-tie record for one team, from completed games in the
+    real schedule data. Ties are real and possible in the NFL (unlike MLB),
+    so tracked as their own count rather than dropped or folded into losses."""
+    schedule = get_nfl_schedule()
+    if schedule.empty or not team:
+        return None
+    season_games = schedule[schedule["season"] == season]
+    team_games = season_games[
+        season_games["home_score"].notna()
+        & ((season_games["home_team"] == team) | (season_games["away_team"] == team))
+    ]
+
+    wins = losses = ties = 0
+    for _, g in team_games.iterrows():
+        is_home = g["home_team"] == team
+        team_score = g["home_score"] if is_home else g["away_score"]
+        opp_score = g["away_score"] if is_home else g["home_score"]
+        if team_score > opp_score:
+            wins += 1
+        elif team_score < opp_score:
+            losses += 1
+        else:
+            ties += 1
+    return {"wins": wins, "losses": losses, "ties": ties}
 
 
 def _next_game_for_team(team: str, season: int) -> Optional[Dict[str, Any]]:
@@ -703,7 +741,7 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
                 row = pass_rush_df.loc[opponent.upper()]
                 if pd.notna(row["pressure_pg"]):
                     opp_pass_rush = {
-                        "label": "Opp Pass Rush",
+                        "label": "Opp Sacks + QB Hits",
                         "value": round(float(row["pressure_pg"]), 1),
                         "rank": _matchup_rank(row["rank_most"], low_rank_is_favorable=False),
                         "rank_word": "easiest",
@@ -713,13 +751,13 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
             own_pass_block = None
             if team and team.upper() in pass_block_df.index:
                 row = pass_block_df.loc[team.upper()]
-                if pd.notna(row["sacks_allowed_pg"]):
+                if pd.notna(row["pressure_allowed_pg"]):
                     own_pass_block = {
-                        "label": "Own Pass Block",
-                        "value": round(float(row["sacks_allowed_pg"]), 1),
+                        "label": "Own Sacks + QB Hits Allowed",
+                        "value": round(float(row["pressure_allowed_pg"]), 1),
                         "rank": _matchup_rank(row["rank_fewest"], low_rank_is_favorable=True),
                         "rank_word": "easiest",
-                        "favorable": _favorable_from_rank(row["rank_fewest"], low_rank_is_favorable=True),  # rank 1 = fewest sacks allowed = best protection = favorable
+                        "favorable": _favorable_from_rank(row["rank_fewest"], low_rank_is_favorable=True),  # rank 1 = fewest sacks+hits allowed = best protection = favorable
                     }
 
             matchup_context = {
@@ -737,7 +775,9 @@ def get_fantasy_matchup_current_week(players: List[str]) -> Dict[str, Any]:
             "player": player,
             "team": team,
             "position": position,
+            "team_record": _team_record(team, season) if team else None,
             "opponent": next_game["opponent"] if next_game else None,
+            "opponent_record": _team_record(next_game["opponent"], season) if next_game else None,
             "is_home": next_game["is_home"] if next_game else None,
             "week": next_game["week"] if next_game else None,
             "stats": stats,

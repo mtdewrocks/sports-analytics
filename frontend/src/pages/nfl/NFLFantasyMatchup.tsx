@@ -24,12 +24,19 @@ interface MatchupContext {
   opp_pass_rush: MatchupContextLine | null;
   own_pass_block: MatchupContextLine | null;
 }
+interface TeamRecord {
+  wins: number;
+  losses: number;
+  ties: number;
+}
 interface CurrentWeekPlayer {
   player: string;
   error?: string;
   team?: string;
   position?: string;
+  team_record?: TeamRecord | null;
   opponent?: string;
+  opponent_record?: TeamRecord | null;
   is_home?: boolean;
   week?: number;
   stats?: StatRow[];
@@ -50,6 +57,11 @@ interface SeasonPlayer {
   team?: string;
   position?: string;
   schedule?: ScheduleRow[];
+}
+
+function formatRecord(record?: TeamRecord | null): string {
+  if (!record) return '';
+  return record.ties > 0 ? `${record.wins}-${record.losses}-${record.ties}` : `${record.wins}-${record.losses}`;
 }
 
 function favorableColor(favorable: boolean | null): string {
@@ -91,7 +103,7 @@ function CurrentWeekCard({ p }: { p: CurrentWeekPlayer }) {
     <div style={cardStyle}>
       <div style={{ color: theme.textPrimary, fontWeight: 700, fontSize: 15 }}>{p.player}</div>
       <div style={{ color: theme.textSecondary, fontSize: 11, marginBottom: 10 }}>
-        {p.position} &middot; {p.team} {p.opponent ? (p.is_home ? 'vs.' : '@') : ''} {p.opponent ?? '(no upcoming game)'}
+        {p.position} &middot; {p.team} ({formatRecord(p.team_record)}) {p.opponent ? (p.is_home ? 'vs.' : '@') : ''} {p.opponent ? `${p.opponent} (${formatRecord(p.opponent_record)})` : '(no upcoming game)'}
       </div>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <tbody>
