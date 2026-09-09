@@ -251,3 +251,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-09,823739,2026-09-09T23:40:00Z,Chicago Cubs,Milwaukee Brewers,away,7,699393,Pedro Ramírez,701656,Logan Henderson,S,R,L
 2026-09-09,823739,2026-09-09T23:40:00Z,Chicago Cubs,Milwaukee Brewers,away,8,624424,Michael Conforto,701656,Logan Henderson,L,R,L
 2026-09-09,823739,2026-09-09T23:40:00Z,Chicago Cubs,Milwaukee Brewers,away,9,608348,Carson Kelly,701656,Logan Henderson,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,1,669242,Tommy Edman,695076,Rhett Lowder,S,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,2,669257,Will Smith,695076,Rhett Lowder,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,3,605141,Mookie Betts,695076,Rhett Lowder,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,4,571970,Max Muncy,695076,Rhett Lowder,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,5,606192,Teoscar Hernández,695076,Rhett Lowder,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,6,663656,Kyle Tucker,695076,Rhett Lowder,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,7,676439,Hunter Feduccia,695076,Rhett Lowder,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,8,690976,Alex Freeland,695076,Rhett Lowder,S,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Los Angeles Dodgers,Cincinnati Reds,home,9,571771,Enrique Hernández,695076,Rhett Lowder,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,1,699115,Carlos Jorge,808967,Yoshinobu Yamamoto,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,2,682829,Elly De La Cruz,808967,Yoshinobu Yamamoto,S,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,3,701398,Sal Stewart,808967,Yoshinobu Yamamoto,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,4,668709,JJ Bleday,808967,Yoshinobu Yamamoto,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,5,699302,Héctor Rodríguez,808967,Yoshinobu Yamamoto,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,6,682877,Juan Brito,808967,Yoshinobu Yamamoto,S,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,7,677943,Will Banfield,808967,Yoshinobu Yamamoto,R,R,R
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,8,670770,TJ Friedl,808967,Yoshinobu Yamamoto,L,R,L
+2026-09-09,823900,2026-09-10T02:10:00Z,Cincinnati Reds,Los Angeles Dodgers,away,9,663647,Ke'Bryan Hayes,808967,Yoshinobu Yamamoto,R,R,R
