@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 1,
   "games_total": 17,
-  "generated_at": "2026-09-10T12:28:55.990613+00:00",
+  "generated_at": "2026-09-10T17:39:54.461343+00:00",
   "players": {
     "A.J. Brown": {
       "team": "NE",
@@ -318,7 +318,7 @@
     },
     "Dre'Mont Jones": {
       "team": "NE",
-      "position": "LB",
+      "position": "DE",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
