@@ -1,0 +1,19 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,1,691718,Pete Crow-Armstrong,696062,Wilber Dotel,L,R,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,2,673548,Seiya Suzuki,696062,Wilber Dotel,R,R,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,3,683737,Michael Busch,696062,Wilber Dotel,L,R,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,4,608324,Alex Bregman,696062,Wilber Dotel,R,R,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,5,664023,Ian Happ,696062,Wilber Dotel,S,R,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,6,663538,Nico Hoerner,696062,Wilber Dotel,R,R,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,7,624424,Michael Conforto,696062,Wilber Dotel,L,R,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,8,699393,Pedro Ramírez,696062,Wilber Dotel,S,R,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,9,608348,Carson Kelly,696062,Wilber Dotel,R,R,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,1,804606,Konnor Griffin,684007,Shota Imanaga,R,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,2,665833,Oneil Cruz,684007,Shota Imanaga,L,L,L
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,3,668804,Bryan Reynolds,684007,Shota Imanaga,S,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,4,804668,Rafael Flores Jr.,684007,Shota Imanaga,R,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,5,699013,Esmerlyn Valdez,684007,Shota Imanaga,R,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,6,693304,Nick Gonzales,684007,Shota Imanaga,R,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,7,663968,Jake Mangum,684007,Shota Imanaga,S,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,8,669707,Jared Triolo,684007,Shota Imanaga,R,L,R
+2026-09-11,824631,2026-09-11T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,9,680779,Henry Davis,684007,Shota Imanaga,R,L,R
