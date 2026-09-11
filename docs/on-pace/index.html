@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>On Pace — Parlay Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0D1210">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="On Pace">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1210;
+    --surface:#161D1A;
+    --surface-2:#1E2723;
+    --surface-3:#232E29;
+    --border:#2A3630;
+    --text:#EDF2EF;
+    --text-muted:#8FA096;
+    --text-dim:#5E6E67;
+    --accent:#2BD9A0;
+    --accent-dim:#123328;
+    --hit:#4ADE94;
+    --hit-dim:#16311F;
+    --ontrack:#4FB8E0;
+    --ontrack-dim:#122A33;
+    --risk:#F0645A;
+    --risk-dim:#331917;
+    --pending:#6B7A75;
+    --pending-dim:#1C2422;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  header.topbar{
+    padding:22px 20px 16px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .brand{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:0.3px;
+  }
+  .brand span{color:var(--accent);}
+  .season-tag{
+    font-size:12px;
+    color:var(--text-muted);
+    font-variant-numeric:tabular-nums;
+  }
+  main{
+    flex:1;
+    padding:18px 16px 90px;
+    overflow-y:auto;
+  }
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---------- Dashboard ---------- */
+  .summary-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .summary-chip{
+    flex:1;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 10px;
+    text-align:center;
+  }
+  .summary-chip .num{
+    font-family:'Oswald',sans-serif;
+    font-size:24px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .summary-chip .lbl{
+    font-size:11px;
+    color:var(--text-muted);
+    margin-top:2px;
+  }
+  .chip-hit .num{color:var(--hit);}
+  .chip-track .num{color:var(--ontrack);}
+  .chip-risk .num{color:var(--risk);}
+
+  .section-title{
+    font-size:13px;
+    color:var(--text-muted);
+    margin:22px 0 10px;
+    font-weight:500;
+  }
+
+  .parlay-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:12px;
+    cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .parlay-card:active{border-color:var(--accent);}
+  .parlay-card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:12px;
+  }
+  .parlay-name{
+    font-family:'Oswald',sans-serif;
+    font-size:17px;
+    font-weight:500;
+  }
+  .parlay-meta{
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:3px;
+  }
+  .status-pill{
+    font-size:11px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .pill-hit{background:var(--hit-dim); color:var(--hit);}
+  .pill-track{background:var(--ontrack-dim); color:var(--ontrack);}
+  .pill-risk{background:var(--risk-dim); color:var(--risk);}
+  .pill-pending{background:var(--pending-dim); color:var(--pending);}
+
+  .leg-track{
+    display:flex;
+    gap:3px;
+    margin-bottom:10px;
+  }
+  .leg-dot{
+    flex:1;
+    height:6px;
+    border-radius:3px;
+    background:var(--surface-3);
+  }
+  .leg-dot.hit{background:var(--hit);}
+  .leg-dot.track{background:var(--ontrack);}
+  .leg-dot.risk{background:var(--risk);}
+  .leg-dot.pending{background:var(--pending); opacity:0.5;}
+
+  .parlay-card-bottom{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  .parlay-card-bottom b{color:var(--text); font-variant-numeric:tabular-nums;}
+
+  .card-actions{
+    display:flex;
+    gap:8px;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+  .mini-btn{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    font-size:11.5px;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .mini-btn.danger{color:var(--risk); border-color:var(--risk-dim);}
+  .header-actions{margin-left:auto; display:flex; gap:8px;}
+
+  /* ---------- Detail view ---------- */
+  .detail-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .back-btn{
+    width:32px; height:32px;
+    border-radius:8px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size:16px;
+    flex-shrink:0;
+  }
+  .detail-title-wrap{flex:1;}
+  .detail-title{
+    font-family:'Oswald',sans-serif;
+    font-size:19px;
+    font-weight:500;
+  }
+  .detail-sub{font-size:12px; color:var(--text-muted); margin-top:2px;}
+
+  .payout-banner{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    margin:16px 0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .payout-banner .amt{
+    font-family:'Oswald',sans-serif;
+    font-size:20px;
+    font-weight:600;
+    color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .payout-banner .lbl{font-size:11px; color:var(--text-muted); margin-top:2px;}
+
+  .leg-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--surface-3);
+    border-radius:10px;
+    padding:13px 14px;
+    margin-bottom:10px;
+  }
+  .leg-card.is-hit{border-left-color:var(--hit);}
+  .leg-card.is-track{border-left-color:var(--ontrack);}
+  .leg-card.is-risk{border-left-color:var(--risk);}
+  .leg-card.is-pending{border-left-color:var(--pending);}
+
+  .leg-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:4px;
+  }
+  .leg-player{font-weight:600; font-size:14.5px;}
+  .leg-prop{font-size:12px; color:var(--text-muted); margin-top:2px;}
+  .leg-icon{
+    width:22px; height:22px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    margin-left:10px;
+  }
+  .icon-hit{background:var(--hit); color:#08150E;}
+  .icon-track{background:transparent; border:2px solid var(--ontrack); color:var(--ontrack);}
+  .icon-risk{background:transparent; border:2px solid var(--risk); color:var(--risk);}
+  .icon-pending{background:transparent; border:2px dashed var(--pending); color:var(--pending);}
+
+  .prog-wrap{
+    position:relative;
+    margin:12px 0 8px;
+  }
+  .prog-bar{
+    height:8px;
+    background:var(--surface-3);
+    border-radius:4px;
+    overflow:hidden;
+    position:relative;
+  }
+  .prog-fill{
+    height:100%;
+    border-radius:4px;
+  }
+  .fill-hit{background:var(--hit);}
+  .fill-track{background:var(--ontrack);}
+  .fill-risk{background:var(--risk);}
+  .fill-pending{background:var(--pending); opacity:0.4;}
+
+  .data-banner{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--pending);
+    border-radius:10px;
+    padding:11px 13px;
+    font-size:12px;
+    color:var(--text-muted);
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .data-banner b{color:var(--text);}
+  .pace-marker{
+    position:absolute;
+    top:-3px;
+    width:2px;
+    height:14px;
+    background:var(--text-dim);
+  }
+  .pace-marker::after{
+    content:'pace';
+    position:absolute;
+    top:-16px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:9px;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+
+  .leg-stats-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--text-muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .leg-stats-row b{color:var(--text); font-weight:600;}
+  .leg-need{
+    margin-top:8px;
+    font-size:12px;
+    padding-top:8px;
+    border-top:1px solid var(--border);
+    color:var(--text-muted);
+  }
+  .leg-need b{color:var(--text);}
+
+  /* ---------- Add Parlay ---------- */
+  .form-label{
+    font-size:12px;
+    color:var(--text-muted);
+    margin:16px 0 6px;
+    display:block;
+  }
+  .form-label:first-child{margin-top:0;}
+  input, select{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px 12px;
+    border-radius:8px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+  }
+  input:focus, select:focus{outline:none; border-color:var(--accent);}
+  .two-col{display:flex; gap:10px;}
+  .two-col > *{flex:1;}
+
+  .leg-form{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    margin-top:14px;
+    position:relative;
+  }
+  .leg-form-title{
+    font-size:12px;
+    color:var(--text-muted);
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .remove-leg{
+    background:none;
+    border:none;
+    color:var(--risk);
+    font-size:12px;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .add-leg-btn{
+    width:100%;
+    margin-top:16px;
+    padding:12px;
+    border-radius:8px;
+    border:1px dashed var(--border);
+    background:none;
+    color:var(--text-muted);
+    font-size:13px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .add-leg-btn:active{border-color:var(--accent); color:var(--accent);}
+  .submit-btn{
+    width:100%;
+    margin-top:24px;
+    padding:14px;
+    border-radius:10px;
+    border:none;
+    background:var(--accent);
+    color:#08150E;
+    font-size:14.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabbar{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    display:flex;
+    padding:10px 0 14px;
+  }
+  .tab-btn{
+    flex:1;
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-family:'Inter',sans-serif;
+    font-size:11.5px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:pointer;
+  }
+  .tab-btn .tab-ico{font-size:18px;}
+  .tab-btn.active{color:var(--accent);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">On <span>Pace</span></div>
+    <div class="season-tag" id="season-tag">Loading&hellip;</div>
+  </header>
+
+  <main>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+
+      <div id="storage-banner-slot"></div>
+      <div id="data-banner-slot"></div>
+
+      <div class="summary-row">
+        <div class="summary-chip chip-hit">
+          <div class="num" id="sum-hit">0</div>
+          <div class="lbl">Legs hit</div>
+        </div>
+        <div class="summary-chip chip-track">
+          <div class="num" id="sum-track">0</div>
+          <div class="lbl">On pace</div>
+        </div>
+        <div class="summary-chip chip-risk">
+          <div class="num" id="sum-risk">0</div>
+          <div class="lbl">At risk</div>
+        </div>
+      </div>
+
+      <div class="section-title">Your parlays</div>
+      <div id="parlay-list"></div>
+
+    </section>
+
+    <!-- ============ DETAIL ============ -->
+    <section class="view" id="view-detail">
+      <div class="detail-header">
+        <button class="back-btn" onclick="showView('dashboard')">&larr;</button>
+        <div class="detail-title-wrap">
+          <div class="detail-title" id="detail-title">&nbsp;</div>
+          <div class="detail-sub" id="detail-sub">&nbsp;</div>
+        </div>
+        <div class="header-actions">
+          <button class="mini-btn" id="detail-copy-btn">Copy</button>
+          <button class="mini-btn" id="detail-edit-btn">Edit</button>
+        </div>
+      </div>
+
+      <div class="payout-banner">
+        <div>
+          <div class="lbl">Potential payout</div>
+          <div class="amt" id="detail-payout">$0</div>
+        </div>
+        <div class="status-pill" id="detail-pill">&nbsp;</div>
+      </div>
+
+      <div id="leg-list"></div>
+    </section>
+
+    <!-- ============ ADD PARLAY ============ -->
+    <section class="view" id="view-add">
+      <div class="detail-header" style="margin-bottom:6px;">
+        <div class="detail-title-wrap">
+          <div class="detail-title" id="add-form-title">New parlay</div>
+        </div>
+        <div class="header-actions">
+          <button class="mini-btn danger" id="delete-parlay-btn" style="display:none;">Delete parlay</button>
+        </div>
+      </div>
+
+      <label class="form-label" style="margin-top:16px;">Parlay name</label>
+      <input type="text" id="pf-name" placeholder="e.g. NFC North Futures">
+
+      <div class="two-col">
+        <div>
+          <label class="form-label">Sportsbook</label>
+          <input type="text" id="pf-sportsbook" placeholder="e.g. DraftKings">
+        </div>
+        <div>
+          <label class="form-label">Season</label>
+          <input type="text" id="pf-season" value="2026-27">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <label class="form-label">Stake</label>
+          <input type="text" id="pf-stake" placeholder="10">
+        </div>
+        <div>
+          <label class="form-label">Potential payout</label>
+          <input type="text" id="pf-payout" placeholder="1602.14">
+        </div>
+      </div>
+
+      <div class="section-title">Legs</div>
+      <div id="leg-form-list"></div>
+
+      <button class="add-leg-btn" onclick="addLegForm()">+ Add another leg</button>
+      <button class="submit-btn" id="save-parlay-btn">Save parlay</button>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" id="tab-dashboard" onclick="showView('dashboard')">
+      <span class="tab-ico">&#9679;</span>
+      Home
+    </button>
+    <button class="tab-btn" id="tab-add" onclick="openAddEdit(null)">
+      <span class="tab-ico">&#43;</span>
+      Add Parlay
+    </button>
+  </nav>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Live data — fetched straight from the sports-analytics GitHub repo,
+// the same way your Dash app's data_store.py loads Player_Stats_Weekly.
+// Run build_pace_feed.py after each week's games and commit the output
+// so this file exists at the URL below.
+// ---------------------------------------------------------------
+const FEED_URL = 'https://raw.githubusercontent.com/mtdewrocks/sports-analytics/main/backend/data/nfl/on_pace_feed.json';
+const DEFAULT_GAMES_TOTAL = 17;
+
+let feed = null;          // populated from FEED_URL, or null if unavailable
+let feedLoadFailed = false;
+
+// Leg definitions only — no numbers baked in. "stat" must match a key
+// in on_pace_feed.json's player entries, or use isTeamWin for win totals.
+const DEFAULT_PARLAYS = [
+  {
+    id: 'sgp17',
+    name: '17-Leg SGP+ Futures',
+    sportsbook: 'DraftKings',
+    stake: 10,
+    payout: 1602.14,
+    legs: [
+      { player:'Baker Mayfield', team:'TB', prop:'25+ passing TDs', stat:'passing_tds', threshold:25, unitLabel:'TD' },
+      { player:'Minnesota Vikings', team:'MIN', prop:'6+ wins', isTeamWin:true, threshold:6, unitLabel:'win' },
+      { player:'Kansas City Chiefs', team:'KC', prop:'8+ wins', isTeamWin:true, threshold:8, unitLabel:'win' },
+      { player:'Buffalo Bills', team:'BUF', prop:'10+ wins', isTeamWin:true, threshold:10, unitLabel:'win' },
+      { player:'Jared Goff', team:'DET', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Chase Brown', team:'CIN', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Quinshon Judkins', team:'CLE', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Justin Jefferson', team:'MIN', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Christian McCaffrey', team:'SF', prop:'6+ rushing TDs', stat:'rushing_tds', threshold:6, unitLabel:'TD' },
+      { player:'Amon-Ra St. Brown', team:'DET', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Bijan Robinson', team:'ATL', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Jahmyr Gibbs', team:'DET', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+    ]
+  },
+  {
+    id: 'fd13',
+    name: '13-Leg SGP+ (NFL legs)',
+    sportsbook: 'FanDuel',
+    stake: 200,
+    payout: 30.03,
+    legs: [
+      { player:'Baker Mayfield', team:'TB', prop:'25+ passing TDs', stat:'passing_tds', threshold:25, unitLabel:'TD' },
+      { player:'Minnesota Vikings', team:'MIN', prop:'6+ wins', isTeamWin:true, threshold:6, unitLabel:'win' },
+      { player:'Kansas City Chiefs', team:'KC', prop:'8+ wins', isTeamWin:true, threshold:8, unitLabel:'win' },
+      { player:'Buffalo Bills', team:'BUF', prop:'10+ wins', isTeamWin:true, threshold:10, unitLabel:'win' },
+      { player:'Jared Goff', team:'DET', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Chase Brown', team:'CIN', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Quinshon Judkins', team:'CLE', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Justin Jefferson', team:'MIN', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Christian McCaffrey', team:'SF', prop:'6+ rushing TDs', stat:'rushing_tds', threshold:6, unitLabel:'TD' },
+      { player:'Amon-Ra St. Brown', team:'DET', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+    ]
+  },
+  {
+    id: 'fd_7leg',
+    name: '7-Leg SGP (Boosted)',
+    sportsbook: 'FanDuel',
+    stake: 100,
+    payout: 10.70,
+    legs: [
+      { player:'Quinshon Judkins', team:'CLE', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Chase Brown', team:'CIN', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:"Ja'Marr Chase", team:'CIN', prop:'1,250+ receiving yards', stat:'receiving_yards', threshold:1250, unitLabel:'yd' },
+      { player:'Jared Goff', team:'DET', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+      { player:'Mike Evans', team:'SF', prop:'6+ receiving TDs', stat:'receiving_tds', threshold:6, unitLabel:'TD' },
+      { player:'Justin Jefferson', team:'MIN', prop:'1,250+ receiving yards', stat:'receiving_yards', threshold:1250, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+    ]
+  },
+  {
+    id: 'fd_4leg',
+    name: '4-Leg SGP (Boosted)',
+    sportsbook: 'FanDuel',
+    stake: 100,
+    payout: 1.85,
+    legs: [
+      { player:'Baker Mayfield', team:'TB', prop:'25+ passing TDs', stat:'passing_tds', threshold:25, unitLabel:'TD' },
+      { player:'Amon-Ra St. Brown', team:'DET', prop:'1,250+ receiving yards', stat:'receiving_yards', threshold:1250, unitLabel:'yd' },
+      { player:'Christian McCaffrey', team:'SF', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Brock Bowers', team:'LV', prop:'8+ receiving TDs', stat:'receiving_tds', threshold:8, unitLabel:'TD' },
+    ]
+  },
+  {
+    id: 'fd_11leg',
+    name: '11-Leg SGP',
+    sportsbook: 'FanDuel',
+    stake: 100,
+    payout: 5.46,
+    legs: [
+      { player:'Baker Mayfield', team:'TB', prop:'25+ passing TDs', stat:'passing_tds', threshold:25, unitLabel:'TD' },
+      { player:'Amon-Ra St. Brown', team:'DET', prop:'1,250+ receiving yards', stat:'receiving_yards', threshold:1250, unitLabel:'yd' },
+      { player:'Christian McCaffrey', team:'SF', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Minnesota Vikings', team:'MIN', prop:'6+ wins', isTeamWin:true, threshold:6, unitLabel:'win' },
+      { player:'Kansas City Chiefs', team:'KC', prop:'8+ wins', isTeamWin:true, threshold:8, unitLabel:'win' },
+      { player:'Buffalo Bills', team:'BUF', prop:'10+ wins', isTeamWin:true, threshold:10, unitLabel:'win' },
+      { player:'Jared Goff', team:'DET', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Chase Brown', team:'CIN', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Quinshon Judkins', team:'CLE', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Justin Jefferson', team:'MIN', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+    ]
+  }
+];
+
+// ---------------------------------------------------------------
+// Persistence — saved to this browser via localStorage so your
+// parlays survive a refresh across the season. Feature-detected:
+// some sandboxed preview environments (including Claude.ai's own
+// artifact preview) block storage entirely, in which case this
+// falls back to in-memory only for that session and says so.
+// ---------------------------------------------------------------
+const STORAGE_KEY = 'on_pace_parlays_v1';
+let storageAvailable = true;
+
+function checkStorageAvailable(){
+  try{
+    const testKey = '__on_pace_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+function loadStoredParlays(){
+  if(!storageAvailable) return null;
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){
+    return null;
+  }
+}
+
+function persistParlays(){
+  if(!storageAvailable) return;
+  try{
+    const serializable = parlays.map(p => ({
+      ...p,
+      legs: p.legs.map(({calc, ...leg}) => leg)
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+  } catch(e){
+    storageAvailable = false;
+    renderStorageBanner();
+  }
+}
+
+function renderStorageBanner(){
+  const slot = document.getElementById('storage-banner-slot');
+  slot.innerHTML = storageAvailable ? '' : `<div class="data-banner">
+    <b>Browser storage isn't available here.</b> Your edits will work for this session but
+    won't be saved on refresh. Once this page is hosted on your own domain (not previewed
+    inside Claude), saved parlays will persist normally between visits.
+  </div>`;
+}
+
+storageAvailable = checkStorageAvailable();
+const storedParlays = loadStoredParlays();
+let parlays = storedParlays || JSON.parse(JSON.stringify(DEFAULT_PARLAYS));
+if(storageAvailable && !storedParlays) persistParlays();
+
+function computeLeg(leg){
+  const gamesTotal = leg.gamesTotal || DEFAULT_GAMES_TOTAL;
+  const direction = leg.direction || 'over';
+  let current = null, playerGamesPlayed = 0, teamGamesPlayed = 0, found = true;
+
+  if(feed){
+    const teamInfo = feed.teams && feed.teams[leg.team];
+    if(leg.isTeamWin){
+      if(teamInfo){ current = teamInfo.wins; playerGamesPlayed = teamInfo.games_played; teamGamesPlayed = teamInfo.games_played; }
+      else { found = false; }
+    } else {
+      const p = feed.players && feed.players[leg.player];
+      if(p && p[leg.stat] !== undefined && teamInfo){
+        current = p[leg.stat];
+        playerGamesPlayed = p.games_played;
+        teamGamesPlayed = teamInfo.games_played;
+      } else { found = false; }
+    }
+  }
+
+  // No feed reachable yet, player/team not in it, or player hasn't
+  // suited up yet — render as "pending".
+  if(feed === null || !found || playerGamesPlayed === 0){
+    return {
+      current:0, threshold:leg.threshold, playerGamesPlayed:0, teamGamesPlayed:0, gamesTotal, gamesRemaining:gamesTotal,
+      missedGames:0, hit:false, onTrack:true, perGameNeeded:leg.threshold/gamesTotal, expectedByNow:0,
+      status:'pending', unitLabel:leg.unitLabel, paceProjection:0, direction
+    };
+  }
+
+  // Games remaining come from the TEAM's schedule, not the player's own
+  // games-played — a player who missed games to injury still only has
+  // as many games left as his team has left, not more.
+  const gamesRemaining = Math.max(gamesTotal - teamGamesPlayed, 0);
+  const missedGames = Math.max(teamGamesPlayed - playerGamesPlayed, 0);
+  const perGameRate = current / playerGamesPlayed;
+  const paceProjection = current + perGameRate * gamesRemaining;
+
+  if(direction === 'under'){
+    const bust = current > leg.threshold;
+    const hit = teamGamesPlayed >= gamesTotal && !bust;
+    const onTrack = !bust && paceProjection <= leg.threshold;
+    const allowanceRemaining = Math.max(leg.threshold - current, 0);
+    const perGameNeeded = gamesRemaining > 0 ? allowanceRemaining / gamesRemaining : 0;
+    const expectedByNow = (leg.threshold / gamesTotal) * teamGamesPlayed;
+    const status = hit ? 'hit' : ((bust || !onTrack) ? 'risk' : 'track');
+    return {current, threshold:leg.threshold, playerGamesPlayed, teamGamesPlayed, gamesTotal, gamesRemaining, missedGames,
+            hit, onTrack, perGameNeeded, expectedByNow, status, unitLabel:leg.unitLabel, paceProjection, direction};
+  }
+
+  const hit = current >= leg.threshold;
+  const onTrack = hit || paceProjection >= leg.threshold;
+  const neededRemaining = Math.max(leg.threshold - current, 0);
+  const perGameNeeded = gamesRemaining > 0 ? neededRemaining / gamesRemaining : 0;
+  const expectedByNow = (leg.threshold / gamesTotal) * teamGamesPlayed;
+  const status = hit ? 'hit' : (onTrack ? 'track' : 'risk');
+  return {current, threshold:leg.threshold, playerGamesPlayed, teamGamesPlayed, gamesTotal, gamesRemaining, missedGames,
+          hit, onTrack, perGameNeeded, expectedByNow, status, unitLabel:leg.unitLabel, paceProjection, direction};
+}
+
+function refreshCalcs(){
+  parlays.forEach(p => p.legs.forEach(l => { l.calc = computeLeg(l); }));
+}
+
+function parlayStatus(p){
+  const statuses = p.legs.map(l => l.calc.status);
+  if(statuses.every(s => s === 'pending')) return 'pending';
+  const active = statuses.filter(s => s !== 'pending');
+  if(active.length && active.every(s => s === 'hit')) return 'hit';
+  if(active.some(s => s === 'risk')) return 'risk';
+  return 'track';
+}
+
+function pillLabel(status){
+  if(status === 'hit') return 'HIT';
+  if(status === 'track') return 'ON PACE';
+  if(status === 'pending') return 'NOT STARTED';
+  return 'AT RISK';
+}
+function pillClass(status){
+  if(status === 'hit') return 'pill-hit';
+  if(status === 'track') return 'pill-track';
+  if(status === 'pending') return 'pill-pending';
+  return 'pill-risk';
+}
+
+function renderDashboard(){
+  let hitCount = 0, trackCount = 0, riskCount = 0;
+  const list = document.getElementById('parlay-list');
+  list.innerHTML = '';
+
+  parlays.forEach(p => {
+    p.legs.forEach(l => {
+      if(l.calc.status === 'hit') hitCount++;
+      else if(l.calc.status === 'track') trackCount++;
+      else if(l.calc.status === 'risk') riskCount++;
+    });
+
+    const status = parlayStatus(p);
+    const legHit = p.legs.filter(l => l.calc.status === 'hit').length;
+
+    const card = document.createElement('div');
+    card.className = 'parlay-card';
+    card.onclick = () => openDetail(p.id);
+    card.innerHTML = `
+      <div class="parlay-card-top">
+        <div>
+          <div class="parlay-name">${p.name}</div>
+          <div class="parlay-meta">${p.sportsbook} &middot; ${p.legs.length} legs</div>
+        </div>
+        <div class="status-pill ${pillClass(status)}">${pillLabel(status)}</div>
+      </div>
+      <div class="leg-track">
+        ${p.legs.map(l => `<div class="leg-dot ${l.calc.status}"></div>`).join('')}
+      </div>
+      <div class="parlay-card-bottom">
+        <span>${legHit} of ${p.legs.length} legs hit</span>
+        <span>Pays <b>$${p.payout.toLocaleString(undefined,{minimumFractionDigits:2})}</b></span>
+      </div>
+      <div class="card-actions">
+        <button class="mini-btn" data-act="edit">Edit</button>
+        <button class="mini-btn" data-act="copy">Copy</button>
+        <button class="mini-btn danger" data-act="delete">Delete</button>
+      </div>
+    `;
+    card.querySelector('[data-act="edit"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAddEdit(p.id);
+    });
+    card.querySelector('[data-act="copy"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      duplicateParlay(p.id);
+    });
+    card.querySelector('[data-act="delete"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteParlay(p.id);
+    });
+    list.appendChild(card);
+  });
+
+  document.getElementById('sum-hit').textContent = hitCount;
+  document.getElementById('sum-track').textContent = trackCount;
+  document.getElementById('sum-risk').textContent = riskCount;
+}
+
+function openDetail(id){
+  const p = parlays.find(x => x.id === id);
+  const status = parlayStatus(p);
+  document.getElementById('detail-title').textContent = p.name;
+  document.getElementById('detail-sub').textContent = `${p.sportsbook} \u00B7 $${p.stake} stake \u00B7 ${p.legs.length} legs`;
+  document.getElementById('detail-payout').textContent = `$${p.payout.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+  const pill = document.getElementById('detail-pill');
+  pill.className = 'status-pill ' + pillClass(status);
+  pill.textContent = pillLabel(status);
+  document.getElementById('detail-edit-btn').onclick = () => openAddEdit(p.id);
+  document.getElementById('detail-copy-btn').onclick = () => duplicateParlay(p.id);
+
+  const legList = document.getElementById('leg-list');
+  legList.innerHTML = p.legs.map(l => {
+    const c = l.calc;
+    const pct = Math.min((c.current / c.threshold) * 100, 100);
+    const pacePct = Math.min((c.expectedByNow / c.threshold) * 100, 100);
+    const icon = c.status === 'hit' ? '<div class="leg-icon icon-hit">&#10003;</div>'
+               : c.status === 'track' ? '<div class="leg-icon icon-track"></div>'
+               : c.status === 'pending' ? '<div class="leg-icon icon-pending">&middot;</div>'
+               : '<div class="leg-icon icon-risk">!</div>';
+    const needLine = c.status === 'pending'
+      ? `No games played yet &mdash; needs <b>${c.perGameNeeded.toFixed(1)} ${c.unitLabel}/gm</b> across ${c.gamesTotal} games`
+      : c.hit
+      ? `<b>Hit</b> in ${c.playerGamesPlayed} games &mdash; milestone secured`
+      : c.direction === 'under'
+      ? (c.current > c.threshold
+          ? `Already over the line &mdash; this leg can no longer hit`
+          : `Can add up to <b>${c.perGameNeeded.toFixed(1)} ${c.unitLabel}/gm</b> over final ${c.gamesRemaining} team games and stay under`)
+      : `Needs <b>${c.perGameNeeded.toFixed(1)} ${c.unitLabel}/gm</b> over final ${c.gamesRemaining} team games to hit`;
+    const missedNote = c.status !== 'pending' && c.missedGames > 0
+      ? `<div class="leg-need" style="border-top:none; padding-top:0; color:var(--risk);">Missed ${c.missedGames} team game${c.missedGames > 1 ? 's' : ''} so far &mdash; pace uses games actually played</div>`
+      : '';
+
+    return `
+      <div class="leg-card is-${c.status}">
+        <div class="leg-top">
+          <div>
+            <div class="leg-player">${l.player} <span style="color:var(--text-dim); font-weight:400;">&middot; ${l.team}</span></div>
+            <div class="leg-prop">${l.prop}</div>
+          </div>
+          ${icon}
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-bar">
+            <div class="prog-fill fill-${c.status}" style="width:${pct}%"></div>
+            <div class="pace-marker" style="left:${pacePct}%"></div>
+          </div>
+        </div>
+        <div class="leg-stats-row">
+          <span>Current: <b>${c.current.toLocaleString()}</b></span>
+          <span>Target: <b>${c.threshold.toLocaleString()}</b></span>
+          <span>Team gm ${c.teamGamesPlayed}/${c.gamesTotal}</span>
+        </div>
+        <div class="leg-need">${needLine}</div>
+        ${missedNote}
+      </div>
+    `;
+  }).join('');
+
+  showView('detail');
+}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(name === 'dashboard') document.getElementById('tab-dashboard').classList.add('active');
+  if(name === 'add') document.getElementById('tab-add').classList.add('active');
+}
+
+// ---------------------------------------------------------------
+// Add / Edit Parlay form
+// ---------------------------------------------------------------
+const STAT_OPTIONS = [
+  { value:'passing_yards',   label:'Passing yards' },
+  { value:'passing_tds',     label:'Passing TDs' },
+  { value:'rushing_yards',   label:'Rushing yards' },
+  { value:'rushing_tds',     label:'Rushing TDs' },
+  { value:'receiving_yards', label:'Receiving yards' },
+  { value:'receiving_tds',   label:'Receiving TDs' },
+  { value:'receptions',      label:'Receptions' },
+  { value:'team_wins',       label:'Team wins' },
+];
+
+let legFormCount = 0;
+let editingParlayId = null;
+
+function addLegForm(prefill){
+  legFormCount++;
+  const wrap = document.getElementById('leg-form-list');
+  const row = document.createElement('div');
+  row.className = 'leg-form';
+
+  const statValue = prefill ? (prefill.isTeamWin ? 'team_wins' : prefill.stat) : 'receiving_yards';
+  const optionsHtml = STAT_OPTIONS.map(o =>
+    `<option value="${o.value}" ${o.value === statValue ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  row.innerHTML = `
+    <div class="leg-form-title">
+      <span>Leg</span>
+      <button class="remove-leg" onclick="this.closest('.leg-form').remove()">Remove</button>
+    </div>
+    <label class="form-label" style="margin-top:0;">Player or team</label>
+    <input type="text" class="lf-player" placeholder="e.g. Justin Jefferson" value="${prefill ? prefill.player : ''}">
+    <label class="form-label">Team abbreviation</label>
+    <input type="text" class="lf-team" placeholder="e.g. MIN" value="${prefill ? prefill.team : ''}">
+    <div class="two-col">
+      <div>
+        <label class="form-label">Stat type</label>
+        <select class="lf-stat">${optionsHtml}</select>
+      </div>
+      <div>
+        <label class="form-label">Threshold</label>
+        <input type="text" class="lf-threshold" placeholder="1000" value="${prefill ? prefill.threshold : ''}">
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <label class="form-label">Direction</label>
+        <select class="lf-direction">
+          <option value="over" ${(!prefill || prefill.direction !== 'under') ? 'selected' : ''}>Over</option>
+          <option value="under" ${(prefill && prefill.direction === 'under') ? 'selected' : ''}>Under</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Games in season</label>
+        <input type="text" class="lf-games" value="${prefill && prefill.gamesTotal ? prefill.gamesTotal : 17}">
+      </div>
+    </div>
+  `;
+  wrap.appendChild(row);
+}
+
+function resetLegForms(legs){
+  document.getElementById('leg-form-list').innerHTML = '';
+  legFormCount = 0;
+  if(legs && legs.length){
+    legs.forEach(l => addLegForm(l));
+  } else {
+    addLegForm();
+  }
+}
+
+function openAddEdit(parlayId){
+  editingParlayId = parlayId;
+  const p = parlayId ? parlays.find(x => x.id === parlayId) : null;
+
+  document.getElementById('add-form-title').textContent = p ? 'Edit parlay' : 'New parlay';
+  document.getElementById('delete-parlay-btn').style.display = p ? 'inline-block' : 'none';
+  document.getElementById('pf-name').value = p ? p.name : '';
+  document.getElementById('pf-sportsbook').value = p ? p.sportsbook : '';
+  document.getElementById('pf-season').value = p ? (p.season || '2026-27') : '2026-27';
+  document.getElementById('pf-stake').value = p ? p.stake : '';
+  document.getElementById('pf-payout').value = p ? p.payout : '';
+
+  resetLegForms(p ? p.legs : null);
+  showView('add');
+}
+
+function duplicateParlay(parlayId){
+  const source = parlays.find(x => x.id === parlayId);
+  if(!source) return;
+
+  // Opens as a brand-new, unsaved parlay pre-filled from the source --
+  // editingParlayId stays null so Save creates a fresh entry instead of
+  // overwriting the one you copied from, and nothing is added to your
+  // list until you actually hit Save.
+  editingParlayId = null;
+  document.getElementById('add-form-title').textContent = 'New parlay (copied)';
+  document.getElementById('delete-parlay-btn').style.display = 'none';
+  document.getElementById('pf-name').value = `${source.name} (Copy)`;
+  document.getElementById('pf-sportsbook').value = source.sportsbook || '';
+  document.getElementById('pf-season').value = source.season || '2026-27';
+  document.getElementById('pf-stake').value = source.stake || '';
+  document.getElementById('pf-payout').value = source.payout || '';
+
+  resetLegForms(source.legs);
+  showView('add');
+}
+
+function collectLegsFromForm(){
+  const rows = document.querySelectorAll('#leg-form-list .leg-form');
+  const legs = [];
+  rows.forEach(row => {
+    const player = row.querySelector('.lf-player').value.trim();
+    const team = row.querySelector('.lf-team').value.trim().toUpperCase();
+    const statVal = row.querySelector('.lf-stat').value;
+    const threshold = parseFloat(row.querySelector('.lf-threshold').value) || 0;
+    const direction = row.querySelector('.lf-direction').value;
+    const gamesTotal = parseInt(row.querySelector('.lf-games').value, 10) || 17;
+    if(!player || !threshold) return;
+
+    const isTeamWin = statVal === 'team_wins';
+    const statLabel = STAT_OPTIONS.find(o => o.value === statVal).label;
+    const unitLabel = isTeamWin ? 'win'
+      : statVal.includes('yards') ? 'yd'
+      : statVal.includes('tds') ? 'TD'
+      : 'rec';
+    const dirPrefix = direction === 'under' ? 'Under ' : '';
+    const dirSuffix = direction === 'under' ? '' : '+';
+    const prop = isTeamWin
+      ? `${dirPrefix}${threshold}${dirSuffix} wins`
+      : `${dirPrefix}${threshold.toLocaleString()}${dirSuffix} ${statLabel.toLowerCase()}`;
+
+    const leg = { player, team, prop, threshold, direction, gamesTotal, unitLabel };
+    if(isTeamWin) leg.isTeamWin = true; else leg.stat = statVal;
+    legs.push(leg);
+  });
+  return legs;
+}
+
+function saveParlayForm(){
+  const name = document.getElementById('pf-name').value.trim();
+  const sportsbook = document.getElementById('pf-sportsbook').value.trim();
+  const season = document.getElementById('pf-season').value.trim();
+  const stake = parseFloat(document.getElementById('pf-stake').value) || 0;
+  const payout = parseFloat(document.getElementById('pf-payout').value) || 0;
+  const legs = collectLegsFromForm();
+
+  if(!name || legs.length === 0){
+    alert('Give the parlay a name and at least one complete leg (player/team + threshold) before saving.');
+    return;
+  }
+
+  if(editingParlayId){
+    const p = parlays.find(x => x.id === editingParlayId);
+    Object.assign(p, { name, sportsbook, season, stake, payout, legs });
+  } else {
+    parlays.push({ id: 'p_' + Date.now(), name, sportsbook, season, stake, payout, legs });
+  }
+
+  refreshCalcs();
+  persistParlays();
+  renderDashboard();
+  showView('dashboard');
+}
+
+function deleteParlay(id){
+  const p = parlays.find(x => x.id === id);
+  if(!p) return;
+  if(!confirm(`Delete "${p.name}"? This can't be undone.`)) return;
+  const idx = parlays.findIndex(x => x.id === id);
+  parlays.splice(idx, 1);
+  persistParlays();
+  renderDashboard();
+  showView('dashboard');
+}
+
+document.getElementById('save-parlay-btn').addEventListener('click', saveParlayForm);
+document.getElementById('delete-parlay-btn').addEventListener('click', () => deleteParlay(editingParlayId));
+
+// ---------------------------------------------------------------
+// Load the feed, then render. Falls back gracefully if the file
+// doesn't exist yet (e.g. before Week 1 has been played and committed).
+// ---------------------------------------------------------------
+function renderBanner(){
+  const slot = document.getElementById('data-banner-slot');
+  if(feedLoadFailed){
+    slot.innerHTML = `<div class="data-banner">
+      <b>Waiting on Week 1 data.</b> No <code>on_pace_feed.json</code> found in the repo yet —
+      every leg is showing as "Not started." Run <b>build_pace_feed.py</b> after this week's
+      games finish and commit the output; this page will pick it up automatically.
+    </div>`;
+  } else if(feed){
+    slot.innerHTML = '';
+  }
+}
+
+function updateSeasonTag(){
+  const tag = document.getElementById('season-tag');
+  if(feed){
+    tag.textContent = `${feed.season}\u2013${(feed.season+1).toString().slice(-2)} SEASON \u00B7 WK ${feed.as_of_week}`;
+  } else {
+    tag.textContent = 'PRESEASON \u00B7 NO DATA YET';
+  }
+}
+
+async function loadFeedAndRender(){
+  try{
+    const res = await fetch(FEED_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error('not found');
+    feed = await res.json();
+  } catch(err){
+    feed = null;
+    feedLoadFailed = true;
+  }
+  refreshCalcs();
+  updateSeasonTag();
+  renderBanner();
+  renderDashboard();
+}
+
+// init
+renderStorageBanner();
+loadFeedAndRender();
+resetLegForms();
+</script>
+</body>
+</html>
