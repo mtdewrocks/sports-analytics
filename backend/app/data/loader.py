@@ -128,16 +128,18 @@ def get_nfl_team_stats() -> pd.DataFrame:
 
 @ttl_cache(OTHER_TTL)
 def get_nfl_schedule() -> pd.DataFrame:
-    """Full schedule, pulled directly from nflverse rather than the old
-    manually-uploaded Excel file. Same source get_nfl_weekly_stats.py uses
-    internally for scoring -- not filtered to a season here, so callers can
-    slice whichever season/week they need.
+    """Full schedule, from get_nfl_weekly_stats.py's own parquet output --
+    same nflverse source it already fetches internally for scoring, now
+    also persisted as its own committed file so this matches the same
+    scheduled-script-writes-a-parquet pattern every other NFL/MLB data
+    source in this app already follows, rather than hitting a live
+    third-party URL directly on every cache refresh. The script runs
+    daily, so a missed scheduled run (a known, if rare, GitHub Actions
+    quirk -- see the bullpen logs incident) costs at most a day's staleness
+    against a weekly game schedule, not a meaningful gap.
     """
-    return _load(
-        "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
-        lambda buf: pd.read_csv(buf, low_memory=False),
-        "nfl schedule",
-    )
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/nfl_schedule.parquet", pd.read_parquet, "nfl schedule")
 
 
 @ttl_cache(OTHER_TTL)

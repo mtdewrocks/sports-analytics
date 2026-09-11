@@ -12,6 +12,7 @@ interface Game {
   stat_value: number;
   game_date?: string;
   season?: number;
+  result?: 'W' | 'L' | 'T' | null;
   def_ypg_season?: number | null;
   def_ypg_rank_season?: number | null;
   def_ypa_season?: number | null;
@@ -21,7 +22,7 @@ interface Game {
   def_ypa_last4?: number | null;
   def_ypa_rank_last4?: number | null;
   def_is_fallback?: boolean;
-  tooltip?: Record<string, number | null>;
+  tooltip?: Record<string, number | string | null>;
 }
 
 interface UpcomingGame {
@@ -100,9 +101,10 @@ const TOOLTIP_LABELS: Record<string, string> = {
   carries: 'Carries',
   targets: 'Targets',
   receptions: 'Receptions',
+  score: 'Score',
 };
 
-function formatTooltip(tooltip?: Record<string, number | null>): string {
+function formatTooltip(tooltip?: Record<string, number | string | null>): string {
   if (!tooltip || Object.keys(tooltip).length === 0) return '';
   return Object.entries(tooltip)
     .map(([key, val]) => `${TOOLTIP_LABELS[key] ?? key}: ${val ?? '—'}`)
@@ -121,6 +123,9 @@ export default function NFLGameLog() {
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [rankMode, setRankMode] = useState<RankMode>('season');
+  const [winLoss, setWinLoss] = useState<'' | 'W' | 'L'>('');
+  const [marginOperator, setMarginOperator] = useState<'' | '<' | '>'>('');
+  const [marginValueStr, setMarginValueStr] = useState('');
 
   useEffect(() => {
     getNFLPlayers()
@@ -141,7 +146,13 @@ export default function NFLGameLog() {
     setGameData(null);
     try {
       const threshold = parseFloat(thresholdStr) || 0;
-      const res = await getNFLGameLog({ player: selectedPlayer, stat: selectedStat, threshold });
+      const marginValue = parseFloat(marginValueStr);
+      const res = await getNFLGameLog({
+        player: selectedPlayer, stat: selectedStat, threshold,
+        win_loss: winLoss || undefined,
+        margin_operator: marginOperator && !isNaN(marginValue) ? marginOperator : undefined,
+        margin_value: marginOperator && !isNaN(marginValue) ? marginValue : undefined,
+      });
       setGameData(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch game log.');
@@ -191,6 +202,64 @@ export default function NFLGameLog() {
           onChange={(e) => setThresholdStr(e.target.value)}
         />
 
+        <label style={labelStyle}>Team Result</label>
+        <select
+          style={inputStyle}
+          value={winLoss}
+          onChange={(e) => setWinLoss(e.target.value as '' | 'W' | 'L')}
+        >
+          <option value="">All Games</option>
+          <option value="W">Wins Only</option>
+          <option value="L">Losses Only</option>
+        </select>
+
+        <label style={labelStyle}>Margin (point differential)</label>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          <button
+            onClick={() => { setMarginOperator('<'); setMarginValueStr('7'); }}
+            style={{
+              flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+              border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
+            }}
+          >
+            Close Game (&lt;7)
+          </button>
+          <button
+            onClick={() => { setMarginOperator('>'); setMarginValueStr('14'); }}
+            style={{
+              flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+              border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
+            }}
+          >
+            Blowout (&gt;14)
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+          <select
+            style={{ ...inputStyle, marginBottom: 0, width: 70, flexShrink: 0 }}
+            value={marginOperator}
+            onChange={(e) => setMarginOperator(e.target.value as '' | '<' | '>')}
+          >
+            <option value="">Any</option>
+            <option value="<">&lt;</option>
+            <option value=">">&gt;</option>
+          </select>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            style={{ ...inputStyle, marginBottom: 0 }}
+            placeholder="points"
+            value={marginValueStr}
+            disabled={!marginOperator}
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => setMarginValueStr(e.target.value)}
+          />
+        </div>
+        <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 16 }}>
+          Applies to any game decided by this margin, win or loss -- independent of the Team Result filter above.
+        </div>
+
         <button
           onClick={fetchStats}
           disabled={!selectedPlayer || !selectedStat || loading}
@@ -223,6 +292,10 @@ export default function NFLGameLog() {
           <>
             <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
               {selectedPlayer} — {formatStatLabel(selectedStat)} (Line: {parseFloat(thresholdStr) || 0})
+              {winLoss && <span style={{ color: theme.textSecondary, fontWeight: 400, fontSize: 16 }}> · {winLoss === 'W' ? 'Wins Only' : 'Losses Only'}</span>}
+              {marginOperator && marginValueStr && (
+                <span style={{ color: theme.textSecondary, fontWeight: 400, fontSize: 16 }}> · Margin {marginOperator} {marginValueStr}</span>
+              )}
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
@@ -261,6 +334,7 @@ export default function NFLGameLog() {
               <thead>
                 <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>Result</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
                   {hasDefContext && (

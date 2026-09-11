@@ -128,6 +128,7 @@ jobs:
 
           for f in backend/data/nfl/player_week_usage.parquet \
                    backend/data/nfl/team_stats.parquet \
+                   backend/data/nfl/nfl_schedule.parquet \
                    backend/data/nfl/weekly_defense_ranks.parquet \
                    backend/data/nfl/team_game_script.parquet \
                    backend/data/nfl/player_situational_usage.parquet \

@@ -76,6 +76,18 @@ def fetch_schedule(season: int) -> pd.DataFrame:
     return df[df["season"] == season]
 
 
+def fetch_full_schedule() -> pd.DataFrame:
+    """Full, unfiltered schedule history -- saved as its own file so other
+    consumers (Game Log win/loss and margin filters, Game Script
+    projections, team records) have real, current scores and odds rather
+    than the legacy Excel source, which was found to be missing scores for
+    every 2025 game from week 12 onward."""
+    r = requests.get(SCHEDULE_URL, timeout=TIMEOUT)
+    r.raise_for_status()
+    from io import StringIO
+    return pd.read_csv(StringIO(r.text), low_memory=False)
+
+
 def _rank(df: pd.DataFrame, new_col: str, col: str, ascending: bool) -> None:
     df[new_col] = df[col].rank(ascending=ascending, method="min")
 
@@ -253,6 +265,12 @@ def main() -> None:
 
     print(f"{len(frame)} teams")
     print(f"saved -> {dest}")
+
+    schedule = fetch_full_schedule()
+    schedule_dest = DATA_DIR / "nfl_schedule.parquet"
+    schedule.to_parquet(schedule_dest, index=False)
+    print(f"{len(schedule)} schedule rows")
+    print(f"saved -> {schedule_dest}")
 
 
 if __name__ == "__main__":

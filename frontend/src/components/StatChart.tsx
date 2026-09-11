@@ -4,8 +4,29 @@ import {
 } from 'recharts';
 import { theme } from '../theme';
 
-interface Game { game_date?: string; week?: number; stat_value: number; opponent?: string; }
+interface Game {
+  game_date?: string; week?: number; stat_value: number; opponent?: string;
+  result?: 'W' | 'L' | 'T' | null;
+  tooltip?: Record<string, number | string | null>;
+}
 interface StatChartProps { games: Game[]; threshold: number; stat: string; }
+
+function CustomTooltip({ active, payload, label, stat }: any) {
+  if (!active || !payload || payload.length === 0) return null;
+  const game: Game = payload[0].payload;
+  const score = game.tooltip?.score;
+  return (
+    <div style={{ background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: theme.textPrimary, fontWeight: 700, marginBottom: 4 }}>{label}{game.opponent ? ` vs ${game.opponent}` : ''}</div>
+      <div style={{ color: theme.textPrimary }}>{stat.toUpperCase()}: {payload[0].value}</div>
+      {score != null && (
+        <div style={{ color: theme.textSecondary, marginTop: 2 }}>
+          {game.result === 'W' ? 'Won' : game.result === 'L' ? 'Lost' : 'Tied'} {score}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function StatChart({ games, threshold, stat }: StatChartProps) {
   return (
@@ -28,7 +49,7 @@ export default function StatChart({ games, threshold, stat }: StatChartProps) {
           tick={{ fontSize: 11, fill: theme.textSecondary }}
           width={36}
         />
-        <Tooltip formatter={(v) => [v ?? '', stat.toUpperCase()]} />
+        <Tooltip content={<CustomTooltip stat={stat} />} />
         <ReferenceLine
           y={threshold}
           stroke={theme.dataRed}

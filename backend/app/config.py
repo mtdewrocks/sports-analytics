@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     NBA_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/NBA_Player_Stats.parquet"
     NFL_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Player_Stats_Weekly.parquet"
     NFL_TEAM_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/2025_Team_Stats.xlsx"
-    NFL_SCHEDULE_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/schedule.xlsx"
     NBA_PROPS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Basketball_Props.xlsx"
     MLB_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb"
     NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/nfl"

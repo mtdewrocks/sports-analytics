@@ -195,6 +195,9 @@ def get_game_log(
     player: str,
     stat: str = "passing_yards",
     threshold: float = 0,
+    win_loss: Optional[str] = None,
+    margin_operator: Optional[str] = None,
+    margin_value: Optional[float] = None,
 ) -> dict:
     df = get_nfl_stats()
     col = _player_col(df)
@@ -208,6 +211,41 @@ def get_game_log(
     week_col = _week_col(df)
     season_col = _season_col(df)
     team_col = _team_col(df)
+
+    # Result (W/L/T), signed margin, and the actual score, computed before
+    # any filtering so "all games" view can still show them, then filtered
+    # on if requested -- filtering here, before stat_values/windowing
+    # below, means "last 5" correctly means "last 5 [filtered] games"
+    # rather than a window picked first and then thinned out afterward.
+    #
+    # Win/Loss and margin are deliberately independent filters (not one
+    # refining the other): a team can lose a close game and still see
+    # similar volume/usage patterns to a close win, so margin needs to be
+    # checkable on its own, not only as a subfilter of a chosen result.
+    game_results = _game_results_for(player_df, team_col, season_col, week_col)
+    player_df["_result"] = game_results["result"]
+    player_df["_margin"] = game_results["margin"]
+    player_df["_team_score"] = game_results["team_score"]
+    player_df["_opp_score"] = game_results["opp_score"]
+
+    if win_loss in ("W", "L"):
+        player_df = player_df[player_df["_result"] == win_loss]
+
+    if margin_operator in ("<", ">") and margin_value is not None:
+        # Margin filtering uses the ABSOLUTE point differential, not the
+        # signed one: "margin < 7" should mean "any game decided by fewer
+        # than 7 points" (a close win OR a close loss), not just "team
+        # won/lost by fewer than 7" in one specific direction -- the
+        # signed value is still returned per-game for the tooltip/score
+        # display, but filtering itself is direction-agnostic by design.
+        abs_margin = player_df["_margin"].abs()
+        if margin_operator == "<":
+            player_df = player_df[abs_margin < margin_value]
+        else:
+            player_df = player_df[abs_margin > margin_value]
+
+    if player_df.empty:
+        return {"games": [], "upcoming": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
 
     # Compute stat values
     stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
@@ -235,6 +273,11 @@ def get_game_log(
         for field in tooltip_fields:
             val = row.get(field)
             tooltip[field] = None if val is None or pd.isna(val) else float(val)
+        # Score shown via tooltip rather than its own column, per request --
+        # keeps the table clean while still making it available on hover.
+        team_score, opp_score = row.get("_team_score"), row.get("_opp_score")
+        if pd.notna(team_score) and pd.notna(opp_score):
+            tooltip["score"] = f"{int(team_score)}-{int(opp_score)}"
 
         game_rows.append({
             "game_date": game_date,
@@ -242,6 +285,7 @@ def get_game_log(
             "stat_value": float(row["_stat_value"]),
             "week": int(week) if pd.notna(week) else None,
             "season": int(season) if pd.notna(season) else None,
+            "result": row.get("_result"),
             "tooltip": tooltip,
             **_defense_context(stat, season, week, opponent, rank_history),
         })
@@ -523,6 +567,61 @@ def _player_team_and_position(player_df: pd.DataFrame, team_col: Optional[str], 
     team = last_row.get(team_col) if team_col else None
     position = last_row.get("position_group") or last_row.get("position")
     return (str(team) if pd.notna(team) else None), (str(position) if pd.notna(position) else None)
+
+
+def _game_results_for(player_df: pd.DataFrame, team_col: Optional[str], season_col: Optional[str], week_col: Optional[str]) -> pd.DataFrame:
+    """W/L/T, signed point margin, and the actual final score for each row
+    in player_df, based on that row's team, season, and week matched
+    against the real schedule. Margin is always from the player's own
+    team's perspective -- positive for a win by that many points, negative
+    for a loss by that many, zero for a tie -- so a single number/operator
+    filter (e.g. "margin < 7") naturally covers both a close win and a
+    close loss without needing separate win/loss-specific thresholds.
+    """
+    empty = pd.DataFrame({
+        "result": [None] * len(player_df), "margin": [None] * len(player_df),
+        "team_score": [None] * len(player_df), "opp_score": [None] * len(player_df),
+    }, index=player_df.index)
+
+    if not team_col or not season_col or not week_col:
+        return empty
+
+    schedule = get_nfl_schedule()
+    if schedule.empty:
+        return empty
+
+    results, margins, team_scores, opp_scores = [], [], [], []
+    for _, row in player_df.iterrows():
+        team, season, week = row.get(team_col), row.get(season_col), row.get(week_col)
+        if pd.isna(team) or pd.isna(season) or pd.isna(week):
+            results.append(None); margins.append(None); team_scores.append(None); opp_scores.append(None)
+            continue
+        game = schedule[
+            (schedule["season"] == season) & (schedule["week"] == week)
+            & ((schedule["home_team"] == team) | (schedule["away_team"] == team))
+            & schedule["home_score"].notna()
+        ]
+        if game.empty:
+            results.append(None); margins.append(None); team_scores.append(None); opp_scores.append(None)
+            continue
+        g = game.iloc[0]
+        is_home = g["home_team"] == team
+        team_score = g["home_score"] if is_home else g["away_score"]
+        opp_score = g["away_score"] if is_home else g["home_score"]
+        team_scores.append(float(team_score))
+        opp_scores.append(float(opp_score))
+        margins.append(float(team_score) - float(opp_score))
+        if team_score > opp_score:
+            results.append("W")
+        elif team_score < opp_score:
+            results.append("L")
+        else:
+            results.append("T")
+
+    return pd.DataFrame(
+        {"result": results, "margin": margins, "team_score": team_scores, "opp_score": opp_scores},
+        index=player_df.index,
+    )
 
 
 def _team_record(team: str, season: int) -> Optional[Dict[str, int]]:
