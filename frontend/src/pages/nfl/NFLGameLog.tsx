@@ -179,6 +179,14 @@ export default function NFLGameLog() {
   const hasDefContext = !!gameData?.games.some((g) => g.def_ypg_rank_season != null)
     || !!gameData?.upcoming.some((g) => g.def_ypg_rank_current != null);
 
+  // Visible columns for whatever supplementary stats apply to the
+  // selected stat (e.g. Carries for rushing yards, Completions/Attempts
+  // for passing yards) -- "score" stays out of this and remains a
+  // chart-hover-only detail, since that was a separate, earlier decision
+  // this doesn't reopen. Shown as real columns rather than a hover-only
+  // tooltip, since hover doesn't exist at all on a touch device.
+  const extraStatKeys = Object.keys(gameData?.games[0]?.tooltip ?? {}).filter((k) => k !== 'score');
+
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
       {/* Sidebar */}
@@ -356,6 +364,9 @@ export default function NFLGameLog() {
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>Result</th>
                   <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
+                  {extraStatKeys.map((key) => (
+                    <th key={key} style={{ padding: '10px 14px', textAlign: 'center' }}>{TOOLTIP_LABELS[key] ?? key}</th>
+                  ))}
                   {hasDefContext && (
                     <>
                       <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/G)</th>
@@ -371,6 +382,12 @@ export default function NFLGameLog() {
                   return (
                     <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                       <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
+                      <td style={{
+                        padding: '8px 14px', textAlign: 'center', fontWeight: 700,
+                        color: g.result === 'W' ? theme.dataBlue : g.result === 'L' ? theme.dataRed : theme.textSecondary,
+                      }}>
+                        {g.result ?? '—'}
+                      </td>
                       <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
                       <td
                         title={formatTooltip(g.tooltip)}
@@ -386,6 +403,11 @@ export default function NFLGameLog() {
                       >
                         {g.stat_value}
                       </td>
+                      {extraStatKeys.map((key) => (
+                        <td key={key} style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>
+                          {g.tooltip?.[key] ?? '—'}
+                        </td>
+                      ))}
                       {hasDefContext && (
                         <>
                           <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypgRank) }}>
