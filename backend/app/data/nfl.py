@@ -1,7 +1,7 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals
 
 # Stat groups for reference / display
 PASSING_STATS = [
@@ -975,6 +975,69 @@ def _normalize_loose(name: str) -> str:
     while tokens and tokens[-1] in suffixes:
         tokens.pop()
     return " ".join(tokens)
+
+
+def get_nfl_season_screener(season: int, position: Optional[str], filters: List[str]) -> List[Dict[str, Any]]:
+    """Season-long stat screener: which players meet ALL of a set of
+    stat thresholds for one season (e.g. "1000+ rushing yards AND 250+
+    carries"). Each filter is a simple string like "carries>=250" or
+    "targets<=50" -- parsed here rather than requiring a JSON body, since
+    this is a read-only query that fits the same GET-with-query-params
+    convention already used everywhere else in this file.
+    """
+    df = get_nfl_season_totals()
+    if df.empty:
+        return []
+
+    season_df = df[df["season"] == season].copy()
+    if position and "position_group" in season_df.columns:
+        season_df = season_df[season_df["position_group"].str.upper() == position.upper()]
+
+    parsed_filters = []
+    for f in filters:
+        for op in (">=", "<="):
+            if op in f:
+                stat, _, value_str = f.partition(op)
+                stat = stat.strip()
+                try:
+                    value = float(value_str.strip())
+                except ValueError:
+                    continue
+                if stat in season_df.columns:
+                    parsed_filters.append((stat, op, value))
+                break
+
+    for stat, op, value in parsed_filters:
+        col = pd.to_numeric(season_df[stat], errors="coerce").fillna(0)
+        season_df = season_df[col >= value] if op == ">=" else season_df[col <= value]
+
+    if season_df.empty:
+        return []
+
+    # Always include every stat involved in an active filter, plus the
+    # small set of identifying columns, rather than every possible stat
+    # column -- keeps the response focused on what was actually asked for.
+    filter_stats = [stat for stat, _, _ in parsed_filters]
+    id_cols = [c for c in ("player", "team", "position", "position_group", "games_played") if c in season_df.columns]
+    display_cols = id_cols + [s for s in filter_stats if s not in id_cols]
+
+    sort_col = filter_stats[0] if filter_stats else (id_cols[0] if id_cols else None)
+    if sort_col and sort_col in season_df.columns:
+        season_df = season_df.sort_values(sort_col, ascending=False)
+
+    out = []
+    for _, row in season_df.iterrows():
+        entry = {}
+        for col in display_cols:
+            val = row.get(col)
+            if pd.isna(val):
+                entry[col] = None
+            elif isinstance(val, (int, float)) and col not in ("player", "team", "position", "position_group"):
+                entry[col] = round(float(val), 1)
+            else:
+                entry[col] = str(val)
+        out.append(entry)
+    return out
 
 
 def get_nfl_teammates(player: str) -> List[str]:

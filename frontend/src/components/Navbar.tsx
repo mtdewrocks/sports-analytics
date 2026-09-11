@@ -158,6 +158,7 @@ export default function Navbar() {
     { label: 'Matchup', to: '/nfl/matchup' },
     { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
     { label: 'In/Out', to: '/nfl/in-out' },
+    { label: 'Season Screener', to: '/nfl/season-screener' },
     { label: 'Mismatches', to: '/nfl/mismatches' },
   ];
   const mlbItems: DropdownItem[] = [

@@ -31,3 +31,11 @@ export const getNFLInOut = (player: string, exclude: string[]) => {
   exclude.forEach((e) => qs.append('exclude', e));
   return client.get(`/api/nfl/in-out?${qs.toString()}`);
 };
+
+export const getNFLSeasonScreener = (season: number, position: string, filters: string[]) => {
+  const qs = new URLSearchParams();
+  qs.append('season', String(season));
+  if (position) qs.append('position', position);
+  filters.forEach((f) => qs.append('filters', f));
+  return client.get(`/api/nfl/season-screener?${qs.toString()}`);
+};

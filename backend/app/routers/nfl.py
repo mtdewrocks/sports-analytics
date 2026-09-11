@@ -66,3 +66,12 @@ def teammates(player: str = Query(...), _=Depends(require_access)):
 @router.get("/in-out")
 def in_out(player: str = Query(...), exclude: List[str] = Query(default=[]), _=Depends(require_access)):
     return nfl_data.get_nfl_in_out(player, exclude)
+
+@router.get("/season-screener")
+def season_screener(
+    season: int = Query(...),
+    position: Optional[str] = Query(None),
+    filters: List[str] = Query(default=[]),
+    _=Depends(require_access),
+):
+    return nfl_data.get_nfl_season_screener(season, position, filters)

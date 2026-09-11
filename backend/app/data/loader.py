@@ -214,6 +214,18 @@ def get_nfl_rosters() -> pd.DataFrame:
     return _load(f"{base}/rosters.parquet", pd.read_parquet, "nfl rosters")
 
 
+@ttl_cache(OTHER_TTL)
+def get_nfl_season_totals() -> pd.DataFrame:
+    """Per-player season totals across multiple seasons, from
+    get_nfl_season_totals.py -- feeds the Season Stat Screener page.
+    Pulled directly from nflverse, not Player_Stats_Weekly.parquet, since
+    that file was found to have zero rows for the current in-progress
+    season.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/player_season_totals.parquet", pd.read_parquet, "nfl season totals")
+
+
 @ttl_cache(MLB_TTL)
 def get_pitcher_names() -> list:
     """Lightweight loader — the pitcher dropdown only.

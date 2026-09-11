@@ -52,6 +52,13 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_stats.py
 
+      # Per-player season totals across multiple seasons, for the Season
+      # Stat Screener page.
+      - name: Update NFL season totals
+        id: season_totals
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_season_totals.py
+
       # Week-by-week defensive rank history, for context on the Game Log
       # page (what a defense was ranked entering the week a game was
       # actually played, not its current rank).
@@ -129,6 +136,7 @@ jobs:
           for f in backend/data/nfl/player_week_usage.parquet \
                    backend/data/nfl/team_stats.parquet \
                    backend/data/nfl/nfl_schedule.parquet \
+                   backend/data/nfl/player_season_totals.parquet \
                    backend/data/nfl/weekly_defense_ranks.parquet \
                    backend/data/nfl/team_game_script.parquet \
                    backend/data/nfl/player_situational_usage.parquet \
