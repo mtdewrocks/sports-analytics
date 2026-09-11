@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getNFLPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
+import WinLossBreakdownTable from '../../components/WinLossBreakdownTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import { theme } from '../../theme';
@@ -40,6 +41,13 @@ interface OverCount {
   pct: number;
 }
 
+interface WinLossSummary {
+  games: number;
+  avg: number | null;
+  hit: number;
+  total: number;
+  pct: number;
+}
 interface GameData {
   games: Game[];
   upcoming: UpcomingGame[];
@@ -47,6 +55,10 @@ interface GameData {
     last5: OverCount;
     last10: OverCount;
     season: OverCount;
+  };
+  win_loss_breakdown?: {
+    W: WinLossSummary;
+    L: WinLossSummary;
   };
 }
 
@@ -299,6 +311,13 @@ export default function NFLGameLog() {
             </h2>
             <StatChart games={gameData.games} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
             <OverCountsTable over_counts={gameData.over_counts} threshold={parseFloat(thresholdStr) || 0} stat={selectedStat} />
+            {gameData.win_loss_breakdown && (
+              <WinLossBreakdownTable
+                breakdown={gameData.win_loss_breakdown}
+                threshold={parseFloat(thresholdStr) || 0}
+                stat={selectedStat}
+              />
+            )}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 }}>
               <h3 style={{ margin: 0, color: theme.textPrimary }}>Recent Games</h3>

@@ -206,11 +206,15 @@ def get_game_log(
     player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
 
     if player_df.empty:
-        return {"games": [], "upcoming": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
-
-    week_col = _week_col(df)
+        empty_summary = {"games": 0, "avg": None, "hit": 0, "total": 0, "pct": 0}
+        return {
+            "games": [], "upcoming": [],
+            "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}},
+            "win_loss_breakdown": {"W": empty_summary, "L": empty_summary},
+        }
     season_col = _season_col(df)
     team_col = _team_col(df)
+    week_col = _week_col(df)
 
     # Result (W/L/T), signed margin, and the actual score, computed before
     # any filtering so "all games" view can still show them, then filtered
@@ -227,6 +231,29 @@ def get_game_log(
     player_df["_margin"] = game_results["margin"]
     player_df["_team_score"] = game_results["team_score"]
     player_df["_opp_score"] = game_results["opp_score"]
+
+    # Wins-vs-losses breakdown, always the full season regardless of
+    # whatever win_loss/margin filters get applied below for the rest of
+    # this response -- the whole point of this table is comparing the two
+    # groups against each other, so filtering either side down separately
+    # would undercut the comparison rather than refine it.
+    full_stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
+
+    def _result_summary(result_filter: str) -> Dict[str, Any]:
+        mask = player_df["_result"] == result_filter
+        vals = full_stat_values[mask]
+        if len(vals) == 0:
+            return {"games": 0, "avg": None, "hit": 0, "total": 0, "pct": 0}
+        hit = int((vals >= threshold).sum())
+        return {
+            "games": len(vals),
+            "avg": round(float(vals.mean()), 1),
+            "hit": hit,
+            "total": len(vals),
+            "pct": round(hit / len(vals), 4),
+        }
+
+    win_loss_breakdown = {"W": _result_summary("W"), "L": _result_summary("L")}
 
     if win_loss in ("W", "L"):
         player_df = player_df[player_df["_result"] == win_loss]
@@ -245,9 +272,11 @@ def get_game_log(
             player_df = player_df[abs_margin > margin_value]
 
     if player_df.empty:
-        return {"games": [], "upcoming": [], "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}}}
-
-    # Compute stat values
+        return {
+            "games": [], "upcoming": [],
+            "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}},
+            "win_loss_breakdown": win_loss_breakdown,
+        }
     stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
     player_df["_stat_value"] = stat_values
 
@@ -319,6 +348,7 @@ def get_game_log(
             "last10": _over_count(all_vals, 10),
             "season": _over_count(all_vals),
         },
+        "win_loss_breakdown": win_loss_breakdown,
     }
 
 
