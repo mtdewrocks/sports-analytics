@@ -152,7 +152,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Update NFL data: usage, team stats, defense ranks, game script, rosters, pace feed"
-            git pull --rebase
+            git pull --rebase -X theirs
             git push
           fi
 
