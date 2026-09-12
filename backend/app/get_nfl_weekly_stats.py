@@ -99,15 +99,30 @@ def build(season: int) -> pd.DataFrame:
     schedule = fetch_schedule(season)
     completed = schedule[schedule["home_score"].notna()]
 
-    if completed.empty:
-        # No games played yet this season (e.g. Week 1, before any results
-        # exist) -- fall back to last season's full regular season as a
-        # reasonable prior rather than having nothing to preview against.
+    # A week only counts as usable once ALL of its games are complete --
+    # checking for ANY completed game (the old condition) meant a single
+    # early result was enough to abandon a reliable full prior-season
+    # baseline for a wildly thin, one-or-two-game "season" stat line, while
+    # the other ~28 teams who hadn't played yet had no stats at all.
+    use_fallback = True
+    week = None
+    if not completed.empty:
+        week_totals = schedule.groupby("week").size()
+        week_completed = completed.groupby("week").size()
+        fully_completed_weeks = [w for w in week_totals.index if week_completed.get(w, 0) == week_totals[w]]
+        if fully_completed_weeks:
+            week = int(max(fully_completed_weeks))
+            use_fallback = False
+
+    if use_fallback:
+        # No fully-completed week yet this season -- fall back to last
+        # season's full regular season as a reasonable prior rather than
+        # having nothing (or a barely-started season) to preview against.
         # Capped at week 18 to exclude the playoffs, which run on a
         # different, single-elimination dynamic than a season-long average
         # should represent.
         fallback_season = season - 1
-        print(f"no completed games yet for {season}; falling back to {fallback_season} "
+        print(f"no fully-completed week yet for {season}; falling back to {fallback_season} "
               f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
         schedule = fetch_schedule(fallback_season)
         schedule = schedule[schedule["week"] <= REGULAR_SEASON_MAX_WEEK]
@@ -116,7 +131,6 @@ def build(season: int) -> pd.DataFrame:
         stats_season, week = fallback_season, REGULAR_SEASON_MAX_WEEK
         is_fallback = True
     else:
-        week = int(completed["week"].max())
         print(f"season {season}, through week {week}")
         weekly = fetch_weekly_stats(season)
         weekly = weekly[weekly["week"] <= week]
