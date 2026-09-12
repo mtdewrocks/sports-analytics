@@ -1,0 +1,73 @@
+date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,opp_starter_id,opp_starter_name,bats,opp_throws,stand
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,1,805808,Kevin McGonigle,685299,Tanner Gordon,L,R,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,2,701678,Hao-Yu Lee,685299,Tanner Gordon,R,R,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,3,690993,Colt Keith,685299,Tanner Gordon,L,R,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,4,682985,Riley Greene,685299,Tanner Gordon,L,R,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,5,680664,Eduardo Valencia,685299,Tanner Gordon,R,R,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,6,703601,Max Clark,685299,Tanner Gordon,L,R,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,7,679529,Spencer Torkelson,685299,Tanner Gordon,R,R,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,8,814430,Brett Callahan,685299,Tanner Gordon,L,R,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Detroit Tigers,Colorado Rockies,home,9,807726,John Peck,685299,Tanner Gordon,R,R,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,1,664983,Jake McCarthy,808825,Andrew Sears,L,L,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,2,681393,Connor Norby,808825,Andrew Sears,R,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,3,696100,Hunter Goodman,808825,Andrew Sears,R,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,4,681198,TJ Rumfield,808825,Andrew Sears,L,L,L
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,5,694249,Cole Carrigg,808825,Andrew Sears,S,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,6,691720,Kyle Karros,808825,Andrew Sears,R,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,7,687597,Jordan Beck,808825,Andrew Sears,R,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,8,691182,Adael Amador,808825,Andrew Sears,S,L,R
+2026-09-12,824224,2026-09-12T17:10:00Z,Colorado Rockies,Detroit Tigers,away,9,678662,Ezequiel Tovar,808825,Andrew Sears,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,1,502671,Paul Goldschmidt,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,2,592450,Aaron Judge,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,3,641355,Cody Bellinger,804267,Zac Thornton,L,L,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,4,671218,Heliot Ramos,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,5,642708,Amed Rosario,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,6,682987,Spencer Jones,804267,Zac Thornton,L,L,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,7,806146,George Lombard Jr.,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,8,683011,Anthony Volpe,804267,Zac Thornton,R,L,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Yankees,New York Mets,home,9,669224,Austin Wells,804267,Zac Thornton,L,L,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,1,596019,Francisco Lindor,543037,Gerrit Cole,S,R,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,2,665742,Juan Soto,543037,Gerrit Cole,L,R,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,3,666182,Bo Bichette,543037,Gerrit Cole,R,R,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,4,701807,Carson Benge,543037,Gerrit Cole,L,R,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,5,676724,Jared Young,543037,Gerrit Cole,L,R,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,6,543760,Marcus Semien,543037,Gerrit Cole,R,R,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,7,805999,A.J. Ewing,543037,Gerrit Cole,L,R,L
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,8,620443,Luis Torrens,543037,Gerrit Cole,R,R,R
+2026-09-12,823496,2026-09-12T17:35:00Z,New York Mets,New York Yankees,away,9,703492,Nick Morabito,543037,Gerrit Cole,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,1,691718,Pete Crow-Armstrong,694973,Paul Skenes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,2,608324,Alex Bregman,694973,Paul Skenes,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,3,683737,Michael Busch,694973,Paul Skenes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,4,664023,Ian Happ,694973,Paul Skenes,S,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,5,663538,Nico Hoerner,694973,Paul Skenes,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,6,624424,Michael Conforto,694973,Paul Skenes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,7,608348,Carson Kelly,694973,Paul Skenes,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,8,699393,Pedro Ramírez,694973,Paul Skenes,S,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Chicago Cubs,Pittsburgh Pirates,home,9,621438,Tyrone Taylor,694973,Paul Skenes,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,1,665833,Oneil Cruz,605280,Clay Holmes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,2,664040,Brandon Lowe,605280,Clay Holmes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,3,668804,Bryan Reynolds,605280,Clay Holmes,S,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,4,804606,Konnor Griffin,605280,Clay Holmes,R,R,R
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,5,656811,Ryan O'Hearn,605280,Clay Holmes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,6,687462,Spencer Horwitz,605280,Clay Holmes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,7,663968,Jake Mangum,605280,Clay Holmes,S,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,8,694378,Jacob Gonzalez,605280,Clay Holmes,L,R,L
+2026-09-12,824630,2026-09-12T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,9,680779,Henry Davis,605280,Clay Holmes,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,1,703520,Brett Bateman,680694,Kyle Bradish,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,2,543807,George Springer,680694,Kyle Bradish,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,3,665489,Vladimir Guerrero Jr.,680694,Kyle Bradish,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,4,672386,Alejandro Kirk,680694,Kyle Bradish,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,5,664770,Nathan Lukes,680694,Kyle Bradish,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,6,672960,Kazuma Okamoto,680694,Kyle Bradish,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,7,669701,Josh Smith,680694,Kyle Bradish,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,8,665926,Andrés Giménez,680694,Kyle Bradish,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Toronto Blue Jays,Baltimore Orioles,home,9,657675,Rudy Martin Jr.,680694,Kyle Bradish,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,1,687637,Dylan Beavers,693686,Spencer Miles,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,2,624413,Pete Alonso,693686,Spencer Miles,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,3,702616,Jackson Holliday,693686,Spencer Miles,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,4,691723,Coby Mayo,693686,Spencer Miles,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,5,683002,Gunnar Henderson,693686,Spencer Miles,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,6,687952,Christian Encarnacion-Strand,693686,Spencer Miles,R,R,R
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,7,677008,Heston Kjerstad,693686,Spencer Miles,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,8,681297,Colton Cowser,693686,Spencer Miles,L,R,L
+2026-09-12,822768,2026-09-12T19:07:00Z,Baltimore Orioles,Toronto Blue Jays,away,9,665966,Carlos Narváez,693686,Spencer Miles,R,R,R
