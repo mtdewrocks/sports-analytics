@@ -4,7 +4,12 @@ from typing import Optional
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    SECRET_KEY: str = "changeme-in-production-use-long-random-string"
+    # No default on purpose -- if this is ever missing from the real
+    # environment (an accidentally cleared Render env var, a bad config
+    # migration, etc.), the app should fail to start immediately and
+    # loudly, not silently fall back to a value sitting in a public repo
+    # that anyone could read and use to forge login tokens.
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "sqlite:///./sports_analytics.db"
