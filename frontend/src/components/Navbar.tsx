@@ -155,7 +155,7 @@ export default function Navbar() {
   ];
   const nflItems: DropdownItem[] = [
     { label: 'Game Log', to: '/nfl/game-log' },
-    { label: 'Matchup', to: '/nfl/matchup' },
+    { label: 'Team Matchup', to: '/nfl/matchup' },
     { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
     { label: 'In/Out', to: '/nfl/in-out' },
     { label: 'Season Screener', to: '/nfl/season-screener' },
