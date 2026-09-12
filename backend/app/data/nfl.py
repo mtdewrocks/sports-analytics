@@ -1478,8 +1478,15 @@ def get_weekly_mismatches(category: str, week: Optional[int] = None) -> Dict[str
         return {"category": category, "label": config["label"], "week": week, "games": []}
 
     if week is None:
-        completed = season_games[season_games["home_score"].notna()]
-        week = int(completed["week"].max()) + 1 if not completed.empty else 1
+        # A week only counts as "done" once EVERY one of its games has a
+        # score -- checking for ANY completed game (the old logic) meant
+        # the page flipped to next week as soon as a single early game
+        # (e.g. Thursday night) finished, well before the rest of that
+        # week's games, including Monday Night Football, had been played.
+        week_totals = season_games.groupby("week").size()
+        week_completed = season_games[season_games["home_score"].notna()].groupby("week").size()
+        fully_completed_weeks = [w for w in week_totals.index if week_completed.get(w, 0) == week_totals[w]]
+        week = int(max(fully_completed_weeks)) + 1 if fully_completed_weeks else 1
 
     week_games = season_games[season_games["week"] == week]
     team_stats = get_nfl_team_stats()
