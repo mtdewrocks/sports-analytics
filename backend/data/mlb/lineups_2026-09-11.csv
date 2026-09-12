@@ -242,6 +242,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-11,825036,2026-09-12T01:40:00Z,Arizona Diamondbacks,Texas Rangers,home,7,666971,Lourdes Gurriel Jr.,669022,MacKenzie Gore,R,L,R
 2026-09-11,825036,2026-09-12T01:40:00Z,Arizona Diamondbacks,Texas Rangers,home,8,691783,Jordan Lawlar,669022,MacKenzie Gore,R,L,R
 2026-09-11,825036,2026-09-12T01:40:00Z,Arizona Diamondbacks,Texas Rangers,home,9,814439,Ryan Waldschmidt,669022,MacKenzie Gore,R,L,R
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,1,592626,Joc Pederson,518876,Merrill Kelly,L,R,L
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,2,608369,Corey Seager,518876,Merrill Kelly,L,R,L
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,3,677649,Ezequiel Duran,518876,Merrill Kelly,R,R,R
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,4,607043,Brandon Nimmo,518876,Merrill Kelly,L,R,L
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,5,694671,Wyatt Langford,518876,Merrill Kelly,R,R,R
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,6,694497,Evan Carter,518876,Merrill Kelly,L,R,L
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,7,669394,Jake Burger,518876,Merrill Kelly,R,R,R
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,8,670032,Nicky Lopez,518876,Merrill Kelly,L,R,L
+2026-09-11,825036,2026-09-12T01:40:00Z,Texas Rangers,Arizona Diamondbacks,away,9,643376,Danny Jansen,518876,Merrill Kelly,R,R,R
 2026-09-11,823173,2026-09-12T02:15:00Z,San Francisco Giants,San Diego Padres,home,1,813841,Jonah Cox,592662,Robbie Ray,R,L,R
 2026-09-11,823173,2026-09-12T02:15:00Z,San Francisco Giants,San Diego Padres,home,2,646240,Rafael Devers,592662,Robbie Ray,L,L,L
 2026-09-11,823173,2026-09-12T02:15:00Z,San Francisco Giants,San Diego Padres,home,3,805811,Bryce Eldridge,592662,Robbie Ray,L,L,L
