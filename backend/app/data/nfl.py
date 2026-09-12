@@ -403,12 +403,19 @@ def get_matchups() -> List[str]:
     if schedule.empty:
         return []
 
-    completed = schedule[schedule["home_score"].notna()]
+    # A week only counts as "done" once EVERY one of its games has a score
+    # -- see get_weekly_mismatches for the same fix and the reasoning
+    # (checking for ANY completed game flipped this the moment a single
+    # early game finished, well before the rest of that week, including
+    # Monday Night Football, had been played).
+    week_totals = schedule.groupby("week").size()
+    week_completed = schedule[schedule["home_score"].notna()].groupby("week").size()
+    fully_completed_weeks = [w for w in week_totals.index if week_completed.get(w, 0) == week_totals[w]]
     # No games played yet this season -- preview Week 1 itself. Team stats
     # for this case come from get_nfl_weekly_stats.py's fallback to last
     # season's regular season, so there's still something real to compare
     # against rather than nothing.
-    upcoming_week = int(completed["week"].max()) + 1 if not completed.empty else 1
+    upcoming_week = int(max(fully_completed_weeks)) + 1 if fully_completed_weeks else 1
     upcoming = schedule[schedule["week"] == upcoming_week]
 
     return sorted(

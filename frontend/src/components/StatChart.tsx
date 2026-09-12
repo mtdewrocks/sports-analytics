@@ -13,7 +13,7 @@ interface Game {
 }
 interface StatChartProps { games: Game[]; threshold: number; stat: string; }
 
-const MOBILE_VISIBLE_GAMES = 9;
+const MOBILE_VISIBLE_GAMES = 8;
 const MOBILE_BAR_WIDTH = 40;
 
 function CustomTooltip({ active, payload, label, stat }: any) {
