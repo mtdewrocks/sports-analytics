@@ -154,7 +154,7 @@ export default function NFLMismatches() {
             </div>
           )}
 
-          <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 16, textAlign: 'center' }}>
             Ranks are out of 32 teams (1 = best). Early in the season these are based on a small number of
             games and can move quickly -- treat them as more reliable once a few weeks have been played.
           </div>
