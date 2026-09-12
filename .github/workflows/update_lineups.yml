@@ -5,8 +5,8 @@ on:
     # Hourly, 10:00 AM - 9:00 PM Central during daylight saving time (UTC-5).
     # GitHub Actions cron is UTC, and the window crosses midnight UTC, so it
     # takes two entries.
-    - cron: "0 15-23 * * *"   # 10 AM - 6 PM CDT
-    - cron: "0 0-2 * * *"     # 7 PM - 9 PM CDT
+    - cron: "12 13-23 * * *"   # 10 AM - 6 PM CDT
+    - cron: "12 0-2 * * *"     # 7 PM - 9 PM CDT
   workflow_dispatch:
 
 permissions:
