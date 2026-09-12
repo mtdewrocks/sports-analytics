@@ -3,8 +3,10 @@ import { getNFLPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import WinLossBreakdownTable from '../../components/WinLossBreakdownTable';
+import GameCard from '../../components/GameCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 interface Game {
@@ -138,6 +140,8 @@ export default function NFLGameLog() {
   const [winLoss, setWinLoss] = useState<'' | 'W' | 'L'>('');
   const [marginOperator, setMarginOperator] = useState<'' | '<' | '>'>('');
   const [marginValueStr, setMarginValueStr] = useState('');
+  const isMobile = useIsMobile();
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   useEffect(() => {
     getNFLPlayers()
@@ -179,10 +183,22 @@ export default function NFLGameLog() {
   const hasDefContext = !!gameData?.games.some((g) => g.def_ypg_rank_season != null)
     || !!gameData?.upcoming.some((g) => g.def_ypg_rank_current != null);
 
+  // Visible columns for whatever supplementary stats apply to the
+  // selected stat (e.g. Carries for rushing yards, Completions/Attempts
+  // for passing yards) -- "score" stays out of this and remains a
+  // chart-hover-only detail, since that was a separate, earlier decision
+  // this doesn't reopen. Shown as real columns rather than a hover-only
+  // tooltip, since hover doesn't exist at all on a touch device.
+  const extraStatKeys = Object.keys(gameData?.games[0]?.tooltip ?? {}).filter((k) => k !== 'score');
+
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : 'calc(100vh - 60px)', minHeight: isMobile ? 'calc(100vh - 60px)' : undefined }}>
       {/* Sidebar */}
-      <div style={{ width: 280, background: theme.bgCard, padding: 20, height: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+      <div style={{
+        width: isMobile ? '100%' : 280, background: theme.bgCard, padding: 20,
+        height: isMobile ? 'auto' : 'calc(100vh - 60px)', overflowY: isMobile ? 'visible' : 'auto',
+        flexShrink: 0, boxSizing: 'border-box',
+      }}>
         <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: theme.textPrimary }}>NFL Game Log</h3>
 
         <label style={labelStyle}>Player</label>
@@ -214,63 +230,82 @@ export default function NFLGameLog() {
           onChange={(e) => setThresholdStr(e.target.value)}
         />
 
-        <label style={labelStyle}>Team Result</label>
-        <select
-          style={inputStyle}
-          value={winLoss}
-          onChange={(e) => setWinLoss(e.target.value as '' | 'W' | 'L')}
-        >
-          <option value="">All Games</option>
-          <option value="W">Wins Only</option>
-          <option value="L">Losses Only</option>
-        </select>
+        {(!isMobile || showMoreFilters) && (
+          <>
+            <label style={labelStyle}>Team Result</label>
+            <select
+              style={inputStyle}
+              value={winLoss}
+              onChange={(e) => setWinLoss(e.target.value as '' | 'W' | 'L')}
+            >
+              <option value="">All Games</option>
+              <option value="W">Wins Only</option>
+              <option value="L">Losses Only</option>
+            </select>
 
-        <label style={labelStyle}>Margin (point differential)</label>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            <label style={labelStyle}>Margin (point differential)</label>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <button
+                onClick={() => { setMarginOperator('<'); setMarginValueStr('7'); }}
+                style={{
+                  flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+                  border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
+                }}
+              >
+                Close Game (&lt;7)
+              </button>
+              <button
+                onClick={() => { setMarginOperator('>'); setMarginValueStr('14'); }}
+                style={{
+                  flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+                  border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
+                }}
+              >
+                Blowout (&gt;14)
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              <select
+                style={{ ...inputStyle, marginBottom: 0, width: 70, flexShrink: 0 }}
+                value={marginOperator}
+                onChange={(e) => setMarginOperator(e.target.value as '' | '<' | '>')}
+              >
+                <option value="">Any</option>
+                <option value="<">&lt;</option>
+                <option value=">">&gt;</option>
+              </select>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                style={{ ...inputStyle, marginBottom: 0 }}
+                placeholder="points"
+                value={marginValueStr}
+                disabled={!marginOperator}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setMarginValueStr(e.target.value)}
+              />
+            </div>
+            <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 16 }}>
+              Applies to any game decided by this margin, win or loss -- independent of the Team Result filter above.
+            </div>
+          </>
+        )}
+
+        {isMobile && (
           <button
-            onClick={() => { setMarginOperator('<'); setMarginValueStr('7'); }}
+            onClick={() => setShowMoreFilters(!showMoreFilters)}
             style={{
-              flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
-              border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
+              width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 0', marginBottom: 16, background: 'none', border: 'none',
+              borderTop: `1px solid ${theme.border}`, borderBottom: `1px solid ${theme.border}`,
+              color: theme.dataBlue, fontSize: 13, cursor: 'pointer',
             }}
           >
-            Close Game (&lt;7)
+            <span>{showMoreFilters ? '- Fewer filters' : '+ More filters (Team Result, Margin)'}</span>
+            <span>{showMoreFilters ? '↑' : '↓'}</span>
           </button>
-          <button
-            onClick={() => { setMarginOperator('>'); setMarginValueStr('14'); }}
-            style={{
-              flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
-              border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
-            }}
-          >
-            Blowout (&gt;14)
-          </button>
-        </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-          <select
-            style={{ ...inputStyle, marginBottom: 0, width: 70, flexShrink: 0 }}
-            value={marginOperator}
-            onChange={(e) => setMarginOperator(e.target.value as '' | '<' | '>')}
-          >
-            <option value="">Any</option>
-            <option value="<">&lt;</option>
-            <option value=">">&gt;</option>
-          </select>
-          <input
-            type="number"
-            min={0}
-            step={1}
-            style={{ ...inputStyle, marginBottom: 0 }}
-            placeholder="points"
-            value={marginValueStr}
-            disabled={!marginOperator}
-            onFocus={(e) => e.target.select()}
-            onChange={(e) => setMarginValueStr(e.target.value)}
-          />
-        </div>
-        <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 16 }}>
-          Applies to any game decided by this margin, win or loss -- independent of the Team Result filter above.
-        </div>
+        )}
 
         <button
           onClick={fetchStats}
@@ -293,7 +328,7 @@ export default function NFLGameLog() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 24, overflowY: 'auto', background: theme.bgPage }}>
+      <div style={{ flex: 1, padding: isMobile ? 16 : 24, overflowY: 'auto', background: theme.bgPage }}>
         {loading && <LoadingSpinner />}
         {error && (
           <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed }}>
@@ -349,60 +384,98 @@ export default function NFLGameLog() {
               )}
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead>
-                <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
-                  <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>Result</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
-                  {hasDefContext && (
-                    <>
-                      <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/G)</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/Att)</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
+            {isMobile ? (
+              <div>
                 {gameData.games.map((g, i) => {
                   const ypgRank = rankMode === 'season' ? g.def_ypg_rank_season : g.def_ypg_rank_last4;
-                  const ypaRank = rankMode === 'season' ? g.def_ypa_rank_season : g.def_ypa_rank_last4;
                   return (
-                    <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
-                      <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
-                      <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
-                      <td
-                        title={formatTooltip(g.tooltip)}
-                        style={{
-                          padding: '8px 14px',
-                          textAlign: 'center',
-                          fontWeight: 700,
-                          color: g.stat_value > (parseFloat(thresholdStr) || 0) ? theme.dataBlue : theme.dataRed,
-                          cursor: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'help' : undefined,
-                          textDecoration: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'underline dotted' : undefined,
-                          textUnderlineOffset: 3,
-                        }}
-                      >
-                        {g.stat_value}
-                      </td>
-                      {hasDefContext && (
-                        <>
-                          <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypgRank) }}>
-                            {ypgRank != null ? ordinal(ypgRank) : '—'}
-                            {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
-                          </td>
-                          <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypaRank) }}>
-                            {ypaRank != null ? ordinal(ypaRank) : '—'}
-                            {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
-                          </td>
-                        </>
-                      )}
-                    </tr>
+                    <GameCard
+                      key={i}
+                      week={g.week}
+                      gameDate={g.game_date}
+                      result={g.result}
+                      opponent={g.opponent}
+                      statLabel={formatStatLabel(selectedStat)}
+                      statValue={g.stat_value}
+                      threshold={parseFloat(thresholdStr) || 0}
+                      extraStats={extraStatKeys.map((key) => ({ label: TOOLTIP_LABELS[key] ?? key, value: g.tooltip?.[key] ?? null }))}
+                      defRank={hasDefContext && ypgRank != null ? {
+                        label: 'Opp D rank:', value: ordinal(ypgRank), color: rankColor(ypgRank), isFallback: g.def_is_fallback,
+                      } : null}
+                    />
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
+                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Week</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>Result</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
+                    {extraStatKeys.map((key) => (
+                      <th key={key} style={{ padding: '10px 14px', textAlign: 'center' }}>{TOOLTIP_LABELS[key] ?? key}</th>
+                    ))}
+                    {hasDefContext && (
+                      <>
+                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/G)</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Opp D Rank (Yds/Att)</th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {gameData.games.map((g, i) => {
+                    const ypgRank = rankMode === 'season' ? g.def_ypg_rank_season : g.def_ypg_rank_last4;
+                    const ypaRank = rankMode === 'season' ? g.def_ypa_rank_season : g.def_ypa_rank_last4;
+                    return (
+                      <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
+                        <td style={{ padding: '8px 14px' }}>{g.week ?? g.game_date ?? '—'}</td>
+                        <td style={{
+                          padding: '8px 14px', textAlign: 'center', fontWeight: 700,
+                          color: g.result === 'W' ? theme.dataBlue : g.result === 'L' ? theme.dataRed : theme.textSecondary,
+                        }}>
+                          {g.result ?? '—'}
+                        </td>
+                        <td style={{ padding: '8px 14px' }}>{g.opponent ?? '—'}</td>
+                        <td
+                          title={formatTooltip(g.tooltip)}
+                          style={{
+                            padding: '8px 14px',
+                            textAlign: 'center',
+                            fontWeight: 700,
+                            color: g.stat_value > (parseFloat(thresholdStr) || 0) ? theme.dataBlue : theme.dataRed,
+                            cursor: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'help' : undefined,
+                            textDecoration: g.tooltip && Object.keys(g.tooltip).length > 0 ? 'underline dotted' : undefined,
+                            textUnderlineOffset: 3,
+                          }}
+                        >
+                          {g.stat_value}
+                        </td>
+                        {extraStatKeys.map((key) => (
+                          <td key={key} style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>
+                            {g.tooltip?.[key] ?? '—'}
+                          </td>
+                        ))}
+                        {hasDefContext && (
+                          <>
+                            <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypgRank) }}>
+                              {ypgRank != null ? ordinal(ypgRank) : '—'}
+                              {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
+                            </td>
+                            <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(ypaRank) }}>
+                              {ypaRank != null ? ordinal(ypaRank) : '—'}
+                              {g.def_is_fallback && <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (prior yr)</span>}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
 
             {gameData.upcoming.length > 0 && (
               <>
