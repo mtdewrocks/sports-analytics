@@ -206,10 +206,7 @@ export default function Landing() {
         <div style={{ marginBottom: 8 }}>
           <span style={{ color: theme.accent, fontWeight: 700 }}>Sports Analytics Pro</span>
         </div>
-        <div>
-          Contact: <a href="mailto:pydata2026@gmail.com" style={{ color: theme.textSecondary }}>pydata2026@gmail.com</a>
-        </div>
-        <div style={{ marginTop: 8, color: theme.textMuted }}>© 2026 Sports Analytics Pro. All rights reserved.</div>
+        <div style={{ color: theme.textMuted }}>© 2026 Sports Analytics Pro. All rights reserved.</div>
       </footer>
     </div>
   );
