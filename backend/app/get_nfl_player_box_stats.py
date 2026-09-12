@@ -69,15 +69,37 @@ def fetch_stats(season: int) -> pd.DataFrame | None:
     return df
 
 
-def build(season: int) -> pd.DataFrame:
-    df = fetch_stats(season)
-    is_fallback = False
+def _has_fully_completed_week(season: int) -> bool:
+    """Whether at least one week of the given season has EVERY one of its
+    games finished -- not just whether any single game has. Checking for
+    ANY completed game (the old condition, via `fetch_stats(season) is
+    None`) meant stats existing for even one or two early games was
+    enough to treat the whole season as usable, even though the vast
+    majority of teams -- anyone who simply hadn't played their own game
+    yet -- would have zero rows and show up with no real data instead of
+    a real prior-season baseline."""
+    r = requests.get(
+        "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+        timeout=TIMEOUT,
+    )
+    if r.status_code != 200:
+        return False
+    schedule = pd.read_csv(StringIO(r.text), low_memory=False)
+    season_games = schedule[schedule["season"] == season]
+    if season_games.empty:
+        return False
+    completed = season_games[season_games["home_score"].notna()]
+    week_totals = season_games.groupby("week").size()
+    week_completed = completed.groupby("week").size()
+    return any(week_completed.get(w, 0) == week_totals[w] for w in week_totals.index)
 
-    if df is None:
-        # Same fallback as get_nfl_pbp.py: no games yet this season, so use
-        # last season's regular season instead of coming back empty.
+
+def build(season: int) -> pd.DataFrame:
+    is_fallback = not _has_fully_completed_week(season)
+
+    if is_fallback:
         fallback_season = season - 1
-        print(f"no player stats for {season} yet; falling back to {fallback_season} "
+        print(f"no fully-completed week yet for {season}; falling back to {fallback_season} "
               f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
         df = fetch_stats(fallback_season)
         if df is None:
@@ -87,7 +109,21 @@ def build(season: int) -> pd.DataFrame:
                 f"https://github.com/nflverse/nflverse-data/releases/tag/stats_player directly."
             )
         df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
-        is_fallback = True
+    else:
+        df = fetch_stats(season)
+        if df is None:
+            fallback_season = season - 1
+            print(f"schedule shows a completed week but no stats yet for {season}; "
+                  f"falling back to {fallback_season} regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
+            df = fetch_stats(fallback_season)
+            if df is None:
+                raise RuntimeError(
+                    f"No player stats available for {season} OR its fallback {fallback_season}. "
+                    f"Something's genuinely wrong (not just \"season hasn't started\") -- check "
+                    f"https://github.com/nflverse/nflverse-data/releases/tag/stats_player directly."
+                )
+            df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
+            is_fallback = True
 
     print(f"{len(df)} player-week rows loaded" +
           (f" (fallback season {df['season'].iloc[0]})" if is_fallback else f" for {season}"))

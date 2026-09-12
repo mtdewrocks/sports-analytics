@@ -134,18 +134,31 @@ def team_defense_last4_bye_safe(weekly_prior: pd.DataFrame) -> pd.DataFrame:
 
 
 def build(season: int) -> pd.DataFrame:
+    # Checked against the ORIGINAL season, before any fallback decision --
+    # checking only "does weekly stats data exist at all" (the old
+    # condition) meant data existing for even one or two early games was
+    # enough to treat the whole season as usable, even though the vast
+    # majority of teams -- anyone who simply hadn't played their own game
+    # yet -- would have no real data and get silently skipped instead of
+    # falling back to a real prior-season baseline.
+    schedule_check = fetch_schedule(season)
+    has_full_week = False
+    if not schedule_check.empty:
+        completed_check = schedule_check[schedule_check["home_score"].notna()]
+        week_totals_check = schedule_check.groupby("week").size()
+        week_completed_check = completed_check.groupby("week").size()
+        has_full_week = any(week_completed_check.get(w, 0) == week_totals_check[w] for w in week_totals_check.index)
+
     weekly = fetch_weekly_stats(season)
     outer_fallback = False
 
-    if weekly is None:
-        # Whole season doesn't exist yet (e.g. before Week 1) -- fall back
-        # entirely to last season's regular season, same as
-        # get_nfl_pbp.py / get_nfl_weekly_stats.py already do. This script
-        # previously only had the narrower per-row Week 1 fallback below,
-        # which assumes the CURRENT season's file exists at all -- it does
-        # nothing if the season hasn't started, unlike its siblings.
+    if weekly is None or not has_full_week:
+        # Whole season doesn't exist yet (e.g. before Week 1), or exists
+        # but no week is fully done yet -- fall back entirely to last
+        # season's regular season, same as get_nfl_pbp.py /
+        # get_nfl_weekly_stats.py already do.
         prior_season = season - 1
-        print(f"no weekly stats for {season} yet; falling back entirely to {prior_season} "
+        print(f"no fully-completed week yet for {season}; falling back entirely to {prior_season} "
               f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
         weekly = fetch_weekly_stats(prior_season)
         if weekly is None:
