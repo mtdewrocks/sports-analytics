@@ -9,6 +9,11 @@ import { theme } from '../theme';
  *  the last card on a page isn't sitting underneath it. */
 export const TABBAR_HEIGHT = 58;
 
+/** Heights of the two sticky bars at the top of a league page, so a page can
+ *  stick its own header directly beneath them. */
+export const NAV_HEIGHT = 56;
+export const CHIPBAR_HEIGHT = 54;
+
 interface NavItem { label: string; to: string; }
 interface NavGroup { key: string; label: string; icon: string; items: NavItem[]; }
 
@@ -187,10 +192,12 @@ export default function Navbar() {
 
         {showTabs && activeGroup && (
           <div style={{
-            position: 'sticky', top: 56, zIndex: 999,
+            position: 'sticky', top: NAV_HEIGHT, zIndex: 999,
             background: theme.bgPage, borderBottom: `1px solid ${theme.border}`,
             display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none',
-            padding: '9px 16px',
+            alignItems: 'center',
+            // Fixed height so pages can stack their own sticky header under it.
+            height: CHIPBAR_HEIGHT, boxSizing: 'border-box', padding: '0 16px',
           }}>
             {activeGroup.items.map((item) => {
               const on = location.pathname === item.to;
