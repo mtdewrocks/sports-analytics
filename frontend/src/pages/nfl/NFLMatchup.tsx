@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { getNFLMatchups, getNFLMatchup, getNFLGameScript } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { NAV_HEIGHT, CHIPBAR_HEIGHT } from '../../components/Navbar';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
@@ -144,57 +145,100 @@ function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable }
  * the bar underneath is a diverging split rather than a magnitude bar: it shows
  * WHO is better and by how much, coloured with the leader's own rank tier.
  */
-function HeadToHeadRow({ label, away, home }: {
+/** Width of each value column. The sticky team header uses the same number, so
+ *  each abbreviation sits directly over the column it labels. */
+const H2H_COL = 64;
+
+/** Rank gaps at or under this are noise, not an edge -- two adjacent ranks can
+ *  be a tenth of a yard apart. */
+const EVEN_THRESHOLD = 2;
+
+function HeadToHeadRow({ label, away, home, awayTeam, homeTeam }: {
   label: string;
   away: { value: number | null; rank: number | null };
   home: { value: number | null; rank: number | null };
+  awayTeam: string;
+  homeTeam: string;
 }) {
   const bothRanked = away.rank != null && home.rank != null;
-  // Lower rank is better, so the better team takes the larger share.
-  const awayShare = bothRanked ? (home.rank! / (away.rank! + home.rank!)) * 100 : 50;
+  const gap = bothRanked ? Math.abs(away.rank! - home.rank!) : 0;
   const awayLeads = bothRanked && away.rank! < home.rank!;
-  const leaderColor = bothRanked
-    ? rankColor(awayLeads ? away.rank : home.rank)
-    : theme.textSecondary;
+  const even = bothRanked && gap <= EVEN_THRESHOLD;
+
+  // The bar is anchored at the centre and grows toward the leader, with its
+  // length set by the SIZE of the rank gap (out of 31 possible). An earlier
+  // version sized it by the ratio of the two ranks, which drew 17th-vs-16th as
+  // half the row -- a one-rank difference reading as a decisive edge.
+  const barPct = bothRanked ? Math.min((gap / 31) * 100, 50) : 0;
 
   return (
     <div style={{ background: theme.bgCard, borderRadius: 8, padding: '11px 13px', marginBottom: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <span style={{
           fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-          color: rankColor(away.rank), flex: '0 0 auto', minWidth: 52,
+          color: rankColor(away.rank), flex: `0 0 ${H2H_COL}px`, width: H2H_COL,
         }}>
           {away.value ?? '—'}
         </span>
         <span style={{
           fontSize: 10, color: theme.textMuted, textTransform: 'uppercase',
-          letterSpacing: '0.05em', textAlign: 'center', flex: 1, lineHeight: 1.25,
+          letterSpacing: '0.05em', textAlign: 'center', flex: 1, lineHeight: 1.25, minWidth: 0,
         }}>
           {label}
         </span>
         <span style={{
           fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-          color: rankColor(home.rank), flex: '0 0 auto', minWidth: 52, textAlign: 'right',
+          color: rankColor(home.rank), flex: `0 0 ${H2H_COL}px`, width: H2H_COL, textAlign: 'right',
         }}>
           {home.value ?? '—'}
         </span>
       </div>
 
       {bothRanked && (
-        <div style={{ height: 4, borderRadius: 2, background: theme.border, marginTop: 7, overflow: 'hidden' }}>
+        <div style={{
+          position: 'relative', height: 4, borderRadius: 2,
+          background: theme.border, marginTop: 8,
+        }}>
+          {/* Centre tick, so a short bar still reads as "grows from the middle"
+              rather than as a stub floating in a track. */}
           <div style={{
-            height: '100%', borderRadius: 2, background: leaderColor,
-            width: `${awayLeads ? awayShare : 100 - awayShare}%`,
-            marginLeft: awayLeads ? 0 : `${awayShare}%`,
+            position: 'absolute', left: '50%', top: -2, width: 1, height: 8,
+            background: theme.borderStrong, transform: 'translateX(-0.5px)',
           }} />
+          {!even && (
+            <div style={{
+              position: 'absolute', top: 0, height: '100%', borderRadius: 2,
+              width: `${barPct}%`,
+              [awayLeads ? 'right' : 'left']: '50%',
+              background: rankColor(awayLeads ? away.rank : home.rank),
+            }} />
+          )}
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-        <span style={{ fontSize: 10, color: rankColor(away.rank), fontWeight: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 5 }}>
+        <span style={{
+          fontSize: 10.5, color: rankColor(away.rank), fontWeight: 600,
+          flex: `0 0 ${H2H_COL}px`, width: H2H_COL,
+        }}>
           {away.rank != null ? ordinal(away.rank) : '—'}
         </span>
-        <span style={{ fontSize: 10, color: rankColor(home.rank), fontWeight: 600 }}>
+        <span style={{ flex: 1, textAlign: 'center', fontSize: 10.5, minWidth: 0 }}>
+          {!bothRanked ? null : even ? (
+            <span style={{ color: theme.textMuted }}>Even</span>
+          ) : (
+            <span style={{ color: theme.textSecondary }}>
+              Advantage:{' '}
+              <span style={{ color: theme.textPrimary, fontWeight: 700 }}>
+                {awayLeads ? awayTeam : homeTeam}
+              </span>
+            </span>
+          )}
+        </span>
+        <span style={{
+          fontSize: 10.5, color: rankColor(home.rank), fontWeight: 600,
+          flex: `0 0 ${H2H_COL}px`, width: H2H_COL, textAlign: 'right',
+        }}>
           {home.rank != null ? ordinal(home.rank) : '—'}
         </span>
       </div>
@@ -217,23 +261,46 @@ function HeadToHead({ data, gameScript }: { data: MatchupData; gameScript: GameS
 
   return (
     <div>
+      {/* Sticky, and the abbreviations are pinned to the same column widths the
+          values use -- so each team name sits directly over its own numbers and
+          stays there once you've scrolled past the top of the page. Without
+          this you're twelve rows deep guessing which column is which. */}
       <div style={{
-        background: theme.bgCard, borderRadius: 8, padding: '14px 16px',
-        textAlign: 'center', marginBottom: 12,
+        position: 'sticky', top: NAV_HEIGHT + CHIPBAR_HEIGHT, zIndex: 5,
+        background: theme.bgCard, borderRadius: 8, padding: '10px 13px', marginBottom: 8,
+        boxShadow: `0 4px 14px ${theme.bgPage}`, border: `1px solid ${theme.border}`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <span style={{ fontSize: 17, fontWeight: 700, color: theme.textPrimary }}>{data.away_team}</span>
-          <span style={{ fontSize: 12, color: theme.textMuted }}>@</span>
-          <span style={{ fontSize: 17, fontWeight: 700, color: theme.textPrimary }}>{data.home_team}</span>
-        </div>
-        {gameScript?.total_line != null && (
-          <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 5 }}>
-            O/U {gameScript.total_line}
-            {gameScript.spread_line != null && (
-              <> · spread {gameScript.spread_line > 0 ? '+' : ''}{gameScript.spread_line} (home)</>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{
+            fontSize: 16, fontWeight: 700, color: theme.textPrimary,
+            flex: `0 0 ${H2H_COL}px`, width: H2H_COL,
+          }}>
+            {data.away_team}
+          </span>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 11, color: theme.textSecondary, minWidth: 0 }}>
+            {gameScript?.total_line != null ? (
+              <>
+                O/U {gameScript.total_line}
+                {gameScript.spread_line != null && (
+                  <>
+                    <br />
+                    <span style={{ color: theme.textMuted }}>
+                      spread {gameScript.spread_line > 0 ? '+' : ''}{gameScript.spread_line} (home)
+                    </span>
+                  </>
+                )}
+              </>
+            ) : (
+              <span style={{ color: theme.textMuted }}>@</span>
             )}
-          </div>
-        )}
+          </span>
+          <span style={{
+            fontSize: 16, fontWeight: 700, color: theme.textPrimary,
+            flex: `0 0 ${H2H_COL}px`, width: H2H_COL, textAlign: 'right',
+          }}>
+            {data.home_team}
+          </span>
+        </div>
       </div>
 
       {(awayTotal != null || homeTotal != null) && (
@@ -241,11 +308,20 @@ function HeadToHead({ data, gameScript }: { data: MatchupData; gameScript: GameS
           label="Projected Points"
           away={{ value: awayTotal ?? null, rank: gameScript?.away?.weekly_scoring_rank ?? null }}
           home={{ value: homeTotal ?? null, rank: gameScript?.home?.weekly_scoring_rank ?? null }}
+          awayTeam={data.away_team}
+          homeTeam={data.home_team}
         />
       )}
 
       {rows.map((r) => (
-        <HeadToHeadRow key={r.stat} label={r.stat} away={r.away} home={r.home} />
+        <HeadToHeadRow
+          key={r.stat}
+          label={r.stat}
+          away={r.away}
+          home={r.home}
+          awayTeam={data.away_team}
+          homeTeam={data.home_team}
+        />
       ))}
     </div>
   );
@@ -352,7 +428,16 @@ export default function NFLMatchup() {
   };
 
   return (
-    <div style={{ padding: isMobile ? 16 : 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+    <div style={{
+      padding: isMobile ? 16 : 24,
+      // `overflow-y: auto` here makes THIS element the scroll container for any
+      // descendant using position: sticky -- and since the document is what
+      // actually scrolls, a sticky child would never move. The page scrolls
+      // fine without it, so on mobile it stays visible and the team header
+      // inside HeadToHead can pin to the viewport.
+      overflowY: isMobile ? 'visible' : 'auto',
+      minHeight: 'calc(100vh - 60px)', background: theme.bgPage,
+    }}>
       <div id="no-print">
         <h2 style={{ marginTop: 0, marginBottom: 24, color: theme.textPrimary }}>NFL Matchup Preview</h2>
 
