@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { getMLBBullpenTeams, getMLBBullpen } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import StatCard from '../../components/StatCard';
+import FilterPanel from '../../components/FilterPanel';
+import { usePanelLayout } from '../../components/filterStyles';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 interface DayCell {
@@ -86,6 +90,60 @@ function loadCellColor(pitches: number | undefined) {
   return theme.dataRed;
 }
 
+/** "2026-09-12" -> "9/12". Anything else is passed through, since the API
+ *  decides this label and it isn't guaranteed to be ISO. */
+function shortDay(label: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(label);
+  if (!m) return label;
+  return `${parseInt(m[2], 10)}/${parseInt(m[3], 10)}`;
+}
+
+/**
+ * The day columns of the workload table, as a strip inside one pitcher's card.
+ *
+ * The day grid is the reason to open this page and it's the half that falls off
+ * a phone screen, so rather than dropping it, each pitcher's row of days
+ * becomes a pill strip: worked-versus-rested reads as a shape before you read a
+ * number, and the dates sit above the pills so a gap is anchored to a real day
+ * rather than just being "three columns back".
+ */
+function DayStrip({ days, cells }: { days: string[]; cells: (DayCell | null)[] }) {
+  return (
+    <div style={{ display: 'flex', gap: 4, marginTop: 9, overflowX: 'auto', scrollbarWidth: 'none' }}>
+      {days.map((d, i) => {
+        const cell = cells[i] ?? null;
+        return (
+          <div key={d} style={{ flex: '1 0 42px', minWidth: 42, textAlign: 'center' }}>
+            <div style={{ fontSize: 9, color: theme.textMuted, marginBottom: 3, whiteSpace: 'nowrap' }}>
+              {shortDay(d)}
+            </div>
+            <div
+              title={cell ? `${cell.pitches}p · ${cell.ip} IP · ${cell.h}H ${cell.er}ER ${cell.bb}BB` : 'did not pitch'}
+              style={{
+                borderRadius: 4, padding: '5px 0', fontSize: 11, fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+                background: cell ? loadCellColor(cell.pitches) : theme.bgPage,
+                color: cell ? '#000000' : theme.textMuted,
+              }}
+            >
+              {cell ? cell.pitches : '—'}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Worked 3 of the last 4 days is the availability signal the desktop grid
+ *  leaves you to infer by counting across a row. */
+function workloadFlag(cells: (DayCell | null)[]): string | null {
+  const recent = cells.slice(-4);
+  const worked = recent.filter(Boolean).length;
+  if (worked >= 3) return `Pitched ${worked} of the last ${recent.length} days — likely unavailable`;
+  return null;
+}
+
 export default function MLBBullpen() {
   const [teams, setTeams] = useState<string[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
@@ -93,6 +151,8 @@ export default function MLBBullpen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState<BullpenData | null>(null);
+  const isMobile = useIsMobile();
+  const panelLayout = usePanelLayout();
 
   useEffect(() => {
     setLoadingTeams(true);
@@ -122,32 +182,31 @@ export default function MLBBullpen() {
   const kpis = data?.kpis;
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: theme.bgPage }}>
+    <div style={{ ...panelLayout, overflow: isMobile ? 'visible' : 'hidden', background: theme.bgPage }}>
 
-      {/* ── Left Sidebar ── */}
-      <div style={{
-        width: 220, flexShrink: 0, background: theme.bgCard, padding: '20px 14px',
-        overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16,
-      }}>
-        <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Bullpen Usage</div>
-        <div>
-          <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Team</div>
-          {loadingTeams ? (
-            <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading teams…</div>
-          ) : (
-            <SearchDropdown
-              players={teams}
-              value={selectedTeam}
-              onSelect={(t) => { setSelectedTeam(t); fetchBullpen(t); }}
-              placeholder="Search team..."
-              inputStyle={{ padding: '7px 10px', fontSize: 13, width: '100%', boxSizing: 'border-box' }}
-            />
-          )}
-        </div>
-      </div>
+      {/* ── Team picker ── */}
+      <FilterPanel title="Bullpen Usage" width={220}>
+        <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Team</div>
+        {loadingTeams ? (
+          <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading teams…</div>
+        ) : (
+          <SearchDropdown
+            players={teams}
+            value={selectedTeam}
+            onSelect={(t) => { setSelectedTeam(t); fetchBullpen(t); }}
+            placeholder="Search team..."
+            inputStyle={{ padding: '9px 10px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
+          />
+        )}
+      </FilterPanel>
 
       {/* ── Main Content ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: theme.bgPage }}>
+      <div style={{
+        flex: 1,
+        overflowY: isMobile ? 'visible' : 'auto',
+        padding: isMobile ? 16 : '20px 24px',
+        background: theme.bgPage,
+      }}>
 
         {loading && <LoadingSpinner />}
         {error && (
@@ -169,18 +228,18 @@ export default function MLBBullpen() {
             {/* ── KPI strip ── */}
             {kpis && (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? 8 : 16, marginBottom: 8 }}>
                   {([
-                    { label: 'Last 1 Day', k: kpis['1_day'] },
-                    { label: 'Last 3 Days', k: kpis['3_day'] },
-                    { label: 'Last 7 Days', k: kpis['7_day'] },
+                    { label: isMobile ? '1 Day' : 'Last 1 Day', k: kpis['1_day'] },
+                    { label: isMobile ? '3 Days' : 'Last 3 Days', k: kpis['3_day'] },
+                    { label: isMobile ? '7 Days' : 'Last 7 Days', k: kpis['7_day'] },
                   ] as const).map(({ label, k }) => (
-                    <div key={label} style={{ ...cardStyle, margin: 0, padding: '14px 16px' }}>
-                      <div style={{ fontSize: 11, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
-                      <div style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary }}>
-                        {k.pitches}<span style={{ fontSize: 13, fontWeight: 400, color: theme.textSecondary }}> pitches</span>
+                    <div key={label} style={{ ...cardStyle, margin: 0, padding: isMobile ? '10px 9px' : '14px 16px' }}>
+                      <div style={{ fontSize: isMobile ? 10 : 11, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+                      <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.textPrimary, fontVariantNumeric: 'tabular-nums' }}>
+                        {k.pitches}<span style={{ fontSize: isMobile ? 11 : 13, fontWeight: 400, color: theme.textSecondary }}> {isMobile ? 'p' : 'pitches'}</span>
                       </div>
-                      <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 8 }}>{k.ip} IP</div>
+                      <div style={{ fontSize: isMobile ? 12 : 14, color: theme.textSecondary, marginBottom: 8 }}>{k.ip} IP</div>
                       <FreshBadge level={k.level} />
                     </div>
                   ))}
@@ -193,8 +252,48 @@ export default function MLBBullpen() {
               </>
             )}
 
+            {/* ── Workload, as cards on a phone ── */}
+            {relievers.length > 0 && isMobile && (
+              <div>
+                <div style={{
+                  color: theme.textSecondary, fontSize: 11, textTransform: 'uppercase',
+                  letterSpacing: 0.5, marginBottom: 8,
+                }}>
+                  Reliever Workload
+                </div>
+                {relievers.map((r) => {
+                  const flag = workloadFlag(r.days);
+                  return (
+                    <StatCard
+                      key={r.pitcher_id}
+                      title={<span style={{ fontWeight: 700 }}>{r.name}{r.hand ? ` (${r.hand})` : ''}</span>}
+                      titleAside={r.role}
+                      value={r.era ?? '—'}
+                      valueLabel="ERA"
+                      valueColor={r.era != null && r.era < 3 ? theme.dataBlue : theme.textPrimary}
+                      meta={[
+                        <>{r.whip ?? '—'} WHIP</>,
+                        <>{r.k_pct != null ? `${r.k_pct}%` : '—'} K</>,
+                        <>{r.bb_pct != null ? `${r.bb_pct}%` : '—'} BB</>,
+                      ]}
+                      footer={flag}
+                      footerColor={flag ? theme.dataRed : undefined}
+                    >
+                      <DayStrip days={days} cells={r.days} />
+                    </StatCard>
+                  );
+                })}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', padding: '4px 2px 0', fontSize: 11, color: theme.textSecondary }}>
+                  <span>Load:</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, background: theme.dataBlue, display: 'inline-block', borderRadius: 2 }} /> ≤15p</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, background: '#9ca3af', display: 'inline-block', borderRadius: 2 }} /> 16–22p</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, background: theme.dataRed, display: 'inline-block', borderRadius: 2 }} /> 23p+</span>
+                </div>
+              </div>
+            )}
+
             {/* ── Workload table ── */}
-            {relievers.length > 0 && (
+            {relievers.length > 0 && !isMobile && (
               <div style={cardStyle}>
                 <div style={cardHeaderStyle}>Reliever Workload</div>
                 <div style={{ overflowX: 'auto' }}>

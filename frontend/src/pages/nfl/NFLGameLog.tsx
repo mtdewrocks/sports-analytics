@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getNFLPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import WinLossBreakdownTable from '../../components/WinLossBreakdownTable';
 import GameCard from '../../components/GameCard';
+import StatCard from '../../components/StatCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import SegmentedToggle from '../../components/SegmentedToggle';
+import FilterPanel from '../../components/FilterPanel';
+import { fieldLabelStyle, fieldStyle, usePanelLayout } from '../../components/filterStyles';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
@@ -64,23 +68,10 @@ interface GameData {
   };
 }
 
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  marginBottom: 4,
-  fontWeight: 600,
-  fontSize: 13,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: 8,
-  marginBottom: 16,
-  border: `1px solid ${theme.border}`,
-  background: theme.bgPage,
-  color: theme.textPrimary,
-  borderRadius: 4,
-  boxSizing: 'border-box',
-};
+// Now shared with the other five pages that had a filter sidebar -- see
+// components/FilterPanel.
+const labelStyle = fieldLabelStyle;
+const inputStyle = fieldStyle;
 
 // Same absolute-tier convention as the Matchup page: top 10 of 32 teams,
 // bottom 10, middle 12 -- rather than comparing anything to an opponent.
@@ -141,7 +132,7 @@ export default function NFLGameLog() {
   const [marginOperator, setMarginOperator] = useState<'' | '<' | '>'>('');
   const [marginValueStr, setMarginValueStr] = useState('');
   const isMobile = useIsMobile();
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const panelLayout = usePanelLayout();
 
   useEffect(() => {
     getNFLPlayers()
@@ -192,45 +183,16 @@ export default function NFLGameLog() {
   const extraStatKeys = Object.keys(gameData?.games[0]?.tooltip ?? {}).filter((k) => k !== 'score');
 
   return (
-    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : 'calc(100vh - 60px)', minHeight: isMobile ? 'calc(100vh - 60px)' : undefined }}>
-      {/* Sidebar */}
-      <div style={{
-        width: isMobile ? '100%' : 280, background: theme.bgCard, padding: 20,
-        height: isMobile ? 'auto' : 'calc(100vh - 60px)', overflowY: isMobile ? 'visible' : 'auto',
-        flexShrink: 0, boxSizing: 'border-box',
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: 20, fontSize: 16, fontWeight: 700, color: theme.textPrimary }}>NFL Game Log</h3>
-
-        <label style={labelStyle}>Player</label>
-        <div style={{ marginBottom: 16 }}>
-          <SearchDropdown
-            players={players}
-            value={selectedPlayer}
-            onSelect={setSelectedPlayer}
-            placeholder="Search by first or last name..."
-            inputStyle={{ padding: 8 }}
-          />
-        </div>
-
-        <label style={labelStyle}>Stat</label>
-        <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
-          <option value="">-- Select Stat --</option>
-          {stats.map((s) => <option key={s} value={s}>{formatStatLabel(s)}</option>)}
-        </select>
-
-        <label style={labelStyle}>Threshold</label>
-        <input
-          type="number"
-          min={0}
-          step={1}
-          style={inputStyle}
-          placeholder="e.g. 250"
-          value={thresholdStr}
-          onFocus={(e) => e.target.select()}
-          onChange={(e) => setThresholdStr(e.target.value)}
-        />
-
-        {(!isMobile || showMoreFilters) && (
+    <div style={panelLayout}>
+      <FilterPanel
+        title="NFL Game Log"
+        moreLabel="Team Result, Margin"
+        action={{
+          label: 'Get Stats',
+          onClick: fetchStats,
+          disabled: !selectedPlayer || !selectedStat || loading,
+        }}
+        more={
           <>
             <label style={labelStyle}>Team Result</label>
             <select
@@ -248,7 +210,7 @@ export default function NFLGameLog() {
               <button
                 onClick={() => { setMarginOperator('<'); setMarginValueStr('7'); }}
                 style={{
-                  flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+                  flex: 1, padding: '8px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer', minHeight: 36,
                   border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
                 }}
               >
@@ -257,7 +219,7 @@ export default function NFLGameLog() {
               <button
                 onClick={() => { setMarginOperator('>'); setMarginValueStr('14'); }}
                 style={{
-                  flex: 1, padding: '6px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer',
+                  flex: 1, padding: '8px 0', fontSize: 12, borderRadius: 4, cursor: 'pointer', minHeight: 36,
                   border: `1px solid ${theme.border}`, background: theme.bgPage, color: theme.textSecondary,
                 }}
               >
@@ -290,42 +252,38 @@ export default function NFLGameLog() {
               Applies to any game decided by this margin, win or loss -- independent of the Team Result filter above.
             </div>
           </>
-        )}
+        }
+      >
+        <label style={labelStyle}>Player</label>
+        <div style={{ marginBottom: 16 }}>
+          <SearchDropdown
+            players={players}
+            value={selectedPlayer}
+            onSelect={setSelectedPlayer}
+            placeholder="Search by first or last name..."
+            inputStyle={{ padding: 8 }}
+          />
+        </div>
 
-        {isMobile && (
-          <button
-            onClick={() => setShowMoreFilters(!showMoreFilters)}
-            style={{
-              width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '8px 0', marginBottom: 16, background: 'none', border: 'none',
-              borderTop: `1px solid ${theme.border}`, borderBottom: `1px solid ${theme.border}`,
-              color: theme.dataBlue, fontSize: 13, cursor: 'pointer',
-            }}
-          >
-            <span>{showMoreFilters ? '- Fewer filters' : '+ More filters (Team Result, Margin)'}</span>
-            <span>{showMoreFilters ? '↑' : '↓'}</span>
-          </button>
-        )}
+        <label style={labelStyle}>Stat</label>
+        <select style={inputStyle} value={selectedStat} onChange={(e) => setSelectedStat(e.target.value)}>
+          <option value="">-- Select Stat --</option>
+          {stats.map((s) => <option key={s} value={s}>{formatStatLabel(s)}</option>)}
+        </select>
 
-        <button
-          onClick={fetchStats}
-          disabled={!selectedPlayer || !selectedStat || loading}
-          style={{
-            width: '100%',
-            padding: '10px 0',
-            background: theme.accent,
-            color: 'white',
-            border: 'none',
-            borderRadius: 4,
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: selectedPlayer && selectedStat && !loading ? 'pointer' : 'not-allowed',
-            opacity: selectedPlayer && selectedStat && !loading ? 1 : 0.6,
-          }}
-        >
-          Get Stats
-        </button>
-      </div>
+        <label style={labelStyle}>Threshold</label>
+        <input
+          type="number"
+          min={0}
+          step={1}
+          style={inputStyle}
+          placeholder="e.g. 250"
+          value={thresholdStr}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => setThresholdStr(e.target.value)}
+        />
+
+      </FilterPanel>
 
       {/* Main Content */}
       <div style={{ flex: 1, padding: isMobile ? 16 : 24, overflowY: 'auto', background: theme.bgPage }}>
@@ -354,33 +312,25 @@ export default function NFLGameLog() {
               />
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 }}>
+            {/* On a phone the toggle gets its own full-width row under the
+                heading rather than being squeezed beside it. */}
+            <div style={{
+              display: 'flex', alignItems: isMobile ? 'stretch' : 'center',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? 8 : 0,
+              justifyContent: 'space-between', marginTop: 28, marginBottom: 12,
+            }}>
               <h3 style={{ margin: 0, color: theme.textPrimary }}>Recent Games</h3>
               {hasDefContext && (
-                <div style={{ display: 'flex', gap: 4, background: theme.bgCard, borderRadius: 4, padding: 3 }}>
-                  <button
-                    onClick={() => setRankMode('season')}
-                    style={{
-                      border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
-                      background: rankMode === 'season' ? theme.bgCardHover : 'transparent',
-                      fontWeight: rankMode === 'season' ? 700 : 400,
-                      color: rankMode === 'season' ? theme.textPrimary : theme.textSecondary,
-                    }}
-                  >
-                    Season
-                  </button>
-                  <button
-                    onClick={() => setRankMode('last4')}
-                    style={{
-                      border: 'none', padding: '5px 12px', fontSize: 13, borderRadius: 4, cursor: 'pointer',
-                      background: rankMode === 'last4' ? theme.bgCardHover : 'transparent',
-                      fontWeight: rankMode === 'last4' ? 700 : 400,
-                      color: rankMode === 'last4' ? theme.textPrimary : theme.textSecondary,
-                    }}
-                  >
-                    Last 4 Games
-                  </button>
-                </div>
+                <SegmentedToggle
+                  value={rankMode}
+                  onChange={setRankMode}
+                  fullWidth={isMobile}
+                  options={[
+                    { value: 'season', label: 'Season' },
+                    { value: 'last4', label: 'Last 4 Games' },
+                  ]}
+                />
               )}
             </div>
 
@@ -480,6 +430,28 @@ export default function NFLGameLog() {
             {gameData.upcoming.length > 0 && (
               <>
                 <h3 style={{ marginTop: 28, marginBottom: 12, color: theme.textPrimary }}>Upcoming</h3>
+                {isMobile ? (
+                  <div>
+                    {gameData.upcoming.map((g, i) => (
+                      <StatCard
+                        key={i}
+                        title={<span style={{ fontWeight: 700 }}>Week {g.week} · vs {g.opponent}</span>}
+                        value={g.def_ypg_rank_current != null ? ordinal(g.def_ypg_rank_current) : '—'}
+                        valueColor={rankColor(g.def_ypg_rank_current)}
+                        valueLabel="Opp D (Yds/G)"
+                        meta={[
+                          <>
+                            Yds/Att{' '}
+                            <span style={{ color: rankColor(g.def_ypa_rank_current), fontWeight: 600 }}>
+                              {g.def_ypa_rank_current != null ? ordinal(g.def_ypa_rank_current) : '—'}
+                            </span>
+                          </>,
+                          <span style={{ color: theme.textMuted }}>current-season ranks</span>,
+                        ]}
+                      />
+                    ))}
+                  </div>
+                ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                   <thead>
                     <tr style={{ background: theme.bgCard }}>
@@ -506,6 +478,7 @@ export default function NFLGameLog() {
                     ))}
                   </tbody>
                 </table>
+                )}
               </>
             )}
           </>

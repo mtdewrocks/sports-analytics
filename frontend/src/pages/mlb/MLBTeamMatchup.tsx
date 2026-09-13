@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMLBTodaysMatchups, getMLBTeamMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 interface TodaysMatchup {
@@ -101,7 +102,7 @@ function PitcherSplitTable({ pitcher }: { pitcher: PitcherInfo }) {
   return (
     <div>
       <div style={{ color: theme.textPrimary, fontWeight: 700, fontSize: 14 }}>{pitcher.pitcher}</div>
-      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
+      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
         <thead>
           <tr>
             <th style={{ textAlign: 'left', padding: '2px 0', color: theme.textSecondary, fontWeight: 600 }}></th>
@@ -172,7 +173,7 @@ function LineupBlock({ lineup, teamName, pitcherName }: { lineup: LineupAverages
       {lineup ? (
         <>
           <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4 }}>{lineup.batters} batters, straight average</div>
-          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums' }}>
             <tbody>
               <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>AVG</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.avg?.toFixed(3) ?? '—'}</td></tr>
               <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>wOBA</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.woba?.toFixed(3) ?? '—'}</td></tr>
@@ -248,6 +249,7 @@ export default function MLBTeamMatchup() {
   const [matchups, setMatchups] = useState<TodaysMatchup[]>([]);
   const [selectedPk, setSelectedPk] = useState<string>('');
   const [data, setData] = useState<TeamMatchupData | null>(null);
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [loadingMatchups, setLoadingMatchups] = useState(true);
   const [error, setError] = useState('');
@@ -276,7 +278,7 @@ export default function MLBTeamMatchup() {
   }, [selectedPk]);
 
   return (
-    <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>MLB Team Matchup</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
         Compare today's actual matchups -- records, recent form, starting pitchers, bullpen, and (once posted) lineup splits.
@@ -291,7 +293,14 @@ export default function MLBTeamMatchup() {
           <select
             value={selectedPk}
             onChange={(e) => setSelectedPk(e.target.value)}
-            style={{ padding: '8px 12px', fontSize: 14, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary, minWidth: 280 }}
+            style={{
+              padding: '9px 12px', fontSize: 14, borderRadius: 4, minHeight: 40,
+              border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary,
+              // minWidth: 280 forced a sideways scroll on a 360px phone.
+              width: isMobile ? '100%' : undefined,
+              minWidth: isMobile ? 0 : 280,
+              boxSizing: 'border-box',
+            }}
           >
             {matchups.map((m) => <option key={m.game_pk} value={m.game_pk}>{m.label}</option>)}
           </select>

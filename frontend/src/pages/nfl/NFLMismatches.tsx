@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getNFLMismatchCategories, getNFLMismatches } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import StatCard from '../../components/StatCard';
+import ChipRow from '../../components/ChipRow';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 interface Category {
@@ -54,6 +57,7 @@ export default function NFLMismatches() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState<MismatchData | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     getNFLMismatchCategories()
@@ -75,28 +79,22 @@ export default function NFLMismatches() {
   }, [selectedCategory]);
 
   return (
-    <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>NFL Weekly Mismatches</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
         Every game on this week's slate, ranked by how lopsided the matchup is for the stat you pick.
       </div>
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-        {categories.map((c) => (
-          <button
-            key={c.key}
-            onClick={() => setSelectedCategory(c.key)}
-            style={{
-              padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              border: c.key === selectedCategory ? `1px solid ${theme.accent}` : `1px solid ${theme.border}`,
-              background: c.key === selectedCategory ? theme.accent : theme.bgCard,
-              color: c.key === selectedCategory ? 'white' : theme.textSecondary,
-            }}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      {/* One row that scrolls sideways rather than three rows that wrap --
+          this stays one row high however many categories get added later. */}
+      <ChipRow
+        chips={categories.map((c) => ({ key: c.key, label: c.label }))}
+        value={selectedCategory}
+        onChange={setSelectedCategory}
+        scroll={isMobile}
+        bleed={isMobile ? 16 : 0}
+        style={{ marginBottom: 24 }}
+      />
 
       {loading && <LoadingSpinner />}
       {error && (
@@ -116,6 +114,44 @@ export default function NFLMismatches() {
           {data.games.length === 0 ? (
             <div style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 40 }}>
               No games with enough data for this category yet -- check back once more of the season has been played.
+            </div>
+          ) : isMobile ? (
+            /* The score is what the list is sorted by, so it's the hero; the
+               two rank cells collapse into one sentence line with colour doing
+               the work the separate columns used to. The ordinal marker is
+               real information here -- this list genuinely is ranked. */
+            <div>
+              {(() => {
+                const maxScore = Math.max(...data.games.map((g) => Math.abs(g.score)), 1);
+                return data.games.map((g, i) => (
+                  <StatCard
+                    key={i}
+                    rank={i + 1}
+                    title={<span style={{ fontWeight: 700 }}>{g.matchup}</span>}
+                    value={g.score}
+                    valueColor={i === 0 ? theme.dataBlue : theme.textPrimary}
+                    meta={[
+                      <>
+                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{g.offense_team}</span>{' '}
+                        <span style={{ color: rankColor(g.offense_rank), fontWeight: 600 }}>{ordinal(g.offense_rank)}</span>
+                        {g.offense_value != null && <span style={{ color: theme.textMuted }}> ({g.offense_value})</span>}
+                        {' vs '}
+                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{g.defense_team}</span>{' '}
+                        <span style={{ color: rankColor(g.defense_rank), fontWeight: 600 }}>{ordinal(g.defense_rank)}</span>
+                        {g.defense_value != null && <span style={{ color: theme.textMuted }}> ({g.defense_value})</span>}
+                      </>,
+                    ]}
+                  >
+                    <div style={{ height: 4, borderRadius: 2, background: theme.border, marginTop: 8, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 2,
+                        width: `${Math.round((Math.abs(g.score) / maxScore) * 100)}%`,
+                        background: i === 0 ? theme.dataBlue : theme.textSecondary,
+                      }} />
+                    </div>
+                  </StatCard>
+                ));
+              })()}
             </div>
           ) : (
             <div style={{ background: theme.bgCard, borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
@@ -154,7 +190,7 @@ export default function NFLMismatches() {
             </div>
           )}
 
-          <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16, textAlign: 'center' }}>
             Ranks are out of 32 teams (1 = best). Early in the season these are based on a small number of
             games and can move quickly -- treat them as more reliable once a few weeks have been played.
           </div>

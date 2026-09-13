@@ -4,6 +4,11 @@ import html2canvas from 'html2canvas';
 import { getMLBPitchers, getMLBMatchup } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import ScrollTable from '../../components/ScrollTable';
+import { stickyColStyle } from '../../components/tableStyles';
+import FilterPanel from '../../components/FilterPanel';
+import { usePanelLayout } from '../../components/filterStyles';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 const IMAGE_BASE = 'https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb/pitcher_images';
@@ -166,27 +171,63 @@ const tdStyle: React.CSSProperties = {
 // ── Shared pieces, reused by both the full page and the PDF summary, so the
 // two views can't silently drift out of sync with each other. ─────────────
 
-function GameLogTable({ logs, title }: { logs: Record<string, any>[]; title: string }) {
+/**
+ * `compact` is the phone treatment, and it's only ever passed by the page --
+ * never by the hidden PDF layout, which must keep rendering at its fixed
+ * 1300px regardless of the browser width.
+ *
+ * These tables deliberately stay tables on a phone. They're matrices: the
+ * point of the opposing lineup is scanning a column of K% down the batting
+ * order, and a card per hitter destroys exactly that. So instead the row's
+ * identity sticks to the left edge and the numbers scroll under it.
+ */
+function GameLogTable({ logs, title, compact }: { logs: Record<string, any>[]; title: string; compact?: boolean }) {
   if (logs.length === 0) return null;
+  const cols = LOG_COLUMNS.filter((c) => c in logs[0]);
+  const table = (
+    <table style={{
+      width: compact ? undefined : '100%', borderCollapse: 'collapse',
+      fontSize: compact ? 12 : 13, fontVariantNumeric: 'tabular-nums',
+    }}>
+      <thead>
+        <tr>
+          {cols.map((col, ci) => (
+            <th key={col} style={ci === 0 && compact ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), zIndex: 2, textAlign: 'left' } : thStyle}>
+              {col}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {logs.map((row, i) => {
+          const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+          return (
+            <tr key={i} style={{ background: bg }}>
+              {LOG_COLUMNS.filter((c) => c in row).map((col, ci) => (
+                <td
+                  key={col}
+                  style={ci === 0 && compact
+                    ? { ...tdStyle, ...stickyColStyle(bg), textAlign: 'left', fontWeight: 600, padding: '7px 10px' }
+                    : compact ? { ...tdStyle, padding: '7px 8px' } : tdStyle}
+                >
+                  {String(row[col] ?? '—')}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+
+  if (compact) {
+    return <div style={{ ...cardStyle, marginBottom: 0 }}><ScrollTable>{table}</ScrollTable></div>;
+  }
+
   return (
     <div style={{ ...cardStyle, flex: 2, minWidth: 400, marginBottom: 0 }}>
       <div style={cardHeaderStyle}>{title}</div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr>{LOG_COLUMNS.filter((c) => c in logs[0]).map((col) => <th key={col} style={thStyle}>{col}</th>)}</tr>
-          </thead>
-          <tbody>
-            {logs.map((row, i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
-                {LOG_COLUMNS.filter((c) => c in row).map((col) => (
-                  <td key={col} style={tdStyle}>{String(row[col] ?? '—')}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <div style={{ overflowX: 'auto' }}>{table}</div>
     </div>
   );
 }
@@ -210,16 +251,29 @@ function MatchupSummaryTable({ flags }: { flags: { label: string; count: number 
   );
 }
 
-function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
+/** Fixed width for the batting-order column on mobile, so the player column
+ *  beside it knows what `left` offset to stick at. */
+const ORDER_COL_W = 30;
+
+function OpposingLineupTable({ hitters, compact }: { hitters: Record<string, any>[]; compact?: boolean }) {
   if (hitters.length === 0) return null;
-  return (
-    <div style={cardStyle}>
-      <div style={cardHeaderStyle}>Opposing Lineup (batting order)</div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+  const table = (
+        <table style={{
+          width: compact ? undefined : '100%', borderCollapse: 'collapse',
+          fontSize: compact ? 12 : 13, fontVariantNumeric: 'tabular-nums',
+        }}>
           <thead>
             <tr>
-              {HITTER_COLUMNS.filter((c) => c in hitters[0]).map((col) => <th key={col} style={thStyle}>{col}</th>)}
+              {HITTER_COLUMNS.filter((c) => c in hitters[0]).map((col, ci) => (
+                <th
+                  key={col}
+                  style={compact && ci < 2
+                    ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), left: ci === 0 ? 0 : ORDER_COL_W, zIndex: 2, textAlign: 'left', width: ci === 0 ? ORDER_COL_W : undefined, padding: '8px 8px' }
+                    : thStyle}
+                >
+                  {compact && col === 'Batting Order' ? '#' : col}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -236,13 +290,27 @@ function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
               };
               return (
                 <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
-                  {HITTER_COLUMNS.filter((c) => c in row).map((col) => {
+                  {HITTER_COLUMNS.filter((c) => c in row).map((col, ci) => {
                     const v = row[col];
                     const displayVal = v === '' || v == null ? '—'
                       : col === 'Batting Order' ? String(Math.round(Number(v)))
                       : String(v);
+                    const tinted = cellStyle(tierMap[col] ?? null);
+                    // Batting order AND player both stick: the order alone is a
+                    // useless anchor once the name has scrolled away, and the
+                    // name is what you're actually reading the row for.
+                    // A sticky cell has to stay opaque, so it keeps the row
+                    // background rather than a tint that would let the scrolling
+                    // cells show through it.
+                    const sticky = compact && ci < 2
+                      ? stickyColStyle((i % 2 === 0 ? theme.bgCard : theme.bgPage), {
+                          left: ci === 0 ? 0 : ORDER_COL_W,
+                          textAlign: 'left', fontWeight: 600, padding: '7px 8px',
+                          width: ci === 0 ? ORDER_COL_W : undefined,
+                        })
+                      : null;
                     return (
-                      <td key={col} style={{ ...tdStyle, ...cellStyle(tierMap[col] ?? null) }}>
+                      <td key={col} style={{ ...tdStyle, ...tinted, ...(sticky ?? {}) }}>
                         {displayVal}
                       </td>
                     );
@@ -252,7 +320,14 @@ function OpposingLineupTable({ hitters }: { hitters: Record<string, any>[] }) {
             })}
           </tbody>
         </table>
-      </div>
+  );
+
+  return (
+    <div style={cardStyle}>
+      {!compact && <div style={cardHeaderStyle}>Opposing Lineup (batting order)</div>}
+      {compact
+        ? <ScrollTable>{table}</ScrollTable>
+        : <div style={{ overflowX: 'auto' }}>{table}</div>}
       <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 16px' }}>
         Darker red = tougher matchup for the pitcher; darker blue = more favorable. K% runs opposite
         the others (a high strikeout rate favors the pitcher).
@@ -293,6 +368,41 @@ function PitcherSplitTable({ label, d }: { label: string; d?: PitcherSplit }) {
   );
 }
 
+/**
+ * One collapsible section of the mobile page.
+ *
+ * This is the biggest page in the app -- summary, game logs, splits,
+ * percentiles and an opposing-hitter grid, which on a phone is six or seven
+ * screens of scrolling to reach any one of them. You arrive here for one of
+ * those four things, so four taps' worth of choice beats the scroll. The row
+ * count sits in the header so a section says what it holds before you open it.
+ */
+function Section({
+  title, count, defaultOpen = false, children,
+}: { title: string; count?: number; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: open ? theme.bgCardHover : theme.bgCard, border: 'none',
+          borderRadius: open ? '8px 8px 0 0' : 8, padding: '13px 14px', minHeight: 46,
+          color: theme.textPrimary, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span>{title}</span>
+        <span style={{ color: theme.textMuted, fontSize: 11, fontWeight: 400 }}>
+          {count != null && `${count} `}<span aria-hidden>{open ? '▴' : '▾'}</span>
+        </span>
+      </button>
+      {open && <div style={{ paddingTop: 8 }}>{children}</div>}
+    </div>
+  );
+}
+
 export default function MLBMatchup() {
   const [pitchers, setPitchers] = useState<string[]>([]);
   const [loadingPitchers, setLoadingPitchers] = useState(true);
@@ -302,6 +412,8 @@ export default function MLBMatchup() {
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const panelLayout = usePanelLayout();
 
   useEffect(() => {
     setLoadingPitchers(true);
@@ -401,33 +513,30 @@ export default function MLBMatchup() {
   const hasPitcherSplits = !!(pitcherSplits.vs_r || pitcherSplits.vs_l);
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', background: theme.bgPage }}>
+    <div style={{ ...panelLayout, overflow: isMobile ? 'visible' : 'hidden', background: theme.bgPage }}>
 
-      {/* ── Left Sidebar ── */}
-      <div style={{
-        width: 220, flexShrink: 0, background: theme.bgCard, padding: '20px 14px',
-        overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16,
-      }}>
-        <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>MLB Pitcher Matchup</div>
-        <div>
-          <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
-          {loadingPitchers ? (
-            <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
-          ) : (
-            <SearchDropdown
-              players={pitchers}
-              value={selectedPitcher}
-              onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
-              placeholder="Search pitcher..."
-              inputStyle={{ padding: '7px 10px', fontSize: 13, width: '100%', boxSizing: 'border-box' }}
-            />
-          )}
-        </div>
-        {matchupData && (
+      {/* ── Pitcher picker ── */}
+      <FilterPanel title="MLB Pitcher Matchup" width={220}>
+        <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
+        {loadingPitchers ? (
+          <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
+        ) : (
+          <SearchDropdown
+            players={pitchers}
+            value={selectedPitcher}
+            onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
+            placeholder="Search pitcher..."
+            inputStyle={{ padding: '9px 10px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
+          />
+        )}
+        {/* Like the NFL matchup PDF, this renders a fixed 1300px landscape
+            layout -- a download you can't read on a phone. Desktop action. */}
+        {matchupData && !isMobile && (
           <button
             onClick={downloadPdf}
             disabled={downloadingPdf}
             style={{
+              width: '100%', marginTop: 16,
               padding: '9px 0', background: downloadingPdf ? theme.bgCardHover : theme.accent, color: downloadingPdf ? theme.textMuted : 'white',
               border: 'none', borderRadius: 4, fontWeight: 700, fontSize: 13,
               cursor: downloadingPdf ? 'not-allowed' : 'pointer',
@@ -436,10 +545,14 @@ export default function MLBMatchup() {
             {downloadingPdf ? 'Generating PDF...' : 'Download Matchup Summary Report'}
           </button>
         )}
-      </div>
+      </FilterPanel>
 
       {/* ── Main Content (full detail) ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+      <div style={{
+        flex: 1,
+        overflowY: isMobile ? 'visible' : 'auto',
+        padding: isMobile ? 16 : '20px 24px',
+      }}>
         {loading && <LoadingSpinner />}
         {error && (
           <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
@@ -447,7 +560,118 @@ export default function MLBMatchup() {
           </div>
         )}
 
-        {!loading && matchupData && (
+        {!loading && matchupData && isMobile && (
+          <div>
+            {/* Summary stays open; everything else is one tap away. */}
+            <div style={{ ...cardStyle, padding: '14px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <img
+                src={photoUrl}
+                alt={selectedPitcher}
+                onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.border}`, flexShrink: 0 }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 16, color: theme.textPrimary }}>{selectedPitcher}</div>
+                {seasonDisplay.length > 0 && (
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+                    {seasonDisplay.map(({ key, val }, i) => (
+                      <span key={key}>
+                        {i > 0 && ' · '}
+                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{String(val ?? '—')}</span> {key}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ height: 12 }} />
+
+            {gameLogsFull.length > 0 && (
+              <Section title="Last 10 starts" count={gameLogsFull.length}>
+                <GameLogTable logs={gameLogsFull} title="Last 10 Starts" compact />
+              </Section>
+            )}
+
+            {summaryFlags.length > 0 && (
+              <Section title="Matchup summary" count={summaryFlags.length}>
+                <MatchupSummaryTable flags={summaryFlags} />
+              </Section>
+            )}
+
+            {splits.length > 0 && (
+              <Section title="Splits vs L / vs R" count={splits.length}>
+                <div style={{ ...cardStyle, marginBottom: 0 }}>
+                  <ScrollTable>
+                    <table style={{ borderCollapse: 'collapse', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+                      <thead>
+                        <tr>
+                          {splitsColumns.map((col, ci) => (
+                            <th key={col} style={ci === 0 ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), zIndex: 2, textAlign: 'left' } : thStyle}>
+                              {col}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {splits.map((row, i) => {
+                          const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+                          return (
+                            <tr key={i} style={{ background: bg }}>
+                              {splitsColumns.map((col, ci) => (
+                                <td
+                                  key={col}
+                                  style={ci === 0
+                                    ? { ...tdStyle, ...stickyColStyle(bg), textAlign: 'left', fontWeight: 600 }
+                                    : { ...tdStyle, padding: '7px 8px' }}
+                                >
+                                  {String(row[col] ?? '—')}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </ScrollTable>
+                  <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 14px' }}>
+                    2026 plate appearances count double relative to 2025 when the two seasons are combined.
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {percentiles.length > 0 && (
+              <Section title="2026 percentile rankings" count={percentiles.length}>
+                <div style={{ ...cardStyle, marginBottom: 0, padding: '12px 14px' }}>
+                  {percentiles.map((row, i) => {
+                    const pct = Math.round(Number(row.Percentile));
+                    const color = pctBarColor(pct);
+                    return (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 3 }}>
+                          <span style={{ fontWeight: 600, color: theme.textSecondary }}>{row.Statistic}</span>
+                          <span style={{ fontWeight: 700, color }}>{pct}th</span>
+                        </div>
+                        <div style={{ background: theme.bgCardHover, borderRadius: 4, height: 9, overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: color, borderRadius: 4 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
+            {opposingHitters.length > 0 && (
+              <Section title="Opposing hitters" count={opposingHitters.length} defaultOpen>
+                <OpposingLineupTable hitters={opposingHitters} compact />
+              </Section>
+            )}
+          </div>
+        )}
+
+        {!loading && matchupData && !isMobile && (
           <div style={{ background: theme.bgPage, padding: 4 }}>
 
             {/* ── Pitcher Photo + Season Stats ── */}

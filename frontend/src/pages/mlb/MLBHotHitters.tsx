@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { getMLBHotHitters } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import StatCard from '../../components/StatCard';
+import ChipRow from '../../components/ChipRow';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
+
+/** True when every non-null value in this column parses as a number. Used to
+ *  tell the identity columns (Player, Team) from the sortable stat columns,
+ *  since the API decides the column set and there's no fixed list to check
+ *  against -- that's also why the card layout below is generated rather than
+ *  hardcoded, so a new stat column keeps working with no change here. */
+function isNumericColumn(rows: Record<string, any>[], col: string): boolean {
+  const vals = rows.map((r) => r[col]).filter((v) => v !== null && v !== undefined && v !== '');
+  return vals.length > 0 && vals.every((v) => !isNaN(parseFloat(String(v))));
+}
 
 interface SortConfig {
   key: string;
@@ -21,7 +34,11 @@ export default function MLBHotHitters() {
       .finally(() => setLoading(false));
   }, []);
 
+  const isMobile = useIsMobile();
+
   const columns = hitters.length > 0 ? Object.keys(hitters[0]) : [];
+  const statColumns = columns.filter((c) => isNumericColumn(hitters, c));
+  const identityColumns = columns.filter((c) => !statColumns.includes(c));
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => {
@@ -53,8 +70,25 @@ export default function MLBHotHitters() {
   }, [hitters, sortConfig]);
 
   return (
-    <div style={{ padding: 24, minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
-      <h2 style={{ marginTop: 0, marginBottom: 24, color: theme.textPrimary }}>Hot Hitters — Last 7 Days</h2>
+    <div style={{ padding: isMobile ? 16 : 24, minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+      <h2 style={{ marginTop: 0, marginBottom: isMobile ? 14 : 24, color: theme.textPrimary }}>Hot Hitters — Last 7 Days</h2>
+
+      {/* On a phone the sort moves out of the table headers and becomes the
+          primary control -- it's the only way to ask this page a question once
+          the columns won't fit. */}
+      {isMobile && statColumns.length > 0 && (
+        <ChipRow
+          chips={statColumns.map((c) => ({
+            key: c,
+            label: c,
+            activeSuffix: sortConfig?.direction === 'asc' ? '▲' : '▼',
+          }))}
+          value={sortConfig?.key ?? ''}
+          onChange={handleSort}
+          bleed={16}
+          style={{ marginBottom: 14 }}
+        />
+      )}
 
       {loading && <LoadingSpinner />}
       {error && (
@@ -62,7 +96,32 @@ export default function MLBHotHitters() {
           {error}
         </div>
       )}
-      {!loading && !error && sortedHitters.length > 0 && (
+      {!loading && !error && sortedHitters.length > 0 && isMobile && (
+        <div>
+          {sortedHitters.map((row, i) => {
+            const sortKey = sortConfig?.key ?? statColumns[0];
+            return (
+              <StatCard
+                key={i}
+                rank={i + 1}
+                title={<span style={{ fontWeight: 700 }}>{String(row[identityColumns[0]] ?? '—')}</span>}
+                titleAside={identityColumns[1] ? String(row[identityColumns[1]] ?? '') : undefined}
+                value={String(row[sortKey] ?? '—')}
+                valueColor={i < 3 ? theme.dataBlue : theme.textPrimary}
+                valueLabel={sortKey}
+                meta={statColumns
+                  .filter((c) => c !== sortKey)
+                  .map((c) => <>{String(row[c] ?? '—')} {c}</>)}
+              />
+            );
+          })}
+          <div style={{ marginTop: 10, fontSize: 13, color: theme.textSecondary }}>
+            {sortedHitters.length} player{sortedHitters.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && sortedHitters.length > 0 && !isMobile && (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>

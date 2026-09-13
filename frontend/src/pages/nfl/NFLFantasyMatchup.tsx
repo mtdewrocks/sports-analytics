@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { getNFLPlayers, getNFLFantasyMatchupCurrentWeek, getNFLFantasyMatchupSeason } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
+import SegmentedToggle from '../../components/SegmentedToggle';
+import ScrollTable from '../../components/ScrollTable';
+import { stickyColStyle } from '../../components/tableStyles';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 const MAX_PLAYERS = 4;
@@ -195,6 +199,187 @@ function SeasonCard({ p }: { p: SeasonPlayer }) {
   );
 }
 
+// ---------------------------------------------------------------- mobile
+//
+// The desktop layout is N cards side by side; at phone width those wrap into a
+// vertical stack, which turns a comparison into a scroll-and-remember exercise.
+// So on mobile the axes swap: stat labels stick to the left edge and the
+// players become columns that scroll sideways. Row-by-row comparison survives
+// at any slot count, which the stacked cards can't do.
+
+interface CompareRow {
+  key: string;
+  label: string;
+  cells: React.ReactNode[];
+}
+
+/** "Ja'Marr Chase" -> "J. Chase", so four columns can fit at all. */
+function shortName(name: string): string {
+  const parts = name.trim().split(' ');
+  if (parts.length < 2) return name;
+  return `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
+}
+
+function contextLines(p: CurrentWeekPlayer): MatchupContextLine[] {
+  return [
+    ...(p.matchup_context?.opp_defense ?? []),
+    p.matchup_context?.opp_pass_rush,
+    p.matchup_context?.own_pass_block,
+  ].filter((l): l is MatchupContextLine => !!l);
+}
+
+function buildCurrentWeekRows(players: CurrentWeekPlayer[]): CompareRow[] {
+  const rows: CompareRow[] = [
+    {
+      key: 'pos', label: 'Pos · Team',
+      cells: players.map((p) => (p.error ? '—' : `${p.position ?? '—'} · ${p.team ?? '—'}`)),
+    },
+    {
+      key: 'opp', label: 'Opponent',
+      cells: players.map((p) => {
+        if (p.error) return '—';
+        if (!p.opponent) return <span style={{ color: theme.textMuted }}>no game</span>;
+        return `${p.is_home ? 'vs' : '@'} ${p.opponent}`;
+      }),
+    },
+  ];
+
+  // Union of labels in order of first appearance -- a QB and a WR don't have
+  // the same stat rows, and dropping either player's rows would be worse than
+  // a few dashes.
+  const statLabels: string[] = [];
+  players.forEach((p) => (p.stats ?? []).forEach((s) => {
+    if (!statLabels.includes(s.label)) statLabels.push(s.label);
+  }));
+  statLabels.forEach((label) => rows.push({
+    key: `stat:${label}`, label,
+    cells: players.map((p) => {
+      const s = (p.stats ?? []).find((x) => x.label === label);
+      return s ? (s.value ?? '—') : '—';
+    }),
+  }));
+
+  const ctxLabels: string[] = [];
+  players.forEach((p) => contextLines(p).forEach((l) => {
+    if (!ctxLabels.includes(l.label)) ctxLabels.push(l.label);
+  }));
+  ctxLabels.forEach((label) => rows.push({
+    key: `ctx:${label}`, label,
+    cells: players.map((p) => {
+      const l = contextLines(p).find((x) => x.label === label);
+      if (!l) return '—';
+      const asterisk = l.granularity && l.granularity !== 'team' ? '*' : '';
+      return (
+        <span style={{ color: favorableColor(l.favorable), fontWeight: 600 }}>
+          {l.value ?? '—'}
+          {l.rank != null && (
+            <span style={{ fontWeight: 400, fontSize: 10, color: theme.textMuted }}> ({l.rank}{asterisk})</span>
+          )}
+        </span>
+      );
+    }),
+  }));
+
+  if (players.some((p) => p.game_script)) {
+    rows.push({
+      key: 'pass', label: 'Proj. pass rate',
+      cells: players.map((p) => (
+        p.game_script?.projected_pass_pct != null
+          ? <span style={{ color: theme.dataBlue, fontWeight: 700 }}>{p.game_script.projected_pass_pct}%</span>
+          : '—'
+      )),
+    });
+    rows.push({
+      key: 'total', label: 'Proj. team pts',
+      cells: players.map((p) => p.game_script?.implied_total ?? '—'),
+    });
+    rows.push({
+      key: 'script', label: 'Script',
+      cells: players.map((p) => p.game_script?.implied_situation.replace('_', ' ') ?? '—'),
+    });
+  }
+
+  return rows;
+}
+
+function buildSeasonRows(players: SeasonPlayer[]): CompareRow[] {
+  const weeks = Array.from(
+    new Set(players.flatMap((p) => (p.schedule ?? []).map((r) => r.week)))
+  ).sort((a, b) => a - b);
+
+  return weeks.map((w) => ({
+    key: `w${w}`,
+    label: `Wk ${w}`,
+    cells: players.map((p) => {
+      const r = (p.schedule ?? []).find((x) => x.week === w);
+      if (!r) return '—';
+      if (r.is_bye) return <span style={{ color: theme.textMuted, fontStyle: 'italic' }}>BYE</span>;
+      return (
+        <>
+          {r.is_home ? 'vs' : '@'} {r.opponent}{' '}
+          <span style={{ color: seasonRankColor(r.def_rank), fontWeight: 700 }}>
+            {r.def_rank ?? '—'}{r.def_granularity && r.def_granularity !== 'team' ? '*' : ''}
+          </span>
+        </>
+      );
+    }),
+  }));
+}
+
+function CompareTable({ players, rows }: { players: { player: string; error?: string }[]; rows: CompareRow[] }) {
+  const colWidth = 118;
+
+  return (
+    <ScrollTable>
+      <table style={{
+        borderCollapse: 'collapse', fontSize: 12.5,
+        minWidth: 104 + players.length * colWidth,
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        <thead>
+          <tr>
+            <th style={{
+              ...stickyColStyle(theme.bgCardHover),
+              width: 104, minWidth: 104, textAlign: 'left',
+              padding: '9px 10px', fontSize: 11, color: theme.textSecondary, fontWeight: 600,
+            }} />
+            {players.map((p) => (
+              <th key={p.player} style={{
+                width: colWidth, minWidth: colWidth, textAlign: 'left',
+                padding: '9px 10px', fontSize: 12, color: theme.textPrimary, fontWeight: 700,
+                background: theme.bgCardHover, whiteSpace: 'nowrap',
+              }}>
+                {shortName(p.player)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => {
+            const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+            return (
+              <tr key={row.key} style={{ borderTop: `1px solid ${theme.border}` }}>
+                <th style={{
+                  ...stickyColStyle(bg),
+                  textAlign: 'left', padding: '8px 10px', fontSize: 11,
+                  color: theme.textSecondary, fontWeight: 600,
+                }}>
+                  {row.label}
+                </th>
+                {row.cells.map((cell, j) => (
+                  <td key={j} style={{ padding: '8px 10px', background: bg, color: theme.textPrimary }}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </ScrollTable>
+  );
+}
+
 export default function NFLFantasyMatchup() {
   const [allPlayers, setAllPlayers] = useState<string[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -203,6 +388,7 @@ export default function NFLFantasyMatchup() {
   const [data, setData] = useState<{ players: (CurrentWeekPlayer | SeasonPlayer)[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setLoadingPlayers(true);
@@ -246,20 +432,28 @@ export default function NFLFantasyMatchup() {
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1200, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 60px)' }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>NFL Fantasy Matchup</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20 }}>
         Compare 2-4 players side by side to help decide who to start.
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div style={{
+        display: 'flex', alignItems: isMobile ? 'stretch' : 'center',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 12 : 16, marginBottom: 20, flexWrap: 'wrap',
+      }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {slots.map((slot, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, background: theme.bgCard, borderRadius: 6, padding: '4px 8px' }}>
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 4, background: theme.bgCard,
+              borderRadius: 6, padding: '4px 8px',
+              flex: isMobile ? '1 1 100%' : undefined,
+            }}>
               {loadingPlayers ? (
                 <div style={{ color: theme.textSecondary, fontSize: 12, padding: '4px 8px' }}>Loading...</div>
               ) : (
-                <div style={{ width: 190 }}>
+                <div style={{ width: isMobile ? '100%' : 190 }}>
                   <SearchDropdown
                     players={allPlayers}
                     value={slot ?? ''}
@@ -283,35 +477,29 @@ export default function NFLFantasyMatchup() {
           {slots.length < MAX_PLAYERS && (
             <button
               onClick={addSlot}
-              style={{ background: theme.accent, color: 'white', border: 'none', borderRadius: 6, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              style={{
+                background: theme.accent, color: 'white', border: 'none', borderRadius: 6,
+                padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', minHeight: 38,
+                flex: isMobile ? '1 1 100%' : undefined,
+              }}
             >
               + Add Player
             </button>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 4, background: theme.bgCard, borderRadius: 6, padding: 3, marginLeft: 'auto' }}>
-          <button
-            onClick={() => setMode('current_week')}
-            style={{
-              padding: '6px 14px', fontSize: 12, fontWeight: 700, borderRadius: 4, border: 'none', cursor: 'pointer',
-              background: mode === 'current_week' ? theme.bgCardHover : 'transparent',
-              color: mode === 'current_week' ? theme.textPrimary : theme.textSecondary,
-            }}
-          >
-            Current Week
-          </button>
-          <button
-            onClick={() => setMode('season')}
-            style={{
-              padding: '6px 14px', fontSize: 12, fontWeight: 700, borderRadius: 4, border: 'none', cursor: 'pointer',
-              background: mode === 'season' ? theme.bgCardHover : 'transparent',
-              color: mode === 'season' ? theme.textPrimary : theme.textSecondary,
-            }}
-          >
-            Season
-          </button>
-        </div>
+        {/* On mobile the mode switch loses its marginLeft:'auto' and goes
+            full-width -- it's the second most-used control on this page. */}
+        <SegmentedToggle
+          value={mode}
+          onChange={setMode}
+          fullWidth={isMobile}
+          style={isMobile ? undefined : { marginLeft: 'auto' }}
+          options={[
+            { value: 'current_week', label: 'Current Week' },
+            { value: 'season', label: 'Season' },
+          ]}
+        />
       </div>
 
       {loading && <LoadingSpinner />}
@@ -322,11 +510,20 @@ export default function NFLFantasyMatchup() {
       )}
 
       {!loading && !error && data && (
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          {mode === 'current_week'
-            ? (data.players as CurrentWeekPlayer[]).map((p) => <CurrentWeekCard key={p.player} p={p} />)
-            : (data.players as SeasonPlayer[]).map((p) => <SeasonCard key={p.player} p={p} />)}
-        </div>
+        isMobile ? (
+          <CompareTable
+            players={data.players}
+            rows={mode === 'current_week'
+              ? buildCurrentWeekRows(data.players as CurrentWeekPlayer[])
+              : buildSeasonRows(data.players as SeasonPlayer[])}
+          />
+        ) : (
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            {mode === 'current_week'
+              ? (data.players as CurrentWeekPlayer[]).map((p) => <CurrentWeekCard key={p.player} p={p} />)
+              : (data.players as SeasonPlayer[]).map((p) => <SeasonCard key={p.player} p={p} />)}
+          </div>
+        )
       )}
 
       <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16 }}>

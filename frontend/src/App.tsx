@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import Navbar from './components/Navbar';
+import Navbar, { TABBAR_HEIGHT } from './components/Navbar';
 import Footer from './components/Footer';
+import useIsMobile from './hooks/useIsMobile';
 
 declare global {
   interface Window {
@@ -30,6 +32,14 @@ function usePageTracking() {
 function PageTracker() {
   usePageTracking();
   return null;
+}
+
+// The mobile tab bar is fixed to the bottom of the viewport, so the page has
+// to reserve its height -- without this the last card on every page sits
+// underneath it and can't be scrolled into view.
+function AppShell({ children }: { children: ReactNode }) {
+  const isMobile = useIsMobile();
+  return <div style={{ paddingBottom: isMobile ? TABBAR_HEIGHT : 0 }}>{children}</div>;
 }
 
 import Landing from './pages/Landing';
@@ -62,6 +72,7 @@ export default function App() {
       <BrowserRouter>
         <PageTracker />
         <Navbar />
+        <AppShell>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
@@ -90,6 +101,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Footer />
+        </AppShell>
       </BrowserRouter>
     </AuthProvider>
   );

@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { getNFLMatchups, getNFLMatchup, getNFLGameScript } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
 interface StatRow {
@@ -134,6 +135,122 @@ function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable }
   );
 }
 
+/**
+ * One stat, both teams, on a phone.
+ *
+ * The two team cards side by side are the whole point of this page, and at
+ * 390px they stack -- which means comparing two numbers costs a scroll. So on
+ * mobile the stat label moves to the middle and the two values flank it, and
+ * the bar underneath is a diverging split rather than a magnitude bar: it shows
+ * WHO is better and by how much, coloured with the leader's own rank tier.
+ */
+function HeadToHeadRow({ label, away, home }: {
+  label: string;
+  away: { value: number | null; rank: number | null };
+  home: { value: number | null; rank: number | null };
+}) {
+  const bothRanked = away.rank != null && home.rank != null;
+  // Lower rank is better, so the better team takes the larger share.
+  const awayShare = bothRanked ? (home.rank! / (away.rank! + home.rank!)) * 100 : 50;
+  const awayLeads = bothRanked && away.rank! < home.rank!;
+  const leaderColor = bothRanked
+    ? rankColor(awayLeads ? away.rank : home.rank)
+    : theme.textSecondary;
+
+  return (
+    <div style={{ background: theme.bgCard, borderRadius: 8, padding: '11px 13px', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{
+          fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+          color: rankColor(away.rank), flex: '0 0 auto', minWidth: 52,
+        }}>
+          {away.value ?? '—'}
+        </span>
+        <span style={{
+          fontSize: 10, color: theme.textMuted, textTransform: 'uppercase',
+          letterSpacing: '0.05em', textAlign: 'center', flex: 1, lineHeight: 1.25,
+        }}>
+          {label}
+        </span>
+        <span style={{
+          fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+          color: rankColor(home.rank), flex: '0 0 auto', minWidth: 52, textAlign: 'right',
+        }}>
+          {home.value ?? '—'}
+        </span>
+      </div>
+
+      {bothRanked && (
+        <div style={{ height: 4, borderRadius: 2, background: theme.border, marginTop: 7, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 2, background: leaderColor,
+            width: `${awayLeads ? awayShare : 100 - awayShare}%`,
+            marginLeft: awayLeads ? 0 : `${awayShare}%`,
+          }} />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+        <span style={{ fontSize: 10, color: rankColor(away.rank), fontWeight: 600 }}>
+          {away.rank != null ? ordinal(away.rank) : '—'}
+        </span>
+        <span style={{ fontSize: 10, color: rankColor(home.rank), fontWeight: 600 }}>
+          {home.rank != null ? ordinal(home.rank) : '—'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function HeadToHead({ data, gameScript }: { data: MatchupData; gameScript: GameScriptData | null }) {
+  // Match by stat name rather than by index -- the two arrays should align, but
+  // a mismatch would silently compare the wrong two numbers, which is worse
+  // than showing a dash.
+  const rows = data.away_stats.map((a) => ({
+    stat: a.stat,
+    away: a,
+    home: data.home_stats.find((h) => h.stat === a.stat) ?? { stat: a.stat, value: null, rank: null },
+  }));
+
+  const awayTotal = gameScript?.away?.implied_total;
+  const homeTotal = gameScript?.home?.implied_total;
+
+  return (
+    <div>
+      <div style={{
+        background: theme.bgCard, borderRadius: 8, padding: '14px 16px',
+        textAlign: 'center', marginBottom: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: theme.textPrimary }}>{data.away_team}</span>
+          <span style={{ fontSize: 12, color: theme.textMuted }}>@</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: theme.textPrimary }}>{data.home_team}</span>
+        </div>
+        {gameScript?.total_line != null && (
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 5 }}>
+            O/U {gameScript.total_line}
+            {gameScript.spread_line != null && (
+              <> · spread {gameScript.spread_line > 0 ? '+' : ''}{gameScript.spread_line} (home)</>
+            )}
+          </div>
+        )}
+      </div>
+
+      {(awayTotal != null || homeTotal != null) && (
+        <HeadToHeadRow
+          label="Projected Points"
+          away={{ value: awayTotal ?? null, rank: gameScript?.away?.weekly_scoring_rank ?? null }}
+          home={{ value: homeTotal ?? null, rank: gameScript?.home?.weekly_scoring_rank ?? null }}
+        />
+      )}
+
+      {rows.map((r) => (
+        <HeadToHeadRow key={r.stat} label={r.stat} away={r.away} home={r.home} />
+      ))}
+    </div>
+  );
+}
+
 function GameScriptTeamPanel({ data }: { data: TeamGameScript }) {
   if (data.error) {
     return <div style={{ flex: 1, minWidth: 280, color: theme.textSecondary, fontSize: 13 }}>{data.error}</div>;
@@ -167,6 +284,7 @@ export default function NFLMatchup() {
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
   const [gameScript, setGameScript] = useState<GameScriptData | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     getNFLMatchups()
@@ -234,7 +352,7 @@ export default function NFLMatchup() {
   };
 
   return (
-    <div style={{ padding: 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
+    <div style={{ padding: isMobile ? 16 : 24, overflowY: 'auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
       <div id="no-print">
         <h2 style={{ marginTop: 0, marginBottom: 24, color: theme.textPrimary }}>NFL Matchup Preview</h2>
 
@@ -270,7 +388,9 @@ export default function NFLMatchup() {
           >
             Analyze
           </button>
-          {matchupData && (
+          {/* The PDF renders the 1300px desktop layout, which is a download you
+              can't read on a phone without pinching -- so it's a desktop action. */}
+          {matchupData && !isMobile && (
             <button
               onClick={downloadPdf}
               disabled={downloadingPdf}
@@ -310,33 +430,39 @@ export default function NFLMatchup() {
               {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-            <div style={{ background: theme.bgCard, borderRadius: 8, padding: '18px 32px', textAlign: 'center', minWidth: 220 }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, marginBottom: 6 }}>
-                {matchupData.away_team} @ {matchupData.home_team}
+          {isMobile ? (
+            <HeadToHead data={matchupData} gameScript={gameScript} />
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                <div style={{ background: theme.bgCard, borderRadius: 8, padding: '18px 32px', textAlign: 'center', minWidth: 220 }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, marginBottom: 6 }}>
+                    {matchupData.away_team} @ {matchupData.home_team}
+                  </div>
+                  {gameScript?.total_line != null && (
+                    <div style={{ fontSize: 26, fontWeight: 700, color: theme.textPrimary }}>O/U {gameScript.total_line}</div>
+                  )}
+                </div>
               </div>
-              {gameScript?.total_line != null && (
-                <div style={{ fontSize: 26, fontWeight: 700, color: theme.textPrimary }}>O/U {gameScript.total_line}</div>
-              )}
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <TeamCard
-              teamAbbr={matchupData.away_team}
-              stats={matchupData.away_stats}
-              impliedTotal={gameScript?.away?.implied_total}
-              weeklyRank={gameScript?.away?.weekly_scoring_rank}
-              weeklyFavorable={gameScript?.away?.weekly_scoring_favorable}
-            />
-            <TeamCard
-              teamAbbr={matchupData.home_team}
-              stats={matchupData.home_stats}
-              impliedTotal={gameScript?.home?.implied_total}
-              weeklyRank={gameScript?.home?.weekly_scoring_rank}
-              weeklyFavorable={gameScript?.home?.weekly_scoring_favorable}
-            />
-          </div>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                <TeamCard
+                  teamAbbr={matchupData.away_team}
+                  stats={matchupData.away_stats}
+                  impliedTotal={gameScript?.away?.implied_total}
+                  weeklyRank={gameScript?.away?.weekly_scoring_rank}
+                  weeklyFavorable={gameScript?.away?.weekly_scoring_favorable}
+                />
+                <TeamCard
+                  teamAbbr={matchupData.home_team}
+                  stats={matchupData.home_stats}
+                  impliedTotal={gameScript?.home?.implied_total}
+                  weeklyRank={gameScript?.home?.weekly_scoring_rank}
+                  weeklyFavorable={gameScript?.home?.weekly_scoring_favorable}
+                />
+              </div>
+            </>
+          )}
 
           {gameScript && !gameScript.error && (
             <div style={{ marginTop: 32 }}>
