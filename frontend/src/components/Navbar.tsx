@@ -43,7 +43,7 @@ const GROUPS: NavGroup[] = [
       { label: 'Pitcher Matchup', to: '/mlb/matchup' },
       { label: 'Team Matchup', to: '/mlb/team-matchup' },
       { label: 'Bullpen', to: '/mlb/bullpen' },
-      { label: 'Daily Report', to: '/mlb/pitcher-daily-report' },
+      { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },
       { label: 'Hot Hitters', to: '/mlb/hot-hitters' },
       { label: 'Props', to: '/mlb/props' },
     ],
