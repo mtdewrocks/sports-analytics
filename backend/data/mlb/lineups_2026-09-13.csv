@@ -251,3 +251,21 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,7,677649,Ezequiel Duran,593958,Eduardo Rodriguez,R,L,R
 2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,8,553869,Elias Díaz,593958,Eduardo Rodriguez,R,L,R
 2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,9,643376,Danny Jansen,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,1,687551,Drew Gilbert,601713,Nick Pivetta,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,2,808982,Jung Hoo Lee,601713,Nick Pivetta,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,3,805811,Bryce Eldridge,601713,Nick Pivetta,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,4,813841,Jonah Cox,601713,Nick Pivetta,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,5,814154,Scott Bandura,601713,Nick Pivetta,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,6,694376,Shay Whitcomb,601713,Nick Pivetta,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,7,668800,Andrew Knizner,601713,Nick Pivetta,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,8,695391,Brett Harris,601713,Nick Pivetta,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Francisco Giants,San Diego Padres,home,9,683766,Christian Koss,601713,Nick Pivetta,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,1,665487,Fernando Tatis Jr.,657277,Logan Webb,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,2,687957,Dustin Harris,657277,Logan Webb,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,3,592518,Manny Machado,657277,Logan Webb,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,4,669134,Luis Campusano,657277,Logan Webb,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,5,701538,Jackson Merrill,657277,Logan Webb,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,6,593428,Xander Bogaerts,657277,Logan Webb,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,7,630105,Jake Cronenworth,657277,Logan Webb,L,R,L
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,8,669392,Samad Taylor,657277,Logan Webb,R,R,R
+2026-09-13,823171,2026-09-13T23:20:00Z,San Diego Padres,San Francisco Giants,away,9,806956,Ethan Salas,657277,Logan Webb,L,R,L
