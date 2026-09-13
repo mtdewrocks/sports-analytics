@@ -107,6 +107,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-13,822928,2026-09-13T17:40:00Z,Houston Astros,Tampa Bay Rays,away,7,572233,Christian Walker,642547,Freddy Peralta,R,R,R
 2026-09-13,822928,2026-09-13T17:40:00Z,Houston Astros,Tampa Bay Rays,away,8,701358,Cam Smith,642547,Freddy Peralta,R,R,R
 2026-09-13,822928,2026-09-13T17:40:00Z,Houston Astros,Tampa Bay Rays,away,9,666211,Taylor Trammell,642547,Freddy Peralta,L,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,1,669065,Kyle Stowers,686218,Emmet Sheehan,L,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,2,681715,Heriberto Hernández,686218,Emmet Sheehan,R,R,R
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,3,672640,Otto Lopez,686218,Emmet Sheehan,R,R,R
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,4,665052,Griffin Conine,686218,Emmet Sheehan,L,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,5,669364,Xavier Edwards,686218,Emmet Sheehan,S,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,6,805300,Jakob Marsee,686218,Emmet Sheehan,L,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,7,691594,Javier Sanoja,686218,Emmet Sheehan,R,R,R
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,8,691788,Joe Mack,686218,Emmet Sheehan,L,R,L
+2026-09-13,823815,2026-09-13T17:40:00Z,Miami Marlins,Los Angeles Dodgers,home,9,665923,Esteury Ruiz,686218,Emmet Sheehan,R,R,R
 2026-09-13,823815,2026-09-13T17:40:00Z,Los Angeles Dodgers,Miami Marlins,away,1,605141,Mookie Betts,691587,Eury Pérez,R,R,R
 2026-09-13,823815,2026-09-13T17:40:00Z,Los Angeles Dodgers,Miami Marlins,away,2,518692,Freddie Freeman,691587,Eury Pérez,L,R,L
 2026-09-13,823815,2026-09-13T17:40:00Z,Los Angeles Dodgers,Miami Marlins,away,3,571970,Max Muncy,691587,Eury Pérez,L,R,L
@@ -188,6 +197,15 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-13,824628,2026-09-13T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,7,663968,Jake Mangum,571510,Matthew Boyd,S,L,R
 2026-09-13,824628,2026-09-13T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,8,669707,Jared Triolo,571510,Matthew Boyd,R,L,R
 2026-09-13,824628,2026-09-13T18:20:00Z,Pittsburgh Pirates,Chicago Cubs,away,9,680779,Henry Davis,571510,Matthew Boyd,R,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,1,701350,Roman Anthony,702070,Noah Cameron,L,L,L
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,2,663330,Jahmai Jones,702070,Noah Cameron,R,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,3,677800,Wilyer Abreu,702070,Noah Cameron,L,L,L
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,4,575929,Willson Contreras,702070,Noah Cameron,R,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,5,668939,Adley Rutschman,702070,Noah Cameron,S,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,6,596115,Trevor Story,702070,Noah Cameron,R,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,7,702332,Caleb Durbin,702070,Noah Cameron,R,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,8,686765,Nick Sogard,702070,Noah Cameron,S,L,R
+2026-09-13,824708,2026-09-13T19:05:00Z,Boston Red Sox,Kansas City Royals,home,9,681987,Nate Eaton,702070,Noah Cameron,R,L,R
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,1,679845,Nick Loftin,801139,Payton Tolle,R,L,R
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,2,677951,Bobby Witt Jr.,801139,Payton Tolle,R,L,R
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,3,695506,Jac Caglianone,801139,Payton Tolle,L,L,L
@@ -197,3 +215,39 @@ date,game_pk,game_time_utc,team,opponent,home_away,slot,batter_id,batter_name,op
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,7,686555,Isaac Collins,801139,Payton Tolle,S,L,R
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,8,571912,Luke Maile,801139,Payton Tolle,R,L,R
 2026-09-13,824708,2026-09-13T19:05:00Z,Kansas City Royals,Boston Red Sox,away,9,686475,Tyler Tolbert,801139,Payton Tolle,R,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,1,703607,Henry Bolte,682243,Bryce Miller,R,R,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,2,643446,Jeff McNeil,682243,Bryce Miller,L,R,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,3,680869,Zack Gelof,682243,Bryce Miller,R,R,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,4,671732,Lawrence Butler,682243,Bryce Miller,L,R,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,5,691777,Max Muncy,682243,Bryce Miller,R,R,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,6,622268,Donovan Walton,682243,Bryce Miller,L,R,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,7,666126,Carlos Cortes,682243,Bryce Miller,L,R,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,8,661531,Brian Serven,682243,Bryce Miller,R,R,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Athletics,Seattle Mariners,home,9,675961,Alika Williams,682243,Bryce Miller,R,R,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,1,641487,J.P. Crawford,682052,Jacob Lopez,L,L,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,2,668227,Randy Arozarena,682052,Jacob Lopez,R,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,3,686527,Dominic Canzone,682052,Jacob Lopez,L,L,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,4,663728,Cal Raleigh,682052,Jacob Lopez,S,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,5,677594,Julio Rodríguez,682052,Jacob Lopez,R,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,6,647304,Josh Naylor,682052,Jacob Lopez,L,L,L
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,7,703197,Michael Arroyo,682052,Jacob Lopez,R,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,8,642215,Weston Wilson,682052,Jacob Lopez,R,L,R
+2026-09-13,824952,2026-09-13T20:05:00Z,Seattle Mariners,Athletics,away,9,640902,Jhonny Pereda,682052,Jacob Lopez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,1,663457,Lars Nootbaar,615698,Cal Quantrill,L,R,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,2,606466,Ketel Marte,615698,Cal Quantrill,S,R,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,3,672515,Gabriel Moreno,615698,Cal Quantrill,R,R,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,4,672695,Geraldo Perdomo,615698,Cal Quantrill,S,R,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,5,682998,Corbin Carroll,615698,Cal Quantrill,L,R,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,6,571448,Nolan Arenado,615698,Cal Quantrill,R,R,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,7,694374,Tim Tawa,615698,Cal Quantrill,R,R,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,8,543510,James McCann,615698,Cal Quantrill,R,R,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Arizona Diamondbacks,Texas Rangers,home,9,691783,Jordan Lawlar,615698,Cal Quantrill,R,R,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,1,679822,Justin Foscue,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,2,608369,Corey Seager,593958,Eduardo Rodriguez,L,L,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,3,673962,Josh Jung,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,4,669394,Jake Burger,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,5,607043,Brandon Nimmo,593958,Eduardo Rodriguez,L,L,L
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,6,694671,Wyatt Langford,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,7,677649,Ezequiel Duran,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,8,553869,Elias Díaz,593958,Eduardo Rodriguez,R,L,R
+2026-09-13,825033,2026-09-13T20:10:00Z,Texas Rangers,Arizona Diamondbacks,away,9,643376,Danny Jansen,593958,Eduardo Rodriguez,R,L,R
