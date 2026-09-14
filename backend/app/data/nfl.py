@@ -1368,25 +1368,192 @@ def get_team_usage(team: str, week: Optional[int] = None) -> Dict[str, Any]:
         # summed totals rather than averaging each week's already-computed
         # share (averaging shares across weeks of different pass volume
         # would over-weight a low-volume week).
+        # Counting stats for every situational slice the pbp pipeline
+        # produces -- discovered from the frame rather than hardcoded, so
+        # adding a split in get_nfl_pbp.py (fourth down, two-minute) shows up
+        # here without a second edit in a file nobody would think to open.
         numeric_cols = [
-            "targets", "receptions", "receiving_yards", "air_yards", "receiving_tds",
-            "carries", "rushing_yards", "rushing_tds",
-            "rz_targets", "rz_receptions", "rz_receiving_yards", "rz_air_yards", "rz_receiving_tds",
-            "rz_carries", "rz_rushing_yards", "rz_rushing_tds",
+            f"{prefix}{stat}"
+            for prefix in USAGE_PREFIXES
+            for stat in USAGE_COUNT_STATS
+            if f"{prefix}{stat}" in sub.columns
         ]
         players = sub.groupby(["player_id", "player"], as_index=False)[numeric_cols].sum()
-        team_targets = players["targets"].sum()
-        team_air_yards = players["air_yards"].sum()
-        team_carries = players["carries"].sum()
-        players["target_share"] = (players["targets"] / team_targets) if team_targets else 0
-        players["air_yards_share"] = (players["air_yards"] / team_air_yards) if team_air_yards else 0
-        players["rush_share"] = (players["carries"] / team_carries) if team_carries else 0
+        # Recompute shares from the summed totals rather than averaging each
+        # week's already-computed share -- averaging shares across weeks of
+        # different pass volume would over-weight a low-volume week.
+        for prefix in USAGE_PREFIXES:
+            for share_col, source_col in (
+                (f"{prefix}target_share", f"{prefix}targets"),
+                (f"{prefix}air_yards_share", f"{prefix}air_yards"),
+                (f"{prefix}rush_share", f"{prefix}carries"),
+            ):
+                if source_col not in players.columns:
+                    continue
+                total = players[source_col].sum()
+                players[share_col] = (players[source_col] / total) if total else 0
         players = players.sort_values("targets", ascending=False)
+
+    players = _attach_position(players)
 
     return {
         "team": team,
         "week": week,
-        "players": players.fillna(0).to_dict(orient="records"),
+        "weeks_available": _weeks_for_team(df, team),
+        # Which situational toggles the UI may offer. The third-down columns
+        # only exist in files written after that split was added to
+        # get_nfl_pbp.py, so between deploying the code and the next workflow
+        # run this list is short by one -- and the page has to hide the toggle
+        # rather than show one that silently returns zeroes.
+        "splits_available": [p or "all" for p in USAGE_PREFIXES
+                             if f"{p}targets" in players.columns],
+        "totals": _usage_totals(players),
+        # fillna only on the numbers. A blanket fillna(0) turned a player the
+        # roster pull hasn't got into position "0", which then renders as a
+        # position chip reading 0.
+        "players": _fill_numeric(players).to_dict(orient="records"),
+    }
+
+
+def _fill_numeric(frame: pd.DataFrame) -> pd.DataFrame:
+    out = frame.copy()
+    num = out.select_dtypes(include="number").columns
+    out[num] = out[num].fillna(0)
+    return out.astype(object).where(pd.notna(out), None)
+
+
+# Situational slices produced by get_nfl_pbp.py. "" is all plays; the rest are
+# strict subsets of it.
+USAGE_PREFIXES = ("", "rz_", "third_")
+USAGE_COUNT_STATS = (
+    "targets", "receptions", "receiving_yards", "air_yards", "receiving_tds",
+    "carries", "rushing_yards", "rushing_tds",
+)
+
+
+def _attach_position(players: pd.DataFrame) -> pd.DataFrame:
+    """Position from the current roster, joined on player_id.
+
+    On id, not name: the play-by-play abbreviates ("A.St. Brown"), so name
+    matching against a roster's "Amon-Ra St. Brown" needs fuzzy logic that
+    the shared id makes unnecessary.
+    """
+    if players.empty or "player_id" not in players.columns:
+        return players
+    rosters = get_nfl_rosters()
+    if rosters.empty or "player_id" not in rosters.columns or "position" not in rosters.columns:
+        players["position"] = None
+        return players
+    lookup = rosters.drop_duplicates(subset=["player_id"])[["player_id", "position"]]
+    return players.merge(lookup, on="player_id", how="left")
+
+
+def _weeks_for_team(df: pd.DataFrame, team: str) -> List[int]:
+    sub = df[df["posteam"].str.lower() == team.lower().strip()]
+    if sub.empty or "week" not in sub.columns:
+        return []
+    return sorted(int(w) for w in sub["week"].dropna().unique())
+
+
+def _usage_totals(players: pd.DataFrame) -> Dict[str, Any]:
+    """Team touch totals per slice, for the page header.
+
+    Deliberately "touches" and not "plays": these are targets plus carries by
+    skill-position players, which excludes sacks, scrambles credited
+    elsewhere, kneels and spikes. Calling it plays would be wrong by a few
+    every week, and the label is what makes the number trustworthy.
+    """
+    out: Dict[str, Any] = {}
+    for prefix in USAGE_PREFIXES:
+        t_col, c_col = f"{prefix}targets", f"{prefix}carries"
+        targets = float(players[t_col].sum()) if t_col in players.columns else 0.0
+        carries = float(players[c_col].sum()) if c_col in players.columns else 0.0
+        touches = targets + carries
+        out[prefix or "all"] = {
+            "targets": targets,
+            "carries": carries,
+            "touches": touches,
+            "pass_pct": round(targets / touches * 100, 1) if touches else None,
+        }
+    return out
+
+
+def get_player_usage_trend(player: str, stat: str = "targets") -> Dict[str, Any]:
+    """One player's week-by-week share of his team's usage, plus every
+    teammate's line and the team's own weekly volume.
+
+    All three are needed together and that is the whole point of the page.
+    Share is zero-sum, so a rising line means nothing until you can see whose
+    share it came from -- hence the teammates. And a share is a share OF
+    something, so 25% of 30 targets and 25% of 45 are different weeks -- hence
+    the team volume.
+    """
+    valid = {"targets": "target_share", "carries": "rush_share", "air_yards": "air_yards_share"}
+    if stat not in valid:
+        raise ValueError(f"stat must be one of {sorted(valid)}")
+    share_col = valid[stat]
+
+    df = get_nfl_player_week_usage()
+    empty = {"player": player, "stat": stat, "team": None, "position": None,
+             "weeks": [], "series": [], "teammates": []}
+    if df.empty:
+        return empty
+
+    name_norm = _normalize_loose(player)
+    rows = df[df["player"].apply(_normalize_loose) == name_norm]
+    if rows.empty:
+        return empty
+
+    team = rows.sort_values("week")["posteam"].iloc[-1]
+    team_rows = df[df["posteam"] == team]
+    weeks = sorted(int(w) for w in team_rows["week"].dropna().unique())
+
+    by_week = rows.set_index("week")
+    team_totals = team_rows.groupby("week")[stat].sum()
+
+    series = []
+    for w in weeks:
+        r = by_week.loc[w] if w in by_week.index else None
+        if r is not None and isinstance(r, pd.DataFrame):  # duplicate week rows
+            r = r.iloc[0]
+        series.append({
+            "week": w,
+            "value": float(r[stat]) if r is not None else 0.0,
+            "share": float(r[share_col]) if r is not None and pd.notna(r[share_col]) else 0.0,
+            "team_total": float(team_totals.get(w, 0.0)),
+        })
+
+    # Teammates, drawn in grey behind the subject. Capped at the ones who
+    # actually matter: anyone averaging under 5% of the team's usage is a line
+    # sitting on the axis adding noise, not context.
+    teammates = []
+    for (pid, name), grp in team_rows.groupby(["player_id", "player"]):
+        if _normalize_loose(name) == name_norm:
+            continue
+        mean_share = grp[share_col].fillna(0).mean()
+        if not mean_share or mean_share < 0.05:
+            continue
+        g = grp.set_index("week")
+        teammates.append({
+            "player": name,
+            "series": [
+                {"week": w, "share": float(g.loc[w, share_col]) if w in g.index and pd.notna(g.loc[w, share_col]) else 0.0}
+                for w in weeks
+            ],
+        })
+    teammates.sort(key=lambda t: -sum(p["share"] for p in t["series"]))
+
+    positions = _attach_position(rows.head(1).copy())
+    position = positions["position"].iloc[0] if "position" in positions.columns and not positions.empty else None
+
+    return {
+        "player": rows["player"].iloc[0],
+        "stat": stat,
+        "team": team,
+        "position": position if isinstance(position, str) else None,
+        "weeks": weeks,
+        "series": series,
+        "teammates": teammates,
     }
 
 

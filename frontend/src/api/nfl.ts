@@ -42,3 +42,9 @@ export const getNFLSeasonScreener = (season: number, filters: string[]) => {
   filters.forEach((f) => qs.append('filters', f));
   return client.get(`/api/nfl/season-screener?${qs.toString()}`);
 };
+
+export const getNFLUsageTeams = () => client.get('/api/nfl/teams');
+export const getNFLTeamUsage = (team: string, week?: number) =>
+  client.get('/api/nfl/usage', { params: week != null ? { team, week } : { team } });
+export const getNFLUsageTrend = (player: string, stat: string) =>
+  client.get('/api/nfl/usage/trend', { params: { player, stat } });

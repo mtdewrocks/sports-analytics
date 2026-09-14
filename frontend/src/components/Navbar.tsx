@@ -34,6 +34,8 @@ const GROUPS: NavGroup[] = [
       { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
       { label: 'In/Out', to: '/nfl/in-out' },
       { label: 'Screener', to: '/nfl/season-screener' },
+      { label: 'Team Usage', to: '/nfl/team-usage' },
+      { label: 'Usage Trend', to: '/nfl/usage-trend' },
       { label: 'Mismatches', to: '/nfl/mismatches' },
     ],
   },

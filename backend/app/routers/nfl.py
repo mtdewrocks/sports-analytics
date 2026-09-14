@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional, List
 from app.auth.dependencies import require_access
 from app.data import nfl as nfl_data
@@ -50,6 +50,17 @@ def usage_teams(_=Depends(require_access)):
 @router.get("/usage")
 def usage(team: str = Query(...), week: Optional[int] = Query(None), _=Depends(require_access)):
     return nfl_data.get_team_usage(team, week)
+
+@router.get("/usage/trend")
+def usage_trend(
+    player: str = Query(...),
+    stat: str = Query("targets"),
+    _=Depends(require_access),
+):
+    try:
+        return nfl_data.get_player_usage_trend(player, stat)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/fantasy-matchup/current-week")
 def fantasy_matchup_current_week(players: List[str] = Query(..., min_length=2, max_length=4), _=Depends(require_access)):

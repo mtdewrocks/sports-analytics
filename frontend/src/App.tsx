@@ -58,6 +58,8 @@ import NFLFantasyMatchup from './pages/nfl/NFLFantasyMatchup';
 import NFLInOut from './pages/nfl/NFLInOut';
 import NFLSeasonScreener from './pages/nfl/NFLSeasonScreener';
 import NFLMismatches from './pages/nfl/NFLMismatches';
+import NFLTeamUsage from './pages/nfl/NFLTeamUsage';
+import NFLPlayerUsageTrend from './pages/nfl/NFLPlayerUsageTrend';
 
 import MLBMatchup from './pages/mlb/MLBMatchup';
 import MLBTeamMatchup from './pages/mlb/MLBTeamMatchup';
@@ -90,6 +92,8 @@ export default function App() {
           <Route path="/nfl/in-out" element={<PrivateRoute><NFLInOut /></PrivateRoute>} />
           <Route path="/nfl/season-screener" element={<PrivateRoute><NFLSeasonScreener /></PrivateRoute>} />
           <Route path="/nfl/mismatches" element={<PrivateRoute><NFLMismatches /></PrivateRoute>} />
+          <Route path="/nfl/team-usage" element={<PrivateRoute><NFLTeamUsage /></PrivateRoute>} />
+          <Route path="/nfl/usage-trend" element={<PrivateRoute><NFLPlayerUsageTrend /></PrivateRoute>} />
 
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
           <Route path="/mlb/team-matchup" element={<PrivateRoute><MLBTeamMatchup /></PrivateRoute>} />

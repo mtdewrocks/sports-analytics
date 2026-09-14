@@ -64,38 +64,28 @@ def fetch_pbp(season: int) -> pd.DataFrame | None:
     return pd.read_parquet(io.BytesIO(r.content))
 
 
-def _has_fully_completed_week(season: int) -> bool:
-    """Whether at least one week of the given season has EVERY one of its
-    games finished -- not just whether any single game has. Checking for
-    ANY completed game (the old condition, via `fetch_pbp(season) is
-    None`) meant PBP data existing for even one or two early games was
-    enough to treat the whole season as usable, even though the vast
-    majority of teams -- anyone who simply hadn't played their own game
-    yet -- would have zero snaps and show up with no real data instead of
-    a real prior-season baseline."""
-    import io
-    r = requests.get(
-        "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
-        timeout=TIMEOUT,
-    )
-    if r.status_code != 200:
-        return False
-    schedule = pd.read_csv(io.BytesIO(r.content), low_memory=False)
-    season_games = schedule[schedule["season"] == season]
-    if season_games.empty:
-        return False
-    completed = season_games[season_games["home_score"].notna()]
-    week_totals = season_games.groupby("week").size()
-    week_completed = completed.groupby("week").size()
-    return any(week_completed.get(w, 0) == week_totals[w] for w in week_totals.index)
+THIRD_DOWN = 3
+
+# The situational slices this file produces, as (column prefix, row filter).
+# Adding another split -- fourth down, two-minute, whatever -- is one more
+# entry here; nothing else in the file needs to know about it.
+#
+# Every slice is a strict SUBSET of the unprefixed one, which is what lets
+# build() left-merge each onto the overall frame and fill the misses with 0.
+USAGE_SLICES: list[tuple[str, "callable | None"]] = [
+    ("", None),
+    ("rz_", lambda d: d["yardline_100"] <= RED_ZONE_YARDLINE),
+    # `down` is NaN on kickoffs, extra points and timeouts; == 3 is False for
+    # those, which is what we want -- they aren't third-down plays.
+    ("third_", lambda d: d["down"] == THIRD_DOWN),
+]
 
 
-def _usage_slice(df: pd.DataFrame, red_zone_only: bool) -> pd.DataFrame:
-    """One row per player-week-role (receiver or rusher), for either all
-    plays or red-zone plays only, depending on `red_zone_only`."""
-    frame = df
-    if red_zone_only:
-        frame = frame[frame["yardline_100"] <= RED_ZONE_YARDLINE]
+def _usage_slice(df: pd.DataFrame, prefix: str, mask_fn) -> pd.DataFrame:
+    """One row per player-week-role (receiver or rusher), over the subset of
+    plays `mask_fn` selects. `prefix` is prepended to every stat column, so
+    the caller can merge several slices side by side."""
+    frame = df if mask_fn is None else df[mask_fn(df)]
 
     targets = (
         frame[frame["pass_attempt"] == 1]
@@ -133,7 +123,6 @@ def _usage_slice(df: pd.DataFrame, red_zone_only: bool) -> pd.DataFrame:
     for c in numeric_cols:
         merged[c] = merged[c].fillna(0)
 
-    prefix = "rz_" if red_zone_only else ""
     merged = merged.rename(columns={c: f"{prefix}{c}" for c in numeric_cols})
     return merged
 
@@ -142,17 +131,17 @@ REGULAR_SEASON_MAX_WEEK = 18  # weeks 19+ are playoffs -- matches get_nfl_weekly
 
 
 def build(season: int) -> pd.DataFrame:
-    is_fallback = not _has_fully_completed_week(season)
+    df = fetch_pbp(season)
+    is_fallback = False
 
-    if is_fallback:
-        # No fully-completed week yet this season (e.g. Week 1, even after
-        # a game or two has been played) -- fall back to last season's
-        # regular season, same reasoning and same week-18 cutoff as
+    if df is None:
+        # No games played yet this season (e.g. Week 1) -- fall back to last
+        # season's regular season, same reasoning and same week-18 cutoff as
         # get_nfl_weekly_stats.py's fallback, so the two files tell a
         # consistent story rather than one reflecting a different season or
         # including playoff data the other excludes.
         fallback_season = season - 1
-        print(f"no fully-completed week yet for {season}; falling back to {fallback_season} "
+        print(f"no play-by-play for {season} yet; falling back to {fallback_season} "
               f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
         df = fetch_pbp(fallback_season)
         if df is None:
@@ -162,47 +151,38 @@ def build(season: int) -> pd.DataFrame:
                 f"https://github.com/nflverse/nflverse-data/releases/tag/pbp directly."
             )
         df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
-    else:
-        df = fetch_pbp(season)
-        if df is None:
-            # Schedule says a week finished, but PBP hasn't been published
-            # for it yet (a real, if rare, lag between sources) -- treat
-            # the same as no data yet rather than crash.
-            fallback_season = season - 1
-            print(f"schedule shows a completed week but no PBP yet for {season}; "
-                  f"falling back to {fallback_season} regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
-            df = fetch_pbp(fallback_season)
-            if df is None:
-                raise RuntimeError(
-                    f"No play-by-play available for {season} OR its fallback {fallback_season}. "
-                    f"Something's genuinely wrong (not just \"season hasn't started\") -- check "
-                    f"https://github.com/nflverse/nflverse-data/releases/tag/pbp directly."
-                )
-            df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
-            is_fallback = True
+        is_fallback = True
 
     print(f"{len(df)} plays loaded" + (f" (fallback season {df['season'].iloc[0]})" if is_fallback else f" for {season}"))
 
-    overall = _usage_slice(df, red_zone_only=False)
-    red_zone = _usage_slice(df, red_zone_only=True)
+    key = ["season", "week", "posteam", "player_id", "player"]
 
-    merged = overall.merge(
-        red_zone, on=["season", "week", "posteam", "player_id", "player"], how="left"
-    )
-    rz_cols = [c for c in merged.columns if c.startswith("rz_")]
-    for c in rz_cols:
-        merged[c] = merged[c].fillna(0)
+    base_prefix, base_mask = USAGE_SLICES[0]
+    merged = _usage_slice(df, base_prefix, base_mask)
+
+    for prefix, mask_fn in USAGE_SLICES[1:]:
+        slice_frame = _usage_slice(df, prefix, mask_fn)
+        merged = merged.merge(slice_frame, on=key, how="left")
+        # A player with no third-down target didn't have a missing third down,
+        # he had zero of them -- so these are 0, not NaN.
+        for c in [c for c in merged.columns if c.startswith(prefix)]:
+            merged[c] = merged[c].fillna(0)
 
     # Team-week totals, for target_share / air_yards_share / rush_share --
     # computed here rather than left to the API layer, since it's the same
-    # groupby every consumer would otherwise repeat.
-    team_week_targets = merged.groupby(["season", "week", "posteam"])["targets"].transform("sum")
-    team_week_air_yards = merged.groupby(["season", "week", "posteam"])["air_yards"].transform("sum")
-    team_week_carries = merged.groupby(["season", "week", "posteam"])["carries"].transform("sum")
+    # groupby every consumer would otherwise repeat. Done for every slice, so
+    # a Red Zone or Third Down view gets shares of THAT slice's team total
+    # rather than having to recompute them (and shares of red-zone targets are
+    # a different, more useful number than a player's overall share).
+    for prefix, _ in USAGE_SLICES:
+        for share_col, source_col in (
+            (f"{prefix}target_share", f"{prefix}targets"),
+            (f"{prefix}air_yards_share", f"{prefix}air_yards"),
+            (f"{prefix}rush_share", f"{prefix}carries"),
+        ):
+            team_week_total = merged.groupby(["season", "week", "posteam"])[source_col].transform("sum")
+            merged[share_col] = (merged[source_col] / team_week_total).where(team_week_total > 0)
 
-    merged["target_share"] = (merged["targets"] / team_week_targets).where(team_week_targets > 0)
-    merged["air_yards_share"] = (merged["air_yards"] / team_week_air_yards).where(team_week_air_yards > 0)
-    merged["rush_share"] = (merged["carries"] / team_week_carries).where(team_week_carries > 0)
     merged["is_fallback"] = is_fallback
 
     return merged.sort_values(["season", "week", "posteam", "targets"], ascending=[True, True, True, False])
