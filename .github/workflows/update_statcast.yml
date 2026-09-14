@@ -45,7 +45,7 @@ jobs:
       - name: Restore data from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: scripts/release_data.sh pull data-mlb backend/data/mlb
+        run: bash scripts/release_data.sh pull data-mlb backend/data/mlb
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -103,7 +103,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          scripts/release_data.sh push data-mlb \
+          bash scripts/release_data.sh push data-mlb \
             backend/data/mlb/daily_components_2026.parquet \
             backend/data/mlb/fg_woba_weights.json \
             backend/data/mlb/statcast_hitters_2026.xlsx \

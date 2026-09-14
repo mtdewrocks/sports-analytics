@@ -22,6 +22,12 @@
 #   scripts/release_data.sh pull data-mlb backend/data/mlb '*.parquet'
 #   scripts/release_data.sh push data-mlb backend/data/mlb/starters.parquet ...
 #
+# The workflows invoke this as `bash scripts/release_data.sh ...` rather than
+# executing it directly, on purpose: the repo is edited on Windows, where the
+# Unix executable bit does not survive, so relying on file mode gives a
+# "Permission denied" / exit 126 on the runner. Calling bash explicitly works
+# whatever mode the file happens to be committed with.
+#
 # Requires `gh` (preinstalled on GitHub-hosted runners) and GH_TOKEN. The
 # workflow's built-in secrets.GITHUB_TOKEN is enough -- it needs `contents:
 # write`, which these workflows already declare. No PAT.

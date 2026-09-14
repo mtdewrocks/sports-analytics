@@ -17,9 +17,8 @@ on:
     #
     # So this asks for more than it needs and lets the drops bring it back down
     # to about hourly. That is only safe because the job is idempotent: it
-    # re-pulls the same endpoints, and the commit step exits with "No changes to
-    # commit" when nothing moved. A run that finds nothing new costs ~40s of
-    # free-tier compute.
+    # re-pulls the same endpoints and re-uploads the same release assets over
+    # themselves. A run that finds nothing new costs ~40s of free-tier compute.
     #
     # If you ever need an actual guarantee rather than a good average, the only
     # way is to stop using GitHub's scheduler: have something with a real clock
@@ -101,7 +100,7 @@ jobs:
       - name: Restore data from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: scripts/release_data.sh pull data-mlb backend/data/mlb
+        run: bash scripts/release_data.sh pull data-mlb backend/data/mlb
 
       # Independent of lineups -- writes starters.parquet on every run, so a
       # pitcher making his season debut reaches the dropdown within the hour.
@@ -163,7 +162,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           day="$(TZ=America/Chicago date +%F)"
-          scripts/release_data.sh push data-mlb \
+          bash scripts/release_data.sh push data-mlb \
             backend/data/mlb/starters.parquet \
             backend/data/mlb/mlb_rosters.parquet \
             backend/data/mlb/probable_starters.parquet \

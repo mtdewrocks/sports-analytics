@@ -39,7 +39,7 @@ jobs:
       - name: Restore data from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: scripts/release_data.sh pull data-nfl backend/data/nfl
+        run: bash scripts/release_data.sh pull data-nfl backend/data/nfl
 
       # Re-pulls and re-aggregates the whole season's play-by-play each run
       # -- nflverse republishes the full file, not an incremental daily log,
@@ -150,7 +150,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          scripts/release_data.sh push data-nfl \
+          bash scripts/release_data.sh push data-nfl \
             backend/data/nfl/player_week_usage.parquet \
             backend/data/nfl/team_stats.parquet \
             backend/data/nfl/nfl_schedule.parquet \
