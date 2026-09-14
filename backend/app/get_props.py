@@ -59,7 +59,14 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from app.props_config import SPORTS, SportConfig
+# Run as a plain script (`python backend/app/get_props.py`), sys.path[0] is
+# backend/app/ -- so `backend/` is not importable and `from app.props_config`
+# fails with ModuleNotFoundError. Same bootstrap update_stats_refactored.py
+# already uses, so sibling imports work however this is invoked.
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from props_config import SPORTS, SportConfig  # noqa: E402
 
 API_BASE = "https://api.the-odds-api.com/v4"
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"

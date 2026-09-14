@@ -83,11 +83,16 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 from pathlib import Path
 
 import pandas as pd
 
-from app.props_config import SPORTS
+# See get_props.py -- same reason, same fix.
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from props_config import SPORTS  # noqa: E402
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 
