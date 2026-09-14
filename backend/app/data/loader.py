@@ -277,11 +277,50 @@ def get_pitcher_names() -> list:
         return []
 
 
+# Props files by sport. Both sports write the same schema from get_props.py,
+# so one reader serves both -- only the URL differs.
+_PROPS_URLS = {
+    "mlb": lambda: settings.MLB_PROPS_URL,
+    "nfl": lambda: settings.NFL_PROPS_URL,
+}
+_MIDDLES_URLS = {
+    "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_prop_middles.parquet",
+    "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_prop_middles.parquet",
+}
+
+
+@ttl_cache(MLB_TTL)
+def get_props_data(sport: str) -> pd.DataFrame:
+    """Long-format props for one sport."""
+    url = _PROPS_URLS.get(sport)
+    if url is None:
+        return pd.DataFrame()
+    return _load(url(), pd.read_parquet, f"{sport} props")
+
+
+@ttl_cache(MLB_TTL)
+def get_middles_data(sport: str) -> pd.DataFrame:
+    """Priced middle/arb pairs for one sport, from build_prop_middles.py."""
+    url = _MIDDLES_URLS.get(sport)
+    if url is None:
+        return pd.DataFrame()
+    return _load(url(), pd.read_parquet, f"{sport} middles")
+
+
 @ttl_cache(MLB_TTL)
 def get_mlb_props_data() -> pd.DataFrame:
-    """Separate cache for props — only loaded when the MLBProps page is hit."""
-    base = settings.MLB_BASE_URL
-    return _load(f"{base}/Daily_Props.xlsx", pd.read_excel, "props")
+    """Separate cache for props — only loaded when the MLBProps page is hit.
+
+    Its own setting rather than MLB_BASE_URL so the producer can change without
+    touching the rest of the loader -- which is exactly what happened: it was a
+    hand-maintained xlsx on `main`, and is now a parquet built by
+    update_props.yml and published to the data-mlb release.
+
+    get_mlb_props() in app/data/mlb.py pivots this wide, and it finds its
+    columns by name, so "Player" / "market" / "Line" / "bookmakers" /
+    "Over Price" are a contract with get_mlb_props.py.
+    """
+    return _load(settings.MLB_PROPS_URL, pd.read_parquet, "props")
 
 
 @ttl_cache(MLB_TTL)

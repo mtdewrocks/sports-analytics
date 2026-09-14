@@ -10,3 +10,5 @@ export const getMLBPitcherDailyReport = () => client.get('/api/mlb/pitcher-daily
 export const getMLBTodaysMatchups = () => client.get('/api/mlb/todays-matchups');
 export const getMLBTeamMatchup = (teamA: string, teamB: string) =>
   client.get('/api/mlb/team-matchup', { params: { team_a: teamA, team_b: teamB } });
+
+export const getMLBMiddles = (params: Record<string, any>) => client.get('/api/mlb/middles', { params });

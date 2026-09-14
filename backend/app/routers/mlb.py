@@ -46,6 +46,13 @@ def bullpen(team: str = Query(...), _=Depends(require_access)):
 def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None), market: Optional[str] = Query(None), _=Depends(require_access)):
     return mlb_data.get_mlb_props(team, player, market)
 
+@router.get("/middles")
+def mlb_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query(None),
+                market: Optional[str] = Query(None), _=Depends(require_access)):
+    from app.data.props import get_middles
+    return get_middles("mlb", kind, player, market)
+
+
 @router.post("/refresh")
 def refresh_cache(_=Depends(require_access)):
     """Clear all MLB data caches so fresh files are fetched from GitHub on next request."""

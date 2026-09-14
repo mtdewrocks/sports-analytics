@@ -86,3 +86,17 @@ def season_screener(
     _=Depends(require_access),
 ):
     return nfl_data.get_nfl_season_screener(season, position, filters)
+
+
+@router.get("/props")
+def nfl_props(team: str | None = Query(None), player: str | None = Query(None),
+              market: str | None = Query(None), _=Depends(require_access)):
+    from app.data.props import get_props
+    return get_props("nfl", team, player, market)
+
+
+@router.get("/middles")
+def nfl_middles(kind: str | None = Query(None), player: str | None = Query(None),
+                market: str | None = Query(None), _=Depends(require_access)):
+    from app.data.props import get_middles
+    return get_middles("nfl", kind, player, market)

@@ -37,6 +37,7 @@ const GROUPS: NavGroup[] = [
       { label: 'Team Usage', to: '/nfl/team-usage' },
       { label: 'Usage Trend', to: '/nfl/usage-trend' },
       { label: 'Mismatches', to: '/nfl/mismatches' },
+      { label: 'Props', to: '/nfl/props' },
     ],
   },
   {
@@ -291,6 +292,17 @@ export default function Navbar() {
                 }}
               >
                 Dashboard
+              </Link>
+              <Link
+                to="/middles"
+                onClick={() => setMoreOpen(false)}
+                style={{
+                  display: 'block', padding: '13px 2px', minHeight: 44, fontSize: 15,
+                  color: theme.textPrimary, textDecoration: 'none',
+                  borderBottom: `1px solid ${theme.border}`,
+                }}
+              >
+                Middles &amp; Arbs
               </Link>
               <Link
                 to="/billing"

@@ -430,64 +430,11 @@ _EXCLUDED_BOOKS = {
 }
 
 
-def get_mlb_props(
-    team: Optional[str] = None,
-    player: Optional[str] = None,
-    market: Optional[str] = None,
-) -> List[Dict[str, Any]]:
-    """Return MLB props pivoted wide (one row per player/line/market, sportsbooks as columns)."""
-    props_df = get_mlb_props_data()
-    if props_df.empty:
-        return []
-
-    props_df = props_df.copy()
-    props_df.columns = [c.strip().lower().replace(" ", "_") for c in props_df.columns]
-
-    player_col  = _find_col(props_df, ["player", "player_name", "name"])
-    market_col  = _find_col(props_df, ["market", "prop_type", "stat", "bet_type", "category"])
-    book_col    = _find_col(props_df, ["bookmakers", "bookmaker", "sportsbook"])
-    price_col   = _find_col(props_df, ["over_price", "price", "over"])
-    line_col    = _find_col(props_df, ["line", "line_value"])
-
-    # Remove excluded sportsbooks
-    if book_col:
-        props_df = props_df[~props_df[book_col].str.lower().isin(_EXCLUDED_BOOKS)]
-
-    # Optional row-level filters
-    if player and player_col:
-        props_df = props_df[props_df[player_col].str.lower().str.strip() == _normalize(player)]
-    if market and market_col:
-        props_df = props_df[props_df[market_col].str.lower().str.strip() == _normalize(market)]
-
-    # Pivot to wide format
-    if book_col and price_col and player_col:
-        idx = [c for c in [player_col, line_col, market_col] if c]
-        try:
-            pivot = props_df.pivot_table(
-                index=idx,
-                columns=book_col,
-                values=price_col,
-                aggfunc="first",
-            ).reset_index()
-            pivot.columns.name = None
-
-            # Build line_id display label
-            pivot["line_id"] = pivot[player_col].astype(str)
-            if line_col and line_col in pivot.columns:
-                pivot["line_id"] = pivot["line_id"] + " " + pivot[line_col].astype(str)
-            if market_col and market_col in pivot.columns:
-                pivot["line_id"] = pivot["line_id"] + " " + pivot[market_col].astype(str)
-
-            # Reorder: line_id first, then meta, then sportsbook columns
-            meta = [c for c in idx if c in pivot.columns]
-            books = [c for c in pivot.columns if c not in meta and c != "line_id"]
-            pivot = pivot[["line_id"] + meta + books]
-            return pivot.fillna("").to_dict(orient="records")
-        except Exception as e:
-            print(f"Warning: props pivot failed: {e}")
-
-    return props_df.fillna("").to_dict(orient="records")
-
+def get_mlb_props(team=None, player=None, market=None):
+    """Kept as the MLB entry point; the implementation is shared with NFL in
+    app/data/props.py, since get_props.py emits one schema for both sports."""
+    from app.data.props import get_props
+    return get_props("mlb", team, player, market)
 
 def _ip_to_outs(ip: Any) -> int:
     """MLB's innings-pitched string ('1.2') is outs in disguise -- the part

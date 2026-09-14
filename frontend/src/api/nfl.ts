@@ -48,3 +48,6 @@ export const getNFLTeamUsage = (team: string, week?: number) =>
   client.get('/api/nfl/usage', { params: week != null ? { team, week } : { team } });
 export const getNFLUsageTrend = (player: string, stat: string) =>
   client.get('/api/nfl/usage/trend', { params: { player, stat } });
+
+export const getNFLProps = (params: Record<string, any>) => client.get('/api/nfl/props', { params });
+export const getNFLMiddles = (params: Record<string, any>) => client.get('/api/nfl/middles', { params });

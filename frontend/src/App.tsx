@@ -58,6 +58,7 @@ import NFLFantasyMatchup from './pages/nfl/NFLFantasyMatchup';
 import NFLInOut from './pages/nfl/NFLInOut';
 import NFLSeasonScreener from './pages/nfl/NFLSeasonScreener';
 import NFLMismatches from './pages/nfl/NFLMismatches';
+import NFLProps from './pages/nfl/NFLProps';
 import NFLTeamUsage from './pages/nfl/NFLTeamUsage';
 import NFLPlayerUsageTrend from './pages/nfl/NFLPlayerUsageTrend';
 
@@ -67,6 +68,7 @@ import MLBBullpen from './pages/mlb/MLBBullpen';
 import MLBPitcherDailyReport from './pages/mlb/MLBPitcherDailyReport';
 import MLBHotHitters from './pages/mlb/MLBHotHitters';
 import MLBProps from './pages/mlb/MLBProps';
+import PropMiddles from './pages/PropMiddles';
 
 export default function App() {
   return (
@@ -94,6 +96,7 @@ export default function App() {
           <Route path="/nfl/mismatches" element={<PrivateRoute><NFLMismatches /></PrivateRoute>} />
           <Route path="/nfl/team-usage" element={<PrivateRoute><NFLTeamUsage /></PrivateRoute>} />
           <Route path="/nfl/usage-trend" element={<PrivateRoute><NFLPlayerUsageTrend /></PrivateRoute>} />
+          <Route path="/nfl/props" element={<PrivateRoute><NFLProps /></PrivateRoute>} />
 
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
           <Route path="/mlb/team-matchup" element={<PrivateRoute><MLBTeamMatchup /></PrivateRoute>} />
@@ -101,6 +104,8 @@ export default function App() {
           <Route path="/mlb/pitcher-daily-report" element={<PrivateRoute><MLBPitcherDailyReport /></PrivateRoute>} />
           <Route path="/mlb/hot-hitters" element={<PrivateRoute><MLBHotHitters /></PrivateRoute>} />
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
+
+          <Route path="/middles" element={<PrivateRoute><PropMiddles /></PrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
