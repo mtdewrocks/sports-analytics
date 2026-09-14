@@ -41,6 +41,24 @@ def create_portal_session(customer_id: str, return_url: str) -> str:
     )
     return session.url
 
+def _period_end(stripe_sub: dict) -> datetime | None:
+    """Renewal date for a subscription.
+
+    Stripe removed `current_period_end` from the Subscription object in API
+    version 2025-03-31 (Basil) and moved it onto each subscription ITEM, so
+    reading it off the subscription now silently yields None -- no error, the
+    renewal date just never gets stored. We read the item, and fall back to the
+    old location so this keeps working on pre-Basil API versions.
+
+    Single-price subscriptions have exactly one item; if that ever changes, the
+    latest period end across items is the one the customer is paid through.
+    """
+    items = (stripe_sub.get("items") or {}).get("data") or []
+    ends = [i.get("current_period_end") for i in items if i.get("current_period_end")]
+    ts = max(ends) if ends else stripe_sub.get("current_period_end")
+    return datetime.utcfromtimestamp(ts) if ts else None
+
+
 def handle_webhook(payload: bytes, sig_header: str, db: Session) -> dict:
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
@@ -51,13 +69,31 @@ def handle_webhook(payload: bytes, sig_header: str, db: Session) -> dict:
         session = event["data"]["object"]
         user_id = session.get("metadata", {}).get("user_id")
         stripe_sub_id = session.get("subscription")
+        plan = session.get("metadata", {}).get("plan")
         if user_id and stripe_sub_id:
+            # Fetch the subscription so the renewal date is stored immediately.
+            # Waiting for customer.subscription.updated would leave it NULL
+            # until the first renewal -- and that event can also arrive BEFORE
+            # this one, in which case its handler finds no row yet and drops it.
+            period_end = None
+            try:
+                period_end = _period_end(stripe.Subscription.retrieve(stripe_sub_id))
+            except Exception:
+                pass  # a missing renewal date is not worth failing the webhook
+
             sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
             if sub:
                 sub.stripe_sub_id = stripe_sub_id
                 sub.status = "active"
+                if period_end:
+                    sub.current_period_end = period_end
+                if plan:
+                    sub.plan_id = plan
             else:
-                db.add(Subscription(id=str(uuid.uuid4()), user_id=user_id, stripe_sub_id=stripe_sub_id, status="active"))
+                db.add(Subscription(
+                    id=str(uuid.uuid4()), user_id=user_id, stripe_sub_id=stripe_sub_id,
+                    status="active", current_period_end=period_end, plan_id=plan,
+                ))
             db.commit()
 
     elif event["type"] in ("customer.subscription.updated", "customer.subscription.created"):
@@ -65,9 +101,9 @@ def handle_webhook(payload: bytes, sig_header: str, db: Session) -> dict:
         sub = db.query(Subscription).filter(Subscription.stripe_sub_id == stripe_sub["id"]).first()
         if sub:
             sub.status = stripe_sub["status"]
-            period_end = stripe_sub.get("current_period_end")
+            period_end = _period_end(stripe_sub)
             if period_end:
-                sub.current_period_end = datetime.utcfromtimestamp(period_end)
+                sub.current_period_end = period_end
             db.commit()
 
     elif event["type"] == "customer.subscription.deleted":

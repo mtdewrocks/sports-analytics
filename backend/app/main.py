@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 import os
 from app.database import create_tables
 from app.auth.router import router as auth_router
-from app.billing.router import router as billing_router
+from app.billing.billing_router import router as billing_router
 from app.routers.nba import router as nba_router
 from app.routers.nfl import router as nfl_router
 from app.routers.mlb import router as mlb_router

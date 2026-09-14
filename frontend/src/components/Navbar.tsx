@@ -179,6 +179,20 @@ export default function Navbar() {
 
   const activeGroup = GROUPS.find((g) => location.pathname.startsWith(`/${g.key}/`)) ?? null;
 
+  // Bring the current page's chip into view. Without this the row always
+  // starts at the far left, so on any page past the second one you can't see
+  // which one you're on -- and the longer the labels, the sooner that bites.
+  // scrollLeft rather than scrollIntoView, which would also move the page
+  // vertically.
+  const chipRowRef = useRef<HTMLDivElement>(null);
+  const activeChipRef = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    const row = chipRowRef.current;
+    const chip = activeChipRef.current;
+    if (!row || !chip) return;
+    row.scrollLeft = Math.max(0, chip.offsetLeft - (row.clientWidth - chip.clientWidth) / 2);
+  }, [location.pathname]);
+
   // -------------------------------------------------------------- mobile
   if (isMobile) {
     // Logged-out marketing pages get the bar only, no app navigation.
@@ -191,7 +205,7 @@ export default function Navbar() {
         </nav>
 
         {showTabs && activeGroup && (
-          <div style={{
+          <div ref={chipRowRef} style={{
             position: 'sticky', top: NAV_HEIGHT, zIndex: 999,
             background: theme.bgPage, borderBottom: `1px solid ${theme.border}`,
             display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none',
@@ -205,6 +219,7 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
+                  ref={on ? activeChipRef : undefined}
                   style={{
                     flex: '0 0 auto', textDecoration: 'none', whiteSpace: 'nowrap',
                     fontSize: 13, fontWeight: 600, borderRadius: 6, padding: '7px 13px', minHeight: 36,

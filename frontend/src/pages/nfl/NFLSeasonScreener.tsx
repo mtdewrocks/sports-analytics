@@ -46,8 +46,11 @@ const selectStyle: React.CSSProperties = {
 
 export default function NFLSeasonScreener() {
   const [season, setSeason] = useState(SEASONS[0]);
+  // Starts empty rather than prefilled -- a default threshold reads as a real
+  // filter you have to notice and clear. Search stays disabled until a number
+  // is entered.
   const [filters, setFilters] = useState<FilterRow[]>([
-    { id: 1, stat: 'rushing_yards', operator: '>=', value: '1000' },
+    { id: 1, stat: 'rushing_yards', operator: '>=', value: '' },
   ]);
   const [nextId, setNextId] = useState(2);
   const [results, setResults] = useState<ResultRow[] | null>(null);

@@ -130,18 +130,41 @@ export default function NFLMismatches() {
                     title={<span style={{ fontWeight: 700 }}>{g.matchup}</span>}
                     value={g.score}
                     valueColor={i === 0 ? theme.dataBlue : theme.textPrimary}
-                    meta={[
-                      <>
-                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{g.offense_team}</span>{' '}
-                        <span style={{ color: rankColor(g.offense_rank), fontWeight: 600 }}>{ordinal(g.offense_rank)}</span>
-                        {g.offense_value != null && <span style={{ color: theme.textMuted }}> ({g.offense_value})</span>}
-                        {' vs '}
-                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{g.defense_team}</span>{' '}
-                        <span style={{ color: rankColor(g.defense_rank), fontWeight: 600 }}>{ordinal(g.defense_rank)}</span>
-                        {g.defense_value != null && <span style={{ color: theme.textMuted }}> ({g.defense_value})</span>}
-                      </>,
-                    ]}
                   >
+                    {/* Both teams in a game appear on this list, once for each
+                        side, so "TEAM rank vs TEAM rank" on one line left you
+                        working out which half was the offense. Each side now
+                        gets its own row, named. */}
+                    <div style={{ marginTop: 7, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {([
+                        { team: g.offense_team, label: data.offense_label, rank: g.offense_rank, value: g.offense_value },
+                        { team: g.defense_team, label: data.defense_label, rank: g.defense_rank, value: g.defense_value },
+                      ]).map((side) => (
+                        <div key={side.label} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12 }}>
+                          <span style={{
+                            color: theme.textPrimary, fontWeight: 700,
+                            flex: '0 0 38px', width: 38,
+                          }}>
+                            {side.team}
+                          </span>
+                          <span style={{ color: theme.textSecondary, flex: 1, minWidth: 0 }}>{side.label}</span>
+                          <span style={{
+                            color: rankColor(side.rank), fontWeight: 700,
+                            fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+                          }}>
+                            {ordinal(side.rank)}
+                          </span>
+                          {side.value != null && (
+                            <span style={{
+                              color: theme.textMuted, fontVariantNumeric: 'tabular-nums',
+                              flex: '0 0 52px', width: 52, textAlign: 'right',
+                            }}>
+                              {side.value}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                     <div style={{ height: 4, borderRadius: 2, background: theme.border, marginTop: 8, overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', borderRadius: 2,
