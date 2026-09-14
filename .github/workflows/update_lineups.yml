@@ -5,8 +5,8 @@ on:
     # Hourly, 10:00 AM - 9:00 PM Central during daylight saving time (UTC-5).
     # GitHub Actions cron is UTC, and the window crosses midnight UTC, so it
     # takes two entries.
-    - cron: "12 13-23 * * *"   # 10 AM - 6 PM CDT
-    - cron: "12 0-2 * * *"     # 7 PM - 9 PM CDT
+    - cron: "40 13-23 * * *"   # 10 AM - 6 PM CDT
+    - cron: "40 0-2 * * *"     # 7 PM - 9 PM CDT
   workflow_dispatch:
 
 permissions:
@@ -113,10 +113,32 @@ jobs:
           # directory with no changes is harmless.
           git add backend/data/mlb/pitcher_images
 
+
+          # A .parquet or .xlsx cannot be merged line-by-line, so when this run
+          # and another push both touched one, a plain `git pull --rebase` stops
+          # with "Cannot merge binary files" and the step dies -- throwing away
+          # everything this run just pulled.
+          #
+          # -X theirs during a REBASE keeps the commit being REPLAYED, i.e. this
+          # run's fresh data, not the remote's. (That is inverted from a normal
+          # merge, where "theirs" is the other side. Easy to misread.)
+          push_with_retry() {
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                return 0
+              fi
+              echo "push rejected (attempt $attempt) -- another job pushed first; rebasing onto it"
+              git pull --rebase -X theirs --autostash || return 1
+              sleep $(( attempt * 3 ))
+            done
+            echo "still could not push after 5 attempts"
+            return 1
+          }
+
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
             git commit -m "Update starters, lineups and matchups"
-            git pull --rebase --autostash
-            git push
+            git pull --rebase -X theirs --autostash
+            push_with_retry
           fi

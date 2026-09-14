@@ -1,0 +1,15 @@
+# Generated data files.
+#
+# These are rewritten wholesale by the scheduled workflows -- there is no such
+# thing as a meaningful line-level merge of a .parquet or .xlsx. Git normally
+# guesses "binary" by looking for NUL bytes in the first 8KB, which is a guess
+# it can get wrong; when it guesses wrong it will happily run a TEXT merge and
+# write conflict markers into the middle of a data file, producing something
+# that still loads as a file but is corrupt.
+#
+# Marking them explicitly means a collision is always an honest conflict rather
+# than a silently mangled file. The workflows resolve that conflict by keeping
+# the run's freshly pulled data (see the `-X theirs` in each commit step).
+*.parquet binary
+*.xlsx    binary
+*.xlsm    binary

@@ -106,10 +106,32 @@ jobs:
             fi
           done
 
+
+          # A .parquet or .xlsx cannot be merged line-by-line, so when this run
+          # and another push both touched one, a plain `git pull --rebase` stops
+          # with "Cannot merge binary files" and the step dies -- throwing away
+          # everything this run just pulled.
+          #
+          # -X theirs during a REBASE keeps the commit being REPLAYED, i.e. this
+          # run's fresh data, not the remote's. (That is inverted from a normal
+          # merge, where "theirs" is the other side. Easy to misread.)
+          push_with_retry() {
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                return 0
+              fi
+              echo "push rejected (attempt $attempt) -- another job pushed first; rebasing onto it"
+              git pull --rebase -X theirs --autostash || return 1
+              sleep $(( attempt * 3 ))
+            done
+            echo "still could not push after 5 attempts"
+            return 1
+          }
+
           if git diff --cached --quiet; then
             echo "No data changes to commit."
           else
             git commit -m "Update Statcast data, hot hitters, logs and percentiles"
-            git pull --rebase --autostash
-            git push
+            git pull --rebase -X theirs --autostash
+            push_with_retry
           fi
