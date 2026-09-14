@@ -2,19 +2,61 @@ name: Update Lineups
 
 on:
   schedule:
-    # Hourly, 10:00 AM - 9:00 PM Central during daylight saving time (UTC-5).
-    # GitHub Actions cron is UTC, and the window crosses midnight UTC, so it
-    # takes two entries.
-    - cron: "40 13-23 * * *"   # 10 AM - 6 PM CDT
-    - cron: "40 0-2 * * *"     # 7 PM - 9 PM CDT
+    # Every 20 minutes, 8:40 AM - 9:40 PM Central during daylight saving time
+    # (UTC-5). GitHub Actions cron is UTC, and the window crosses midnight UTC,
+    # so it takes two entries.
+    #
+    # WHY THREE SLOTS AN HOUR FOR AN HOURLY JOB
+    # -----------------------------------------
+    # GitHub's scheduler is best-effort, and on a free public repo it is
+    # markedly so: `schedule` events are delivered late under load, and a
+    # backlog gets coalesced rather than replayed. Asking for hourly here
+    # produced roughly one run every two and a half to three hours, with start
+    # times wandering as much as two hours past the requested minute -- one run
+    # requested at 9:12 PM Central actually landed at 11:47 PM.
+    #
+    # So this asks for more than it needs and lets the drops bring it back down
+    # to about hourly. That is only safe because the job is idempotent: it
+    # re-pulls the same endpoints, and the commit step exits with "No changes to
+    # commit" when nothing moved. A run that finds nothing new costs ~40s of
+    # free-tier compute.
+    #
+    # If you ever need an actual guarantee rather than a good average, the only
+    # way is to stop using GitHub's scheduler: have something with a real clock
+    # (a Render cron job -- you already run there) POST to the workflow_dispatch
+    # API on a schedule you control.
+    #
+    # Minutes are deliberately off the quarter-hour: :00, :15, :30 and :45 are
+    # where everyone else's crons pile up, and contention is what the scheduler
+    # sheds load against.
+    #
+    # NOTE: once the `dispatch-lineups` Render cron in render.yaml is live, it
+    # drives this workflow every 20 minutes through the workflow_dispatch API
+    # and these entries become a BACKSTOP for the case where Render is the
+    # thing that's down. At that point thin them out to something sparse --
+    # "7 14,19,1 * * *" is three times a day and plenty -- so you aren't
+    # running 42 redundant jobs. Leave them as-is until the Render side has
+    # proven itself for a day or two.
+    - cron: "7,27,47 13-23 * * *"   # 8:40 AM - 6:40 PM CDT
+    - cron: "7,27,47 0-2 * * *"     # 7:40 PM - 9:40 PM CDT
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# cancel-in-progress: TRUE, deliberately.
+#
+# With `false`, GitHub keeps at most one pending run per group and cancels any
+# others that arrive behind it -- which turns the scheduler's delivery backlog
+# into silently dropped runs. That is the opposite of what's wanted here: when
+# two triggers land close together the fresher data wins, and there is nothing
+# in a half-finished run worth protecting. The reason the group existed in the
+# first place -- two jobs racing to push the same .parquet into one branch --
+# no longer exists at all now that data goes to a release, where assets are
+# addressed by name and cannot collide.
 concurrency:
   group: update-lineups
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   PYTHONUNBUFFERED: "1"
@@ -25,10 +67,12 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # fetch-depth: 1 now. The old value of 0 pulled the ENTIRE history on
+      # every run, which was only needed because this job used to commit and
+      # rebase. It publishes to a release instead, so it needs the code and
+      # nothing else -- and the history it was cloning was 121 MB and growing.
       - name: Check out repository
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -40,6 +84,24 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas requests pyarrow
+
+      # Pulls the WHOLE tag, not just this job's own outputs, and deliberately
+      # so. Two reasons:
+      #
+      #   1. Several builders here append to what is already on disk rather
+      #      than rebuilding (get_bullpen_logs.py, get_pitcher_logs.py). Once
+      #      the files leave git the release is the only copy of that state.
+      #   2. This job reads files the STATCAST job writes -- build_matchups.py
+      #      needs daily_components_2026.parquet and get_lineups_chatgpt.py
+      #      needs statcast_hitters_2026.xlsx. Filtering to *.parquet here
+      #      would have broken the lineup pull on the xlsx, quietly, a day
+      #      after the cutover.
+      #
+      # ~20 MB, and still cheaper than the full-history clone this replaced.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/release_data.sh pull data-mlb backend/data/mlb
 
       # Independent of lineups -- writes starters.parquet on every run, so a
       # pitcher making his season debut reaches the dropdown within the hour.
@@ -81,64 +143,46 @@ jobs:
         run: python -u backend/app/get_lineups_chatgpt.py
 
       # Steps run in order and the job halts on the first failure. Early in the
-      # day no lineup exists yet, so this exits without writing -- the commit
+      # day no lineup exists yet, so this exits without writing -- the publish
       # step skips the missing files and the run still goes green.
       - name: Build matchup table
         run: python -u backend/app/build_matchups.py
 
-      - name: Commit data files
+      # Replaces the old commit-and-push step entirely.
+      #
+      # Gone with it: git config, the date-stamped `git add` loop, the
+      # `-X theirs` rebase and push_with_retry. All of that existed to survive
+      # two jobs racing to write the same .parquet into one branch. Assets are
+      # addressed by name, so two workflows writing different files under the
+      # same tag simply do not collide, and there is nothing to retry.
+      #
+      # The date-stamped lineup CSV still accumulates one asset per day as
+      # history; that is fine, since assets do not count toward repo size.
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          day="$(TZ=America/Chicago date +%F)"
+          scripts/release_data.sh push data-mlb \
+            backend/data/mlb/starters.parquet \
+            backend/data/mlb/mlb_rosters.parquet \
+            backend/data/mlb/probable_starters.parquet \
+            backend/data/mlb/schedule_results.parquet \
+            "backend/data/mlb/lineups_${day}.csv" \
+            backend/data/mlb/daily_matchups.parquet
+
+      # Pitcher headshots stay in git on purpose. They are written once per
+      # pitcher and never rewritten, so they cause no history churn -- and the
+      # frontend links to them by raw URL (MLBMatchup.tsx IMAGE_BASE), which a
+      # flat release asset namespace could not serve as a directory.
+      - name: Commit new pitcher images
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # The lineup CSV is date-stamped (kept as history); the other two are
-          # fixed filenames the dashboard reads, overwritten each run.
-          day="$(TZ=America/Chicago date +%F)"
-
-          for path in "backend/data/mlb/starters.parquet" \
-                      "backend/data/mlb/mlb_rosters.parquet" \
-                      "backend/data/mlb/probable_starters.parquet" \
-                      "backend/data/mlb/schedule_results.parquet" \
-                      "backend/data/mlb/lineups_${day}.csv" \
-                      "backend/data/mlb/daily_matchups.parquet"; do
-            if [ -f "$path" ]; then
-              git add "$path"
-            else
-              echo "missing (skipped): $path"
-            fi
-          done
-
-          # A directory rather than a filename: which photos appeared is not
-          # known ahead of time. Unlike a missing file, `git add` on a
-          # directory with no changes is harmless.
           git add backend/data/mlb/pitcher_images
-
-
-          # A .parquet or .xlsx cannot be merged line-by-line, so when this run
-          # and another push both touched one, a plain `git pull --rebase` stops
-          # with "Cannot merge binary files" and the step dies -- throwing away
-          # everything this run just pulled.
-          #
-          # -X theirs during a REBASE keeps the commit being REPLAYED, i.e. this
-          # run's fresh data, not the remote's. (That is inverted from a normal
-          # merge, where "theirs" is the other side. Easy to misread.)
-          push_with_retry() {
-            for attempt in 1 2 3 4 5; do
-              if git push; then
-                return 0
-              fi
-              echo "push rejected (attempt $attempt) -- another job pushed first; rebasing onto it"
-              git pull --rebase -X theirs --autostash || return 1
-              sleep $(( attempt * 3 ))
-            done
-            echo "still could not push after 5 attempts"
-            return 1
-          }
-
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No new images."
           else
-            git commit -m "Update starters, lineups and matchups"
-            git pull --rebase -X theirs --autostash
-            push_with_retry
+            git commit -m "Add pitcher images"
+            git push || { git pull --rebase --autostash && git push; }
           fi

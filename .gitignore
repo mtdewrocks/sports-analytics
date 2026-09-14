@@ -28,3 +28,24 @@ generate_doc.js
 Thumbs.db
 query_users.py
 desktop.ini
+# ---------------------------------------------------------------------------
+# Generated data lives in GitHub Releases, not in git.
+#
+# Parquet is compressed binary: git cannot delta it, so every hourly run that
+# changed one byte stored a whole new copy forever. Publishing to a release tag
+# instead (data-mlb / data-nfl) keeps exactly one copy per filename, and stops
+# each data refresh from writing a commit that triggers a Render redeploy.
+#
+# NOT ignored, on purpose:
+#   pitcher_images/     append-only, no churn, and the frontend links it as a
+#                       directory -- release assets are a flat namespace.
+#   Daily_Props.xlsx    the app reads it but no workflow writes it; it is
+#                       maintained by hand, so git is still its home.
+#   the legacy *.xlsx   neither written nor read by anything running today.
+# ---------------------------------------------------------------------------
+backend/data/mlb/*.parquet
+backend/data/mlb/lineups_*.csv
+backend/data/mlb/statcast_*_2026.xlsx
+backend/data/mlb/fg_woba_weights.json
+backend/data/nfl/*.parquet
+backend/data/nfl/on_pace_feed.json

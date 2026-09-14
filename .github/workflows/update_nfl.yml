@@ -31,6 +31,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # build_pace_feed.py reads player_box_stats.parquet, which a PREVIOUS
+      # run produced -- so this job depends on its own prior output, not only
+      # on fresh nflverse pulls. Git used to supply that state; the release
+      # does now, and skipping this would leave the pace feed building off an
+      # empty file.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/release_data.sh pull data-nfl backend/data/nfl
+
       # Re-pulls and re-aggregates the whole season's play-by-play each run
       # -- nflverse republishes the full file, not an incremental daily log,
       # so there's no bootstrap/incremental split needed here (unlike the
@@ -127,34 +137,32 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/build_pace_feed.py
 
-      - name: Commit updated data
+      # Replaces commit-and-push. `if: always()` is kept: individual pulls
+      # are continue-on-error, so a run where nine of ten succeeded must
+      # still publish the nine.
+      #
+      # NOTE the separate tag. NFL and MLB both produce a file called
+      # schedule_results.parquet, and release assets are a FLAT namespace
+      # per tag -- one shared tag would have had them silently overwrite
+      # each other.
+      - name: Publish data to release
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          for f in backend/data/nfl/player_week_usage.parquet \
-                   backend/data/nfl/team_stats.parquet \
-                   backend/data/nfl/nfl_schedule.parquet \
-                   backend/data/nfl/player_season_totals.parquet \
-                   backend/data/nfl/weekly_defense_ranks.parquet \
-                   backend/data/nfl/team_game_script.parquet \
-                   backend/data/nfl/player_situational_usage.parquet \
-                   backend/data/nfl/rosters.parquet \
-                   backend/data/nfl/weekly_defense_by_position.parquet \
-                   backend/data/nfl/schedule_results.parquet \
-                   backend/data/nfl/player_box_stats.parquet \
-                   backend/data/nfl/on_pace_feed.json; do
-            [ -f "$f" ] && git add "$f"
-          done
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update NFL data: usage, team stats, defense ranks, game script, rosters, pace feed"
-            git pull --rebase -X theirs
-            git push
-          fi
+          scripts/release_data.sh push data-nfl \
+            backend/data/nfl/player_week_usage.parquet \
+            backend/data/nfl/team_stats.parquet \
+            backend/data/nfl/nfl_schedule.parquet \
+            backend/data/nfl/player_season_totals.parquet \
+            backend/data/nfl/weekly_defense_ranks.parquet \
+            backend/data/nfl/team_game_script.parquet \
+            backend/data/nfl/player_situational_usage.parquet \
+            backend/data/nfl/rosters.parquet \
+            backend/data/nfl/weekly_defense_by_position.parquet \
+            backend/data/nfl/schedule_results.parquet \
+            backend/data/nfl/player_box_stats.parquet \
+            backend/data/nfl/on_pace_feed.json
 
       # Only fail the whole run if ALL TEN pulls failed -- any one alone
       # succeeding still commits real data and shouldn't page you.

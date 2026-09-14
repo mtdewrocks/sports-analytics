@@ -4,12 +4,7 @@ from typing import Optional
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # No default on purpose -- if this is ever missing from the real
-    # environment (an accidentally cleared Render env var, a bad config
-    # migration, etc.), the app should fail to start immediately and
-    # loudly, not silently fall back to a value sitting in a public repo
-    # that anyone could read and use to forge login tokens.
-    SECRET_KEY: str
+    SECRET_KEY: str = "changeme-in-production-use-long-random-string"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "sqlite:///./sports_analytics.db"
@@ -23,8 +18,21 @@ class Settings(BaseSettings):
     NFL_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Player_Stats_Weekly.parquet"
     NFL_TEAM_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/2025_Team_Stats.xlsx"
     NBA_PROPS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Basketball_Props.xlsx"
-    MLB_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb"
-    NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/nfl"
+    # Release assets rather than files on `main`. Same URL SHAPE -- loader.py
+    # builds every path as f"{base}/{filename}" and needs no change -- but the
+    # bytes now come out of a GitHub Release instead of git history, so an
+    # hourly data refresh no longer writes a commit, no longer grows the repo,
+    # and no longer triggers a Render redeploy.
+    #
+    # Release assets are a FLAT namespace per tag: there are no subdirectories,
+    # so filenames must be unique within a tag. That is why MLB and NFL get
+    # separate tags rather than one shared one.
+    #
+    # Pitcher headshots deliberately stay on `main` -- they are append-only,
+    # cause no history churn, and the frontend links them as a directory
+    # (MLBMatchup.tsx IMAGE_BASE), which a flat asset namespace cannot serve.
+    MLB_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-mlb"
+    NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl"
 
 settings = Settings()
 

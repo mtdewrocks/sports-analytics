@@ -53,6 +53,29 @@ MLB_TTL = 600     # 10 minutes
 OTHER_TTL = 3600  # 1 hour
 
 
+# Where a file lived before the move to release assets. Keyed by the release
+# base so a URL can be rewritten back to its old home.
+#
+# This exists so the migration can go one workflow at a time instead of as a
+# flag day. Point the config at the release now; a file whose workflow has not
+# been converted yet is still on `main` and is served from there, with a line
+# in the log naming it. When the log goes quiet, every producer has moved and
+# this whole block (plus LEGACY_BASES) can be deleted.
+LEGACY_BASES = {
+    "https://github.com/mtdewrocks/sports-analytics/releases/download/data-mlb":
+        "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb",
+    "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl":
+        "https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/nfl",
+}
+
+
+def _legacy_url(url: str) -> str | None:
+    for release_base, raw_base in LEGACY_BASES.items():
+        if url.startswith(release_base):
+            return raw_base + url[len(release_base):]
+    return None
+
+
 def _fetch_bytes(url: str) -> bytes:
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -62,6 +85,17 @@ def _fetch_bytes(url: str) -> bytes:
         "Cache-Control": "no-cache",
     }
     r = requests.get(url, headers=headers, timeout=30)
+
+    # A 404 on a release asset means that file's producer hasn't been converted
+    # yet, so fall back to where it still lives. Only 404 -- a 500 or a timeout
+    # is GitHub having a bad minute, and retrying those against a different URL
+    # would just mask it.
+    if r.status_code == 404:
+        legacy = _legacy_url(url)
+        if legacy:
+            print(f"Note: {url.rsplit('/', 1)[-1]} not in its release yet; serving from main")
+            r = requests.get(legacy, headers=headers, timeout=30)
+
     r.raise_for_status()
     return r.content
 

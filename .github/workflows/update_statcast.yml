@@ -2,8 +2,16 @@ name: Update Statcast
 
 on:
   schedule:
-    # 8:00 AM Central during daylight saving time (UTC-5) = 13:00 UTC.
-    - cron: "0 13 * * *"
+    # ~8 AM Central during daylight saving time (UTC-5) = 13:xx UTC.
+    #
+    # Two slots rather than one, at unpopular minutes. GitHub's scheduler drops
+    # and delays `schedule` events under load, and :00 is the single most
+    # contended minute on the platform -- a daily job that gets dropped is a
+    # whole day without fresh Statcast rather than an hour. The second slot is
+    # the retry; the job is idempotent, so a second run just re-uploads the
+    # same assets over themselves.
+    - cron: "9 13 * * *"
+    - cron: "38 14 * * *"
   workflow_dispatch:
 
 permissions:
@@ -25,10 +33,19 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # fetch-depth: 1. The full history was only needed to commit and
+      # rebase; this job publishes to a release now.
       - name: Check out repository
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
+
+      # Whole tag, not just this job's outputs -- update_stats_refactored.py
+      # and get_pitcher_logs.py both append to existing files rather than
+      # refetching the season, and the release is now the only copy of that
+      # state.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/release_data.sh pull data-mlb backend/data/mlb
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -78,60 +95,24 @@ jobs:
       - name: Download Savant percentiles
         run: python -u backend/app/get_percentiles.py
 
-      - name: Commit updated data
+      # Replaces commit-and-push. Assets are addressed by name, so this job
+      # and the hourly lineups job can write the same tag concurrently without
+      # colliding -- which is what push_with_retry and the -X theirs rebase
+      # existed to survive.
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Stage only this workflow's outputs -- backend/data/mlb also holds
-          # files written by the hourly job. The -f test skips anything a run
-          # did not produce; a bare `git add` on a missing path exits 128 and
-          # kills the step even when everything else succeeded.
-          for f in daily_components_2026.parquet \
-                   fg_woba_weights.json \
-                   statcast_hitters_2026.xlsx \
-                   statcast_pitchers_2026.xlsx \
-                   hot_hitters.parquet \
-                   pitcher_splits.parquet \
-                   team_hitting_splits.parquet \
-                   pitcher_logs.parquet \
-                   bullpen_logs.parquet \
-                   season_pitching_stats.parquet \
-                   pitcher_percentiles.parquet \
-                   hitter_percentiles.parquet; do
-            if [ -f "backend/data/mlb/$f" ]; then
-              git add "backend/data/mlb/$f"
-            else
-              echo "missing (skipped): $f"
-            fi
-          done
-
-
-          # A .parquet or .xlsx cannot be merged line-by-line, so when this run
-          # and another push both touched one, a plain `git pull --rebase` stops
-          # with "Cannot merge binary files" and the step dies -- throwing away
-          # everything this run just pulled.
-          #
-          # -X theirs during a REBASE keeps the commit being REPLAYED, i.e. this
-          # run's fresh data, not the remote's. (That is inverted from a normal
-          # merge, where "theirs" is the other side. Easy to misread.)
-          push_with_retry() {
-            for attempt in 1 2 3 4 5; do
-              if git push; then
-                return 0
-              fi
-              echo "push rejected (attempt $attempt) -- another job pushed first; rebasing onto it"
-              git pull --rebase -X theirs --autostash || return 1
-              sleep $(( attempt * 3 ))
-            done
-            echo "still could not push after 5 attempts"
-            return 1
-          }
-
-          if git diff --cached --quiet; then
-            echo "No data changes to commit."
-          else
-            git commit -m "Update Statcast data, hot hitters, logs and percentiles"
-            git pull --rebase -X theirs --autostash
-            push_with_retry
-          fi
+          scripts/release_data.sh push data-mlb \
+            backend/data/mlb/daily_components_2026.parquet \
+            backend/data/mlb/fg_woba_weights.json \
+            backend/data/mlb/statcast_hitters_2026.xlsx \
+            backend/data/mlb/statcast_pitchers_2026.xlsx \
+            backend/data/mlb/hot_hitters.parquet \
+            backend/data/mlb/pitcher_splits.parquet \
+            backend/data/mlb/team_hitting_splits.parquet \
+            backend/data/mlb/pitcher_logs.parquet \
+            backend/data/mlb/bullpen_logs.parquet \
+            backend/data/mlb/season_pitching_stats.parquet \
+            backend/data/mlb/pitcher_percentiles.parquet \
+            backend/data/mlb/hitter_percentiles.parquet
