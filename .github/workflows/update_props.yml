@@ -1,0 +1,102 @@
+name: Update Props
+
+on:
+  schedule:
+    # Hourly-ish, ~9 AM - 11 PM Central. Three slots an hour for the same
+    # reason the lineups workflow has them: GitHub drops scheduled events under
+    # load, so asking for more brings the realised rate back to about hourly.
+    #
+    # Extra slots are CHEAP HERE IN A WAY THEY AREN'T ELSEWHERE. get_mlb_props
+    # decides per game whether a refresh is due (REFRESH_TIERS), so a run that
+    # fires 20 minutes after the last one finds nothing due and spends zero API
+    # credits. The scheduling is deliberately dumb because the script is smart.
+    - cron: "13,33,53 14-23 * * *"   # 9:13 AM - 6:53 PM CDT
+    - cron: "13,33,53 0-4 * * *"     # 7:13 PM - 11:53 PM CDT
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Two runs writing Daily_Props.parquet at once would race on the carry-forward
+# merge -- the second would read a previous file the first had already
+# replaced. Cancel the older one; the newer has better prices anyway.
+concurrency:
+  group: update-props
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update-props:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests pyarrow
+
+      # Required, not an optimisation. get_props reads the previous file to
+      # decide what is stale enough to be worth paying for, and to carry
+      # forward the games it chose not to refresh. Without this every run looks
+      # like a first run: every game "new", every game fetched, full price.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-mlb backend/data/mlb
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl
+
+      # Both sports on ONE schedule. NFL's tiers (2x a day, 4x inside three
+      # days) mean it no-ops on most of these runs and spends nothing -- the
+      # cron does not need to know the difference, because plan() does. That is
+      # the same reason the extra MLB slots are cheap.
+      - name: Pull MLB props
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          # Each extra region multiplies the cost of every event fetch. Set as
+          # a repo variable if you want to try "us,us2" -- and watch the
+          # monthly projection the script prints before leaving it there.
+          ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
+          ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}
+          ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
+        run: python -u backend/app/get_props.py --sport mlb
+
+      - name: Pull NFL props
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
+          ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}
+          ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
+        run: python -u backend/app/get_props.py --sport nfl
+
+      # Free -- pure analysis of the file above, no API calls.
+      - name: Find middles and arbs
+        run: |
+          python -u backend/app/build_prop_middles.py --sport mlb
+          python -u backend/app/build_prop_middles.py --sport nfl
+
+      # NFL props go to the data-nfl tag, MLB to data-mlb -- assets are a flat
+      # namespace per tag, and both sports would otherwise be fighting over
+      # names like prop_middles.parquet.
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh push data-mlb \
+            backend/data/mlb/Daily_Props.parquet \
+            backend/data/mlb/mlb_prop_middles.parquet
+          bash scripts/release_data.sh push data-nfl \
+            backend/data/nfl/NFL_Props.parquet \
+            backend/data/nfl/nfl_prop_middles.parquet
