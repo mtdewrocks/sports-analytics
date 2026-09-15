@@ -2,10 +2,21 @@ name: Update NFL
 
 on:
   schedule:
-    # 9:07 AM Central during daylight saving time (UTC-5) = 14:07 UTC.
-    # Offset off the top of the hour on purpose -- see update_statcast.yml's
-    # comment on this; :00 schedules are the most likely to be delayed.
+    # Full daily run: 9:07 AM Central during daylight saving time (UTC-5) =
+    # 14:07 UTC. Offset off the top of the hour on purpose -- see
+    # update_statcast.yml's comment on this; :00 schedules are the most
+    # likely to be delayed.
     - cron: "7 14 * * *"
+    # Game-window runs -- rebuild ONLY the On Pace feed (and the two inputs
+    # it needs) so the parlay tracker moves during a week instead of waiting
+    # for the next morning's full run. Times are CDT; they shift an hour
+    # earlier in local time once standard time starts, which is fine.
+    #   Sun 4:37 PM  -- after the early window
+    #   Sun 8:37 PM  -- after the late window
+    #   Mon/Tue/Fri 12:37 AM -- after SNF / MNF / TNF
+    - cron: "37 21 * * 0"
+    - cron: "37 1 * * 1"
+    - cron: "37 5 * * 1,2,5"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +32,10 @@ env:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      # 'true' for the 9:07 AM schedule and manual runs; 'false' for the
+      # game-window schedules, which only rebuild the pace feed.
+      FULL_RUN: ${{ github.event_name != 'schedule' || github.event.schedule == '7 14 * * *' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -53,12 +68,14 @@ jobs:
       # fine) the first time this file didn't exist yet for a new season.
       - name: Update NFL play-by-play usage
         id: pbp
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_pbp.py
 
       # Team offense/defense stats + ranks, for the Matchup page.
       - name: Update NFL team stats
         id: team_stats
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_stats.py
 
@@ -66,6 +83,7 @@ jobs:
       # Stat Screener page.
       - name: Update NFL season totals
         id: season_totals
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_season_totals.py
 
@@ -74,6 +92,7 @@ jobs:
       # actually played, not its current rank).
       - name: Update NFL weekly defense ranks
         id: weekly_defense_ranks
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_defense_ranks.py
 
@@ -81,6 +100,7 @@ jobs:
       # page's projected game script section.
       - name: Update NFL team game script
         id: team_game_script
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_game_script.py
 
@@ -88,6 +108,7 @@ jobs:
       # "who this might shift volume toward" part of the same section.
       - name: Update NFL player situational usage
         id: player_situational_usage
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_player_situational_usage.py
 
@@ -96,6 +117,7 @@ jobs:
       # season-old fallback, which wouldn't otherwise know a player left).
       - name: Update NFL rosters
         id: rosters
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_rosters.py
 
@@ -106,12 +128,14 @@ jobs:
       # the pass generally."
       - name: Update NFL defense by position
         id: defense_by_position
+        if: env.FULL_RUN == 'true'
         continue-on-error: true
         run: python -u backend/app/get_nfl_defense_by_position.py
 
       # Season-to-date team win/loss records -- feeds the parlay pace
       # tracker (build_pace_feed.py below), and generally reusable for
       # any future team-record based feature (recent form, head-to-head).
+      # Runs on every schedule, including game-window runs.
       - name: Update NFL schedule and results
         id: schedule_results
         continue-on-error: true
@@ -120,54 +144,85 @@ jobs:
       # Player-week passing/rushing/receiving box scores -- the other
       # input the pace feed needs. player_week_usage.parquet (pbp step
       # above) has no passing stats at all, since it was built for
-      # target/carry share, not QB box scores.
+      # target/carry share, not QB box scores. Runs on every schedule.
       - name: Update NFL player box stats
         id: player_box_stats
         continue-on-error: true
         run: python -u backend/app/get_nfl_player_box_stats.py
 
       # Aggregates the two steps above into the small JSON the "On Pace"
-      # parlay tracker fetches directly from GitHub. Depends on both, but
-      # continue-on-error like everything else here -- if either pull
-      # above failed this run, this just rebuilds from whatever version of
-      # those two files is already checked into the repo instead of
-      # crashing the job.
+      # parlay tracker fetches. Depends on both, but continue-on-error like
+      # everything else here -- if either pull above failed this run, this
+      # rebuilds from the copies restored from the data-nfl release instead
+      # of crashing the job. Runs on every schedule.
       - name: Build parlay pace feed
         id: pace_feed
         continue-on-error: true
         run: python -u backend/app/build_pace_feed.py
 
       # Replaces commit-and-push. `if: always()` is kept: individual pulls
-      # are continue-on-error, so a run where nine of ten succeeded must
-      # still publish the nine.
+      # are continue-on-error, so a run where most succeeded must still
+      # publish what did.
+      #
+      # FULL RUNS ONLY. Game-window runs publish NOTHING to the release --
+      # their refreshed schedule_results / player_box_stats exist only on
+      # the throwaway runner, so the Matchup and Mismatch pages (which read
+      # from the release) only change on the 9:07 AM run, same as before.
+      # The one thing a game-window run publishes is the committed
+      # on_pace_feed.json in the next step.
       #
       # NOTE the separate tag. NFL and MLB both produce a file called
       # schedule_results.parquet, and release assets are a FLAT namespace
       # per tag -- one shared tag would have had them silently overwrite
       # each other.
       - name: Publish data to release
-        if: always()
+        if: always() && env.FULL_RUN == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          D=backend/data/nfl
           bash scripts/release_data.sh push data-nfl \
-            backend/data/nfl/player_week_usage.parquet \
-            backend/data/nfl/team_stats.parquet \
-            backend/data/nfl/nfl_schedule.parquet \
-            backend/data/nfl/player_season_totals.parquet \
-            backend/data/nfl/weekly_defense_ranks.parquet \
-            backend/data/nfl/team_game_script.parquet \
-            backend/data/nfl/player_situational_usage.parquet \
-            backend/data/nfl/rosters.parquet \
-            backend/data/nfl/weekly_defense_by_position.parquet \
-            backend/data/nfl/schedule_results.parquet \
-            backend/data/nfl/player_box_stats.parquet \
-            backend/data/nfl/on_pace_feed.json
+            $D/player_week_usage.parquet \
+            $D/team_stats.parquet \
+            $D/nfl_schedule.parquet \
+            $D/player_season_totals.parquet \
+            $D/weekly_defense_ranks.parquet \
+            $D/team_game_script.parquet \
+            $D/player_situational_usage.parquet \
+            $D/rosters.parquet \
+            $D/weekly_defense_by_position.parquet \
+            $D/schedule_results.parquet \
+            $D/player_box_stats.parquet \
+            $D/on_pace_feed.json
 
-      # Only fail the whole run if ALL TEN pulls failed -- any one alone
-      # succeeding still commits real data and shouldn't page you.
-      - name: Fail if all pulls failed
-        if: steps.pbp.outcome == 'failure' && steps.team_stats.outcome == 'failure' && steps.weekly_defense_ranks.outcome == 'failure' && steps.team_game_script.outcome == 'failure' && steps.player_situational_usage.outcome == 'failure' && steps.rosters.outcome == 'failure' && steps.defense_by_position.outcome == 'failure' && steps.schedule_results.outcome == 'failure' && steps.player_box_stats.outcome == 'failure' && steps.pace_feed.outcome == 'failure'
+      # On Pace fetches the feed from raw.githubusercontent.com, which only
+      # serves files committed to the repo -- release assets can't be
+      # fetched from the browser (their download redirect has no CORS
+      # headers). So this one small JSON is also committed to main.
+      - name: Commit pace feed for On Pace
+        if: always() && hashFiles('backend/data/nfl/on_pace_feed.json') != ''
         run: |
-          echo "All ten NFL data pulls failed this run -- check the logs above."
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add -f backend/data/nfl/on_pace_feed.json
+          if git diff --cached --quiet; then
+            echo "Pace feed unchanged -- nothing to commit."
+            exit 0
+          fi
+          git commit -m "Update On Pace feed"
+          # Other data workflows push to main too; retry if one lands first.
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            sleep 5
+          done
+          exit 1
+
+      # Fail the run only if every data step that actually ran failed. The
+      # join over steps.*.outcome covers every step with an id (all eleven
+      # on a full run, three on a game-window run) and ignores skipped ones,
+      # so a new step can't be forgotten here again.
+      - name: Fail if all pulls failed
+        if: ${{ !contains(join(steps.*.outcome, ','), 'success') }}
+        run: |
+          echo "Every NFL data step that ran this time failed -- check the logs above."
           exit 1
