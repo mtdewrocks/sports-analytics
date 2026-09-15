@@ -8,6 +8,13 @@ import requests
 from app.config import settings
 
 
+# How long an EMPTY refresh is trusted before the next request tries again --
+# short, unlike the real TTLs above, because an empty result is exactly the
+# shape a failed fetch degrades to (see the is_empty comment below) and
+# shouldn't get to block real data from loading for a full hour.
+EMPTY_RETRY_SECONDS = 30
+
+
 def ttl_cache(seconds: int):
     """Cache a result, re-running the function once it goes stale.
 
@@ -38,7 +45,25 @@ def ttl_cache(seconds: int):
                     return hit[0]
                 raise
 
-            store[key] = (value, now)
+            # loader.py's own `_load()` helper degrades a failed fetch (a
+            # timeout, a 404, a corrupt parquet) to an EMPTY frame instead of
+            # raising, specifically so one bad fetch doesn't 500 the page --
+            # but that means an empty result reaching this decorator can mean
+            # either "genuinely fetched, genuinely nothing there" or "the
+            # fetch quietly failed". Treating the two the same way exceptions
+            # are treated -- keep serving the last real value, if there is
+            # one -- avoids a transient GitHub hiccup wiping a page (e.g. NFL
+            # Team Usage going blank) for a full TTL. With no real value
+            # cached yet, the empty result is still served (so a page with
+            # genuinely no data yet doesn't hang), but only trusted for
+            # EMPTY_RETRY_SECONDS rather than the full TTL, so the next
+            # request retries soon instead of waiting out the hour.
+            is_empty = hasattr(value, "empty") and value.empty
+            if is_empty and hit:
+                print(f"Warning: {func.__name__} refresh came back empty; serving cached copy")
+                return hit[0]
+
+            store[key] = (value, now - seconds + EMPTY_RETRY_SECONDS if is_empty else now)
             return value
 
         wrapper.cache_clear = store.clear

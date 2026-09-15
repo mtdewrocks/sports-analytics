@@ -68,8 +68,12 @@ jobs:
           # Books are named explicitly (props_config.BOOKMAKERS) rather than
           # fetched by region: ten books bill as one region, so espnbet from
           # us2 costs nothing extra, where buying the us2 region would have
-          # doubled the entire monthly spend. Set ODDS_BOOKMAKERS to override,
-          # or to "" to fall back to ODDS_REGIONS.
+          # doubled the entire monthly spend. Leaving the ODDS_BOOKMAKERS repo
+          # variable unset (the normal case) uses that default list -- it does
+          # NOT fall back to regions, so an unset variable can never silently
+          # drop espnbet and every DFS book again. Set ODDS_BOOKMAKERS to
+          # override the list if you ever need something other than the
+          # default.
           ODDS_BOOKMAKERS: ${{ vars.ODDS_BOOKMAKERS }}
           ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
           ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}

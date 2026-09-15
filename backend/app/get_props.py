@@ -81,12 +81,21 @@ DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 # the cost of every event fetch: "us,us2" doubles the bill.
 REGIONS = os.getenv("ODDS_REGIONS", "us")
 
-# Named books beat regions: the API ignores `regions` when `bookmakers` is sent,
-# and bills ten books as one region. Set ODDS_BOOKMAKERS="" to fall back to
-# region-based fetching.
+# Named books beat regions: the API ignores `regions` when `bookmakers` is
+# sent, and bills ten books as one region. Override the list with
+# ODDS_BOOKMAKERS (comma-separated) when you want something other than the
+# default below.
+#
+# This used to also treat ODDS_BOOKMAKERS=="" as "fall back to REGIONS" -- but
+# referencing an unset `vars.ODDS_BOOKMAKERS` inside a workflow's `env:` block
+# sets the env var to "" rather than leaving it unset, so simply never having
+# created that repo variable silently switched every run to regions-only (the
+# "us" region), which does not include espnbet (us2) or any of the DFS books
+# (us_dfs) -- with no error anywhere to point at it. Blank or missing
+# ODDS_BOOKMAKERS now both just mean "use the default list below".
 _env_books = os.getenv("ODDS_BOOKMAKERS")
 BOOKS = (tuple(b.strip() for b in _env_books.split(",") if b.strip())
-         if _env_books is not None else BOOKMAKERS)
+         if _env_books else BOOKMAKERS)
 
 
 def _region_equivalents() -> int:
