@@ -45,3 +45,24 @@ def props(
 ):
     return nba_data.get_props(player, market, side, bookmaker)
 
+@router.get("/teams")
+def teams(_=Depends(require_access)):
+    return nba_data.get_teams()
+
+@router.get("/team-usage")
+def team_usage(
+    team: str = Query(...),
+    metric: str = Query("fga"),
+    scope: str = Query("season"),
+    _=Depends(require_access),
+):
+    return nba_data.get_team_usage(team, metric, scope)
+
+@router.get("/team-matchup")
+def team_matchup(
+    team_a: str = Query(...),
+    team_b: str = Query(...),
+    _=Depends(require_access),
+):
+    return nba_data.get_team_matchup(team_a, team_b)
+

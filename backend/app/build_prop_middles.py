@@ -41,6 +41,15 @@ Both are worth surfacing, so both are here, labelled. Note that a middle can
 ALSO be an arb -- if the two prices alone clear the vig, the window is free
 upside on top. Those are the best rows on the board and they are rare.
 
+  SWAPPED LINES (gap < 0) is an ANTI-MIDDLE, not a busted middle to discard.
+  Over on the HIGHER line and Under on the LOWER line leaves a gap where BOTH
+  legs lose instead of both winning -- see "THE DIRECTION IS THE WHOLE THING"
+  below. It is still a real, nameable bet: profitable everywhere except that
+  one narrow result, which is exactly the trade for someone confident the
+  game won't land there. Labelled `anti_middle`, always included -- not an
+  opt-in flag anymore, since discarding it entirely was hiding a real
+  strategy rather than just a trap.
+
 THE MATH
 --------
 Stakes are split so the two single-win outcomes pay the same, which is the
@@ -58,17 +67,36 @@ middle that loses money outside it worth taking.
 
 THE DIRECTION IS THE WHOLE THING
 --------------------------------
-The Over must be on the LOWER line. Swap them and the arithmetic inverts:
+The Over must be on the LOWER line for a middle. Swap them and the arithmetic
+inverts into the other tradeable shape, the anti-middle:
 
-    Over 1.5 @ +120 / Under 2.5 @ +115   ->  both win on exactly 2
-    Over 1.5 @ +120 / Under 0.5 @ +150   ->  both LOSE on exactly 1
+    Over 1.5 @ +120 / Under 2.5 @ +115   ->  middle: both win on exactly 2
+    Over 2.5 @ +120 / Under 1.5 @ +150   ->  anti-middle: both LOSE on exactly 2
 
-The second pair is not a middle with a smaller edge, it is the opposite bet.
-Staked for equal returns it pays +17% whenever one leg wins and -100% when the
-result is exactly 1 -- so it only breaks even if a batter gets exactly one hit
-less than 14.5% of the time, against a real rate nearer 35-40%. `--include-
-reverse` will list these, labelled `reverse`, precisely so the difference is
-visible; they are excluded by default.
+The second pair isn't a middle with a smaller edge, and it isn't garbage
+either -- it is the opposite bet, correct for the opposite belief. Staked for
+equal returns it profits on every outcome except landing exactly in the gap,
+so it is a bet that the result will land somewhere else, priced by how
+confident you are that it will. `breakeven_window_rate_pct` is the number that
+matters here: the highest chance the gap result can have before this stops
+being worth it. Compare that number to how likely the gap outcome actually is
+for the market in question -- that comparison is a judgment call this script
+doesn't make, because it depends on how discrete the stat is:
+
+  MLB counting stats (hits, total bases, RBIs) take few possible values, so a
+  one-value gap is often a genuinely common outcome -- "exactly 2 total
+  bases" can be a 25-30% occurrence, comfortably above almost any breakeven
+  this math produces. These usually are the trap they look like.
+
+  Continuous-ish markets (NFL passing/rushing yards, NBA points) spread
+  across a much wider range, so a similarly narrow gap is far less likely to
+  be the one number that lands -- "exactly 75 rushing yards" is a much
+  thinner slice of the distribution than "exactly 2 total bases" is. These
+  are where an anti-middle is more likely to actually clear its breakeven.
+
+This script does not know a market's outcome distribution and doesn't try to
+handicap `anti_middle` rows for you -- it prices the trade and leaves the "is
+this gap actually unlikely" judgment to the person reading the page.
 
 A CAVEAT WORTH KEEPING IN MIND
 ------------------------------
@@ -143,8 +171,8 @@ def middle_window(over_line: float, under_line: float) -> tuple[str, int]:
     return _span(math.floor(over_line) + 1, math.ceil(under_line) - 1)
 
 
-def reverse_window(over_line: float, under_line: float) -> tuple[str, int]:
-    """Integer results where BOTH legs LOSE -- the mirror image.
+def anti_middle_window(over_line: float, under_line: float) -> tuple[str, int]:
+    """Integer results where BOTH legs LOSE -- the mirror image of a middle.
 
     When the Over sits on the HIGHER line, the two legs no longer overlap; they
     leave a hole between them instead.
@@ -152,16 +180,18 @@ def reverse_window(over_line: float, under_line: float) -> tuple[str, int]:
         Over 1.5 / Under 0.5  ->  Over needs 2+, Under needs 0.
                                   Exactly 1 loses both.
 
-    This is not a middle. It is the shape a middle would have if you ran it
-    backwards, and for a market like hits the hole sits on the single most
-    common outcome. Priced and reported so it can be told apart at a glance
-    rather than silently dropped.
+    This is the anti-middle's window -- not a busted middle, the trade for
+    someone confident the result won't be the one number in this hole. For a
+    market with few possible outcomes (MLB hits, total bases) the hole is
+    often the single most common result, which makes the bet a bad one; for a
+    market spread across a wide range (NFL yardage, NBA points) the same
+    one-number hole is a much thinner slice of what can happen. See the
+    module docstring's THE DIRECTION IS THE WHOLE THING section.
     """
     return _span(math.ceil(under_line), math.floor(over_line))
 
 
-def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE,
-               include_reverse: bool = False) -> pd.DataFrame:
+def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE) -> pd.DataFrame:
     """Every Over/Under leg pair across different books, priced.
 
     Records (not itertuples) because the column names carry spaces -- "Over
@@ -204,15 +234,17 @@ def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE,
                     breakeven = (-one_wins / (both - one_wins)) if one_wins < 0 else 0.0
                 else:
                     # Over on the HIGHER line: the legs leave a hole rather than
-                    # an overlap, and the window is where BOTH lose.
-                    window, width = reverse_window(over_line, under_line)
+                    # an overlap, and the window is where BOTH lose. A real,
+                    # nameable trade (see THE DIRECTION IS THE WHOLE THING in
+                    # the module docstring) -- always included, not gated
+                    # behind a flag, since discarding it entirely was hiding a
+                    # real strategy rather than just a trap.
+                    window, width = anti_middle_window(over_line, under_line)
                     one_wins = single - 1.0
                     both = -1.0                      # the window: both legs lose
-                    kind = "reverse"
+                    kind = "anti_middle"
                     # Max tolerable chance of landing in the hole: p = (s-1)/s.
                     breakeven = (single - 1.0) / single if single > 0 else 0.0
-                    if not include_reverse:
-                        continue
 
                 if kind == "no-edge":
                     continue
@@ -257,10 +289,12 @@ def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE,
     if not rows:
         return pd.DataFrame()
     out = pd.DataFrame(rows)
-    # Guaranteed beats probable; reverse pairs sink to the bottom where they
-    # belong, kept only so you can see they were considered and why they lost.
+    # Guaranteed beats probable; anti-middles sink to the bottom of that
+    # ordering, not because they're worse, but because they need a judgment
+    # call (is the hole actually unlikely?) that a guaranteed-money row
+    # doesn't -- see THE DIRECTION IS THE WHOLE THING in the module docstring.
     out["_rank"] = out["kind"].map(
-        {"middle+arb": 0, "arb": 1, "middle": 2, "reverse": 3}).fillna(4)
+        {"middle+arb": 0, "arb": 1, "middle": 2, "anti_middle": 3}).fillna(4)
     return (out.sort_values(["_rank", "one_wins_pct", "window_pct"],
                             ascending=[True, False, False])
                .drop(columns="_rank")
@@ -272,9 +306,6 @@ def main() -> int:
     ap.add_argument("--min-price", type=float, default=MIN_PRICE,
                     help="minimum American odds on BOTH legs (default +100)")
     ap.add_argument("--sport", required=True, choices=sorted(SPORTS))
-    ap.add_argument("--include-reverse", action="store_true",
-                    help="also list Over-high/Under-low pairs, which lose BOTH legs "
-                         "in the gap between the lines (off by default)")
     args = ap.parse_args()
 
     cfg = SPORTS[args.sport]
@@ -295,7 +326,7 @@ def main() -> int:
     df = df.dropna(subset=["Line"])
     print(f"{before} rows -> {len(df)} after book exclusions")
 
-    pairs = find_pairs(df, args.min_price, args.include_reverse)
+    pairs = find_pairs(df, args.min_price)
     if pairs.empty:
         print("no qualifying pairs")
         output.parent.mkdir(parents=True, exist_ok=True)

@@ -23,6 +23,8 @@ const GROUPS: NavGroup[] = [
     items: [
       { label: 'Game Logs', to: '/nba/game-log' },
       { label: 'In/Out', to: '/nba/in-out' },
+      { label: 'Team Usage', to: '/nba/team-usage' },
+      { label: 'Team Matchup', to: '/nba/team-matchup' },
       { label: 'Props', to: '/nba/props' },
     ],
   },

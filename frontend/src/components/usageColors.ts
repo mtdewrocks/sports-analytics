@@ -30,3 +30,10 @@ export function positionColor(position?: string | null): string {
 /** The subject of a trend chart; every teammate takes the recessive grey. */
 export const TREND_SUBJECT = theme.dataBlue;
 export const TREND_CONTEXT = '#3a4552';
+
+/** Starter/bench split used on the NBA Team Usage page, which colours by
+ *  inferred role rather than position (no position data in that file --
+ *  see NBATeamUsage.tsx). BENCH_COLOR reuses POSITION_OTHER's grey rather
+ *  than a new hex, since it's the same "not a headline color" role here too. */
+export const STARTER_COLOR = theme.accent;
+export const BENCH_COLOR = POSITION_OTHER;

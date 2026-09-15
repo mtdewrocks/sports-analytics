@@ -14,7 +14,7 @@ import { theme } from '../theme';
 // PropsExplorer's is: a copy-pasted wrapper missing its own title silently
 // shows the OTHER sport's data under the wrong heading.
 
-type Kind = 'all' | 'middle+arb' | 'arb' | 'middle';
+type Kind = 'all' | 'middle+arb' | 'arb' | 'middle' | 'anti_middle';
 
 interface Row {
   Player: string; market: string; kind: string;
@@ -36,15 +36,19 @@ const KIND_LABEL: Record<string, string> = {
   'middle+arb': 'Middle + Arb',
   arb: 'Arb',
   middle: 'Middle',
+  anti_middle: 'Anti-Middle',
 };
 
 // Green only where the pair wins no matter the result; blue where it needs the
-// window to land. The distinction is the whole point of the page, so it gets
-// the colour rather than being a word in a column people skim past.
+// window to land; amber where the window is the one result you're betting
+// AGAINST -- a real trade, but one that needs a judgment call the other three
+// don't (is that result actually unlikely for this market?), so it gets its
+// own colour rather than blending into "needs the window".
 const KIND_COLOR: Record<string, string> = {
   'middle+arb': theme.accent,
   arb: theme.accent,
   middle: theme.dataBlue,
+  anti_middle: theme.warningText,
 };
 
 function fmtOdds(n: number): string {
@@ -113,7 +117,10 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
         An <strong style={{ color: theme.accent }}>arb</strong> pays whichever side wins.
         A <strong style={{ color: theme.dataBlue }}>middle</strong> has a gap between
         the two lines where <em>both</em> bets cash — the window column is the
-        result that does it.
+        result that does it. An <strong style={{ color: theme.warningText }}>anti-middle</strong> is
+        the same gap with the lines swapped: it cashes on <em>anything except</em> the
+        window, so it's a bet against that one result — worth it only if the window
+        is actually unlikely for that market. "Needs" is the number to weigh that against.
       </div>
 
       <OddsDisclaimer fetchedAt={fetchedAt} compact={isMobile} />
@@ -127,6 +134,7 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
           ['middle+arb', `Middle+Arb (${counts['middle+arb'] || 0})`],
           ['arb', `Arb (${counts.arb || 0})`],
           ['middle', `Middle (${counts.middle || 0})`],
+          ['anti_middle', `Anti-Middle (${counts.anti_middle || 0})`],
         ] as [Kind, string][]).map(([value, label]) => ({ value, label }))}
         style={{ marginBottom: 10 }}
       />
@@ -198,9 +206,17 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
               </div>
 
               <div style={{ fontSize: 11.5, color: theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
-                {r.window
-                  ? <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%. </>
-                  : <>No window — one side always wins. </>}
+                {r.kind === 'anti_middle' ? (
+                  <>Both <strong style={{ color: theme.dataRed }}>lose</strong> on{' '}
+                    <strong style={{ color: theme.warningText }}>{r.window}</strong> — worth it only
+                    if that lands under <strong style={{ color: theme.warningText }}>
+                      {r.breakeven_window_rate_pct.toFixed(0)}%
+                    </strong> of the time. </>
+                ) : r.window ? (
+                  <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%. </>
+                ) : (
+                  <>No window — one side always wins. </>
+                )}
                 Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
                   {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
                 </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.
@@ -243,7 +259,10 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
                     {r.under_line?.toFixed(1)} {fmtOdds(r.under_price)}
                     <div style={{ fontSize: 10.5, color: theme.textMuted }}>{book(r.under_book)}</div>
                   </td>
-                  <td style={{ padding: '9px 10px', textAlign: 'right', color: theme.dataBlue, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                  <td style={{
+                    padding: '9px 10px', textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    color: r.kind === 'anti_middle' ? theme.warningText : theme.dataBlue,
+                  }}>
                     {r.window || '—'}
                   </td>
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: theme.textPrimary }}>
@@ -270,9 +289,19 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
 
       {!loading && shown.length > 0 && (
         <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 14, lineHeight: 1.6 }}>
-          <strong>Needs</strong> is how often the window has to land for a middle that
-          loses money outside it to break even. A pair showing a positive
-          &ldquo;Otherwise&rdquo; figure does not need the window at all.
+          <strong>Needs</strong> reads in opposite directions depending on the row. For a{' '}
+          <strong style={{ color: theme.dataBlue }}>middle</strong> that loses money outside
+          its window, it's how often the window has to land <em>at least</em> to break even.
+          For an <strong style={{ color: theme.warningText }}>anti-middle</strong>, it's the
+          opposite — the highest chance that window can have before betting against it stops
+          being worth it. A pair showing a positive &ldquo;Otherwise&rdquo; figure doesn't
+          depend on the window at all.
+          <br />
+          An anti-middle is only as good as your read on how likely its window actually is —
+          this page prices the trade but has no view on that itself. A one-number gap is a
+          common result in a low-scoring counting stat (MLB hits, total bases) and a rare one
+          in a wide-range stat (NFL yardage, NBA points); the same &ldquo;Needs&rdquo; number
+          means a very different thing in each.
           <br />
           Most of what appears here is a <strong>stale price</strong> rather than free
           money — the far side of a gap is usually a book that has not updated yet, and

@@ -14,3 +14,8 @@ export const getNBAInOut = (player: string, exclude: string[]) => {
 export const getNBABeneficiary = (excludedPlayer: string, stat: string = 'min') =>
   client.get('/api/nba/in-out/beneficiary', { params: { excluded_player: excludedPlayer, stat } });
 export const getNBAProps = (params: Record<string, any>) => client.get('/api/nba/props', { params });
+export const getNBATeams = () => client.get('/api/nba/teams');
+export const getNBATeamUsage = (team: string, metric: string = 'fga', scope: string = 'season') =>
+  client.get('/api/nba/team-usage', { params: { team, metric, scope } });
+export const getNBATeamMatchup = (teamA: string, teamB: string) =>
+  client.get('/api/nba/team-matchup', { params: { team_a: teamA, team_b: teamB } });

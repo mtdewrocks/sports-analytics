@@ -51,6 +51,8 @@ import Billing from './pages/Billing';
 import NBAGameLog from './pages/nba/NBAGameLog';
 import NBAInOut from './pages/nba/NBAInOut';
 import NBAProps from './pages/nba/NBAProps';
+import NBATeamUsage from './pages/nba/NBATeamUsage';
+import NBATeamMatchup from './pages/nba/NBATeamMatchup';
 
 import NFLGameLog from './pages/nfl/NFLGameLog';
 import NFLMatchup from './pages/nfl/NFLMatchup';
@@ -87,6 +89,8 @@ export default function App() {
 
           <Route path="/nba/game-log" element={<PrivateRoute><NBAGameLog /></PrivateRoute>} />
           <Route path="/nba/in-out" element={<PrivateRoute><NBAInOut /></PrivateRoute>} />
+          <Route path="/nba/team-usage" element={<PrivateRoute><NBATeamUsage /></PrivateRoute>} />
+          <Route path="/nba/team-matchup" element={<PrivateRoute><NBATeamMatchup /></PrivateRoute>} />
           <Route path="/nba/props" element={<PrivateRoute><NBAProps /></PrivateRoute>} />
 
           <Route path="/nfl/game-log" element={<PrivateRoute><NFLGameLog /></PrivateRoute>} />
