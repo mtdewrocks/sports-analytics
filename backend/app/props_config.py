@@ -16,8 +16,8 @@ the ladders get refreshed a few times per slate. Because the API charges
 costs exactly the same as two separate calls -- so when both are due they are
 merged rather than issued twice.
 
-BUDGET, AT ONE REGION
----------------------
+BUDGET, AT ONE REGION-EQUIVALENT
+--------------------------------
     MLB  52,650/month  (13 fast markets x ~7 pulls/day, 13 slow x ~2)
     NFL  32,198/month  (24 fast x ~18 pulls/week, 18 slow x ~2)
     ---
@@ -31,8 +31,9 @@ more slack, in order of least pain:
   2. Drop the four MLB alternate ladders added for middles (-5k), accepting
      that middle discovery on home runs / RBIs / total bases goes with them.
 
-Do NOT reach for a second region to "get more books" without recosting --
-regions MULTIPLY, so "us,us2" takes this straight from 88k to 177k.
+Do NOT reach for a second REGION to get more books -- regions multiply, and
+"us,us2" takes this straight to 169,697. Name the book in BOOKMAKERS instead:
+ten books bill as one region, so the fifth through tenth are free.
 
 MARKET KEYS are checked against The Odds API's published market list. What is
 deliberately LEFT OUT, so the gaps are choices rather than oversights:
@@ -176,5 +177,69 @@ NFL = SportConfig(
     alt_tiers=((6.0, 3.0), (48.0, 24.0), (float("inf"), 72.0)),
     strip_prefixes=("player_",),
 )
+
+# Books to request BY NAME, instead of by region.
+#
+# The API bills `bookmakers` as "every group of 10 bookmakers is the equivalent
+# of 1 region", and `bookmakers` overrides `regions` when both are sent. So an
+# explicit list of ten or fewer costs exactly what one region costs -- which
+# means espnbet (us2) can be pulled for NOTHING EXTRA, rather than buying the
+# whole us2 region at 2x the entire monthly bill.
+#
+# That is the difference between 84,848/month and 169,697 against a 100,000
+# quota, for one book.
+#
+# Cost is a step function, not linear: books 1 through 10 all cost the same, so
+# the five free slots below are genuinely free. The eleventh book doubles the
+# bill. Keep the list at ten or under and check before adding.
+#
+# The trade: naming books means new ones never appear on their own. Re-run
+# probe_regions.py occasionally to see what has shown up.
+BOOKMAKERS = (
+    # us -- the four that survive the middles exclusion list
+    "betmgm", "draftkings", "fanatics", "fanduel",
+    # us2 -- the reason this list exists
+    "espnbet",
+    # us_dfs -- see DFS_BOOKS below before trusting a pair that involves one
+    "prizepicks", "underdog", "pick6", "dabble_us_dfs",
+)
+
+# Pick'em apps, not sportsbooks, and the difference matters for pairing.
+#
+# The Odds API's own note: "odds on DFS sites can vary based on user selections,
+# therefore odds are indicative only." On a classic pick'em you cannot take a
+# single Over at a stated price at all -- you build a 2+ pick entry at a fixed
+# multiplier, so the price shown is derived from that payout structure rather
+# than being an offer you can accept on its own.
+#
+# So a middle or anti-middle with a DFS leg is often not placeable as the
+# arithmetic describes. They are still worth pulling: pick'em lines move more
+# slowly than sportsbook lines, which makes them a good signal for WHERE a
+# number is soft. Just don't read the pair's payout as executable without
+# checking you can actually place that side standalone.
+DFS_BOOKS = frozenset({"prizepicks", "underdog", "pick6", "dabble_us_dfs"})
+
+# TWO exclusion lists, because there are two different reasons to drop a book
+# and they apply at different stages. Defined here so the props page and the
+# middles screen cannot drift apart -- they used to keep separate copies.
+
+# Can't or won't bet here at all: hidden everywhere, props grid included.
+UNBETTABLE_BOOKS = frozenset({
+    "williamhill_us", "betrivers", "betonlineag",
+    "bovada", "hardrockbet", "mybookieag",
+})
+
+# Shown on the props page, excluded from PAIRING -- every pick'em app.
+#
+# A middle needs each leg placeable on its own at the price shown. On a pick'em
+# you build a multi-pick entry at a fixed multiplier instead, so a pair using
+# one describes arithmetic you cannot execute. The line itself is still worth
+# seeing and is often the softest number on the board, which is why these stay
+# in the data and on the grid.
+#
+# Defined as DFS_BOOKS rather than a second hand-written set: the rule is "all
+# pick'em apps", so listing them twice would only create a way for the two to
+# disagree later.
+NO_SINGLE_BET_BOOKS = DFS_BOOKS
 
 SPORTS = {"mlb": MLB, "nfl": NFL}

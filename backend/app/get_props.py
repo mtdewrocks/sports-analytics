@@ -14,7 +14,13 @@ THE BUDGET PROBLEM
 ------------------
 The event-odds endpoint is charged as:
 
-    cost = (unique markets RETURNED) x (regions requested)
+    cost = (unique markets RETURNED) x (region equivalents)
+
+and "every group of 10 bookmakers is the equivalent of 1 region", with
+`bookmakers` overriding `regions` when both are sent. That step function is
+the single most useful fact about this API: naming ten books costs exactly
+what one region costs, so a book that lives in us2 can be pulled for nothing
+extra instead of buying the whole region at 2x the total monthly bill.
 
 per event, per call. The original MLB script asked for 16 markets across 3
 regions, so one event cost up to 48 credits; ~15 games a day run hourly came to
@@ -66,15 +72,34 @@ import requests
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from props_config import SPORTS, SportConfig  # noqa: E402
+from props_config import BOOKMAKERS, SPORTS, SportConfig  # noqa: E402
 
 API_BASE = "https://api.the-odds-api.com/v4"
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 
-# Each extra region MULTIPLIES the cost of every event fetch: "us,us2" doubles
-# the bill, adding us_dfs triples it. Check the projection this script prints
-# before leaving a second one on.
+# Fallback only -- BOOKMAKERS below normally wins. Each extra region MULTIPLIES
+# the cost of every event fetch: "us,us2" doubles the bill.
 REGIONS = os.getenv("ODDS_REGIONS", "us")
+
+# Named books beat regions: the API ignores `regions` when `bookmakers` is sent,
+# and bills ten books as one region. Set ODDS_BOOKMAKERS="" to fall back to
+# region-based fetching.
+_env_books = os.getenv("ODDS_BOOKMAKERS")
+BOOKS = (tuple(b.strip() for b in _env_books.split(",") if b.strip())
+         if _env_books is not None else BOOKMAKERS)
+
+
+def _region_equivalents() -> int:
+    """What the request bills as, in regions."""
+    if BOOKS:
+        return -(-len(BOOKS) // 10)        # ceil: 1-10 books = 1 region
+    return len(REGIONS.split(","))
+
+
+def _scope_params() -> dict:
+    return {"bookmakers": ",".join(BOOKS)} if BOOKS else {"regions": REGIONS}
+
+
 MIN_REMAINING = int(os.getenv("ODDS_MIN_REMAINING", "5000"))
 MAX_SPEND_PER_RUN = int(os.getenv("ODDS_MAX_SPEND_PER_RUN", "400"))
 
@@ -192,7 +217,7 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
         f"{API_BASE}/sports/{cfg.key}/events/{event['id']}/odds",
         {
             "api_key": api_key,
-            "regions": REGIONS,
+            **_scope_params(),
             "markets": ",".join(event["_markets"]),
             "oddsFormat": "american",
             "dateFormat": "iso",
@@ -297,7 +322,7 @@ def main() -> int:
     cfg = SPORTS[args.sport]
     out_path = DATA_ROOT / cfg.slug / cfg.output
     api_key = _api_key()
-    n_regions = len(REGIONS.split(","))
+    n_regions = _region_equivalents()
 
     previous = pd.read_parquet(out_path) if out_path.exists() else pd.DataFrame()
     print(f"[{cfg.slug}] previous file: {len(previous)} rows")
@@ -310,8 +335,10 @@ def main() -> int:
 
     todo = plan(events, previous, cfg)
     worst = sum(len(ev["_markets"]) for ev in todo) * n_regions
+    scope = (f"{len(BOOKS)} books = {n_regions} region-equivalent(s)"
+             if BOOKS else f"{n_regions} region(s): {REGIONS}")
     print(f"\n{len(todo)} of {len(events)} events due; "
-          f"worst-case {worst} credits ({n_regions} region(s))")
+          f"worst-case {worst} credits ({scope})")
     print("actual will be lower -- only markets that RETURN data are charged")
 
     if args.dry_run:

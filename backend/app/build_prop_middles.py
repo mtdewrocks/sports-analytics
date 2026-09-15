@@ -92,17 +92,17 @@ import pandas as pd
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from props_config import SPORTS  # noqa: E402
+from props_config import (  # noqa: E402
+    DFS_BOOKS, NO_SINGLE_BET_BOOKS, SPORTS, UNBETTABLE_BOOKS,
+)
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 
-# Books to ignore -- carried over from the original script (ones you can't or
-# won't bet at). A book you cannot actually place the bet at is not an
-# opportunity, it is a distraction.
-EXCLUDED_BOOKS = {
-    "williamhill_us", "betrivers", "betonlineag",
-    "bovada", "hardrockbet", "mybookieag",
-}
+# Pairing drops both kinds: books you won't bet at, AND pick'em apps where a
+# single leg can't be placed at the quoted price. The second group stays in
+# Daily_Props.parquet and on the props page -- they're excluded from PAIRS,
+# not from the data.
+EXCLUDED_BOOKS = UNBETTABLE_BOOKS | NO_SINGLE_BET_BOOKS
 
 # NOTE: the *_alternate markets are deliberately NOT excluded here, unlike the
 # original script. Alternate lines are the entire reason a gap can exist -- the
@@ -217,10 +217,18 @@ def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE,
                 if kind == "no-edge":
                     continue
 
+                # Flagged, not filtered. A pick'em leg cannot usually be taken
+                # as a standalone bet at the price shown, so the payout columns
+                # on these rows describe arithmetic rather than something you
+                # can actually place -- but the pair is still a real signal
+                # that the two sides disagree about the number.
+                dfs = sorted({o["bookmakers"], u["bookmakers"]} & DFS_BOOKS)
+
                 rows.append({
                     "Player": player,
                     "market": market,
                     "kind": kind,
+                    "dfs_leg": ",".join(dfs),
                     "over_book": o["bookmakers"],
                     "over_line": over_line,
                     "over_price": float(o["Over Price"]),

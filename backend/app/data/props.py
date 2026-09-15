@@ -13,13 +13,13 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from app.data.loader import get_middles_data, get_props_data
+from app.props_config import UNBETTABLE_BOOKS
 
-# Books that can't be bet or aren't worth showing. Kept in one place so the
-# props grid and the middles screen never disagree about what counts.
-EXCLUDED_BOOKS = {
-    "williamhill_us", "betrivers", "betonlineag",
-    "bovada", "hardrockbet", "mybookieag",
-}
+# Only the books you can't bet at. Deliberately NOT the middles screen's list:
+# that one also drops prizepicks and pick6, which belong on this grid -- their
+# lines are often the softest available. They just can't be PAIRED, because a
+# single leg isn't placeable at the quoted price.
+EXCLUDED_BOOKS = UNBETTABLE_BOOKS
 
 
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:

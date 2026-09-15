@@ -65,9 +65,12 @@ jobs:
       - name: Pull MLB props
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-          # Each extra region multiplies the cost of every event fetch. Set as
-          # a repo variable if you want to try "us,us2" -- and watch the
-          # monthly projection the script prints before leaving it there.
+          # Books are named explicitly (props_config.BOOKMAKERS) rather than
+          # fetched by region: ten books bill as one region, so espnbet from
+          # us2 costs nothing extra, where buying the us2 region would have
+          # doubled the entire monthly spend. Set ODDS_BOOKMAKERS to override,
+          # or to "" to fall back to ODDS_REGIONS.
+          ODDS_BOOKMAKERS: ${{ vars.ODDS_BOOKMAKERS }}
           ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
           ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}
           ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
@@ -76,6 +79,7 @@ jobs:
       - name: Pull NFL props
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          ODDS_BOOKMAKERS: ${{ vars.ODDS_BOOKMAKERS }}
           ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
           ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}
           ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
