@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getNFLGameLogPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
@@ -156,8 +156,15 @@ export default function NFLGameLog() {
       .catch(() => setStats([]));
   }, []);
 
+  // Guards against an older request's response landing after a newer one's
+  // -- only matters now that a fetch can fire on its own (the season effect
+  // below) rather than only from one button click at a time, e.g. flipping
+  // the season toggle twice in quick succession.
+  const requestIdRef = useRef(0);
+
   const fetchStats = async () => {
     if (!selectedPlayer || !selectedStat) return;
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError('');
     setGameData(null);
@@ -170,13 +177,25 @@ export default function NFLGameLog() {
         margin_operator: marginOperator && !isNaN(marginValue) ? marginOperator : undefined,
         margin_value: marginOperator && !isNaN(marginValue) ? marginValue : undefined,
       });
-      setGameData(res.data);
+      if (requestId === requestIdRef.current) setGameData(res.data);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to fetch game log.');
+      if (requestId === requestIdRef.current) setError(err?.response?.data?.detail || 'Failed to fetch game log.');
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   };
+
+  // Season is the one filter that re-fetches on its own instead of waiting
+  // for Get Stats -- flipping 2026/2025 is a single deliberate click with an
+  // obvious "show me the other season" intent, unlike Player/Stat/Threshold,
+  // which stay behind the button since they're usually mid-edit when they
+  // change. No-ops until a player and stat are actually chosen (also true
+  // on first mount, before either default has loaded), so this never fires
+  // a request for a page nobody has used yet.
+  useEffect(() => {
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [season]);
 
   // Whether this stat has any defensive context at all -- a player's own
   // defensive stats (sacks, tackles) have no mapped opponent context, so
