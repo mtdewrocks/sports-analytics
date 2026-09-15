@@ -61,9 +61,9 @@ export default function OddsDisclaimer({
       </div>
       <div>
         Lines move constantly and books pull them without notice. These prices are a
-        snapshot from when we last checked, not an offer — what you see here may no
-        longer be available, and no odds shown are guaranteed. Always confirm the
-        current price at the sportsbook before placing any bet.
+        snapshot from when they were last queried. What you see here may no longer be
+        available, and no odds shown are guaranteed. Always confirm the current price
+        at the sportsbook before placing any bet.
       </div>
       <div style={{ marginTop: 5, color: theme.textMuted, fontSize: compact ? 10.5 : 11 }}>
         Odds data provided by{' '}

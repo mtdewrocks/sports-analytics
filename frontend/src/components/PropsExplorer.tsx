@@ -184,15 +184,40 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
   }, [colRoles.books]);
 
   // Unique filter options
-  const uniquePlayers = useMemo(() => {
-    if (!colRoles.player) return [];
-    return [...new Set(allProps.map(r => String(r[colRoles.player] || '')).filter(Boolean))].sort();
-  }, [allProps, colRoles.player]);
-
+  // The two dropdowns constrain each OTHER: markets narrow to the ones the
+  // chosen player actually has, and players narrow to the ones who have the
+  // chosen market. Picking Mahomes takes the NFL market list from 37 to 19,
+  // and the median NFL player has exactly ONE market -- so for most of the
+  // board the unfiltered list is 36 rows of noise.
+  //
+  // This costs nothing: every row is already in `allProps` from the single
+  // fetch on mount, so it's a filter over an in-memory array (~0.4 ms on the
+  // larger MLB set), not a request. No spinner, no round trip.
   const uniqueMarkets = useMemo(() => {
     if (!colRoles.market) return [];
-    return [...new Set(allProps.map(r => String(r[colRoles.market] || '')).filter(Boolean))].sort();
-  }, [allProps, colRoles.market]);
+    const rows = selectedPlayer && colRoles.player
+      ? allProps.filter(r => String(r[colRoles.player] || '').toLowerCase()
+                             === selectedPlayer.toLowerCase())
+      : allProps;
+    return [...new Set(rows.map(r => String(r[colRoles.market] || '')).filter(Boolean))].sort();
+  }, [allProps, colRoles.market, colRoles.player, selectedPlayer]);
+
+  const uniquePlayers = useMemo(() => {
+    if (!colRoles.player) return [];
+    const rows = selectedMarket && colRoles.market
+      ? allProps.filter(r => String(r[colRoles.market] || '') === selectedMarket)
+      : allProps;
+    return [...new Set(rows.map(r => String(r[colRoles.player] || '')).filter(Boolean))].sort();
+  }, [allProps, colRoles.player, colRoles.market, selectedMarket]);
+
+  // Cross-filtering can strand a selection: pick Mahomes, pick pass_yds, then
+  // switch to a running back and pass_yds is still set but no longer exists,
+  // so the grid goes empty with no visible reason. Clear it instead.
+  useEffect(() => {
+    if (selectedMarket && uniqueMarkets.length && !uniqueMarkets.includes(selectedMarket)) {
+      setSelectedMarket('');
+    }
+  }, [uniqueMarkets, selectedMarket]);
 
   // Active sportsbook columns (selected + exist in data)
   const activeCols = useMemo(
