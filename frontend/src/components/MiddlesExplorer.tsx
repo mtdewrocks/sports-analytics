@@ -1,14 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getMLBMiddles } from '../api/mlb';
-import { getNFLMiddles } from '../api/nfl';
-import LoadingSpinner from '../components/LoadingSpinner';
-import SegmentedToggle from '../components/SegmentedToggle';
-import ScrollTable from '../components/ScrollTable';
-import OddsDisclaimer from '../components/OddsDisclaimer';
+import LoadingSpinner from './LoadingSpinner';
+import SegmentedToggle from './SegmentedToggle';
+import ScrollTable from './ScrollTable';
+import OddsDisclaimer from './OddsDisclaimer';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
-type Sport = 'mlb' | 'nfl';
+// Split out of the old combined PropMiddles.tsx (one page, an NFL/MLB toggle)
+// into a shared component the same way PropsExplorer.tsx already split off
+// from MLBProps.tsx -- so NFL and MLB each get their own page and their own
+// spot in that sport's nav, instead of a standalone "Middles" link people
+// weren't finding. `title` is required (not defaulted) for the same reason
+// PropsExplorer's is: a copy-pasted wrapper missing its own title silently
+// shows the OTHER sport's data under the wrong heading.
+
 type Kind = 'all' | 'middle+arb' | 'arb' | 'middle';
 
 interface Row {
@@ -20,6 +25,11 @@ interface Row {
   breakeven_window_rate_pct: number;
   commence_time?: string; home_team?: string; away_team?: string;
   [k: string]: any;
+}
+
+interface MiddlesExplorerProps {
+  fetcher: (params: Record<string, any>) => Promise<{ data: Row[] }>;
+  title: string;
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -46,8 +56,7 @@ function book(b: string): string {
   return String(b || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function PropMiddles() {
-  const [sport, setSport] = useState<Sport>('nfl');
+export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps) {
   const [kind, setKind] = useState<Kind>('all');
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,12 +67,14 @@ export default function PropMiddles() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    const fetcher = sport === 'mlb' ? getMLBMiddles : getNFLMiddles;
     fetcher({})
       .then((res) => setRows(res.data))
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to load.'))
       .finally(() => setLoading(false));
-  }, [sport]);
+    // fetcher is a stable module-level export (getNFLMiddles / getMLBMiddles),
+    // not state -- re-running this on every render would refetch in a loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const markets = useMemo(
     () => [...new Set(rows.map((r) => r.market).filter(Boolean))].sort(),
@@ -96,7 +107,7 @@ export default function PropMiddles() {
       padding: isMobile ? 16 : 24, maxWidth: 1200, margin: '0 auto',
       background: theme.bgPage, minHeight: 'calc(100vh - 60px)',
     }}>
-      <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>Middles &amp; Arbs</h2>
+      <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>{title}</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 14, lineHeight: 1.55 }}>
         Pairs where one book's Over and another book's Under are both plus money.
         An <strong style={{ color: theme.accent }}>arb</strong> pays whichever side wins.
@@ -106,14 +117,6 @@ export default function PropMiddles() {
       </div>
 
       <OddsDisclaimer fetchedAt={fetchedAt} compact={isMobile} />
-
-      <SegmentedToggle
-        value={sport}
-        onChange={setSport}
-        fullWidth
-        options={[{ value: 'nfl', label: 'NFL' }, { value: 'mlb', label: 'MLB' }]}
-        style={{ marginBottom: 8 }}
-      />
 
       <SegmentedToggle
         value={kind}

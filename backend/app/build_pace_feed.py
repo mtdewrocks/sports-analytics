@@ -103,18 +103,25 @@ def main() -> None:
     player_stats = pd.read_parquet(PLAYER_STATS_FILE)
     schedule = pd.read_parquet(SCHEDULE_FILE)
 
-    # Both upstream scripts fall back to last season's data before Week 1
-    # (is_fallback=True on player_box_stats; schedule_results always has
-    # every season in one file, so no fallback flag needed there). Use
-    # whatever season is actually present in the player stats so the two
-    # halves of the feed describe the same season, rather than silently
-    # mixing this year's (empty) team records with last year's stat totals.
-    effective_season = (
-        int(player_stats["season"].mode().iloc[0]) if not player_stats.empty else season
+    # player_box_stats.parquet now holds the current season AND the one
+    # before it in the same file (get_nfl_player_box_stats.py keeps both so
+    # the Game Log page can offer a season toggle). Picking the season with
+    # more ROWS (the old `.mode()` approach) is wrong here: last season has a
+    # full year of rows and this season only has a few weeks, so `.mode()`
+    # would keep resolving to last season for most of the year. What we
+    # actually want is "prefer the current season; only fall back to last
+    # season if the current one has no rows at all yet" -- a membership
+    # check, not a majority vote.
+    seasons_present = (
+        set(player_stats["season"].dropna().unique()) if not player_stats.empty else set()
     )
-    if effective_season != season:
-        print(f"player stats are on fallback season {effective_season}; "
-              f"using that season for team records too")
+    if season in seasons_present:
+        effective_season = season
+    elif (season - 1) in seasons_present:
+        effective_season = season - 1
+        print(f"no {season} data yet; using {effective_season} instead")
+    else:
+        effective_season = season
 
     max_week = int(player_stats[player_stats["season"] == effective_season]["week"].max())
 

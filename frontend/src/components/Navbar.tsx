@@ -38,6 +38,7 @@ const GROUPS: NavGroup[] = [
       { label: 'Usage Trend', to: '/nfl/usage-trend' },
       { label: 'Mismatches', to: '/nfl/mismatches' },
       { label: 'Props', to: '/nfl/props' },
+      { label: 'Middles & Arbs', to: '/nfl/middles' },
     ],
   },
   {
@@ -49,6 +50,7 @@ const GROUPS: NavGroup[] = [
       { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },
       { label: 'Hot Hitters', to: '/mlb/hot-hitters' },
       { label: 'Props', to: '/mlb/props' },
+      { label: 'Middles & Arbs', to: '/mlb/middles' },
     ],
   },
 ];
@@ -294,17 +296,6 @@ export default function Navbar() {
                 Dashboard
               </Link>
               <Link
-                to="/middles"
-                onClick={() => setMoreOpen(false)}
-                style={{
-                  display: 'block', padding: '13px 2px', minHeight: 44, fontSize: 15,
-                  color: theme.textPrimary, textDecoration: 'none',
-                  borderBottom: `1px solid ${theme.border}`,
-                }}
-              >
-                Middles &amp; Arbs
-              </Link>
-              <Link
                 to="/billing"
                 onClick={() => setMoreOpen(false)}
                 style={{
@@ -341,16 +332,6 @@ export default function Navbar() {
       </ul>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Link
-          to="/middles"
-          style={{
-            color: location.pathname === '/middles' ? theme.accent : theme.textSecondary,
-            textDecoration: 'none', fontSize: 14, fontWeight: 600,
-            padding: '8px 12px', borderRadius: 4, whiteSpace: 'nowrap',
-          }}
-        >
-          Middles
-        </Link>
         <button style={styles.logoutBtn} onClick={handleLogout}>Logout</button>
       </div>
     </nav>
