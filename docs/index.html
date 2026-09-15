@@ -711,6 +711,30 @@ const DEFAULT_PARLAYS = [
       { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
       { player:'Bijan Robinson', team:'ATL', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
     ]
+  },
+  {
+    id: 'fd_17leg_multisport',
+    name: '17-Leg NFL Futures',
+    sportsbook: 'FanDuel',
+    stake: 250,
+    payout: 125.73,   // actual ticket payout $125,734.72, shown divided by 1,000
+    legs: [
+      { player:'Baker Mayfield', team:'TB', prop:'25+ passing TDs', stat:'passing_tds', threshold:25, unitLabel:'TD' },
+      { player:'Minnesota Vikings', team:'MIN', prop:'6+ wins', isTeamWin:true, threshold:6, unitLabel:'win' },
+      { player:'Kansas City Chiefs', team:'KC', prop:'8+ wins', isTeamWin:true, threshold:8, unitLabel:'win' },
+      { player:'Buffalo Bills', team:'BUF', prop:'10+ wins', isTeamWin:true, threshold:10, unitLabel:'win' },
+      { player:'Jared Goff', team:'DET', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'8+ rushing TDs', stat:'rushing_tds', threshold:8, unitLabel:'TD' },
+      { player:'Chase Brown', team:'CIN', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Quinshon Judkins', team:'CLE', prop:'750+ rushing yards', stat:'rushing_yards', threshold:750, unitLabel:'yd' },
+      { player:'Justin Jefferson', team:'MIN', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Christian McCaffrey', team:'SF', prop:'6+ rushing TDs', stat:'rushing_tds', threshold:6, unitLabel:'TD' },
+      { player:'Amon-Ra St. Brown', team:'DET', prop:'1,000+ receiving yards', stat:'receiving_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Bijan Robinson', team:'ATL', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Jahmyr Gibbs', team:'DET', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Derrick Henry', team:'BAL', prop:'1,000+ rushing yards', stat:'rushing_yards', threshold:1000, unitLabel:'yd' },
+      { player:'Matthew Stafford', team:'LAR', prop:'3,500+ passing yards', stat:'passing_yards', threshold:3500, unitLabel:'yd' },
+    ]
   }
 ];
 
@@ -769,9 +793,22 @@ function renderStorageBanner(){
 }
 
 storageAvailable = checkStorageAvailable();
+// Merge: keep what's saved on this device, add any DEFAULT_PARLAYS whose
+// id isn't saved yet, and never re-add ones you deleted in the app.
+const DELETED_KEY = 'on_pace_deleted_ids_v1';
+function loadDeletedIds(){
+  if(!storageAvailable) return [];
+  try{ return JSON.parse(localStorage.getItem(DELETED_KEY)) || []; } catch(e){ return []; }
+}
 const storedParlays = loadStoredParlays();
-let parlays = storedParlays || JSON.parse(JSON.stringify(DEFAULT_PARLAYS));
-if(storageAvailable && !storedParlays) persistParlays();
+const deletedIds = loadDeletedIds();
+let parlays = storedParlays || [];
+const storedIds = new Set(parlays.map(p => p.id));
+const missingDefaults = DEFAULT_PARLAYS
+  .filter(d => !storedIds.has(d.id) && !deletedIds.includes(d.id))
+  .map(d => JSON.parse(JSON.stringify(d)));
+parlays = parlays.concat(missingDefaults);
+if(storageAvailable && (!storedParlays || missingDefaults.length)) persistParlays();
 
 function computeLeg(leg){
   const gamesTotal = leg.gamesTotal || DEFAULT_GAMES_TOTAL;
@@ -1163,6 +1200,12 @@ function deleteParlay(id){
   if(!confirm(`Delete "${p.name}"? This can't be undone.`)) return;
   const idx = parlays.findIndex(x => x.id === id);
   parlays.splice(idx, 1);
+  if(storageAvailable){
+    try{
+      const ids = loadDeletedIds();
+      if(!ids.includes(id)){ ids.push(id); localStorage.setItem(DELETED_KEY, JSON.stringify(ids)); }
+    } catch(e){}
+  }
   persistParlays();
   renderDashboard();
   showView('dashboard');
