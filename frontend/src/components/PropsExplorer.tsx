@@ -37,6 +37,86 @@ const MIN_ODDS_OPTIONS = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+/** Market key -> readable label, for prose. The raw key is fine in a dropdown
+ *  where it sits beside its siblings, but reads as a database column in the
+ *  middle of a sentence.
+ *
+ *  BASE labels only. `_alternate` is handled as a suffix below, which halves
+ *  the map and means a new alternate ladder is labelled correctly the day it
+ *  appears without anyone touching this.
+ *
+ *  Keys are POST-prefix-strip: get_props.py removes `batter_` for MLB and
+ *  `player_` for NFL, so `batter_hits` arrives here as `hits`. That is also
+ *  why the batter/pitcher pairs below are spelled out -- bare `strikeouts` is
+ *  the batter market, and the pitcher one has to say so.
+ */
+const MARKET_LABELS: Record<string, string> = {
+  // ---- MLB, batter ----
+  hits: 'hits',
+  hits_runs_rbis: 'hits + runs + RBIs',
+  home_runs: 'home runs',
+  first_home_run: 'first home run',
+  rbis: 'RBIs',
+  runs_scored: 'runs scored',
+  singles: 'singles',
+  doubles: 'doubles',
+  total_bases: 'total bases',
+  stolen_bases: 'stolen bases',
+  strikeouts: 'batter strikeouts',
+  walks: 'batter walks',
+  // ---- MLB, pitcher ----
+  pitcher_strikeouts: 'pitcher strikeouts',
+  pitcher_hits_allowed: 'hits allowed',
+  pitcher_walks: 'walks allowed',
+  pitcher_earned_runs: 'earned runs',
+  pitcher_outs: 'outs recorded',
+  pitcher_record_a_win: 'to record a win',
+  // ---- NFL, passing ----
+  pass_yds: 'passing yards',
+  pass_tds: 'passing touchdowns',
+  pass_attempts: 'pass attempts',
+  pass_completions: 'completions',
+  pass_interceptions: 'interceptions thrown',
+  pass_longest_completion: 'longest completion',
+  pass_yds_q1: '1st-quarter passing yards',
+  // ---- NFL, rushing / receiving ----
+  rush_yds: 'rushing yards',
+  rush_tds: 'rushing touchdowns',
+  rush_attempts: 'rush attempts',
+  rush_longest: 'longest rush',
+  receptions: 'receptions',
+  reception_yds: 'receiving yards',
+  reception_tds: 'receiving touchdowns',
+  reception_longest: 'longest reception',
+  // ---- NFL, combined ----
+  rush_reception_yds: 'rush + receiving yards',
+  pass_rush_yds: 'pass + rush yards',
+  pass_rush_reception_yds: 'pass + rush + receiving yards',
+  // ---- NFL, touchdown scorer ----
+  anytime_td: 'anytime touchdown',
+  '1st_td': 'first touchdown scorer',
+  last_td: 'last touchdown scorer',
+  // ---- NFL, kicking and defence ----
+  kicking_points: 'kicking points',
+  field_goals: 'field goals',
+  pats: 'extra points',
+  sacks: 'sacks',
+  solo_tackles: 'solo tackles',
+  tackles_assists: 'tackles + assists',
+  assists: 'assisted tackles',
+};
+
+function prettyMarket(market: string): string {
+  const key = String(market || '');
+  const alt = key.endsWith('_alternate');
+  const base = alt ? key.slice(0, -'_alternate'.length) : key;
+  // Unmapped keys degrade to underscores-as-spaces rather than breaking, so a
+  // market added to props_config before this map reads acceptably in the mean
+  // time.
+  const label = MARKET_LABELS[base] ?? base.replace(/_/g, ' ');
+  return alt ? `alternate ${label}` : label;
+}
+
 function parseOdds(val: any): number | null {
   if (val === '' || val === null || val === undefined) return null;
   const n = typeof val === 'number' ? val : parseFloat(String(val));
@@ -202,22 +282,36 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
     return [...new Set(rows.map(r => String(r[colRoles.market] || '')).filter(Boolean))].sort();
   }, [allProps, colRoles.market, colRoles.player, selectedPlayer]);
 
+  // EVERY player, always -- deliberately not narrowed by the selected market.
+  //
+  // Narrowing it seemed symmetric and was worse: with pass_yds selected the
+  // list held only quarterbacks, so searching "Kenneth Walker" returned
+  // nothing and the page looked broken. A search box that can't find a player
+  // who is plainly in the data is a bug report, not a filter.
+  //
+  // The market stays selected and the mismatch is explained on the right
+  // instead, which is recoverable -- the user can see what happened and change
+  // the market.
   const uniquePlayers = useMemo(() => {
     if (!colRoles.player) return [];
-    const rows = selectedMarket && colRoles.market
-      ? allProps.filter(r => String(r[colRoles.market] || '') === selectedMarket)
-      : allProps;
-    return [...new Set(rows.map(r => String(r[colRoles.player] || '')).filter(Boolean))].sort();
-  }, [allProps, colRoles.player, colRoles.market, selectedMarket]);
+    return [...new Set(allProps.map(r => String(r[colRoles.player] || '')).filter(Boolean))].sort();
+  }, [allProps, colRoles.player]);
 
-  // Cross-filtering can strand a selection: pick Mahomes, pick pass_yds, then
-  // switch to a running back and pass_yds is still set but no longer exists,
-  // so the grid goes empty with no visible reason. Clear it instead.
-  useEffect(() => {
-    if (selectedMarket && uniqueMarkets.length && !uniqueMarkets.includes(selectedMarket)) {
-      setSelectedMarket('');
-    }
-  }, [uniqueMarkets, selectedMarket]);
+  // A market the current player doesn't have still belongs in the <select>,
+  // or the control renders blank while the filter is demonstrably still
+  // applied -- the state and the UI would disagree.
+  const marketOptions = useMemo(() => (
+    selectedMarket && !uniqueMarkets.includes(selectedMarket)
+      ? [...uniqueMarkets, selectedMarket].sort()
+      : uniqueMarkets
+  ), [uniqueMarkets, selectedMarket]);
+
+  // The specific dead end: a real player, a real market, no line between them.
+  // Distinct from "no props match the current filters", which says nothing
+  // about which filter to change.
+  const marketMissingForPlayer = Boolean(
+    selectedPlayer && selectedMarket && !uniqueMarkets.includes(selectedMarket),
+  );
 
   // Active sportsbook columns (selected + exist in data)
   const activeCols = useMemo(
@@ -319,7 +413,7 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
           <span style={labelStyle}>Market</span>
           <select style={selectStyle} value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
             <option value="">All Markets</option>
-            {uniqueMarkets.map(m => <option key={m} value={m}>{m}</option>)}
+            {marketOptions.map(m => <option key={m} value={m}>{prettyMarket(m)}</option>)}
           </select>
         </div>
 
@@ -637,7 +731,14 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
 
         {!loading && !error && displayProps.length === 0 && allProps.length > 0 && (
           <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 15, marginTop: 80 }}>
-            No props match the current filters.
+            {marketMissingForPlayer ? (
+              <>
+                There are no {prettyMarket(selectedMarket)} lines for {selectedPlayer}.
+                <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 8 }}>
+                  Please choose another market.
+                </div>
+              </>
+            ) : 'No props match the current filters.'}
           </div>
         )}
 
