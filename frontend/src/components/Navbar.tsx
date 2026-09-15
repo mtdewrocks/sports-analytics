@@ -341,6 +341,16 @@ export default function Navbar() {
       </ul>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Link
+          to="/middles"
+          style={{
+            color: location.pathname === '/middles' ? theme.accent : theme.textSecondary,
+            textDecoration: 'none', fontSize: 14, fontWeight: 600,
+            padding: '8px 12px', borderRadius: 4, whiteSpace: 'nowrap',
+          }}
+        >
+          Middles
+        </Link>
         <button style={styles.logoutBtn} onClick={handleLogout}>Logout</button>
       </div>
     </nav>

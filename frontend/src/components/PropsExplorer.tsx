@@ -122,6 +122,10 @@ const dividerStyle: React.CSSProperties = {
 export interface PropsExplorerProps {
   /** Returns the long-format prop rows for one sport. */
   fetcher: (params: Record<string, any>) => Promise<{ data: Record<string, any>[] }>;
+  /** Shown in the sidebar and the empty state. Required, not defaulted: a
+   *  default would have let the NFL page keep rendering "MLB Props", which is
+   *  exactly the bug this parameter exists to prevent. */
+  title: string;
 }
 
 /** Line-shopping grid, shared by the MLB and NFL props pages.
@@ -130,7 +134,7 @@ export interface PropsExplorerProps {
  *  are pivoted by the same backend helper, so the only thing that differs is
  *  which endpoint to call. Forking this into two 600-line files would mean
  *  every future fix landing once and being forgotten the other time. */
-export default function PropsExplorer({ fetcher }: PropsExplorerProps) {
+export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
   const [allProps, setAllProps]   = useState<Record<string, any>[]>([]);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
@@ -362,7 +366,7 @@ export default function PropsExplorer({ fetcher }: PropsExplorerProps) {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 16 }}>MLB Props</div>
+          <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 16 }}>{title}</div>
           {filterControls}
         </div>
       )}
@@ -614,7 +618,7 @@ export default function PropsExplorer({ fetcher }: PropsExplorerProps) {
 
         {!loading && !error && allProps.length === 0 && (
           <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 15, marginTop: 80 }}>
-            No MLB props data available.
+            {`No ${title.replace(/ Props$/, "")} props data available.`}
           </div>
         )}
       </div>
