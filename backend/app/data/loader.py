@@ -260,6 +260,19 @@ def get_nfl_season_totals() -> pd.DataFrame:
     return _load(f"{base}/player_season_totals.parquet", pd.read_parquet, "nfl season totals")
 
 
+@ttl_cache(OTHER_TTL)
+def get_nfl_player_box_stats() -> pd.DataFrame:
+    """Per-player weekly box scores (passing/rushing/receiving), current
+    season plus the one before it, from get_nfl_player_box_stats.py --
+    feeds the NFL Game Log page's season toggle. A separate source from
+    get_nfl_stats() (Player_Stats_Weekly.parquet) for the same reason as
+    get_nfl_season_totals() above: that legacy file was found to sit frozen
+    on last season and never pick up the current one.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/player_box_stats.parquet", pd.read_parquet, "nfl player box stats")
+
+
 @ttl_cache(MLB_TTL)
 def get_pitcher_names() -> list:
     """Lightweight loader — the pitcher dropdown only.

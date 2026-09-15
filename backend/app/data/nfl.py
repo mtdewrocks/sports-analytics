@@ -1,19 +1,29 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats
 
-# Stat groups for reference / display
+# Stat groups for reference / display -- Game Log only (Fantasy Matchup,
+# In/Out, and the usage trend page each have their own separate stat
+# definitions and don't read these).
+#
+# Names here match get_nfl_player_box_stats.py's raw nflverse column names
+# (passing_interceptions, sacks_suffered) rather than the shorter names the
+# old legacy source used, since that script deliberately kept nflverse's own
+# naming -- see its docstring. completion_pct, passer_rating,
+# yards_per_carry, yards_per_reception and defensive box stats (tackles,
+# passes defended, etc.) are dropped: neither the new source nor -- as far
+# as could be checked -- the old one actually populated them.
 PASSING_STATS = [
-    "passing_yards", "passing_tds", "interceptions", "completions",
-    "attempts", "completion_pct", "passer_rating", "sacks",
+    "passing_yards", "passing_tds", "passing_interceptions", "completions",
+    "attempts", "sacks_suffered",
 ]
 RUSHING_STATS = [
-    "rushing_yards", "rushing_tds", "carries", "yards_per_carry",
+    "rushing_yards", "rushing_tds", "carries",
 ]
 RECEIVING_STATS = [
     "receiving_yards", "receiving_tds", "receptions", "targets",
-    "yards_per_reception", "air_yards",
+    "receiving_air_yards",
 ]
 DEFENSE_STATS = [
     "sacks", "tackles", "interceptions", "fumbles_recovered",
@@ -86,9 +96,24 @@ def get_players() -> List[str]:
     return sorted(df[col].dropna().unique().tolist())
 
 
+def get_game_log_players() -> List[str]:
+    """Player list for the Game Log page specifically -- kept separate from
+    get_players() above (used by Fantasy Matchup, In/Out, and the usage
+    trend page) so that Game Log's move to a different data source can't
+    put a name in its dropdown that those other three pages, still reading
+    the legacy source, don't recognize.
+    """
+    df = get_nfl_player_box_stats()
+    if df.empty:
+        return []
+    col = _player_col(df)
+    return sorted(df[col].dropna().unique().tolist())
+
+
 def get_available_stats() -> List[str]:
-    """Return a flat list of available stat columns in preferred display order."""
-    df = get_nfl_stats()
+    """Return a flat list of available stat columns in preferred display
+    order. Game Log only -- see PASSING_STATS etc. above."""
+    df = get_nfl_player_box_stats()
     actual_cols = set(df.columns.tolist())
     ordered = []
     for group_stats in ALL_STAT_GROUPS.values():
@@ -198,12 +223,23 @@ def get_game_log(
     win_loss: Optional[str] = None,
     margin_operator: Optional[str] = None,
     margin_value: Optional[float] = None,
+    season: Optional[int] = None,
 ) -> dict:
-    df = get_nfl_stats()
+    df = get_nfl_player_box_stats()
     col = _player_col(df)
+    season_col = _season_col(df)
 
     player_norm = _normalize(player)
     player_df = df[df[col].str.lower().str.strip() == player_norm].copy()
+
+    # Defaults to the current season -- the whole point of adding a season
+    # column here was so a game log doesn't silently mix two years of games
+    # together, the way the single-season legacy source never had to worry
+    # about. An explicit season (the page's toggle) narrows it further, or
+    # to the OTHER season instead.
+    effective_season = season if season is not None else _current_nfl_season()
+    if season_col:
+        player_df = player_df[player_df[season_col] == effective_season]
 
     if player_df.empty:
         empty_summary = {"games": 0, "avg": None, "hit": 0, "total": 0, "pct": 0}
@@ -212,7 +248,6 @@ def get_game_log(
             "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}},
             "win_loss_breakdown": {"W": empty_summary, "L": empty_summary},
         }
-    season_col = _season_col(df)
     team_col = _team_col(df)
     week_col = _week_col(df)
 
@@ -330,15 +365,17 @@ def get_game_log(
         over = int(sum(1 for x in v if x >= threshold))
         return {"over": over, "total": total, "pct": round(over / total, 4)}
 
-    # Upcoming games for the player's current team -- current-season, since
-    # a player's future schedule beyond the season they've been logging in
-    # isn't a thing yet.
+    # Upcoming games for the player's current team -- only when viewing the
+    # actual current season. Every game in a PAST season is already played,
+    # so "what's next" doesn't mean anything while the toggle is on last
+    # season -- it would otherwise show the real upcoming schedule stapled
+    # onto a historical game log, which reads as if last season is still in
+    # progress.
     upcoming = []
-    if team_col and not player_df.empty:
+    if team_col and not player_df.empty and effective_season == _current_nfl_season():
         current_team = player_df.iloc[-1].get(team_col)
-        season_for_schedule = _current_nfl_season()
         if pd.notna(current_team):
-            upcoming = _upcoming_games(stat, str(current_team), season_for_schedule)
+            upcoming = _upcoming_games(stat, str(current_team), effective_season)
 
     return {
         "games": game_rows,

@@ -13,15 +13,20 @@ def players(_=Depends(require_access)):
 def stats(_=Depends(require_access)):
     return nfl_data.get_available_stats()
 
+@router.get("/game-log/players")
+def game_log_players(_=Depends(require_access)):
+    return nfl_data.get_game_log_players()
+
 @router.get("/game-log")
 def game_log(
     player: str = Query(...), stat: str = Query("passing_yards"), threshold: float = Query(0),
     win_loss: Optional[str] = Query(None, pattern="^(W|L)$"),
     margin_operator: Optional[str] = Query(None, pattern="^(<|>)$"),
     margin_value: Optional[float] = Query(None),
+    season: Optional[int] = Query(None),
     _=Depends(require_access),
 ):
-    return nfl_data.get_game_log(player, stat, threshold, win_loss, margin_operator, margin_value)
+    return nfl_data.get_game_log(player, stat, threshold, win_loss, margin_operator, margin_value, season)
 
 @router.get("/matchups")
 def matchups(_=Depends(require_access)):

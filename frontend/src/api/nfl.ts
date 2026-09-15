@@ -2,6 +2,10 @@ import client from './client';
 
 export const getNFLPlayers = () => client.get('/api/nfl/players');
 export const getNFLStats = () => client.get('/api/nfl/stats');
+// Game Log's own player list -- a different backend source than
+// getNFLPlayers() above (which Fantasy Matchup, In/Out, and the usage
+// trend page still use), so its season toggle only had to touch this page.
+export const getNFLGameLogPlayers = () => client.get('/api/nfl/game-log/players');
 export const getNFLGameLog = (params: Record<string, any>) => client.get('/api/nfl/game-log', { params });
 export const getNFLMatchups = () => client.get('/api/nfl/matchups');
 export const getNFLMatchup = (matchup: string) => client.get('/api/nfl/matchup', { params: { matchup } });

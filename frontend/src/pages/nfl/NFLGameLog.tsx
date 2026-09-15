@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getNFLPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
+import { getNFLGameLogPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import WinLossBreakdownTable from '../../components/WinLossBreakdownTable';
@@ -118,11 +118,21 @@ function formatTooltip(tooltip?: Record<string, number | string | null>): string
 
 type RankMode = 'season' | 'last4';
 
+// Extend when a new season starts -- matches SEASONS in
+// backend/app/get_nfl_player_box_stats.py, the two seasons that script
+// actually pulls and keeps in the same file.
+const CURRENT_SEASON = 2026;
+const SEASON_OPTIONS = [
+  { value: String(CURRENT_SEASON), label: String(CURRENT_SEASON) },
+  { value: String(CURRENT_SEASON - 1), label: String(CURRENT_SEASON - 1) },
+];
+
 export default function NFLGameLog() {
   const [players, setPlayers] = useState<string[]>([]);
   const [stats, setStats] = useState<string[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [selectedStat, setSelectedStat] = useState('');
+  const [season, setSeason] = useState(String(CURRENT_SEASON));
   const [thresholdStr, setThresholdStr] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -135,7 +145,7 @@ export default function NFLGameLog() {
   const panelLayout = usePanelLayout();
 
   useEffect(() => {
-    getNFLPlayers()
+    getNFLGameLogPlayers()
       .then((res) => setPlayers(res.data))
       .catch(() => setPlayers([]));
     getNFLStats()
@@ -155,7 +165,7 @@ export default function NFLGameLog() {
       const threshold = parseFloat(thresholdStr) || 0;
       const marginValue = parseFloat(marginValueStr);
       const res = await getNFLGameLog({
-        player: selectedPlayer, stat: selectedStat, threshold,
+        player: selectedPlayer, stat: selectedStat, threshold, season,
         win_loss: winLoss || undefined,
         margin_operator: marginOperator && !isNaN(marginValue) ? marginOperator : undefined,
         margin_value: marginOperator && !isNaN(marginValue) ? marginValue : undefined,
@@ -254,6 +264,11 @@ export default function NFLGameLog() {
           </>
         }
       >
+        <label style={labelStyle}>Season</label>
+        <div style={{ marginBottom: 16 }}>
+          <SegmentedToggle options={SEASON_OPTIONS} value={season} onChange={setSeason} fullWidth />
+        </div>
+
         <label style={labelStyle}>Player</label>
         <div style={{ marginBottom: 16 }}>
           <SearchDropdown
@@ -297,6 +312,7 @@ export default function NFLGameLog() {
           <>
             <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
               {selectedPlayer} — {formatStatLabel(selectedStat)} (Line: {parseFloat(thresholdStr) || 0})
+              <span style={{ color: theme.textSecondary, fontWeight: 400, fontSize: 16 }}> · {season} Season</span>
               {winLoss && <span style={{ color: theme.textSecondary, fontWeight: 400, fontSize: 16 }}> · {winLoss === 'W' ? 'Wins Only' : 'Losses Only'}</span>}
               {marginOperator && marginValueStr && (
                 <span style={{ color: theme.textSecondary, fontWeight: 400, fontSize: 16 }}> · Margin {marginOperator} {marginValueStr}</span>

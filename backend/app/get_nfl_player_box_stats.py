@@ -1,30 +1,40 @@
 """Pull nflverse's per-player weekly box-score stats (passing, rushing,
-receiving) for the season.
+receiving) for the current season AND the season before it, combined into
+one file.
 
-player_week_usage.parquet (from get_nfl_pbp.py) already covers rushing and
-receiving usage from play-by-play, but has no passing stats at all -- pbp
-usage was built for target/carry share, not QB box scores. This script
-pulls nflverse's separate "stats_player" release, which has passing yards,
-TDs, completions, etc. alongside rushing/receiving, in one file per season.
-Same source the season-total parlay pace feed (build_pace_feed.py) needs
-for legs like "25+ passing TDs".
+Same source and same both-seasons-combined approach as
+get_nfl_season_totals.py, and for the same reason: the NFL Game Log page
+used to read Player_Stats_Weekly.parquet (a legacy file from the separate
+sports_analysis repo), which was checked directly and found to sit frozen
+on last season -- it never picked up the current season's games at all, no
+matter how often this repo's own workflows ran. This script gives Game Log
+its own live source, and keeping both seasons in the same file (rather than
+one replacing the other, which is what this script used to do) is what
+lets the page offer a season toggle instead of just whichever one season
+happened to be "current" at pull time.
 
-Same nflverse-data-direct approach as get_nfl_pbp.py, for the same reason:
-no nfl_data_py (pandas/numpy version pins conflict with the rest of this
-app). One row per player per week; season totals are a groupby downstream
-(see build_pace_feed.py), consistent with player_week_usage.parquet's own
-weekly grain rather than pre-aggregating here.
+Column names are kept exactly as nflverse publishes them (passing_
+interceptions, sacks_suffered, etc.) rather than renamed to match the old
+legacy file's naming -- matching get_nfl_season_totals.py's convention,
+since both scripts read the same source file and there's no reason for two
+different mental models of the same columns. backend/app/data/nfl.py's
+Game-Log-specific stat lists (PASSING_STATS etc.) were updated to match.
 
-    python backend/app/get_nfl_player_box_stats.py                # current season
-    python backend/app/get_nfl_player_box_stats.py --season 2024  # a specific season
+Not carried over from the legacy source: derived ratios (completion
+percentage, yards per carry/reception, passer rating) and defensive box
+stats (sacks recorded, tackles, passes defended). Neither nflverse's classic
+weekly file nor -- as far as could be checked -- the legacy one actually
+populated these, so this isn't believed to be a real loss of function; flag
+it if a stat you used regularly goes missing from the dropdown.
 
-Output: backend/data/nfl/player_box_stats.parquet
+    python backend/app/get_nfl_player_box_stats.py
+
+Reads:  stats_player_week_{season}.csv for each season in SEASONS below
+Writes: backend/data/nfl/player_box_stats.parquet
 """
 
 from __future__ import annotations
 
-import argparse
-from datetime import date
 from io import StringIO
 from pathlib import Path
 
@@ -37,122 +47,71 @@ NFLVERSE_STATS_URL = (
 )
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "nfl"
 TIMEOUT = 60
-REGULAR_SEASON_MAX_WEEK = 18  # matches get_nfl_weekly_stats.py / get_nfl_pbp.py
+
+# Extend this list as future seasons start -- see get_nfl_season_totals.py,
+# which uses this identical pattern against this identical source file.
+SEASONS = [2025, 2026]
 
 KEEP_COLUMNS = [
-    "season", "week", "team", "player_id", "player_display_name", "position",
-    "completions", "attempts", "passing_yards", "passing_tds", "interceptions",
+    "season", "week", "season_type",
+    "team", "opponent_team",
+    "player_id", "player_display_name", "position",
+    "completions", "attempts", "passing_yards", "passing_tds",
+    "passing_interceptions", "sacks_suffered",
     "carries", "rushing_yards", "rushing_tds",
     "receptions", "targets", "receiving_yards", "receiving_tds",
+    "receiving_air_yards",
 ]
 
 
-def fetch_stats(season: int) -> pd.DataFrame | None:
-    """Returns None (not an exception) when the season's file doesn't exist
-    yet -- e.g. before Week 1 -- so build() can fall back gracefully. Same
-    reasoning as get_nfl_pbp.py's fetch_pbp(): a hard failure here would
-    also block the later, unrelated steps in the same CI job."""
+def fetch_stats(season: int) -> pd.DataFrame:
+    """Empty DataFrame (not an exception) when the season's file doesn't
+    exist yet -- e.g. a season before its Week 1 -- so build() can just
+    skip it instead of the whole run failing."""
     url = NFLVERSE_STATS_URL.format(season=season)
     r = requests.get(url, timeout=TIMEOUT)
     if r.status_code == 404:
-        return None
+        print(f"{season}: no data yet (404), skipping")
+        return pd.DataFrame()
     r.raise_for_status()
     df = pd.read_csv(StringIO(r.text), low_memory=False)
-
-    # A few columns (e.g. fg_blocked_list) mix strings and NaN-as-float,
-    # which pyarrow refuses to write to parquet. Only KEEP_COLUMNS survive
-    # past this function anyway, but normalize defensively in case that
-    # list grows to include one later.
-    for col in df.select_dtypes(include="object").columns:
-        df[col] = df[col].astype(str).replace("nan", pd.NA)
-
+    df.columns = [c.lower() for c in df.columns]
     return df
 
 
-def _has_fully_completed_week(season: int) -> bool:
-    """Whether at least one week of the given season has EVERY one of its
-    games finished -- not just whether any single game has. Checking for
-    ANY completed game (the old condition, via `fetch_stats(season) is
-    None`) meant stats existing for even one or two early games was
-    enough to treat the whole season as usable, even though the vast
-    majority of teams -- anyone who simply hadn't played their own game
-    yet -- would have zero rows and show up with no real data instead of
-    a real prior-season baseline."""
-    r = requests.get(
-        "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
-        timeout=TIMEOUT,
-    )
-    if r.status_code != 200:
-        return False
-    schedule = pd.read_csv(StringIO(r.text), low_memory=False)
-    season_games = schedule[schedule["season"] == season]
-    if season_games.empty:
-        return False
-    completed = season_games[season_games["home_score"].notna()]
-    week_totals = season_games.groupby("week").size()
-    week_completed = completed.groupby("week").size()
-    return any(week_completed.get(w, 0) == week_totals[w] for w in week_totals.index)
-
-
-def build(season: int) -> pd.DataFrame:
-    is_fallback = not _has_fully_completed_week(season)
-
-    if is_fallback:
-        fallback_season = season - 1
-        print(f"no fully-completed week yet for {season}; falling back to {fallback_season} "
-              f"regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
-        df = fetch_stats(fallback_season)
-        if df is None:
-            raise RuntimeError(
-                f"No player stats available for {season} OR its fallback {fallback_season}. "
-                f"Something's genuinely wrong (not just \"season hasn't started\") -- check "
-                f"https://github.com/nflverse/nflverse-data/releases/tag/stats_player directly."
-            )
-        df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
-    else:
-        df = fetch_stats(season)
-        if df is None:
-            fallback_season = season - 1
-            print(f"schedule shows a completed week but no stats yet for {season}; "
-                  f"falling back to {fallback_season} regular season (weeks 1-{REGULAR_SEASON_MAX_WEEK})")
-            df = fetch_stats(fallback_season)
-            if df is None:
-                raise RuntimeError(
-                    f"No player stats available for {season} OR its fallback {fallback_season}. "
-                    f"Something's genuinely wrong (not just \"season hasn't started\") -- check "
-                    f"https://github.com/nflverse/nflverse-data/releases/tag/stats_player directly."
-                )
-            df = df[df["week"] <= REGULAR_SEASON_MAX_WEEK]
-            is_fallback = True
-
-    print(f"{len(df)} player-week rows loaded" +
-          (f" (fallback season {df['season'].iloc[0]})" if is_fallback else f" for {season}"))
-
-    frame = df[[c for c in KEEP_COLUMNS if c in df.columns]].copy()
-    frame["is_fallback"] = is_fallback
-    return frame
-
-
-def current_nfl_season() -> int:
-    """Same rule as get_nfl_pbp.py's current_nfl_season() -- nflverse labels
-    a season by the year it starts in, and the new one isn't labeled until
-    games are actually played in September."""
-    today = date.today()
-    return today.year if today.month >= 9 else today.year - 1
+def build_season(season: int) -> pd.DataFrame:
+    df = fetch_stats(season)
+    if df.empty:
+        return df
+    # Regular season only, matching the rest of this app's NFL scripts
+    # (get_nfl_pbp.py, get_nfl_weekly_stats.py). season_type is nflverse's
+    # own field for this -- more reliable than a week-number cutoff once
+    # this file also carries playoff weeks, which restart week numbering.
+    if "season_type" in df.columns:
+        df = df[df["season_type"] == "REG"]
+    return df[[c for c in KEEP_COLUMNS if c in df.columns]].copy()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--season", type=int, default=current_nfl_season())
-    args = parser.parse_args()
+    frames = [build_season(s) for s in SEASONS]
+    frames = [f for f in frames if not f.empty]
 
-    frame = build(args.season)
+    if not frames:
+        raise RuntimeError(
+            f"No player stats available for any of {SEASONS}. Something's "
+            f"genuinely wrong (not just \"season hasn't started\") -- check "
+            f"https://github.com/nflverse/nflverse-data/releases/tag/stats_player directly."
+        )
+
+    frame = pd.concat(frames, ignore_index=True)
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     dest = DATA_DIR / "player_box_stats.parquet"
     frame.to_parquet(dest, index=False)
 
-    print(f"{len(frame)} player-week rows across {frame['team'].nunique()} teams")
+    for season in SEASONS:
+        count = len(frame[frame["season"] == season])
+        print(f"{season}: {count} player-week rows")
     print(f"saved -> {dest}")
 
 
