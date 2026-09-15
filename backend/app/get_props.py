@@ -172,6 +172,19 @@ def _last_seen(previous: pd.DataFrame, col: str) -> dict:
     return {k: pd.to_datetime(v, utc=True) for k, v in seen.items()}
 
 
+def _iso_or_na(ts):
+    """A `fetched_at` / `alt_fetched_at` cell is a plain ISO string
+    everywhere else in this file (`now_iso` below) -- _last_seen() above
+    hands back real Timestamps instead, because plan() needs to do date
+    math on them. Backfilling a carried-forward cell straight from that
+    dict put a Timestamp object in a column that's a string everywhere
+    else, and pyarrow refuses to write a column mixing the two ("Expected
+    bytes, got a 'Timestamp' object"). This is the one place that dict's
+    values reach a column instead of a date comparison, so it's the one
+    place that needs converting back."""
+    return ts.isoformat() if pd.notna(ts) else pd.NA
+
+
 def plan(events: list[dict], previous: pd.DataFrame, cfg: SportConfig) -> list[dict]:
     """Decide, per event, which market tiers are due.
 
@@ -389,10 +402,10 @@ def main() -> int:
             prior_core = _last_seen(previous, "fetched_at")
             fresh["alt_fetched_at"] = fresh.apply(
                 lambda r: r["alt_fetched_at"] if pd.notna(r["alt_fetched_at"])
-                else prior_alt.get(r["event_id"], pd.NA), axis=1)
+                else _iso_or_na(prior_alt.get(r["event_id"], pd.NA)), axis=1)
             fresh["fetched_at"] = fresh.apply(
                 lambda r: r["fetched_at"] if pd.notna(r["fetched_at"])
-                else prior_core.get(r["event_id"], pd.NA), axis=1)
+                else _iso_or_na(prior_core.get(r["event_id"], pd.NA)), axis=1)
 
     out = pd.concat([f for f in (fresh, keep) if not f.empty], ignore_index=True)
     if out.empty:
