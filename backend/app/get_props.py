@@ -51,6 +51,15 @@ Three mechanisms, in order of how much they save:
 
 ONLY UPCOMING GAMES, always: commenceTimeFrom=now on the free events call, so
 a game in progress is never fetched.
+
+RETENTION, separate from fetching: a game's last-known lines stay in the file
+for RETAIN_LIVE_HOURS after its own commence_time even though it's no longer
+"upcoming" (and so can never be re-fetched) -- so a Props/Middles page open
+during a live game still shows something instead of the row disappearing the
+moment kickoff passes. `app/data/props.py` reads `commence_time` at SERVE
+time to mark a row `is_live` and to keep started games out of Middles &
+Arbs (frozen lines aren't a bet you can actually place); this file only
+controls how long the row survives at all, not whether it's shown as live.
 """
 
 from __future__ import annotations
@@ -111,6 +120,15 @@ def _scope_params() -> dict:
 
 MIN_REMAINING = int(os.getenv("ODDS_MIN_REMAINING", "5000"))
 MAX_SPEND_PER_RUN = int(os.getenv("ODDS_MAX_SPEND_PER_RUN", "400"))
+
+# How long a game's last-known lines stay in the file after its own
+# commence_time, once it's no longer "upcoming" and so no longer eligible to
+# be re-fetched (see the carry-forward comment in main()). Long enough to
+# cover a full game plus some slop (delays, extra innings/overtime), short
+# enough that the file doesn't accumulate every game of the season. Purely
+# retention -- has no effect on what gets FETCHED, which is already governed
+# by commenceTimeFrom=now on the free events call.
+RETAIN_LIVE_HOURS = float(os.getenv("ODDS_RETAIN_LIVE_HOURS", "6"))
 
 TIMEOUT = 30
 RETRY_SLEEPS = (2, 6, 15)
@@ -401,11 +419,33 @@ def main() -> int:
     # Carry forward every upcoming event we didn't refresh, plus the tier
     # timestamps we didn't touch. Without this, being frugal and losing the
     # data would look identical from the outside.
+    #
+    # This USED TO be `previous["event_id"].isin(upcoming - refreshed)` --
+    # correct for "don't drop a game we chose not to re-fetch this run", but
+    # `upcoming` only holds events fetch_upcoming_events() returned, which is
+    # commenceTimeFrom=now, so a game drops out of it the instant it goes
+    # live. The very next run then carried forward nothing for it at all,
+    # so its lines didn't just go stale -- they vanished outright, on a
+    # schedule tied to kickoff time rather than to anything actually being
+    # wrong with them. That's also never a quota concern: a live game was
+    # already excluded from being RE-FETCHED by that same commenceTimeFrom
+    # filter, so keeping its last-known rows around doesn't cost anything.
+    #
+    # Fix: also keep a game for RETAIN_LIVE_HOURS after its own commence_time,
+    # regardless of whether it's still in `upcoming`. After that window it
+    # ages out on its own -- nothing keeps it past that, so the file doesn't
+    # grow across a whole season.
     refreshed = set(fresh["event_id"]) if not fresh.empty else set()
     upcoming = {ev["id"] for ev in events}
     keep = pd.DataFrame()
     if not previous.empty and "event_id" in previous.columns:
-        keep = previous[previous["event_id"].isin(upcoming - refreshed)]
+        still_upcoming = previous["event_id"].isin(upcoming - refreshed)
+        recently_started = pd.Series(False, index=previous.index)
+        if "commence_time" in previous.columns:
+            started = pd.to_datetime(previous["commence_time"], utc=True, errors="coerce")
+            age_hours = (pd.Timestamp.now(tz="UTC") - started).dt.total_seconds() / 3600.0
+            recently_started = age_hours.between(0, RETAIN_LIVE_HOURS)
+        keep = previous[still_upcoming | (recently_started & ~previous["event_id"].isin(refreshed))]
         if not fresh.empty:
             prior_alt = _last_seen(previous, "alt_fetched_at")
             prior_core = _last_seen(previous, "fetched_at")

@@ -20,6 +20,11 @@ const META_COLS = new Set([
   // the rows ON SCREEN. Without it here, every non-meta column is treated as a
   // sportsbook and this shows up as a phantom book with timestamps for prices.
   'fetched_at',
+  // Whether this game's commence_time has passed -- the book stopped taking
+  // these lines at kickoff, so a live row is a frozen snapshot, not a
+  // current price. Same reason as fetched_at above: without it here, a
+  // boolean column reads as a phantom sportsbook.
+  'is_live',
 ]);
 
 const MIN_ODDS_OPTIONS = [
@@ -153,6 +158,26 @@ const BOOK_NAME: Record<string, string> = {
 
 function prettyBook(book: string): string {
   return BOOK_NAME[book.toLowerCase()] ?? book.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Marks a row whose game has already started. The book stopped taking these
+ *  lines at kickoff, so this is a frozen pre-game snapshot rather than a
+ *  current price -- shown rather than hidden (unlike Middles & Arbs, which
+ *  drops a game entirely once it's live, since those are meant to be
+ *  actionable and a frozen line isn't one). */
+function LiveBadge() {
+  return (
+    <span
+      title="This game has started -- lines are frozen from just before kickoff, not current."
+      style={{
+        fontSize: 9, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase',
+        color: theme.warningText, border: `1px solid ${theme.warningText}`,
+        borderRadius: 4, padding: '1px 5px', marginLeft: 6, whiteSpace: 'nowrap',
+      }}
+    >
+      Live
+    </span>
+  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -520,6 +545,13 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
       }}>
         <OddsDisclaimer fetchedAt={latestFetchedAt(filteredProps)} compact={isMobile} />
 
+        {filteredProps.some((r: any) => r.is_live) && (
+          <div style={{ fontSize: 11.5, color: theme.textMuted, marginBottom: 12 }}>
+            <span style={{ color: theme.warningText, fontWeight: 700 }}>LIVE</span> marks a game that's
+            already started -- lines are frozen from just before kickoff, not current prices.
+          </div>
+        )}
+
         {isMobile && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <button
@@ -580,7 +612,7 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                   return (
                     <StatCard
                       key={i}
-                      title={<span style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}</span>}
+                      title={<span style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</span>}
                       titleAside={colRoles.player && row['team'] ? String(row['team']) : undefined}
                       value={best ? formatOdds(Math.round(best.odds)) : '—'}
                       valueColor={best ? theme.dataBlue : theme.textMuted}
@@ -636,7 +668,7 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                             padding: '7px 10px', fontSize: 11.5, color: theme.textPrimary,
                             borderRight: `1px solid ${theme.border}`,
                           }}>
-                            <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}</div>
+                            <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</div>
                             {(market || line) && (
                               <div style={{ fontSize: 10, color: theme.textMuted }}>
                                 {[market, line].filter(Boolean).join(' ')}
@@ -702,7 +734,7 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                           background: i % 2 === 0 ? theme.bgCard : theme.bgPage, zIndex: 1,
                           borderRight: `1px solid ${theme.border}`,
                         }}>
-                          {String(row['line_id'] ?? '—')}
+                          {String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}
                         </td>
                         {activeCols.map(book => {
                           const odds = parseOdds(row[book]);

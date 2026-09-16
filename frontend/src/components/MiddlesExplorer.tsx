@@ -121,6 +121,9 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
         the same gap with the lines swapped: it cashes on <em>anything except</em> the
         window, so it's a bet against that one result — worth it only if the window
         is actually unlikely for that market. "Needs" is the number to weigh that against.
+        Games already in progress aren't listed here — their lines are frozen from before
+        kickoff, so a pair on one isn't a bet you can still place (it still shows on the
+        Props page, marked <span style={{ color: theme.warningText, fontWeight: 700 }}>LIVE</span>).
       </div>
 
       <OddsDisclaimer fetchedAt={fetchedAt} compact={isMobile} />

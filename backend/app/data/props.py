@@ -34,6 +34,24 @@ def _normalize(name: str) -> str:
     return str(name).lower().strip()
 
 
+def _is_live_series(commence_time: pd.Series) -> pd.Series:
+    """A game is "live" once its commence_time has passed -- at that point
+    the book has stopped taking these lines, so whatever's still in the file
+    is a frozen snapshot from just before kickoff, not a current price.
+
+    Computed fresh against wall-clock time on every call, not stored in the
+    parquet -- a boolean baked in at write time would be wrong the moment
+    real time moved past it. get_props.py's RETENTION note covers why a
+    started game's rows stick around in the file at all (~6h by default)
+    instead of disappearing the instant kickoff passes; this is the "is it
+    actually live right now" read of those rows once they're here. A
+    missing/unparseable commence_time reads as NOT live (nothing to hide it
+    for) rather than raising.
+    """
+    started = pd.to_datetime(commence_time, utc=True, errors="coerce")
+    return started.notna() & (started <= pd.Timestamp.now(tz="UTC"))
+
+
 def get_props(
     sport: str,
     team: Optional[str] = None,
@@ -98,6 +116,14 @@ def get_props(
         pivot["line_id"] += " " + pivot[market_col].astype(str)
 
     lead = ["line_id"] + [c for c in idx if c in pivot.columns] + meta_cols
+    # So the page can mark a row "LIVE -- frozen at kickoff" instead of
+    # silently showing a pre-game price as if it were current. Unlike
+    # Middles & Arbs (see get_middles() below), Props is a reference/browse
+    # page rather than an actionable list, so a live game stays visible here
+    # -- just labelled -- rather than disappearing.
+    if "commence_time" in pivot.columns:
+        pivot["is_live"] = _is_live_series(pivot["commence_time"])
+        lead = lead + ["is_live"]
     books = [c for c in pivot.columns if c not in lead]
     return pivot[lead + books].fillna("").to_dict(orient="records")
 
@@ -114,6 +140,17 @@ def get_middles(
         return []
 
     df = df.copy()
+    # Middles & Arbs is a list of bets you can actually place -- once a game
+    # is live its lines are frozen (see get_props.py's RETENTION note and
+    # _is_live_series() above), so a pair sitting on a started game isn't an
+    # opportunity anymore, just a stale price. Props (get_props() above)
+    # keeps showing it, marked; this page just drops it, rather than
+    # surfacing something that reads as live money on the table but can't
+    # actually be bet.
+    if "commence_time" in df.columns:
+        df = df[~_is_live_series(df["commence_time"])]
+    if df.empty:
+        return []
     if kind:
         df = df[df["kind"].astype(str).str.lower() == _normalize(kind)]
     if player and "Player" in df.columns:
