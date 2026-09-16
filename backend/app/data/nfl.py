@@ -1383,6 +1383,23 @@ def get_nfl_teams() -> List[str]:
     return sorted(t for t in df["posteam"].dropna().unique().tolist() if t)
 
 
+def get_nfl_usage_players() -> List[str]:
+    """Player list for the Usage Trend page specifically -- reads directly
+    from get_nfl_player_week_usage(), the SAME source get_player_usage_trend()
+    below actually queries. get_players() (used by Fantasy Matchup/In-Out)
+    reads the legacy Player_Stats_Weekly file, whose full display names
+    ("Trey McBride") don't match this pipeline's abbreviated ones
+    ("T.McBride") under any normalization -- so a name picked from that
+    dropdown never matched a row here, and the trend page came back empty
+    for every player, no matter who was selected. Same fix already applied
+    to Game Log via get_game_log_players(), for the identical reason.
+    """
+    df = get_nfl_player_week_usage()
+    if df.empty or "player" not in df.columns:
+        return []
+    return sorted(df["player"].dropna().unique().tolist())
+
+
 def get_team_usage(team: str, week: Optional[int] = None) -> Dict[str, Any]:
     """Team-level target share / rush share leaderboard, optionally for one
     week -- otherwise summed across all weeks loaded so far this season.

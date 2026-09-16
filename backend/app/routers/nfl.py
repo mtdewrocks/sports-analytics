@@ -56,6 +56,10 @@ def usage_teams(_=Depends(require_access)):
 def usage(team: str = Query(...), week: Optional[int] = Query(None), _=Depends(require_access)):
     return nfl_data.get_team_usage(team, week)
 
+@router.get("/usage/players")
+def usage_players(_=Depends(require_access)):
+    return nfl_data.get_nfl_usage_players()
+
 @router.get("/usage/trend")
 def usage_trend(
     player: str = Query(...),

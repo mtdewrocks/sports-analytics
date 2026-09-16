@@ -3,8 +3,9 @@ import client from './client';
 export const getNFLPlayers = () => client.get('/api/nfl/players');
 export const getNFLStats = () => client.get('/api/nfl/stats');
 // Game Log's own player list -- a different backend source than
-// getNFLPlayers() above (which Fantasy Matchup, In/Out, and the usage
-// trend page still use), so its season toggle only had to touch this page.
+// getNFLPlayers() above (which Fantasy Matchup and In/Out still use), so its
+// season toggle only had to touch this page. Usage Trend has since gotten
+// the same treatment -- see getNFLUsagePlayers() below.
 export const getNFLGameLogPlayers = () => client.get('/api/nfl/game-log/players');
 export const getNFLGameLog = (params: Record<string, any>) => client.get('/api/nfl/game-log', { params });
 export const getNFLMatchups = () => client.get('/api/nfl/matchups');
@@ -47,9 +48,23 @@ export const getNFLSeasonScreener = (season: number, filters: string[]) => {
   return client.get(`/api/nfl/season-screener?${qs.toString()}`);
 };
 
-export const getNFLUsageTeams = () => client.get('/api/nfl/teams');
+// Was '/api/nfl/teams', which the router never defines (the endpoint is
+// "/usage/teams") -- every call 404'd, NFLTeamUsage.tsx swallowed the error
+// via .catch(() => setTeams([])), and the team dropdown just stayed empty
+// with no visible error. Not a cache issue; the request never had anywhere
+// to land.
+export const getNFLUsageTeams = () => client.get('/api/nfl/usage/teams');
 export const getNFLTeamUsage = (team: string, week?: number) =>
   client.get('/api/nfl/usage', { params: week != null ? { team, week } : { team } });
+// Usage Trend's OWN player list -- deliberately not getNFLPlayers() (see the
+// comment on that export above). get_player_usage_trend() looks the player
+// up inside player_week_usage.parquet, whose names are abbreviated
+// ("T.McBride"); getNFLPlayers() lists the legacy Player_Stats_Weekly file's
+// full names ("Trey McBride"). No amount of normalizing punctuation/case
+// makes those two strings equal, so every trend lookup came back empty no
+// matter who was picked. Same fix Game Log already got via
+// getNFLGameLogPlayers() for the identical reason.
+export const getNFLUsagePlayers = () => client.get('/api/nfl/usage/players');
 export const getNFLUsageTrend = (player: string, stat: string) =>
   client.get('/api/nfl/usage/trend', { params: { player, stat } });
 

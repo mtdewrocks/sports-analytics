@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getNFLPlayers, getNFLUsageTrend } from '../../api/nfl';
+import { getNFLUsagePlayers, getNFLUsageTrend } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import SegmentedToggle from '../../components/SegmentedToggle';
@@ -44,7 +44,13 @@ export default function NFLPlayerUsageTrend() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    getNFLPlayers()
+    // getNFLUsagePlayers(), not getNFLPlayers() -- this page's own player
+    // list, sourced from the same file get_player_usage_trend() actually
+    // queries. getNFLPlayers() lists the legacy source's full names
+    // ("Trey McBride"), which don't match this pipeline's abbreviated ones
+    // ("T.McBride"), so every trend lookup came back empty regardless of
+    // who was picked. See the comment on getNFLUsagePlayers() in api/nfl.ts.
+    getNFLUsagePlayers()
       .then((res) => setPlayers(res.data))
       .catch(() => setPlayers([]));
   }, []);
