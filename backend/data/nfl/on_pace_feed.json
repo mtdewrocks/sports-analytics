@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 1,
   "games_total": 17,
-  "generated_at": "2026-09-15T22:56:02.047007+00:00",
+  "generated_at": "2026-09-16T18:09:54.031476+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -2994,7 +2994,7 @@
     },
     "D.J. Wonnum": {
       "team": "DET",
-      "position": "LB",
+      "position": "DE",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
