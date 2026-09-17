@@ -9,6 +9,7 @@ from app.billing.billing_router import router as billing_router
 from app.routers.nba import router as nba_router
 from app.routers.nfl import router as nfl_router
 from app.routers.mlb import router as mlb_router
+from app.routers.admin import router as admin_router
 from app.config import settings
 
 app = FastAPI(title="Sports Analytics API", version="1.0.0")
@@ -57,6 +58,7 @@ app.include_router(billing_router, prefix="/billing", tags=["billing"])
 app.include_router(nba_router)
 app.include_router(nfl_router)
 app.include_router(mlb_router)
+app.include_router(admin_router)
 
 @app.get("/api/health")
 def health():

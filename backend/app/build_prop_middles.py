@@ -65,6 +65,14 @@ one_wins_pct >= 0 means the pair is an arb before the window is considered.
 breakeven_window_rate_pct is how often the window has to land to make a
 middle that loses money outside it worth taking.
 
+With MIN_PRICE=100 requiring plus money on both legs (both decimal odds
+>= 2.0), single_win_return is provably >= 1 (AM-GM on 1/dec_o + 1/dec_u),
+with equality ONLY when both legs are priced at exactly +100. That is the
+one case where an anti-middle has zero edge -- it can only break even (the
+window never lands) or lose everything (it does), never actually profit --
+so those rows are dropped in find_pairs() rather than shown as a real
+opportunity with nothing behind it.
+
 THE DIRECTION IS THE WHOLE THING
 --------------------------------
 The Over must be on the LOWER line for a middle. Swap them and the arithmetic
@@ -247,6 +255,16 @@ def find_pairs(df: pd.DataFrame, min_price: float = MIN_PRICE) -> pd.DataFrame:
                     breakeven = (single - 1.0) / single if single > 0 else 0.0
 
                 if kind == "no-edge":
+                    continue
+
+                if kind == "anti_middle" and one_wins <= 1e-9:
+                    # Both legs at exactly +100 (dec 2.0 each) -- the only way
+                    # an anti-middle can hit zero edge here, see THE MATH
+                    # above. There's no scenario where this pays: outside the
+                    # window it's a flat break-even, inside it you lose
+                    # everything. Not a real candidate, just noise that reads
+                    # as an opportunity ("worth it only if the window lands
+                    # under 0% of the time") when there's nothing to take.
                     continue
 
                 # Flagged, not filtered. A pick'em leg cannot usually be taken

@@ -210,19 +210,25 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
 
               <div style={{ fontSize: 11.5, color: theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
                 {r.kind === 'anti_middle' ? (
-                  <>Both <strong style={{ color: theme.dataRed }}>lose</strong> on{' '}
-                    <strong style={{ color: theme.warningText }}>{r.window}</strong> — worth it only
-                    if that lands under <strong style={{ color: theme.warningText }}>
+                  <>Wins on any result except{' '}
+                    <strong style={{ color: theme.warningText }}>{r.window}</strong>, paying{' '}
+                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                      {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
+                    </strong>. Both legs lose if {r.window} does land — only take this if you think
+                    that happens under <strong style={{ color: theme.warningText }}>
                       {r.breakeven_window_rate_pct.toFixed(0)}%
-                    </strong> of the time. </>
+                    </strong> of the time. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 ) : r.window ? (
-                  <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%. </>
+                  <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%.
+                    Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                      {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
+                    </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 ) : (
-                  <>No window — one side always wins. </>
+                  <>No window — one side always wins. Otherwise{' '}
+                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                      {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
+                    </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 )}
-                Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
-                  {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
-                </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.
               </div>
             </div>
           ))}

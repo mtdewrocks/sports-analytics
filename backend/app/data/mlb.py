@@ -482,6 +482,21 @@ def get_bullpen_teams() -> List[str]:
 def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     """Rolling workload for one team's bullpen, with season rate stats.
 
+    Thin wrapper: loads the two source files once and hands off to
+    _bullpen_status_for(), the shared per-team computation also used by
+    get_bullpen_report() below to build every team's card in one pass
+    without loading bullpen_logs.parquet / season_pitching_stats.parquet
+    30 times over.
+    """
+    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
+    season = get_mlb_data().get("season_pitching_stats", pd.DataFrame())
+    return _bullpen_status_for(logs, season, team, days)
+
+
+def _bullpen_status_for(logs: pd.DataFrame, season: pd.DataFrame,
+                         team: str, days: int = 7) -> Dict[str, Any]:
+    """Rolling workload for one team's bullpen, with season rate stats.
+
     Day-by-day pitch counts/outings come from bullpen_logs.parquet (see
     get_bullpen_logs.py) -- that's the only source with per-appearance
     detail. ERA/WHIP/K%/BB%/throwing hand come from
@@ -489,9 +504,12 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
     instead of being computed from the rolling log, since a ~14-day window
     is too small a sample for a meaningful rate stat and starters.parquet
     excludes anyone with 0 games started.
+
+    Takes the two source frames as arguments rather than loading them
+    itself -- see get_bullpen_status() (one team) and get_bullpen_report()
+    (all 30) above/below, which are the only two callers and load once
+    between them.
     """
-    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
-    season = get_mlb_data().get("season_pitching_stats", pd.DataFrame())
     empty = {
         "team": team, "days": [], "kpis": {}, "relievers": [],
         "freshness": "unknown", "recent_performance": None,
@@ -687,6 +705,53 @@ def get_bullpen_status(team: str, days: int = 7) -> Dict[str, Any]:
         "freshness": kpis["3_day"]["level"],
         "recent_performance": recent_performance,
     }
+
+
+# Scan order for get_bullpen_report(): most in-need-of-attention first. Ties
+# within a tier break by 3-day pitch count, heaviest first, so "tired" isn't
+# just one undifferentiated bucket -- the bullpen that's thrown the most
+# still floats to the very top of it.
+_FRESHNESS_RANK = {"tired": 0, "neutral": 1, "fresh": 2, "unknown": 3}
+
+
+def get_bullpen_report(days: int = 7) -> List[Dict[str, Any]]:
+    """Every team's bullpen status in one call, sorted tired-first.
+
+    Was: a per-team page where seeing who around the league is gassed meant
+    clicking through all 30 teams' dropdown entries one at a time. That's
+    backwards for what this data is actually good for -- workload is a
+    scan, not a lookup, the same reason Pitcher Daily Report shows every
+    starting pitcher on one page instead of a per-pitcher picker.
+
+    Loads bullpen_logs.parquet / season_pitching_stats.parquet ONCE and
+    reuses _bullpen_status_for() (the exact same per-team computation
+    get_bullpen_status() calls) for each of the 30 teams, rather than
+    calling that public function 30 times over and re-fetching/re-filtering
+    the same two source frames on every single one.
+    """
+    logs = get_mlb_data().get("bullpen_logs", pd.DataFrame())
+    season = get_mlb_data().get("season_pitching_stats", pd.DataFrame())
+    if logs.empty:
+        return []
+
+    reports = []
+    for team in MLB_TEAMS:
+        report = _bullpen_status_for(logs, season, team, days)
+        # _bullpen_status_for()'s own "empty" sentinel has no relievers --
+        # a team genuinely absent from bullpen_logs.parquet (not just having
+        # a quiet week), which a blank card wouldn't explain. Skipped rather
+        # than shown, same as get_bullpen_status() already treating it as
+        # "no data" rather than "zero workload".
+        if report["relievers"]:
+            reports.append(report)
+
+    def sort_key(r: Dict[str, Any]) -> tuple:
+        rank = _FRESHNESS_RANK.get(r["freshness"], 3)
+        pitches_3day = r["kpis"].get("3_day", {}).get("pitches", 0)
+        return (rank, -pitches_3day)
+
+    reports.sort(key=sort_key)
+    return reports
 
 
 # ---------------------------------------------------------------------------

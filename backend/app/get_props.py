@@ -400,9 +400,24 @@ def main() -> int:
             break
         if not frame.empty:
             frames.append(frame)
-            if ev["_core"]:
+            # Mark a tier "seen" only when it actually came back with one of
+            # ITS OWN markets -- not just because it was due and requested.
+            # ev["_core"]/ev["_alt"] say a tier was ASKED for; they say
+            # nothing about whether the book has actually posted those props
+            # yet. Stamping alt_fetched_at = now on a request that returned
+            # zero alt-market rows (common days out, before a book posts
+            # tackle/assist-type ladders) used to make the next attempt wait
+            # out the FULL tier interval (up to 72h) for nothing -- and could
+            # miss the window entirely if the book posted them in between two
+            # scheduled checks. Leaving it unstamped instead makes the tier
+            # look "never fetched", so plan() retries it on the very next
+            # run. That's free: only markets that RETURN data are billed, so
+            # retrying a market nobody's posted yet costs nothing until the
+            # moment it actually starts returning something.
+            got = set(frame["market"].unique())
+            if ev["_core"] and got & set(cfg.core_markets):
                 core_ids.add(ev["id"])
-            if ev["_alt"]:
+            if ev["_alt"] and got & set(cfg.alt_markets):
                 alt_ids.add(ev["id"])
 
     fresh = to_over_under(pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(), cfg)

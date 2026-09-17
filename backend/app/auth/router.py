@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
@@ -8,6 +8,7 @@ from app.schemas import UserRegister, UserLogin, TokenWithUser, UserOut
 from app.auth.jwt import create_access_token
 from app.auth.dependencies import get_current_user
 from app.config import settings
+from app.notifications import notify_new_user
 import uuid
 import hashlib
 import logging
@@ -36,7 +37,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 @router.post("/register", response_model=TokenWithUser)
-def register(data: UserRegister, db: Session = Depends(get_db)):
+def register(data: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
         if db.query(User).filter(User.email == data.email).first():
             raise HTTPException(status_code=400, detail="Email already registered")
@@ -56,6 +57,19 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
         db.add(sub)
         db.commit()
         db.refresh(user)
+        # Scheduled as a BackgroundTask (runs after the response is sent) and
+        # handed a plain dict, not the live `user` row -- see
+        # notifications.notify_new_user for why. A slow or misconfigured
+        # SMTP server must never delay or break the new user's signup.
+        background_tasks.add_task(notify_new_user, {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "state": user.state,
+            "favorite_sport": user.favorite_sport,
+            "created_at": user.created_at,
+            "trial_ends_at": user.trial_ends_at,
+        })
         token = create_access_token({"sub": user.id})
         return TokenWithUser(access_token=token, user=UserOut.model_validate(user))
     except HTTPException:

@@ -42,6 +42,10 @@ def bullpen_teams(_=Depends(require_access)):
 def bullpen(team: str = Query(...), _=Depends(require_access)):
     return mlb_data.get_bullpen_status(team)
 
+@router.get("/bullpen/report")
+def bullpen_report(_=Depends(require_access)):
+    return mlb_data.get_bullpen_report()
+
 @router.get("/props")
 def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None), market: Optional[str] = Query(None), _=Depends(require_access)):
     return mlb_data.get_mlb_props(team, player, market)

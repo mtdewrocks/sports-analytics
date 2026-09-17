@@ -14,6 +14,28 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     FRONTEND_URL: str = "http://localhost:5173"
     TRIAL_DAYS: int = 30
+    # Admin API (app/routers/admin.py) -- a single shared secret rather than
+    # an is_admin column, since there's one admin (whoever runs this app) and
+    # a header key checked before touching the DB is simpler than a whole
+    # permission system for an audience of one. Blank means the admin routes
+    # refuse everything -- fails closed on a fresh deploy that hasn't set it,
+    # rather than leaving user data open by default.
+    ADMIN_API_KEY: str = ""
+    # Outbound email (app/notifications.py) -- currently just the "you got a
+    # new signup" ping. Plain SMTP, not a provider SDK, so switching
+    # providers later is new env vars, not new code: most transactional
+    # email services (Resend, SendGrid, Postmark, ...) expose an SMTP relay
+    # too. Defaults point at Gmail so the fastest path to working is an
+    # existing Gmail address + an App Password (Google Account -> Security
+    # -> 2-Step Verification -> App Passwords), not signing up for a new
+    # service. Blank SMTP_USER/PASSWORD or ADMIN_NOTIFY_EMAIL just means
+    # "notifications off" -- registration itself never depends on this.
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""             # blank -> falls back to SMTP_USER
+    ADMIN_NOTIFY_EMAIL: str = ""    # where new-user pings go; blank = off
     NBA_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/NBA_Player_Stats.parquet"
     NFL_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Player_Stats_Weekly.parquet"
     NFL_TEAM_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/2025_Team_Stats.xlsx"
