@@ -32,6 +32,7 @@ interface HeadToHead {
   team_b_avg_runs?: number;
 }
 interface HandSplit {
+  avg: number;
   k_pct: number;
   bb_pct: number;
   woba: number;
@@ -65,6 +66,8 @@ interface LineupAverages {
   k_pct?: number;
   bb_pct?: number;
   batters: number;
+  lh_count?: number;
+  rh_count?: number;
 }
 interface HittingWindow {
   woba: number;
@@ -94,6 +97,7 @@ const freshnessColor = (level: string) =>
 
 function PitcherSplitTable({ pitcher }: { pitcher: PitcherInfo }) {
   const rows: { label: string; key: keyof HandSplit; digits: number }[] = [
+    { label: 'AVG', key: 'avg', digits: 3 },
     { label: 'K%', key: 'k_pct', digits: 1 },
     { label: 'BB%', key: 'bb_pct', digits: 1 },
     { label: 'wOBA', key: 'woba', digits: 3 },
@@ -167,12 +171,27 @@ function BullpenBlock({ bullpen }: { bullpen: BullpenInfo }) {
 function LineupBlock({ lineup, teamName, pitcherName }: { lineup: LineupAverages | null; teamName: string; pitcherName?: string }) {
   return (
     <div>
-      <div style={{ color: theme.textSecondary, fontSize: 10, textTransform: 'uppercase', marginBottom: 6 }}>
-        Today's {teamName} Lineup{pitcherName ? ` vs. ${pitcherName}` : ''}
+      {/* This is the line that announces WHICH pitcher the numbers below are
+          against -- easy to skim right past at the same small, muted, all-caps
+          treatment as "BULLPEN" and "TEAM wOBA vs RHP" above it, which is
+          exactly how it read as more of that same team's own stats rather
+          than a switch to facing someone else's pitcher. Sized and weighted
+          up (and dropped out of all-caps) so it reads as its own sub-heading,
+          with the pitcher's name picked out in the accent color as the one
+          word in it that matters most. */}
+      <div style={{ color: theme.textPrimary, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
+        Today's {teamName} Lineup{pitcherName && <> vs. <span style={{ color: theme.accent }}>{pitcherName}</span></>}
       </div>
       {lineup ? (
         <>
-          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4 }}>{lineup.batters} batters, straight average</div>
+          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: lineup.lh_count != null ? 2 : 4 }}>
+            Average of all {lineup.batters} hitters
+          </div>
+          {lineup.lh_count != null && lineup.rh_count != null && (
+            <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4 }}>
+              {lineup.lh_count} LH batters, {lineup.rh_count} RH batters in lineup
+            </div>
+          )}
           <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums' }}>
             <tbody>
               <tr><td style={{ padding: '2px 0', color: theme.textSecondary }}>AVG</td><td style={{ textAlign: 'right', color: theme.textPrimary, fontWeight: 600 }}>{lineup.avg?.toFixed(3) ?? '—'}</td></tr>
@@ -193,10 +212,10 @@ function LineupBlock({ lineup, teamName, pitcherName }: { lineup: LineupAverages
 }
 
 function TeamCard({
-  record, pitcher, bullpen, lineup, hitting, opponentPitcherName,
+  record, pitcher, bullpen, lineup, hitting, opponentTeamName,
 }: {
   record: TeamRecord; pitcher: PitcherInfo | null; bullpen: BullpenInfo;
-  lineup: LineupAverages | null; hitting: HittingVsHandedness | null; opponentPitcherName?: string;
+  lineup: LineupAverages | null; hitting: HittingVsHandedness | null; opponentTeamName: string;
 }) {
   const diff = record.last_n?.avg_run_diff;
   const diffColor = diff == null ? theme.textPrimary : diff > 0 ? theme.dataBlue : diff < 0 ? theme.dataRed : theme.textPrimary;
@@ -223,9 +242,16 @@ function TeamCard({
         </div>
       )}
 
+      {/* hitting/lineup below are the OPPONENT's numbers against this card's
+          own pitcher's throwing hand -- e.g. on the Athletics' card, showing
+          the Athletics' starter up top and then how the Yankees (who are
+          actually facing him today) hit against that handedness, rather than
+          how the Athletics' own bats did against a totally different
+          pitcher. Both blocks label themselves with opponentTeamName so
+          that's explicit rather than implied by the card's own header. */}
       {hitting && (
         <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10, marginBottom: 10 }}>
-          <HittingVsHandBlock hitting={hitting} teamName={record.team} />
+          <HittingVsHandBlock hitting={hitting} teamName={opponentTeamName} />
         </div>
       )}
 
@@ -239,7 +265,7 @@ function TeamCard({
             &mdash; pending lineup &mdash;
           </div>
         )}
-        <LineupBlock lineup={lineup} teamName={record.team} pitcherName={opponentPitcherName} />
+        <LineupBlock lineup={lineup} teamName={opponentTeamName} pitcherName={pitcher?.pitcher} />
       </div>
     </div>
   );
@@ -317,21 +343,26 @@ export default function MLBTeamMatchup() {
       {!loading && !error && data && (
         <>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
+            {/* Each card's lineup/hitting numbers come from the OPPOSING
+                team's data (team_a's card gets team_b_*_vs_a) -- see the
+                comment in TeamCard for why: the card is "this team's
+                pitcher" + "the team he's actually facing today," not two
+                unrelated halves of the same team's own stats. */}
             <TeamCard
               record={data.team_a}
               pitcher={data.team_a_pitcher}
               bullpen={data.team_a_bullpen}
-              lineup={data.team_a_lineup_vs_b}
-              hitting={data.team_a_hitting_vs_b}
-              opponentPitcherName={data.team_b_pitcher?.pitcher}
+              lineup={data.team_b_lineup_vs_a}
+              hitting={data.team_b_hitting_vs_a}
+              opponentTeamName={data.team_b.team}
             />
             <TeamCard
               record={data.team_b}
               pitcher={data.team_b_pitcher}
               bullpen={data.team_b_bullpen}
-              lineup={data.team_b_lineup_vs_a}
-              hitting={data.team_b_hitting_vs_a}
-              opponentPitcherName={data.team_a_pitcher?.pitcher}
+              lineup={data.team_a_lineup_vs_b}
+              hitting={data.team_a_hitting_vs_b}
+              opponentTeamName={data.team_a.team}
             />
           </div>
 

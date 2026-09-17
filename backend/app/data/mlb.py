@@ -899,7 +899,7 @@ def get_mlb_todays_matchups() -> List[Dict[str, Any]]:
 
 
 def _team_starter_and_splits(team: str) -> Optional[Dict[str, Any]]:
-    """Today's probable starter for one team, plus their season K%/BB%/
+    """Today's probable starter for one team, plus their season AVG/K%/BB%/
     wOBA/ISO split vs LHB and vs RHB (pitcher_splits.parquet) -- shown as
     two columns rather than one blended number, since a matchup page's
     whole point is knowing how this pitcher fares against the specific
@@ -919,13 +919,13 @@ def _team_starter_and_splits(team: str) -> Optional[Dict[str, Any]]:
     vs_l, vs_r = None, None
     if not splits_source.empty and pd.notna(pitcher_id):
         sub = splits_source[splits_source["player_id"] == int(pitcher_id)]
-        cols = {"k_pct": "k_pct", "bb_pct": "bb_pct", "woba": "woba", "iso": "iso"}
+        cols = {"avg": "avg", "k_pct": "k_pct", "bb_pct": "bb_pct", "woba": "woba", "iso": "iso"}
         for raw_hand, target in [("L", "vs_l"), ("R", "vs_r")]:
             hand_row = sub[sub["split"] == f"vs {raw_hand}"]
             if hand_row.empty:
                 continue
             r = hand_row.iloc[0]
-            entry = {dest: round(float(r[src]), 3 if dest in ("woba", "iso") else 1)
+            entry = {dest: round(float(r[src]), 3 if dest in ("avg", "woba", "iso") else 1)
                      for src, dest in cols.items() if src in r and pd.notna(r[src])}
             if target == "vs_l":
                 vs_l = entry
@@ -960,6 +960,17 @@ def _team_lineup_averages(team: str) -> Optional[Dict[str, Any]]:
         if len(vals) > 0:
             out[dest] = round(float(vals.mean()), 3 if dest in ("avg", "woba", "iso") else 1)
     out["batters"] = len(sub)
+    # `hits_from` (not `bats`) -- it's the side each batter actually stands on
+    # for THIS game, already resolved for switch hitters (see
+    # build_matchups.py), which is the same column every split_* average
+    # above was computed against. A blended "straight average" line hides
+    # whether that number is nine same-handed bats or a genuine mix, which
+    # matters when judging how much a single-handed pitcher/reliever
+    # actually neutralizes this lineup.
+    if "hits_from" in sub.columns:
+        hand_counts = sub["hits_from"].value_counts()
+        out["lh_count"] = int(hand_counts.get("L", 0))
+        out["rh_count"] = int(hand_counts.get("R", 0))
     return out
 
 
