@@ -1,7 +1,9 @@
 """MLB business logic layer — mirrors mlb_data.py from the original Dash app."""
 from typing import Optional, List, Dict, Any
+import math
 import pandas as pd
 from app.data.loader import get_mlb_data, get_mlb_props_data
+from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 
 def _normalize(name: str) -> str:
@@ -1153,3 +1155,292 @@ def get_pitcher_daily_report() -> Dict[str, Any]:
         })
 
     return {"date": today, "pitchers": out}
+
+
+# ---------------------------------------------------------------------------
+# Hit Rate Sheet -- bulk per-market scan across every MLB batter/pitcher
+# line currently priced, rather than the one-player-at-a-time shape of
+# get_pitcher_matchup() above. See app/data/hit_rate.py for the shared,
+# sport-agnostic grading/window-splitting helpers this reuses; everything
+# below is just wiring MLB's own data sources into that shape.
+# ---------------------------------------------------------------------------
+
+MLB_RECENT_GAMES = RECENT_WINDOW["mlb"]
+
+# Hit-rate-sheet market key -> batter_logs.parquet column, or a derivation
+# function taking one game's row and returning a float.
+#
+# Sourced from the MLB Stats API's own hitting game log (get_batter_logs.py),
+# not the Statcast-based daily_components file: runs, RBIs and stolen bases
+# have no equivalent anywhere in Statcast event data, and totalBases comes
+# back as a real field here instead of being reconstructed from extra-base
+# hits (that reconstruction is still what build_hot_hitters.py does for its
+# own, unrelated rolling-average feature -- this just doesn't need to).
+#
+# Batter markets are spelled `batter_*` to disambiguate from the pitcher
+# markets below (bare "strikeouts" is ambiguous between "batter struck
+# out" and "pitcher recorded a strikeout") -- matching the same prefix
+# get_props.py itself uses before stripping it for the raw feed (see
+# PropsExplorer.tsx's MARKET_LABELS comment).
+#
+# first_home_run is a real sportsbook market but needs play-order (who
+# homered first), which a per-game total can't tell you -- left out rather
+# than approximated. Everything else the API's hitting stat carries is here.
+MLB_BATTER_MARKET_STAT: Dict[str, Any] = {
+    "batter_hits": "hits",
+    "batter_home_runs": "home_runs",
+    "batter_doubles": "doubles",
+    "batter_walks": "walks",
+    "batter_strikeouts": "strikeouts",
+    "batter_rbis": "rbi",
+    "batter_runs_scored": "runs",
+    "batter_stolen_bases": "stolen_bases",
+    "batter_total_bases": "total_bases",
+    # Not a field the API returns directly -- back it out from hits minus
+    # the extra-base-hit types, same idea as total_bases used to need.
+    "batter_singles": lambda r: r["hits"] - r["doubles"] - r["triples"] - r["home_runs"],
+    "batter_hits_runs_rbis": lambda r: r["hits"] + r["runs"] + r["rbi"],
+}
+
+# Hit-rate-sheet market key -> pitcher_logs.parquet column (or derivation).
+# Already fully gradeable today -- pitcher_logs.parquet is fetched for the
+# Pitcher Matchup page above, no new data plumbing needed for these.
+MLB_PITCHER_MARKET_STAT: Dict[str, Any] = {
+    "pitcher_earned_runs": "earned_runs",
+    "pitcher_strikeouts": "strikeouts",
+    "pitcher_hits_allowed": "hits",
+    "pitcher_walks": "walks",
+    "pitcher_outs": lambda r: _ip_to_outs(r["innings"]),
+    # A Yes/No market ("did he record a win"), not an over/under line --
+    # graded the same way as the numeric markets by treating "yes" as 1.0
+    # and grading against an effective line of 1 (see get_mlb_hit_rate_sheet).
+    "pitcher_record_a_win": lambda r: 1.0 if r["wins"] == 1 else 0.0,
+}
+
+MLB_MARKET_STAT_MAP: Dict[str, Any] = {**MLB_BATTER_MARKET_STAT, **MLB_PITCHER_MARKET_STAT}
+
+# Yes/No markets graded against a fixed effective line rather than whatever
+# (usually missing) numeric line get_props.py's feed carries for them.
+_MLB_YES_NO_MARKETS = {"pitcher_record_a_win"}
+
+# Hit-rate-sheet market key -> the market key get_props.py actually writes.
+# Batter markets there have their `batter_` prefix already stripped;
+# pitcher markets keep theirs -- same convention PropsExplorer.tsx's
+# MARKET_LABELS comment documents on the frontend side.
+_MLB_PROPS_MARKET_KEY: Dict[str, str] = {k: k.replace("batter_", "", 1) for k in MLB_BATTER_MARKET_STAT}
+_MLB_PROPS_MARKET_KEY.update({k: k for k in MLB_PITCHER_MARKET_STAT})
+
+# Columns get_props()'s pivot carries that are never a sportsbook -- kept in
+# sync with props.py's own pivot output rather than PropsExplorer.tsx's
+# META_COLS (a larger, cross-sport superset), since this only needs to
+# match what get_props("mlb") itself can actually emit.
+_MLB_PROPS_META_COLS = {"line_id", "player", "market", "line", "fetched_at", "commence_time", "home_team", "away_team", "is_live"}
+
+
+def _stat_value(row, spec) -> float:
+    try:
+        val = spec(row) if callable(spec) else row.get(spec)
+        if val is None or (isinstance(val, float) and pd.isna(val)):
+            return 0.0
+        return float(val)
+    except Exception:
+        return 0.0
+
+
+def _is_number(v) -> bool:
+    try:
+        f = float(v)
+        return not math.isnan(f)
+    except (TypeError, ValueError):
+        return False
+
+
+def _batter_logs_for_market(market: str) -> pd.DataFrame:
+    """One row per (player_id, game_date) for one batter market, sorted
+    ascending by date, with a `stat_value` column already computed --
+    ready to feed straight into split_season_recent()/grade_over_under().
+
+    Sourced from batter_logs.parquet (see get_mlb_data(), get_batter_logs.py)
+    rather than a second per-player lookup mechanism -- this IS the
+    bulk-shaped internal helper the Hit Rate Sheet spec calls for, scanning
+    every batter at once instead of one player_id at a time.
+    """
+    spec = MLB_BATTER_MARKET_STAT[market]
+    logs = get_mlb_data().get("batter_logs", pd.DataFrame())
+    if logs.empty:
+        return pd.DataFrame()
+
+    logs = logs.copy()
+    logs["date"] = pd.to_datetime(logs["date"], errors="coerce")
+    logs = logs[logs["date"].notna()].sort_values("date")
+
+    if callable(spec):
+        logs["stat_value"] = logs.apply(lambda r: _stat_value(r, spec), axis=1)
+    else:
+        logs["stat_value"] = pd.to_numeric(logs[spec], errors="coerce").fillna(0.0)
+
+    return logs.rename(columns={"date": "game_date"})[["player_id", "game_date", "stat_value"]]
+
+
+def _pitcher_logs_for_market(market: str) -> pd.DataFrame:
+    """Same (player_id, game_date, stat_value) shape as
+    _batter_logs_for_market() above, sourced from pitcher_logs.parquet --
+    already fetched and already used by get_pitcher_matchup()'s game_logs
+    section."""
+    spec = MLB_PITCHER_MARKET_STAT[market]
+    logs = get_mlb_data().get("pitcher_logs", pd.DataFrame())
+    if logs.empty:
+        return pd.DataFrame()
+
+    logs = logs.copy()
+    logs["date"] = pd.to_datetime(logs["date"], errors="coerce")
+    logs = logs[logs["date"].notna()].sort_values("date")
+
+    if callable(spec):
+        logs["stat_value"] = logs.apply(lambda r: _stat_value(r, spec), axis=1)
+    else:
+        logs["stat_value"] = pd.to_numeric(logs[spec], errors="coerce").fillna(0.0)
+
+    return logs.rename(columns={"pitcher_id": "player_id", "date": "game_date"})[
+        ["player_id", "game_date", "stat_value"]
+    ]
+
+
+def get_mlb_hit_rate_sheet(
+    market: Optional[str] = None,
+    min_pct: float = 0,
+    min_odds: Optional[float] = None,
+    period: str = "season",
+    player: Optional[str] = None,
+    books: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Hit Rate Sheet: one row per (player, market, line) MLB currently has
+    a live sportsbook price for.
+
+    Driven by get_props("mlb") -- the SAME current-lines source the Props
+    page itself reads -- rather than by scanning every batter/pitcher game
+    log row for every conceivable line: a market only belongs on this sheet
+    if a book is actually offering it today, and the line to grade against,
+    plus the best-price/book pair, both come directly from that one row.
+
+    `books` is an optional CSV of sportsbook column names (as get_props()
+    spells them, e.g. "draftkings,fanduel"); when given, best_odds/best_book
+    are computed only across that subset -- mirroring the sheet's own Books
+    toggle row, where checking/unchecking a book changes what "best odds"
+    means rather than just hiding a column. Omit it (or send every book) to
+    get the best price across every book get_props() returns.
+    """
+    from app.data.props import get_props
+
+    markets = (
+        [market] if market and market != "all" and market in MLB_MARKET_STAT_MAP
+        else list(MLB_MARKET_STAT_MAP.keys())
+    )
+
+    props_rows = get_props("mlb")
+    if not props_rows:
+        return []
+    book_cols = [c for c in props_rows[0].keys() if c not in _MLB_PROPS_META_COLS]
+    if books:
+        wanted = {b.strip().lower() for b in books.split(",") if b.strip()}
+        book_cols = [c for c in book_cols if c.lower() in wanted]
+
+    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
+    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+
+    game_log_cache: Dict[str, pd.DataFrame] = {}
+
+    def game_log_for(mkt: str) -> pd.DataFrame:
+        if mkt not in game_log_cache:
+            game_log_cache[mkt] = (
+                _batter_logs_for_market(mkt) if mkt in MLB_BATTER_MARKET_STAT
+                else _pitcher_logs_for_market(mkt)
+            )
+        return game_log_cache[mkt]
+
+    out: List[Dict[str, Any]] = []
+    for mkt in markets:
+        props_market_key = _MLB_PROPS_MARKET_KEY[mkt]
+        log = game_log_for(mkt)
+        if log.empty:
+            continue
+        by_player_id = {pid: g["stat_value"].tolist() for pid, g in log.groupby("player_id")}
+
+        is_batter_market = mkt in MLB_BATTER_MARKET_STAT
+        names_df = rosters if is_batter_market else starters_df
+        id_col, name_col = ("player_id", "player") if is_batter_market else ("pitcher_id", "pitcher")
+        name_to_id: Dict[str, Any] = {}
+        team_by_name: Dict[str, str] = {}
+        if not names_df.empty and id_col in names_df.columns and name_col in names_df.columns:
+            name_to_id = dict(zip(names_df[name_col].astype(str).apply(_normalize), names_df[id_col]))
+            if "team" in names_df.columns:
+                team_by_name = dict(zip(names_df[name_col].astype(str).apply(_normalize), names_df["team"]))
+
+        for row in props_rows:
+            if str(row.get("market", "")).lower() != props_market_key:
+                continue
+            player_name = str(row.get("player", "") or "")
+            if not player_name:
+                continue
+            if player and player.lower() not in player_name.lower():
+                continue
+
+            pid = name_to_id.get(_normalize(player_name))
+            if pid is None or pid not in by_player_id:
+                continue
+
+            values = by_player_id[pid]
+            windows = split_season_recent(values, MLB_RECENT_GAMES)
+
+            if mkt in _MLB_YES_NO_MARKETS:
+                line_f = 1.0
+            else:
+                line_raw = row.get("line")
+                if not _is_number(line_raw):
+                    continue
+                line_f = float(line_raw)
+
+            season_grade = grade_over_under(windows["season"], line_f)
+            recent_grade = grade_over_under(windows["recent"], line_f)
+            selected_pct = season_grade["pct"] if period == "season" else recent_grade["pct"]
+            if selected_pct * 100 < min_pct:
+                continue
+
+            offers = [(b, row.get(b)) for b in book_cols]
+            offers = [(b, float(o)) for b, o in offers if _is_number(o)]
+            if not offers:
+                continue
+            best_book, best_odds = max(offers, key=lambda x: x[1])
+            if min_odds is not None and best_odds < min_odds:
+                continue
+
+            team = team_by_name.get(_normalize(player_name))
+            home_team, away_team = row.get("home_team"), row.get("away_team")
+            opponent = None
+            if team and home_team and away_team:
+                if team == home_team:
+                    opponent = f"vs {away_team}"
+                elif team == away_team:
+                    opponent = f"@ {home_team}"
+
+            out.append({
+                "player": player_name,
+                "team": team,
+                "opponent": opponent,
+                "market": mkt,
+                "line": "Yes" if mkt in _MLB_YES_NO_MARKETS else line_f,
+                "season_pct": round(season_grade["pct"] * 100, 1),
+                "season_sample": f"{season_grade['over']}/{season_grade['total']}",
+                "recent_pct": round(recent_grade["pct"] * 100, 1),
+                "recent_sample": f"{recent_grade['over']}/{recent_grade['total']}",
+                "best_odds": int(round(best_odds)),
+                "best_book": best_book,
+                "estimated_line": False,
+                # Carried through so the frontend's OddsDisclaimer can report
+                # genuine staleness for what's on screen, same as Props/Middles
+                # -- not part of the row's core contract, just passed along
+                # from get_props()'s own per-row meta.
+                "fetched_at": row.get("fetched_at"),
+            })
+
+    return out

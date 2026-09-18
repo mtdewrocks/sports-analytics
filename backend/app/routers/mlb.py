@@ -56,6 +56,15 @@ def mlb_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query
     from app.data.props import get_middles
     return get_middles("mlb", kind, player, market)
 
+@router.get("/hit-rate-sheet")
+def hit_rate_sheet(
+    market: Optional[str] = Query(None), min_pct: float = Query(0),
+    min_odds: Optional[float] = Query(None), period: str = Query("season", pattern="^(season|recent)$"),
+    player: Optional[str] = Query(None), books: Optional[str] = Query(None),
+    _=Depends(require_access),
+):
+    return mlb_data.get_mlb_hit_rate_sheet(market, min_pct, min_odds, period, player, books)
+
 
 @router.post("/refresh")
 def refresh_cache(_=Depends(require_access)):

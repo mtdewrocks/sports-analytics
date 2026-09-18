@@ -308,6 +308,17 @@ export default function Navbar() {
               >
                 Billing
               </Link>
+              <Link
+                to="/hit-rate-sheet"
+                onClick={() => setMoreOpen(false)}
+                style={{
+                  display: 'block', padding: '13px 2px', minHeight: 44, fontSize: 15,
+                  color: theme.textPrimary, textDecoration: 'none',
+                  borderBottom: `1px solid ${theme.border}`,
+                }}
+              >
+                Hit Rate Sheet
+              </Link>
               <button
                 onClick={handleLogout}
                 style={{
@@ -330,6 +341,21 @@ export default function Navbar() {
       <Link to={isAuthenticated ? '/dashboard' : '/'} style={styles.brand}>Sports Analytics</Link>
 
       <ul style={{ display: 'flex', alignItems: 'center', gap: 4, listStyle: 'none', margin: 0, padding: 0 }}>
+        {/* Cross-sport, so it sits alongside the per-sport dropdowns rather
+            than being duplicated into one of the GROUPS below -- same
+            top-level placement Dashboard/Billing get in the mobile "More"
+            sheet, just also visible here since desktop has room for it. */}
+        <li>
+          <Link
+            to="/hit-rate-sheet"
+            style={{
+              ...styles.navBtn, textDecoration: 'none', display: 'inline-block',
+              color: location.pathname === '/hit-rate-sheet' ? theme.accent : theme.textSecondary,
+            }}
+          >
+            Hit Rate Sheet
+          </Link>
+        </li>
         {GROUPS.map((g) => <NavDropdown key={g.key} label={g.label} items={g.items} />)}
       </ul>
 

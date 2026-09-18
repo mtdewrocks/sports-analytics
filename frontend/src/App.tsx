@@ -72,6 +72,7 @@ import MLBHotHitters from './pages/mlb/MLBHotHitters';
 import MLBProps from './pages/mlb/MLBProps';
 import NFLMiddles from './pages/nfl/NFLMiddles';
 import MLBMiddles from './pages/mlb/MLBMiddles';
+import HitRateSheet from './pages/HitRateSheet';
 
 export default function App() {
   return (
@@ -111,6 +112,8 @@ export default function App() {
           <Route path="/mlb/hot-hitters" element={<PrivateRoute><MLBHotHitters /></PrivateRoute>} />
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
           <Route path="/mlb/middles" element={<PrivateRoute><MLBMiddles /></PrivateRoute>} />
+
+          <Route path="/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -371,6 +371,7 @@ def get_mlb_data() -> dict:
         ("starters", "starters.parquet", pd.read_parquet),          # dropdown + season stats
         ("season_pitching_stats", "season_pitching_stats.parquet", pd.read_parquet),  # all pitchers, SP+RP
         ("pitcher_logs", "pitcher_logs.parquet", pd.read_parquet),  # recent game logs
+        ("batter_logs", "batter_logs.parquet", pd.read_parquet),   # per-game batter box scores (Hit Rate Sheet)
         ("bullpen_logs", "bullpen_logs.parquet", pd.read_parquet),  # all appearances, for bullpen workload
         ("matchups", "daily_matchups.parquet", pd.read_parquet),    # opposing hitters
         ("probable_starters", "probable_starters.parquet", pd.read_parquet),  # today's starters, no lineup required

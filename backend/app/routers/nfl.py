@@ -109,3 +109,12 @@ def nfl_middles(kind: str | None = Query(None), player: str | None = Query(None)
                 market: str | None = Query(None), _=Depends(require_access)):
     from app.data.props import get_middles
     return get_middles("nfl", kind, player, market)
+
+@router.get("/hit-rate-sheet")
+def nfl_hit_rate_sheet(
+    market: Optional[str] = Query(None), min_pct: float = Query(0),
+    min_odds: Optional[float] = Query(None), period: str = Query("season", pattern="^(season|recent)$"),
+    player: Optional[str] = Query(None), books: Optional[str] = Query(None),
+    _=Depends(require_access),
+):
+    return nfl_data.get_nfl_hit_rate_sheet(market, min_pct, min_odds, period, player, books)

@@ -1,7 +1,9 @@
 """NFL business logic layer."""
 from typing import Optional, List, Dict, Any
+import math
 import pandas as pd
 from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats
+from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 # Stat groups for reference / display -- Game Log only (Fantasy Matchup,
 # In/Out, and the usage trend page each have their own separate stat
@@ -1765,3 +1767,234 @@ def get_weekly_mismatches(category: str, week: Optional[int] = None) -> Dict[str
         "week": week,
         "games": entries,
     }
+
+
+# ---------------------------------------------------------------------------
+# Hit Rate Sheet -- bulk per-market scan across every NFL player currently
+# priced on a market, generalizing get_game_log()'s per-player-per-week
+# grouping/sorting pattern to scan every player at once instead of one at a
+# time. See app/data/hit_rate.py for the shared, sport-agnostic
+# grading/window-splitting helpers this reuses.
+# ---------------------------------------------------------------------------
+
+NFL_RECENT_GAMES = RECENT_WINDOW["nfl"]
+
+# Hit-rate-sheet market key -> player_box_stats.parquet column, or a
+# derivation function taking one game's row and returning a float. Keys
+# match get_props.py's own NFL market keys exactly (no prefix stripping
+# needed here, unlike MLB's `batter_*` markets -- see app/data/mlb.py).
+#
+# Longest-play markets, 1st/last TD scorer, defensive stats and kicking
+# markets are deliberately left out -- none of that data exists anywhere in
+# this pipeline (confirmed by direct inspection of player_box_stats.parquet).
+NFL_MARKET_STAT: Dict[str, Any] = {
+    "pass_yds": "passing_yards",
+    "pass_tds": "passing_tds",
+    "pass_attempts": "attempts",
+    "pass_completions": "completions",
+    "pass_interceptions": "passing_interceptions",
+    "rush_yds": "rushing_yards",
+    "rush_attempts": "carries",
+    "rush_tds": "rushing_tds",
+    "receptions": "receptions",
+    "reception_yds": "receiving_yards",
+    "reception_tds": "receiving_tds",
+    "pass_rush_reception_yds": lambda r: (r.get("passing_yards") or 0) + (r.get("rushing_yards") or 0) + (r.get("receiving_yards") or 0),
+    "rush_reception_yds": lambda r: (r.get("rushing_yards") or 0) + (r.get("receiving_yards") or 0),
+    "pass_rush_yds": lambda r: (r.get("passing_yards") or 0) + (r.get("rushing_yards") or 0),
+    # Yes/No market -- graded against a fixed effective line of 1 (see
+    # get_nfl_hit_rate_sheet), same treatment as MLB's pitcher_record_a_win.
+    "anytime_td": lambda r: 1.0 if ((r.get("rushing_tds") or 0) + (r.get("receiving_tds") or 0)) >= 1 else 0.0,
+}
+
+_NFL_YES_NO_MARKETS = {"anytime_td"}
+
+_NFL_PROPS_META_COLS = {"line_id", "player", "market", "line", "fetched_at", "commence_time", "home_team", "away_team", "is_live"}
+
+# player_box_stats.parquet/get_nfl_schedule() key every team by its
+# nflverse abbreviation ("KC"), but get_props.py's home_team/away_team
+# columns spell the full name ("Kansas City Chiefs") -- confirmed by direct
+# inspection of both files, and there's no existing bridge between the two
+# conventions anywhere else in this file, so building the current-season
+# name is needed just for matching a player's own team against the props
+# row's home_team/away_team to resolve an opponent.
+NFL_TEAM_ABBR: Dict[str, str] = {
+    "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
+    "Buffalo Bills": "BUF", "Carolina Panthers": "CAR", "Chicago Bears": "CHI",
+    "Cincinnati Bengals": "CIN", "Cleveland Browns": "CLE", "Dallas Cowboys": "DAL",
+    "Denver Broncos": "DEN", "Detroit Lions": "DET", "Green Bay Packers": "GB",
+    "Houston Texans": "HOU", "Indianapolis Colts": "IND", "Jacksonville Jaguars": "JAX",
+    "Kansas City Chiefs": "KC", "Las Vegas Raiders": "LV", "Los Angeles Chargers": "LAC",
+    "Los Angeles Rams": "LA", "Miami Dolphins": "MIA", "Minnesota Vikings": "MIN",
+    "New England Patriots": "NE", "New Orleans Saints": "NO", "New York Giants": "NYG",
+    "New York Jets": "NYJ", "Philadelphia Eagles": "PHI", "Pittsburgh Steelers": "PIT",
+    "San Francisco 49ers": "SF", "Seattle Seahawks": "SEA", "Tampa Bay Buccaneers": "TB",
+    "Tennessee Titans": "TEN", "Washington Commanders": "WAS",
+}
+
+
+def _nfl_stat_value(row, spec) -> float:
+    try:
+        val = spec(row) if callable(spec) else row.get(spec)
+        if val is None or (isinstance(val, float) and pd.isna(val)):
+            return 0.0
+        return float(val)
+    except Exception:
+        return 0.0
+
+
+def _nfl_is_number(v) -> bool:
+    try:
+        f = float(v)
+        return not math.isnan(f)
+    except (TypeError, ValueError):
+        return False
+
+
+def get_nfl_hit_rate_sheet(
+    market: Optional[str] = None,
+    min_pct: float = 0,
+    min_odds: Optional[float] = None,
+    period: str = "season",
+    player: Optional[str] = None,
+    books: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Hit Rate Sheet: one row per (player, market, line) NFL currently has
+    a live sportsbook price for -- same current-lines-driven shape as
+    get_mlb_hit_rate_sheet(), sourced from get_props("nfl") for the line and
+    best-odds/book, and player_box_stats.parquet (get_game_log()'s own
+    source) for the season/recent grading.
+
+    `books`: optional CSV of sportsbook column names -- see
+    get_mlb_hit_rate_sheet()'s docstring for why this narrows best_odds/
+    best_book instead of just being a display filter.
+    """
+    from app.data.props import get_props
+
+    markets = (
+        [market] if market and market != "all" and market in NFL_MARKET_STAT
+        else list(NFL_MARKET_STAT.keys())
+    )
+
+    props_rows = get_props("nfl")
+    if not props_rows:
+        return []
+    book_cols = [c for c in props_rows[0].keys() if c not in _NFL_PROPS_META_COLS]
+    if books:
+        wanted = {b.strip().lower() for b in books.split(",") if b.strip()}
+        book_cols = [c for c in book_cols if c.lower() in wanted]
+
+    df = get_nfl_player_box_stats()
+    if df.empty:
+        return []
+    col = _player_col(df)
+    season_col = _season_col(df)
+    week_col = _week_col(df)
+    team_col = _team_col(df)
+
+    season = _current_nfl_season()
+    d = df.copy()
+    if season_col:
+        d = d[d[season_col] == season]
+    if d.empty:
+        return []
+
+    sort_cols = [c for c in [season_col, week_col] if c and c in d.columns]
+    if sort_cols:
+        d = d.sort_values(sort_cols)
+
+    # Current team, from each player's most recent row this season -- same
+    # "last row wins" convention _player_team_and_position() uses.
+    latest_team: Dict[str, str] = {}
+    if team_col:
+        latest = d.groupby(col, as_index=False).tail(1)
+        latest_team = dict(zip(latest[col].astype(str).apply(_normalize_loose), latest[team_col]))
+
+    stat_cache: Dict[str, pd.DataFrame] = {}
+
+    def series_for(mkt: str) -> pd.DataFrame:
+        if mkt not in stat_cache:
+            spec = NFL_MARKET_STAT[mkt]
+            if callable(spec):
+                stat_values = d.apply(lambda r: _nfl_stat_value(r, spec), axis=1)
+            else:
+                stat_values = pd.to_numeric(d[spec], errors="coerce").fillna(0.0)
+            stat_cache[mkt] = pd.DataFrame({"_player": d[col].astype(str), "stat_value": stat_values})
+        return stat_cache[mkt]
+
+    out: List[Dict[str, Any]] = []
+    for mkt in markets:
+        series = series_for(mkt)
+        by_player: Dict[str, list] = {}
+        for name, g in series.groupby("_player"):
+            by_player[_normalize_loose(name)] = g["stat_value"].tolist()
+        if not by_player:
+            continue
+
+        for row in props_rows:
+            if str(row.get("market", "")).lower() != mkt:
+                continue
+            player_name = str(row.get("player", "") or "")
+            if not player_name:
+                continue
+            if player and player.lower() not in player_name.lower():
+                continue
+
+            key = _normalize_loose(player_name)
+            values = by_player.get(key)
+            if not values:
+                continue
+
+            windows = split_season_recent(values, NFL_RECENT_GAMES)
+
+            if mkt in _NFL_YES_NO_MARKETS:
+                line_f = 1.0
+            else:
+                line_raw = row.get("line")
+                if not _nfl_is_number(line_raw):
+                    continue
+                line_f = float(line_raw)
+
+            season_grade = grade_over_under(windows["season"], line_f)
+            recent_grade = grade_over_under(windows["recent"], line_f)
+            selected_pct = season_grade["pct"] if period == "season" else recent_grade["pct"]
+            if selected_pct * 100 < min_pct:
+                continue
+
+            offers = [(b, row.get(b)) for b in book_cols]
+            offers = [(b, float(o)) for b, o in offers if _nfl_is_number(o)]
+            if not offers:
+                continue
+            best_book, best_odds = max(offers, key=lambda x: x[1])
+            if min_odds is not None and best_odds < min_odds:
+                continue
+
+            team = latest_team.get(key)
+            home_team_full, away_team_full = row.get("home_team"), row.get("away_team")
+            home_abbr, away_abbr = NFL_TEAM_ABBR.get(home_team_full), NFL_TEAM_ABBR.get(away_team_full)
+            opponent = None
+            if team and home_abbr and away_abbr:
+                if team == home_abbr:
+                    opponent = f"vs {away_abbr}"
+                elif team == away_abbr:
+                    opponent = f"@ {home_abbr}"
+
+            out.append({
+                "player": player_name,
+                "team": team,
+                "opponent": opponent,
+                "market": mkt,
+                "line": "Yes" if mkt in _NFL_YES_NO_MARKETS else line_f,
+                "season_pct": round(season_grade["pct"] * 100, 1),
+                "season_sample": f"{season_grade['over']}/{season_grade['total']}",
+                "recent_pct": round(recent_grade["pct"] * 100, 1),
+                "recent_sample": f"{recent_grade['over']}/{recent_grade['total']}",
+                "best_odds": int(round(best_odds)),
+                "best_book": best_book,
+                "estimated_line": False,
+                # See get_mlb_hit_rate_sheet()'s identical field for why this
+                # is carried through.
+                "fetched_at": row.get("fetched_at"),
+            })
+
+    return out
