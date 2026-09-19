@@ -157,8 +157,6 @@ const SPORTS: Record<Sport, SportConfig> = {
   },
 };
 
-const YES_NO_MARKETS = new Set(['pitcher_record_a_win', 'anytime_td']);
-
 // Traffic-light thresholds, exactly matching the approved mockup's
 // levelColor() and this app's theme tokens (theme.accent === '#1d9e75',
 // theme.warningText === '#e8a33d', theme.dataRed === '#f4573f').
