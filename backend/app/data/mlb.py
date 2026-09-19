@@ -1364,6 +1364,25 @@ def _mlb_pitcher_name_lookup() -> "tuple[Dict[str, Any], Dict[str, str]]":
     return name_to_id, team_by_name
 
 
+@ttl_cache(MLB_TTL)
+def _mlb_game_lines_lookup() -> Dict[tuple, dict]:
+    """(home_team, away_team) -> that game's row in game_lines.parquet
+    (get_game_lines.py, refreshed once a day), for the Hit Rate Sheet's
+    Game Line / Total columns. Built once per MLB_TTL window instead of
+    once per output row -- same discipline as the name/team lookups above.
+
+    Keyed by the same full Odds-API team-name strings get_props() itself
+    already carries as home_team/away_team (both come from the same Odds
+    API), so no name-format bridging is needed here -- unlike NFL, where
+    the schedule's nflverse abbreviations require NFL_TEAM_ABBR (see
+    app/data/nfl.py).
+    """
+    lines = get_mlb_data().get("game_lines", pd.DataFrame())
+    if lines.empty or "home_team" not in lines.columns or "away_team" not in lines.columns:
+        return {}
+    return {(r["home_team"], r["away_team"]): r for r in lines.to_dict(orient="records")}
+
+
 def get_mlb_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -1419,6 +1438,7 @@ def get_mlb_hit_rate_sheet(
 
     name_to_id_batter, team_by_name_batter = _mlb_batter_name_lookup()
     name_to_id_pitcher, team_by_name_pitcher = _mlb_pitcher_name_lookup()
+    game_lines_by_matchup = _mlb_game_lines_lookup()
 
     out: List[Dict[str, Any]] = []
     for mkt in markets:
@@ -1485,6 +1505,29 @@ def get_mlb_hit_rate_sheet(
                 elif team == away_team:
                     opponent = f"@ {home_team}"
 
+            # Daily game-level spread/total from get_game_lines.py, one
+            # dict lookup plus a couple of ternaries -- not a new pandas
+            # scan per row (game_lines_by_matchup is built once above).
+            game_line_row = game_lines_by_matchup.get((home_team, away_team)) if home_team and away_team else None
+            total = None
+            game_line = None
+            if game_line_row is not None:
+                raw_total = game_line_row.get("total_line")
+                if pd.notna(raw_total):
+                    total = float(raw_total)
+                raw_spread = game_line_row.get("spread_line")
+                if pd.notna(raw_spread) and team:
+                    # spread_line is stored positive-means-home-favored (see
+                    # get_game_lines.py's own sign-conversion comment).
+                    # Converted here to the standard bettor-facing sign for
+                    # THIS ROW'S OWN team -- an away-team player's line is
+                    # the mirror of the home team's, exactly how a
+                    # sportsbook posts each side separately.
+                    if team == home_team:
+                        game_line = round(-float(raw_spread), 1)
+                    elif team == away_team:
+                        game_line = round(float(raw_spread), 1)
+
             out.append({
                 "player": player_name,
                 "team": team,
@@ -1507,6 +1550,13 @@ def get_mlb_hit_rate_sheet(
                 # -- not part of the row's core contract, just passed along
                 # from get_props()'s own per-row meta.
                 "fetched_at": row.get("fetched_at"),
+                # Daily spread (this row's own team, bettor-facing sign) and
+                # total from game_lines.parquet -- None when there's no
+                # game-lines match yet (line not posted, or the daily
+                # pipeline hasn't run) or team/home/away couldn't be
+                # resolved.
+                "game_line": game_line,
+                "total": total,
             })
 
     return out

@@ -202,6 +202,21 @@ def get_nfl_schedule() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_game_lines() -> pd.DataFrame:
+    """Daily game-level spreads/totals, from get_game_lines.py -- pulled
+    once a day (separate from the frequent player-props pull) since
+    spreads/totals live on the Odds API's bulk sport-level endpoint, so one
+    call covers every upcoming game. Preferred over get_nfl_schedule()'s
+    own baked-in spread_line/total_line by get_game_script_projection()
+    when a match exists here, since this reflects the CURRENT sportsbook
+    line rather than whatever nflverse's schedule file had at its own last
+    once-a-day refresh from a third-party source.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/game_lines.parquet", pd.read_parquet, "nfl game lines")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nba_props() -> pd.DataFrame:
     raw = _fetch_bytes(settings.NBA_PROPS_URL)
     return pd.read_excel(io.BytesIO(raw))
@@ -383,6 +398,10 @@ def get_mlb_data() -> dict:
         ("team_hitting_splits", "team_hitting_splits.parquet", pd.read_parquet),  # team wOBA vs LHP/RHP, season + L30
         ("pitcher_percentiles", "pitcher_percentiles.parquet", pd.read_parquet),
         ("hitter_percentiles", "hitter_percentiles.parquet", pd.read_parquet),
+        # --- Odds API, rebuilt daily by get_game_lines.py (separate,
+        # cheaper cadence from the props pull -- see that script's
+        # docstring) ---
+        ("game_lines", "game_lines.parquet", pd.read_parquet),  # daily spread/total, for Hit Rate Sheet
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}

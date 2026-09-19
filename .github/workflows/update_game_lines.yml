@@ -1,0 +1,77 @@
+name: Update Game Lines
+
+on:
+  schedule:
+    # Once a day, late morning Central -- well before typical game times for
+    # either sport, and separate from update_props.yml's own hourly-ish
+    # schedule on purpose: spreads/totals live on the bulk sport odds
+    # endpoint (one call covers every upcoming game), so they're cheap
+    # enough to refresh daily but don't need props' frequent cadence.
+    # 14:00 UTC = 9:00 AM CDT / 8:00 AM CST.
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Simpler than update_props.yml's concurrency concern -- this isn't a
+# tiered, carry-forward-heavy pull, just one daily overwrite per sport --
+# but two runs racing on the same carry-forward read/write is still worth
+# guarding against cheaply.
+concurrency:
+  group: update-game-lines
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update-game-lines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests pyarrow
+
+      # Needed for the carry-forward read: get_game_lines.py reads the
+      # previous day's game_lines.parquet before fetching so a transient
+      # miss doesn't drop a game outright.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-mlb backend/data/mlb
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl
+
+      - name: Pull MLB game lines
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -u backend/app/get_game_lines.py --sport mlb
+
+      - name: Pull NFL game lines
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -u backend/app/get_game_lines.py --sport nfl
+
+      # MLB's game lines go to the data-mlb tag, NFL's to data-nfl -- same
+      # per-sport split update_props.yml uses.
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh push data-mlb \
+            backend/data/mlb/game_lines.parquet
+          bash scripts/release_data.sh push data-nfl \
+            backend/data/nfl/game_lines.parquet

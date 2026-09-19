@@ -2,7 +2,7 @@
 from typing import Optional, List, Dict, Any
 import math
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats, ttl_cache, OTHER_TTL
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats, get_nfl_game_lines, ttl_cache, OTHER_TTL
 from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 # Stat groups for reference / display -- Game Log only (Fantasy Matchup,
@@ -1216,8 +1216,33 @@ def get_game_script_projection(matchup: str) -> Dict[str, Any]:
     if game.empty:
         return {"error": f"No scheduled game found for {matchup}"}
     game_row = game.sort_values("season", ascending=False).iloc[0]
-    spread_line = game_row.get("spread_line")
-    total_line = game_row.get("total_line")
+
+    # Prefer the daily-refreshed game_lines.parquet (get_game_lines.py) over
+    # the schedule's own baked-in spread_line/total_line when today's
+    # pipeline has a line for this matchup: same game, a fresher number,
+    # tied to actual current sportsbook pricing rather than nflverse's own
+    # once-a-day sync from a third-party source. Falls back to the
+    # schedule's line when there's no match yet (a game too far out for
+    # lines to be posted, or the daily game-lines pipeline hasn't run) so
+    # nothing regresses for games the new source doesn't cover.
+    #
+    # get_nfl_game_lines() is keyed by full Odds-API team names ("Kansas
+    # City Chiefs"), while the schedule (and this function's own
+    # home_team/away_team, parsed from the matchup string) use nflverse
+    # abbreviations ("KC") -- confirmed by direct inspection of both
+    # nfl_schedule.parquet (abbreviations) and NFL_Props.parquet (full
+    # names, from the same Odds API get_game_lines.py reads). See
+    # _nfl_game_lines_by_abbr()'s own comment for the NFL_TEAM_ABBR bridge
+    # that resolves this mismatch.
+    game_line_row = _nfl_game_lines_by_abbr().get((home_team, away_team))
+    if game_line_row is not None and pd.notna(game_line_row.get("spread_line")):
+        # Already stored in THIS app's own spread_line convention (positive
+        # = home favored) by get_game_lines.py -- no sign flip needed here.
+        spread_line = game_line_row.get("spread_line")
+        total_line = game_line_row.get("total_line")
+    else:
+        spread_line = game_row.get("spread_line")
+        total_line = game_row.get("total_line")
 
     if pd.isna(spread_line):
         return {"matchup": matchup, "away_team": away_team, "home_team": home_team, "error": "No line available for this game yet"}
@@ -1904,6 +1929,49 @@ def _nfl_values_by_player(market: str) -> Dict[str, List[float]]:
     return {_normalize_loose(name): g["stat_value"].tolist() for name, g in series.groupby("_player")}
 
 
+@ttl_cache(OTHER_TTL)
+def _nfl_game_lines_lookup() -> Dict[tuple, dict]:
+    """(home_team, away_team) -> that game's game_lines.parquet row, for
+    the Hit Rate Sheet's Game Line / Total columns. Built once per
+    OTHER_TTL window, not once per output row -- same discipline as the
+    cached helpers above.
+
+    Keyed by the full Odds-API team names get_props("nfl") itself already
+    carries as home_team/away_team (confirmed by direct inspection of
+    NFL_Props.parquet: "Kansas City Chiefs", not "KC") -- get_game_lines.py
+    is sourced from the same API, so this join needs no abbreviation
+    bridging, unlike get_game_script_projection()'s join against the
+    nflverse schedule below.
+    """
+    lines = get_nfl_game_lines()
+    if lines.empty or "home_team" not in lines.columns or "away_team" not in lines.columns:
+        return {}
+    return {(r["home_team"], r["away_team"]): r for r in lines.to_dict(orient="records")}
+
+
+@ttl_cache(OTHER_TTL)
+def _nfl_game_lines_by_abbr() -> Dict[tuple, dict]:
+    """Same game_lines.parquet rows as _nfl_game_lines_lookup() above, but
+    keyed by (home_abbr, away_abbr) instead of the raw Odds-API full team
+    names -- for get_game_script_projection()'s join against
+    get_nfl_schedule(), which (confirmed by direct inspection of
+    nfl_schedule.parquet) keys every team by its nflverse abbreviation
+    ("KC"), not the full name ("Kansas City Chiefs") get_game_lines.py
+    writes. NFL_TEAM_ABBR is the existing full-name -> abbreviation bridge,
+    reused here rather than duplicated.
+    """
+    lines = get_nfl_game_lines()
+    if lines.empty or "home_team" not in lines.columns or "away_team" not in lines.columns:
+        return {}
+    out: Dict[tuple, dict] = {}
+    for r in lines.to_dict(orient="records"):
+        home_abbr = NFL_TEAM_ABBR.get(r.get("home_team"))
+        away_abbr = NFL_TEAM_ABBR.get(r.get("away_team"))
+        if home_abbr and away_abbr:
+            out[(home_abbr, away_abbr)] = r
+    return out
+
+
 def get_nfl_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -1945,6 +2013,7 @@ def get_nfl_hit_rate_sheet(
     if d.empty:
         return []
     latest_team = _nfl_latest_team_by_player()
+    game_lines_by_matchup = _nfl_game_lines_lookup()
 
     # Grouped once instead of re-scanning the full props feed once per
     # market below -- see get_mlb_hit_rate_sheet()'s identical comment.
@@ -2012,6 +2081,31 @@ def get_nfl_hit_rate_sheet(
                 elif team == away_abbr:
                     opponent = f"@ {home_abbr}"
 
+            # Daily game-level spread/total from get_game_lines.py -- one
+            # dict lookup plus a couple of ternaries (game_lines_by_matchup
+            # is built once above), not a new pandas scan per row. Keyed by
+            # the same full team-name strings as home_team_full/
+            # away_team_full above, both from the same Odds API.
+            game_line_row = game_lines_by_matchup.get((home_team_full, away_team_full)) if home_team_full and away_team_full else None
+            total = None
+            game_line = None
+            if game_line_row is not None:
+                raw_total = game_line_row.get("total_line")
+                if pd.notna(raw_total):
+                    total = float(raw_total)
+                raw_spread = game_line_row.get("spread_line")
+                if pd.notna(raw_spread) and team and home_abbr and away_abbr:
+                    # spread_line is stored positive-means-home-favored (see
+                    # get_game_lines.py's own sign-conversion comment).
+                    # Converted here to the standard bettor-facing sign for
+                    # THIS ROW'S OWN team, comparing abbreviations since
+                    # `team` here is nflverse-style ("KC"), not the full
+                    # Odds-API name.
+                    if team == home_abbr:
+                        game_line = round(-float(raw_spread), 1)
+                    elif team == away_abbr:
+                        game_line = round(float(raw_spread), 1)
+
             out.append({
                 "player": player_name,
                 "team": team,
@@ -2029,6 +2123,9 @@ def get_nfl_hit_rate_sheet(
                 # See get_mlb_hit_rate_sheet()'s identical field for why this
                 # is carried through.
                 "fetched_at": row.get("fetched_at"),
+                # See get_mlb_hit_rate_sheet()'s identical fields.
+                "game_line": game_line,
+                "total": total,
             })
 
     return out

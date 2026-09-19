@@ -59,6 +59,12 @@ interface HitRateRow {
   // "Performance note" above.
   odds_by_book: Record<string, number>;
   fetched_at?: string | null;
+  // Daily game-level spread/total from get_game_lines.py (both sheets, MLB
+  // and NFL alike) -- game_line is already sign-converted to THIS row's own
+  // team (favorite shown negative, exactly how a sportsbook posts it); null
+  // when there's no line posted yet for that game.
+  game_line: number | null;
+  total: number | null;
 }
 
 // Real sportsbook column names, as get_props() (and this sheet's
@@ -168,6 +174,18 @@ function formatOdds(n: number): string {
 
 function lineLabel(line: number | string): string {
   return typeof line === 'string' ? line : `O ${line}`;
+}
+
+// Same signed-number convention as formatOdds above, for the daily game
+// line -- "—" when there's no line posted yet for that game.
+function formatGameLine(n: number | null): string {
+  if (n === null || n === undefined) return '—';
+  return n > 0 ? `+${n}` : String(n);
+}
+
+function formatTotal(n: number | null): string {
+  if (n === null || n === undefined) return '—';
+  return `O/U ${n}`;
 }
 
 function marketLabel(sport: Sport, market: string): string {
@@ -436,6 +454,9 @@ export default function HitRateSheet() {
                 <span style={{ color: period === 'recent' ? levelColor(r.recent_pct) : theme.textSecondary, fontWeight: period === 'recent' ? 700 : 500 }}>
                   Recent {r.recent_pct}% ({r.recent_sample})
                 </span>,
+                <span style={{ color: theme.textSecondary }}>
+                  Line {formatGameLine(r.game_line)} &middot; {formatTotal(r.total)}
+                </span>,
               ]}
             />
           ))}
@@ -444,9 +465,9 @@ export default function HitRateSheet() {
 
       {!loading && !error && rows.length > 0 && !isMobile && (
         <ScrollTable>
-          <div style={{ border: `1px solid ${theme.border}`, borderRadius: 8, overflow: 'hidden', minWidth: 980 }}>
+          <div style={{ border: `1px solid ${theme.border}`, borderRadius: 8, overflow: 'hidden', minWidth: 1200 }}>
             <div style={{
-              display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px', gap: 16,
+              display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px', gap: 16,
               background: theme.bgCardHover, padding: '10px 16px', fontSize: 11, color: theme.textSecondary,
               textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600,
             }}>
@@ -457,6 +478,8 @@ export default function HitRateSheet() {
               <div>Best Odds</div>
               <button onClick={() => onSort('season')} style={headerStyle('season')}>Season{headerArrow('season')}</button>
               <button onClick={() => onSort('recent')} style={headerStyle('recent')}>Recent{headerArrow('recent')}</button>
+              <div>Game Line</div>
+              <div>Total</div>
             </div>
             {rows.map((r, i) => {
               const bg = i % 2 === 0 ? theme.bgCard : theme.bgCardHover;
@@ -464,7 +487,7 @@ export default function HitRateSheet() {
                 <div
                   key={`${r.player}-${r.market}-${r.line}-${i}`}
                   style={{
-                    display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px', gap: 16,
+                    display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px', gap: 16,
                     padding: '10px 16px', background: bg, borderTop: `1px solid ${theme.border}`,
                     alignItems: 'center', fontVariantNumeric: 'tabular-nums',
                   }}
@@ -491,6 +514,8 @@ export default function HitRateSheet() {
                     </div>
                     <div style={{ fontSize: 10, color: theme.textMuted }}>({r.recent_sample})</div>
                   </div>
+                  <div style={{ fontSize: 13, color: theme.textPrimary }}>{formatGameLine(r.game_line)}</div>
+                  <div style={{ fontSize: 13, color: theme.textPrimary }}>{formatTotal(r.total)}</div>
                 </div>
               );
             })}
