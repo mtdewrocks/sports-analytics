@@ -2,7 +2,7 @@
 from typing import Optional, List, Dict, Any
 import math
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats, ttl_cache, OTHER_TTL
 from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 # Stat groups for reference / display -- Game Log only (Fantasy Matchup,
@@ -1851,6 +1851,59 @@ def _nfl_is_number(v) -> bool:
         return False
 
 
+# Same problem get_mlb_hit_rate_sheet() has, and the same fix -- see that
+# function's cached helpers for the full explanation. Without this, the
+# default "All Markets" view (and every keystroke in the player search box,
+# which doesn't narrow the per-market work at all) re-filters, re-sorts and
+# -- for derived markets -- re-runs a row-wise .apply() over the ENTIRE
+# season's player_box_stats for every one of ~14 markets, on every request.
+# get_nfl_player_box_stats() itself is already cached (OTHER_TTL), but the
+# season-filter/sort and per-market grouping done on top of it were not.
+@ttl_cache(OTHER_TTL)
+def _nfl_current_season_frame() -> "tuple[pd.DataFrame, str, Optional[str]]":
+    df = get_nfl_player_box_stats()
+    if df.empty:
+        return df, "", None
+    col = _player_col(df)
+    season_col = _season_col(df)
+    week_col = _week_col(df)
+    team_col = _team_col(df)
+
+    season = _current_nfl_season()
+    d = df.copy()
+    if season_col:
+        d = d[d[season_col] == season]
+
+    sort_cols = [c for c in [season_col, week_col] if c and c in d.columns]
+    if sort_cols:
+        d = d.sort_values(sort_cols)
+
+    return d, col, team_col
+
+
+@ttl_cache(OTHER_TTL)
+def _nfl_latest_team_by_player() -> Dict[str, str]:
+    d, col, team_col = _nfl_current_season_frame()
+    if d.empty or not team_col:
+        return {}
+    latest = d.groupby(col, as_index=False).tail(1)
+    return dict(zip(latest[col].astype(str).apply(_normalize_loose), latest[team_col]))
+
+
+@ttl_cache(OTHER_TTL)
+def _nfl_values_by_player(market: str) -> Dict[str, List[float]]:
+    d, col, _team_col_name = _nfl_current_season_frame()
+    if d.empty:
+        return {}
+    spec = NFL_MARKET_STAT[market]
+    if callable(spec):
+        stat_values = d.apply(lambda r: _nfl_stat_value(r, spec), axis=1)
+    else:
+        stat_values = pd.to_numeric(d[spec], errors="coerce").fillna(0.0)
+    series = pd.DataFrame({"_player": d[col].astype(str), "stat_value": stat_values})
+    return {_normalize_loose(name): g["stat_value"].tolist() for name, g in series.groupby("_player")}
+
+
 def get_nfl_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -1879,61 +1932,36 @@ def get_nfl_hit_rate_sheet(
     props_rows = get_props("nfl")
     if not props_rows:
         return []
-    book_cols = [c for c in props_rows[0].keys() if c not in _NFL_PROPS_META_COLS]
+    # See get_mlb_hit_rate_sheet()'s identical comment: all_book_cols always
+    # goes into each row's odds_by_book so the frontend's Books toggle can
+    # recompute best-odds/hidden-count for any checked subset locally.
+    all_book_cols = [c for c in props_rows[0].keys() if c not in _NFL_PROPS_META_COLS]
+    book_cols = all_book_cols
     if books:
         wanted = {b.strip().lower() for b in books.split(",") if b.strip()}
-        book_cols = [c for c in book_cols if c.lower() in wanted]
+        book_cols = [c for c in all_book_cols if c.lower() in wanted]
 
-    df = get_nfl_player_box_stats()
-    if df.empty:
-        return []
-    col = _player_col(df)
-    season_col = _season_col(df)
-    week_col = _week_col(df)
-    team_col = _team_col(df)
-
-    season = _current_nfl_season()
-    d = df.copy()
-    if season_col:
-        d = d[d[season_col] == season]
+    d, _col, _team_col_name = _nfl_current_season_frame()
     if d.empty:
         return []
+    latest_team = _nfl_latest_team_by_player()
 
-    sort_cols = [c for c in [season_col, week_col] if c and c in d.columns]
-    if sort_cols:
-        d = d.sort_values(sort_cols)
-
-    # Current team, from each player's most recent row this season -- same
-    # "last row wins" convention _player_team_and_position() uses.
-    latest_team: Dict[str, str] = {}
-    if team_col:
-        latest = d.groupby(col, as_index=False).tail(1)
-        latest_team = dict(zip(latest[col].astype(str).apply(_normalize_loose), latest[team_col]))
-
-    stat_cache: Dict[str, pd.DataFrame] = {}
-
-    def series_for(mkt: str) -> pd.DataFrame:
-        if mkt not in stat_cache:
-            spec = NFL_MARKET_STAT[mkt]
-            if callable(spec):
-                stat_values = d.apply(lambda r: _nfl_stat_value(r, spec), axis=1)
-            else:
-                stat_values = pd.to_numeric(d[spec], errors="coerce").fillna(0.0)
-            stat_cache[mkt] = pd.DataFrame({"_player": d[col].astype(str), "stat_value": stat_values})
-        return stat_cache[mkt]
+    # Grouped once instead of re-scanning the full props feed once per
+    # market below -- see get_mlb_hit_rate_sheet()'s identical comment.
+    rows_by_market: Dict[str, List[dict]] = {}
+    for row in props_rows:
+        rows_by_market.setdefault(str(row.get("market", "")).lower(), []).append(row)
 
     out: List[Dict[str, Any]] = []
     for mkt in markets:
-        series = series_for(mkt)
-        by_player: Dict[str, list] = {}
-        for name, g in series.groupby("_player"):
-            by_player[_normalize_loose(name)] = g["stat_value"].tolist()
+        candidate_rows = rows_by_market.get(mkt)
+        if not candidate_rows:
+            continue
+        by_player = _nfl_values_by_player(mkt)
         if not by_player:
             continue
 
-        for row in props_rows:
-            if str(row.get("market", "")).lower() != mkt:
-                continue
+        for row in candidate_rows:
             player_name = str(row.get("player", "") or "")
             if not player_name:
                 continue
@@ -1969,6 +1997,11 @@ def get_nfl_hit_rate_sheet(
             if min_odds is not None and best_odds < min_odds:
                 continue
 
+            odds_by_book = {
+                b: int(round(float(row.get(b))))
+                for b in all_book_cols if _nfl_is_number(row.get(b))
+            }
+
             team = latest_team.get(key)
             home_team_full, away_team_full = row.get("home_team"), row.get("away_team")
             home_abbr, away_abbr = NFL_TEAM_ABBR.get(home_team_full), NFL_TEAM_ABBR.get(away_team_full)
@@ -1991,6 +2024,7 @@ def get_nfl_hit_rate_sheet(
                 "recent_sample": f"{recent_grade['over']}/{recent_grade['total']}",
                 "best_odds": int(round(best_odds)),
                 "best_book": best_book,
+                "odds_by_book": odds_by_book,
                 "estimated_line": False,
                 # See get_mlb_hit_rate_sheet()'s identical field for why this
                 # is carried through.

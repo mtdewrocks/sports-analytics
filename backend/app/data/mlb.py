@@ -2,7 +2,7 @@
 from typing import Optional, List, Dict, Any
 import math
 import pandas as pd
-from app.data.loader import get_mlb_data, get_mlb_props_data
+from app.data.loader import get_mlb_data, get_mlb_props_data, ttl_cache, MLB_TTL
 from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 
@@ -1306,6 +1306,64 @@ def _pitcher_logs_for_market(market: str) -> pd.DataFrame:
     ]
 
 
+# The Hit Rate Sheet's default view scans every market at once, and typing
+# in the player box doesn't narrow that -- the player filter is applied per
+# props row further down, after the game log for a market has already been
+# built. Without caching, that means re-parsing dates, re-sorting, and (for
+# derived markets) re-running a row-wise .apply() over the FULL season for
+# every batter or pitcher, for every one of ~17 markets, on every request --
+# including every keystroke in the search box. The underlying parquet is
+# already cached by get_mlb_data() (MLB_TTL), but the per-market grouping
+# done here was rebuilt from scratch each time regardless. Caching it at
+# this level means it is computed once per market per MLB_TTL window and
+# every request after that is a dict lookup.
+@ttl_cache(MLB_TTL)
+def _batter_values_by_player(market: str) -> Dict[Any, List[float]]:
+    log = _batter_logs_for_market(market)
+    if log.empty:
+        return {}
+    return {pid: g["stat_value"].tolist() for pid, g in log.groupby("player_id")}
+
+
+@ttl_cache(MLB_TTL)
+def _pitcher_values_by_player(market: str) -> Dict[Any, List[float]]:
+    log = _pitcher_logs_for_market(market)
+    if log.empty:
+        return {}
+    return {pid: g["stat_value"].tolist() for pid, g in log.groupby("player_id")}
+
+
+# Same idea as the two functions above -- name_to_id/team_by_name only
+# depend on which roster/starters table a market reads (batter vs pitcher),
+# not on the market itself, so without this every one of the ~11 batter (or
+# ~6 pitcher) markets in the default "All Markets" scan was rebuilding the
+# exact same two dicts from the exact same rosters/starters frame.
+@ttl_cache(MLB_TTL)
+def _mlb_batter_name_lookup() -> "tuple[Dict[str, Any], Dict[str, str]]":
+    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
+    if rosters.empty or "player_id" not in rosters.columns or "player" not in rosters.columns:
+        return {}, {}
+    name_to_id = dict(zip(rosters["player"].astype(str).apply(_normalize), rosters["player_id"]))
+    team_by_name = (
+        dict(zip(rosters["player"].astype(str).apply(_normalize), rosters["team"]))
+        if "team" in rosters.columns else {}
+    )
+    return name_to_id, team_by_name
+
+
+@ttl_cache(MLB_TTL)
+def _mlb_pitcher_name_lookup() -> "tuple[Dict[str, Any], Dict[str, str]]":
+    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+    if starters_df.empty or "pitcher_id" not in starters_df.columns or "pitcher" not in starters_df.columns:
+        return {}, {}
+    name_to_id = dict(zip(starters_df["pitcher"].astype(str).apply(_normalize), starters_df["pitcher_id"]))
+    team_by_name = (
+        dict(zip(starters_df["pitcher"].astype(str).apply(_normalize), starters_df["team"]))
+        if "team" in starters_df.columns else {}
+    )
+    return name_to_id, team_by_name
+
+
 def get_mlb_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -1340,45 +1398,44 @@ def get_mlb_hit_rate_sheet(
     props_rows = get_props("mlb")
     if not props_rows:
         return []
-    book_cols = [c for c in props_rows[0].keys() if c not in _MLB_PROPS_META_COLS]
+    # all_book_cols always goes into each row's odds_by_book (below) so the
+    # frontend's Books toggle can recompute best-odds/hidden-count for any
+    # subset of books it checks without a second request -- `books` here
+    # only narrows best_odds/best_book/the row-presence check themselves,
+    # for a caller that wants that subset applied server-side instead.
+    all_book_cols = [c for c in props_rows[0].keys() if c not in _MLB_PROPS_META_COLS]
+    book_cols = all_book_cols
     if books:
         wanted = {b.strip().lower() for b in books.split(",") if b.strip()}
-        book_cols = [c for c in book_cols if c.lower() in wanted]
+        book_cols = [c for c in all_book_cols if c.lower() in wanted]
 
-    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
-    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+    # Grouped once instead of re-scanning the full props feed once per
+    # market below -- cheap either way, but "All Markets" (the default
+    # view) means up to len(MLB_MARKET_STAT_MAP) passes over the same list
+    # otherwise.
+    rows_by_market: Dict[str, List[dict]] = {}
+    for row in props_rows:
+        rows_by_market.setdefault(str(row.get("market", "")).lower(), []).append(row)
 
-    game_log_cache: Dict[str, pd.DataFrame] = {}
-
-    def game_log_for(mkt: str) -> pd.DataFrame:
-        if mkt not in game_log_cache:
-            game_log_cache[mkt] = (
-                _batter_logs_for_market(mkt) if mkt in MLB_BATTER_MARKET_STAT
-                else _pitcher_logs_for_market(mkt)
-            )
-        return game_log_cache[mkt]
+    name_to_id_batter, team_by_name_batter = _mlb_batter_name_lookup()
+    name_to_id_pitcher, team_by_name_pitcher = _mlb_pitcher_name_lookup()
 
     out: List[Dict[str, Any]] = []
     for mkt in markets:
         props_market_key = _MLB_PROPS_MARKET_KEY[mkt]
-        log = game_log_for(mkt)
-        if log.empty:
+        candidate_rows = rows_by_market.get(props_market_key)
+        if not candidate_rows:
             continue
-        by_player_id = {pid: g["stat_value"].tolist() for pid, g in log.groupby("player_id")}
 
         is_batter_market = mkt in MLB_BATTER_MARKET_STAT
-        names_df = rosters if is_batter_market else starters_df
-        id_col, name_col = ("player_id", "player") if is_batter_market else ("pitcher_id", "pitcher")
-        name_to_id: Dict[str, Any] = {}
-        team_by_name: Dict[str, str] = {}
-        if not names_df.empty and id_col in names_df.columns and name_col in names_df.columns:
-            name_to_id = dict(zip(names_df[name_col].astype(str).apply(_normalize), names_df[id_col]))
-            if "team" in names_df.columns:
-                team_by_name = dict(zip(names_df[name_col].astype(str).apply(_normalize), names_df["team"]))
+        by_player_id = _batter_values_by_player(mkt) if is_batter_market else _pitcher_values_by_player(mkt)
+        if not by_player_id:
+            continue
 
-        for row in props_rows:
-            if str(row.get("market", "")).lower() != props_market_key:
-                continue
+        name_to_id = name_to_id_batter if is_batter_market else name_to_id_pitcher
+        team_by_name = team_by_name_batter if is_batter_market else team_by_name_pitcher
+
+        for row in candidate_rows:
             player_name = str(row.get("player", "") or "")
             if not player_name:
                 continue
@@ -1414,6 +1471,11 @@ def get_mlb_hit_rate_sheet(
             if min_odds is not None and best_odds < min_odds:
                 continue
 
+            odds_by_book = {
+                b: int(round(float(row.get(b))))
+                for b in all_book_cols if _is_number(row.get(b))
+            }
+
             team = team_by_name.get(_normalize(player_name))
             home_team, away_team = row.get("home_team"), row.get("away_team")
             opponent = None
@@ -1435,6 +1497,10 @@ def get_mlb_hit_rate_sheet(
                 "recent_sample": f"{recent_grade['over']}/{recent_grade['total']}",
                 "best_odds": int(round(best_odds)),
                 "best_book": best_book,
+                # Every book's price, unfiltered by `books` -- lets the
+                # frontend's Books toggle recompute best-odds/hidden-count
+                # for any checked subset locally, with no second request.
+                "odds_by_book": odds_by_book,
                 "estimated_line": False,
                 # Carried through so the frontend's OddsDisclaimer can report
                 # genuine staleness for what's on screen, same as Props/Middles

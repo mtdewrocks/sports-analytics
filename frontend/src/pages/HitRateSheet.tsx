@@ -15,16 +15,26 @@ import { theme } from '../theme';
  * season is dark), so this lives at the pages root next to Dashboard rather
  * than under pages/mlb or pages/nfl. Mirrors the approved mockup
  * (A_FilteredList.dc.html, "Option A") faithfully: a sport tab row, a
- * filter bar (player / market / min hit rate / min odds / time period),
- * a Books toggle row that recomputes best-odds live, quick presets, and a
- * results table whose Season/Recent headers sort independently of which
- * period is the active toggle.
+ * filter bar (player / market / min hit rate / min odds / time period), a
+ * Books toggle row that recomputes best-odds live, and a results table
+ * whose Season/Recent headers sort independently of which period is the
+ * active toggle. Quick presets were in the original build but pulled per
+ * request -- product wants to rethink what belongs there before they come
+ * back.
  *
  * Layout note: the mockup's filter bar is a full-width wrapping row, not a
  * sidebar -- so this page uses filterStyles' field tokens (fieldLabelStyle /
  * fieldStyle) for consistent input styling, but does not wrap the bar in
  * FilterPanel/usePanelLayout, since that component's column-sidebar shape
  * would fight the approved design rather than reproduce it.
+ *
+ * Performance note: the backend endpoint returns every book's price per row
+ * (`odds_by_book`), not just the best one, specifically so the Books toggle
+ * below can recompute best-odds and the hidden-by-books count ENTIRELY
+ * client-side -- checking/unchecking a book used to fire two fresh network
+ * requests (one for "all books" to size the hidden count, one for the
+ * checked subset) on top of whatever market/player/period scan was already
+ * running. Toggling a book now costs nothing over the network at all.
  */
 
 type Sport = 'mlb' | 'nfl';
@@ -43,6 +53,11 @@ interface HitRateRow {
   recent_sample: string;
   best_odds: number;
   best_book: string;
+  // Every book's price for this row, unfiltered -- lets the Books toggle
+  // below recompute best_odds/best_book (and whether a row has any checked
+  // book at all) locally, with no second request. See the file-level
+  // "Performance note" above.
+  odds_by_book: Record<string, number>;
   fetched_at?: string | null;
 }
 
@@ -58,13 +73,6 @@ const BOOK_LABELS: Record<BookKey, string> = {
   williamhill_us: 'Caesars',
 };
 
-interface Preset {
-  label: string;
-  market: string;
-  minHitRate: number;
-  minOdds: number;
-}
-
 interface MarketOption {
   value: string;
   label: string;
@@ -76,7 +84,6 @@ interface SportConfig {
   recentGames: number;
   seasonLabel: string;
   markets: MarketOption[];
-  presets: Preset[];
 }
 
 // Market keys match MLB_MARKET_STAT_MAP in backend/app/data/mlb.py exactly
@@ -129,9 +136,6 @@ const NFL_MARKETS: MarketOption[] = [
   { value: 'anytime_td', label: 'Anytime TD' },
 ];
 
-// Two presets per sport, same "X%+ · market" / "odds or better · market"
-// shape the mockup uses. Not specified beyond "2 per sport" -- these
-// particular markets/thresholds are this build's own choice.
 const SPORTS: Record<Sport, SportConfig> = {
   mlb: {
     label: 'MLB',
@@ -139,10 +143,6 @@ const SPORTS: Record<Sport, SportConfig> = {
     recentGames: 10,
     seasonLabel: 'Season (2026)',
     markets: MLB_MARKETS,
-    presets: [
-      { label: '70%+ · Pitcher Strikeouts', market: 'pitcher_strikeouts', minHitRate: 70, minOdds: -100000 },
-      { label: '-150 or better · Total Bases', market: 'batter_total_bases', minHitRate: 0, minOdds: -150 },
-    ],
   },
   nfl: {
     label: 'NFL',
@@ -150,10 +150,6 @@ const SPORTS: Record<Sport, SportConfig> = {
     recentGames: 5,
     seasonLabel: 'Season (2026)',
     markets: NFL_MARKETS,
-    presets: [
-      { label: '70%+ · Passing Yards', market: 'pass_yds', minHitRate: 70, minOdds: -100000 },
-      { label: '-200 or better · Receptions', market: 'receptions', minHitRate: 0, minOdds: -200 },
-    ],
   },
 };
 
@@ -208,8 +204,7 @@ export default function HitRateSheet() {
   const [sortBy, setSortBy] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const [allBooksRows, setAllBooksRows] = useState<HitRateRow[]>([]);
-  const [checkedRows, setCheckedRows] = useState<HitRateRow[]>([]);
+  const [rawRows, setRawRows] = useState<HitRateRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -217,41 +212,50 @@ export default function HitRateSheet() {
   const minHitRate = minHitRateStr === '' ? 0 : Number(minHitRateStr);
   const minOdds = minOddsStr === '' ? -100000 : Number(minOddsStr);
   const playerDebounced = useDebounced(playerQuery, 300);
-  const checkedBooksCsv = BOOK_KEYS.filter((b) => enabledBooks[b]).join(',');
 
-  // Server does the market/player/period bulk scan; min-hit-rate, min-odds
-  // and sorting are applied client-side below (min_pct=0 here on purpose),
-  // matching the mockup's own "fetch once, filter reactively" feel and
-  // meaning only market/player/period/books changes need a round trip.
+  // Server does the market/player/period bulk scan; min-hit-rate, min-odds,
+  // books and sorting are all applied client-side below (min_pct=0 here on
+  // purpose) -- one fetch per market/player/period change, and every book
+  // toggle after that is free. See the file-level "Performance note" above.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError('');
-    const base = { market: market === 'all' ? undefined : market, player: playerDebounced || undefined, period };
-    Promise.all([
-      cfg.fetcher({ ...base, min_pct: 0, min_odds: -100000, books: BOOK_KEYS.join(',') }),
-      cfg.fetcher({ ...base, min_pct: 0, min_odds: -100000, books: checkedBooksCsv || 'none' }),
-    ])
-      .then(([allRes, checkedRes]) => {
-        if (cancelled) return;
-        setAllBooksRows(allRes.data);
-        setCheckedRows(checkedRes.data);
-      })
+    const params = { market: market === 'all' ? undefined : market, player: playerDebounced || undefined, period, min_pct: 0, min_odds: -100000 };
+    cfg.fetcher(params)
+      .then((res) => { if (!cancelled) setRawRows(res.data); })
       .catch((err) => {
         if (cancelled) return;
         setError(err?.response?.data?.detail || 'Failed to load the hit rate sheet.');
-        setAllBooksRows([]);
-        setCheckedRows([]);
+        setRawRows([]);
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sport, market, playerDebounced, period, checkedBooksCsv]);
+  }, [sport, market, playerDebounced, period]);
 
   const effectiveSortBy: SortKey = sortBy ?? period;
+  const checkedBookKeys = useMemo(() => BOOK_KEYS.filter((b) => enabledBooks[b]), [enabledBooks]);
 
-  const rows = useMemo(() => {
-    const filtered = checkedRows.filter((r) => {
+  // Recomputes best-odds-among-checked-books, the min-hit-rate/min-odds
+  // cuts, and sorting entirely from the one fetch above -- no network
+  // round trip for any of it, books included.
+  const { rows, hiddenByBooks } = useMemo(() => {
+    let hidden = 0;
+    const withCheckedOdds: HitRateRow[] = [];
+    for (const r of rawRows) {
+      const available = checkedBookKeys
+        .map((b) => [b, r.odds_by_book[b]] as const)
+        .filter((entry): entry is [BookKey, number] => typeof entry[1] === 'number');
+      if (available.length === 0) {
+        hidden += 1;
+        continue;
+      }
+      const [bestBook, bestOdds] = available.reduce((best, cur) => (cur[1] > best[1] ? cur : best));
+      withCheckedOdds.push({ ...r, best_odds: bestOdds, best_book: bestBook });
+    }
+
+    const filtered = withCheckedOdds.filter((r) => {
       const pct = period === 'season' ? r.season_pct : r.recent_pct;
       return pct >= minHitRate && r.best_odds >= minOdds;
     });
@@ -260,23 +264,10 @@ export default function HitRateSheet() {
       const bv = effectiveSortBy === 'season' ? b.season_pct : b.recent_pct;
       return sortDir === 'desc' ? bv - av : av - bv;
     });
-    return sorted;
-  }, [checkedRows, minHitRate, minOdds, period, effectiveSortBy, sortDir]);
-
-  // Rows that exist somewhere among ALL four books but vanished once
-  // narrowed to just the checked ones -- i.e. "no checked book prices this
-  // line at all", same concept as the mockup's hiddenByBooks (computed
-  // before the min-hit-rate/min-odds cuts, which is why this compares the
-  // two NO-THRESHOLD fetches rather than `rows` above).
-  const hiddenByBooks = Math.max(0, allBooksRows.length - checkedRows.length);
+    return { rows: sorted, hiddenByBooks: hidden };
+  }, [rawRows, checkedBookKeys, minHitRate, minOdds, period, effectiveSortBy, sortDir]);
 
   const toggleBook = (b: BookKey) => setEnabledBooks((prev) => ({ ...prev, [b]: !prev[b] }));
-
-  const applyPreset = (p: Preset) => {
-    setMarket(p.market);
-    setMinHitRateStr(p.minHitRate === 0 ? '' : String(p.minHitRate));
-    setMinOddsStr(p.minOdds <= -100000 ? '' : String(p.minOdds));
-  };
 
   const clearFilters = () => {
     setMarket('all');
@@ -410,22 +401,6 @@ export default function HitRateSheet() {
             );
           })}
         </div>
-
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick presets</span>
-          {cfg.presets.map((p) => (
-            <button
-              key={p.label}
-              onClick={() => applyPreset(p)}
-              style={{
-                padding: '6px 12px', borderRadius: 14, border: `1px solid ${theme.accent}`,
-                background: 'rgba(29,158,117,0.12)', color: theme.accent, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       <OddsDisclaimer fetchedAt={latestFetchedAt(rows as any)} compact={isMobile} />
@@ -525,7 +500,7 @@ export default function HitRateSheet() {
 
       {!loading && !error && (
         <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 10 }}>
-          {rows.length} of {allBooksRows.length} props match your filters, sorted by {effectiveSortBy} hit rate ({sortDir === 'desc' ? 'highest first' : 'lowest first'}) — click a Season or Recent column header to change it
+          {rows.length} of {rawRows.length} props match your filters, sorted by {effectiveSortBy} hit rate ({sortDir === 'desc' ? 'highest first' : 'lowest first'}) — click a Season or Recent column header to change it
           {hiddenByBooks > 0 && (
             <span style={{ color: theme.warningText }}> &middot; {hiddenByBooks} more not offered by your checked books</span>
           )}
