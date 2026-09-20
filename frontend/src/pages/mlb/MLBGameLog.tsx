@@ -47,6 +47,10 @@ interface Game {
   is_home: boolean;
   at_bats?: number | null;
   hits?: number | null;
+  runs?: number | null;
+  rbi?: number | null;
+  home_runs?: number | null;
+  stolen_bases?: number | null;
   opp_pitcher?: string | null;
   opp_pitcher_hand?: 'L' | 'R' | null;
   stat_value: number;
@@ -79,6 +83,18 @@ function opponentLabel(g: Game): string {
 function pitcherLabel(g: Game): string {
   if (!g.opp_pitcher) return '—';
   return g.opp_pitcher_hand ? `${g.opp_pitcher} (${g.opp_pitcher_hand})` : g.opp_pitcher;
+}
+
+// Compact box-score line for the mobile card view -- the desktop table
+// shows AB/R/H/RBI/HR/SB as their own columns; on a phone that's too many
+// columns, so they collapse into one string instead. HR/SB only show up
+// when they're non-zero to keep the common case (a single or an out) short.
+function boxLine(g: Game): string | null {
+  if (g.at_bats == null || g.hits == null) return null;
+  const parts = [`${g.at_bats} AB`, `${g.runs ?? 0} R`, `${g.hits} H`, `${g.rbi ?? 0} RBI`];
+  if (g.home_runs) parts.push(`${g.home_runs} HR`);
+  if (g.stolen_bases) parts.push(`${g.stolen_bases} SB`);
+  return parts.join(', ');
 }
 
 export default function MLBGameLog() {
@@ -262,7 +278,7 @@ export default function MLBGameLog() {
                         valueColor={g.stat_value >= threshold ? theme.dataBlue : theme.dataRed}
                         footer={formatStatLabel(selectedStat)}
                         meta={[
-                          g.at_bats != null && g.hits != null ? `${g.hits}-${g.at_bats}` : null,
+                          boxLine(g),
                           pitcherLabel(g) !== '—' ? pitcherLabel(g) : null,
                         ]}
                       />
@@ -276,7 +292,11 @@ export default function MLBGameLog() {
                         <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opponent</th>
                         <th style={{ padding: '10px 14px', textAlign: 'left' }}>Opposing Pitcher</th>
                         <th style={{ padding: '10px 14px', textAlign: 'center' }}>AB</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center' }}>R</th>
                         <th style={{ padding: '10px 14px', textAlign: 'center' }}>H</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center' }}>RBI</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center' }}>HR</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center' }}>SB</th>
                         <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(selectedStat)}</th>
                       </tr>
                     </thead>
@@ -290,7 +310,19 @@ export default function MLBGameLog() {
                             {g.at_bats ?? '—'}
                           </td>
                           <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
+                            {g.runs ?? '—'}
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                             {g.hits ?? '—'}
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
+                            {g.rbi ?? '—'}
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
+                            {g.home_runs ?? '—'}
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
+                            {g.stolen_bases ?? '—'}
                           </td>
                           <td style={{
                             padding: '8px 14px',

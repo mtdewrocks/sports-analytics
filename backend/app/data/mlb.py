@@ -1764,6 +1764,16 @@ def get_mlb_game_log(
             "is_home": bool(r.get("is_home")),
             "at_bats": int(r["at_bats"]) if _is_number(r.get("at_bats")) else None,
             "hits": int(r["hits"]) if _is_number(r.get("hits")) else None,
+            # Full box-score line, not just AB/H -- the table used to show
+            # only those two plus whatever stat was selected, which meant
+            # picking "Hits" made the exact same number show up in both the
+            # H column and the Stat column. Runs/RBI/HR/SB round it out to a
+            # real trip line so the table reads the same regardless of which
+            # stat happens to be selected.
+            "runs": int(r["runs"]) if _is_number(r.get("runs")) else None,
+            "rbi": int(r["rbi"]) if _is_number(r.get("rbi")) else None,
+            "home_runs": int(r["home_runs"]) if _is_number(r.get("home_runs")) else None,
+            "stolen_bases": int(r["stolen_bases"]) if _is_number(r.get("stolen_bases")) else None,
             "opp_pitcher": opp_pitcher if isinstance(opp_pitcher, str) else None,
             "opp_pitcher_hand": opp_hand if opp_hand in ("L", "R") else None,
             "stat_value": r["stat_value"],
