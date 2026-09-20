@@ -10,3 +10,8 @@ export const getMLBHitRateSheet = (params: Record<string, any>) =>
 
 export const getNFLHitRateSheet = (params: Record<string, any>) =>
   client.get('/api/nfl/hit-rate-sheet', { params });
+
+// Distinct players with a live prop right now -- the searchable universe for
+// the Player field's dropdown, same idea as getNBAPlayers()/getNFLGameLogPlayers().
+export const getMLBHitRateSheetPlayers = () => client.get('/api/mlb/hit-rate-sheet/players');
+export const getNFLHitRateSheetPlayers = () => client.get('/api/nfl/hit-rate-sheet/players');

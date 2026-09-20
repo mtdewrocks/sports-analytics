@@ -71,6 +71,10 @@ def mlb_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query
     from app.data.props import get_middles
     return get_middles("mlb", kind, player, market)
 
+@router.get("/hit-rate-sheet/players")
+def hit_rate_sheet_players(_=Depends(require_access)):
+    return mlb_data.get_mlb_hit_rate_sheet_players()
+
 @router.get("/hit-rate-sheet")
 def hit_rate_sheet(
     market: Optional[str] = Query(None), min_pct: float = Query(0),

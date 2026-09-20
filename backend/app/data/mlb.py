@@ -1383,6 +1383,20 @@ def _mlb_game_lines_lookup() -> Dict[tuple, dict]:
     return {(r["home_team"], r["away_team"]): r for r in lines.to_dict(orient="records")}
 
 
+def get_mlb_hit_rate_sheet_players() -> List[str]:
+    """Distinct player names with at least one live prop right now -- the
+    actual searchable universe for the Hit Rate Sheet's Player field, not
+    every batter/pitcher who's ever logged a game. Sourced from
+    get_props("mlb"), the exact same call the sheet itself makes, so this
+    list and the sheet can never disagree about who's actually on it."""
+    from app.data.props import get_props
+    props_rows = get_props("mlb")
+    if not props_rows:
+        return []
+    names = {str(r.get("player", "")).strip() for r in props_rows if r.get("player")}
+    return sorted(names)
+
+
 def get_mlb_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -1443,7 +1457,26 @@ def get_mlb_hit_rate_sheet(
     out: List[Dict[str, Any]] = []
     for mkt in markets:
         props_market_key = _MLB_PROPS_MARKET_KEY[mkt]
-        candidate_rows = rows_by_market.get(props_market_key)
+        # Alternate lines (e.g. "hits_alternate") are a SEPARATE market in
+        # the raw feed from the standard one ("hits"), even though they're
+        # the same stat -- a book posts them as different products. Shawn
+        # wants both on the sheet: the standard line (usually 1.5 Hits) AND
+        # whatever alt lines a book also offers (0.5, 2.5, ...), each as its
+        # own row. The two buckets commonly overlap on the SAME player+line
+        # (a book's alt-lines market often re-quotes its own standard line
+        # alongside the others), so alt rows are only added for a
+        # (player, line) not already covered by the standard market --
+        # otherwise every alt-covered player would show a duplicate row for
+        # their standard line.
+        primary_rows = rows_by_market.get(props_market_key, [])
+        alt_rows = rows_by_market.get(f"{props_market_key}_alternate", [])
+        if alt_rows:
+            covered = {(r.get("player"), r.get("line")) for r in primary_rows}
+            candidate_rows = primary_rows + [
+                r for r in alt_rows if (r.get("player"), r.get("line")) not in covered
+            ]
+        else:
+            candidate_rows = primary_rows
         if not candidate_rows:
             continue
 

@@ -1972,6 +1972,19 @@ def _nfl_game_lines_by_abbr() -> Dict[tuple, dict]:
     return out
 
 
+def get_nfl_hit_rate_sheet_players() -> List[str]:
+    """Distinct player names with at least one live prop right now -- see
+    get_mlb_hit_rate_sheet_players()'s identical docstring in
+    app/data/mlb.py. Sourced from get_props("nfl"), the same call
+    get_nfl_hit_rate_sheet() itself makes."""
+    from app.data.props import get_props
+    props_rows = get_props("nfl")
+    if not props_rows:
+        return []
+    names = {str(r.get("player", "")).strip() for r in props_rows if r.get("player")}
+    return sorted(names)
+
+
 def get_nfl_hit_rate_sheet(
     market: Optional[str] = None,
     min_pct: float = 0,
@@ -2023,7 +2036,21 @@ def get_nfl_hit_rate_sheet(
 
     out: List[Dict[str, Any]] = []
     for mkt in markets:
-        candidate_rows = rows_by_market.get(mkt)
+        # See get_mlb_hit_rate_sheet()'s identical comment: alternate lines
+        # ("reception_yds_alternate") are a separate market in the raw feed
+        # from the standard one ("reception_yds") even though they're the
+        # same stat, and the two commonly re-quote the same player+line --
+        # so alt rows are only added for a (player, line) the standard
+        # market doesn't already cover, rather than duplicating it.
+        primary_rows = rows_by_market.get(mkt, [])
+        alt_rows = rows_by_market.get(f"{mkt}_alternate", [])
+        if alt_rows:
+            covered = {(r.get("player"), r.get("line")) for r in primary_rows}
+            candidate_rows = primary_rows + [
+                r for r in alt_rows if (r.get("player"), r.get("line")) not in covered
+            ]
+        else:
+            candidate_rows = primary_rows
         if not candidate_rows:
             continue
         by_player = _nfl_values_by_player(mkt)

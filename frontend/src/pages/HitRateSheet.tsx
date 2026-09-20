@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getMLBHitRateSheet, getNFLHitRateSheet } from '../api/hitRateSheet';
+import {
+  getMLBHitRateSheet, getNFLHitRateSheet,
+  getMLBHitRateSheetPlayers, getNFLHitRateSheetPlayers,
+} from '../api/hitRateSheet';
 import LoadingSpinner from '../components/LoadingSpinner';
 import StatCard from '../components/StatCard';
 import SegmentedToggle from '../components/SegmentedToggle';
+import SearchDropdown from '../components/SearchDropdown';
 import ScrollTable from '../components/ScrollTable';
 import { stickyColStyle } from '../components/tableStyles';
 import OddsDisclaimer, { latestFetchedAt } from '../components/OddsDisclaimer';
@@ -31,10 +35,20 @@ import { theme } from '../theme';
  * Performance note: the backend endpoint returns every book's price per row
  * (`odds_by_book`), not just the best one, specifically so the Books toggle
  * below can recompute best-odds and the hidden-by-books count ENTIRELY
- * client-side -- checking/unchecking a book used to fire two fresh network
- * requests (one for "all books" to size the hidden count, one for the
- * checked subset) on top of whatever market/player/period scan was already
- * running. Toggling a book now costs nothing over the network at all.
+ * client-side -- checking/unchecking a book costs nothing over the network.
+ * Min Hit Rate % and Min Odds, by contrast, ARE sent to the server
+ * (debounced, like Player) rather than kept purely client-side -- the
+ * backend already grades every row before returning it, so filtering there
+ * means a genuinely smaller response and a smaller table to render, not
+ * just a smaller one to look at. This doesn't fight the Books toggle: the
+ * server's min-odds check uses the best price across EVERY book regardless
+ * of which ones are checked (same as odds_by_book itself), so a row only
+ * ever gets dropped server-side when literally no book anywhere clears the
+ * bar -- toggling books afterward still only narrows within whatever came
+ * back. The client-side min-hit-rate/min-odds re-check below stays in place
+ * as a fast, free refinement for the moments between a debounce tick and
+ * the next fetch, and for whenever the Books toggle itself changes a row's
+ * best-odds-among-CHECKED-books below the floor.
  */
 
 type Sport = 'mlb' | 'nfl';
@@ -87,6 +101,7 @@ interface MarketOption {
 interface SportConfig {
   label: string;
   fetcher: (params: Record<string, any>) => Promise<{ data: HitRateRow[] }>;
+  playersFetcher: () => Promise<{ data: string[] }>;
   recentGames: number;
   seasonLabel: string;
   markets: MarketOption[];
@@ -146,6 +161,7 @@ const SPORTS: Record<Sport, SportConfig> = {
   mlb: {
     label: 'MLB',
     fetcher: getMLBHitRateSheet,
+    playersFetcher: getMLBHitRateSheetPlayers,
     recentGames: 10,
     seasonLabel: 'Season (2026)',
     markets: MLB_MARKETS,
@@ -153,6 +169,7 @@ const SPORTS: Record<Sport, SportConfig> = {
   nfl: {
     label: 'NFL',
     fetcher: getNFLHitRateSheet,
+    playersFetcher: getNFLHitRateSheetPlayers,
     recentGames: 5,
     seasonLabel: 'Season (2026)',
     markets: NFL_MARKETS,
@@ -225,21 +242,43 @@ export default function HitRateSheet() {
   const [rawRows, setRawRows] = useState<HitRateRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [players, setPlayers] = useState<string[]>([]);
 
   const cfg = SPORTS[sport];
   const minHitRate = minHitRateStr === '' ? 0 : Number(minHitRateStr);
   const minOdds = minOddsStr === '' ? -100000 : Number(minOddsStr);
   const playerDebounced = useDebounced(playerQuery, 300);
+  const minHitRateDebounced = useDebounced(minHitRateStr, 300);
+  const minOddsDebounced = useDebounced(minOddsStr, 300);
 
-  // Server does the market/player/period bulk scan; min-hit-rate, min-odds,
-  // books and sorting are all applied client-side below (min_pct=0 here on
-  // purpose) -- one fetch per market/player/period change, and every book
-  // toggle after that is free. See the file-level "Performance note" above.
+  // The dropdown's own list -- who actually has a live prop right now for
+  // this sport, not every player on a roster. Re-fetched only on sport
+  // change, same cadence as everything else that's per-sport rather than
+  // per-filter.
+  useEffect(() => {
+    let cancelled = false;
+    cfg.playersFetcher()
+      .then((res) => { if (!cancelled) setPlayers(res.data); })
+      .catch(() => { if (!cancelled) setPlayers([]); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sport]);
+
+  // Server does the market/player/period bulk scan AND the min-hit-rate/
+  // min-odds cut (both debounced, same as Player) -- see the file-level
+  // "Performance note" above for why that's safe alongside the Books
+  // toggle. Books and sorting stay entirely client-side below.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError('');
-    const params = { market: market === 'all' ? undefined : market, player: playerDebounced || undefined, period, min_pct: 0, min_odds: -100000 };
+    const params = {
+      market: market === 'all' ? undefined : market,
+      player: playerDebounced || undefined,
+      period,
+      min_pct: minHitRateDebounced === '' ? 0 : Number(minHitRateDebounced),
+      min_odds: minOddsDebounced === '' ? -100000 : Number(minOddsDebounced),
+    };
     cfg.fetcher(params)
       .then((res) => { if (!cancelled) setRawRows(res.data); })
       .catch((err) => {
@@ -250,7 +289,7 @@ export default function HitRateSheet() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sport, market, playerDebounced, period]);
+  }, [sport, market, playerDebounced, period, minHitRateDebounced, minOddsDebounced]);
 
   const effectiveSortBy: SortKey = sortBy ?? period;
   const checkedBookKeys = useMemo(() => BOOK_KEYS.filter((b) => enabledBooks[b]), [enabledBooks]);
@@ -342,13 +381,15 @@ export default function HitRateSheet() {
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={fieldLabelStyle}>Player</label>
-            <input
-              type="text"
-              placeholder="Search a name..."
-              value={playerQuery}
-              onChange={(e) => setPlayerQuery(e.target.value)}
-              style={{ ...inputFieldStyle, width: 190 }}
-            />
+            <div style={{ width: 190 }}>
+              <SearchDropdown
+                players={players}
+                value={playerQuery}
+                onSelect={setPlayerQuery}
+                placeholder="Search a name..."
+                inputStyle={{ padding: 8 }}
+              />
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={fieldLabelStyle}>Market</label>
