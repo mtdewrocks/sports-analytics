@@ -64,6 +64,7 @@ import NFLProps from './pages/nfl/NFLProps';
 import NFLTeamUsage from './pages/nfl/NFLTeamUsage';
 import NFLPlayerUsageTrend from './pages/nfl/NFLPlayerUsageTrend';
 
+import MLBGameLog from './pages/mlb/MLBGameLog';
 import MLBMatchup from './pages/mlb/MLBMatchup';
 import MLBTeamMatchup from './pages/mlb/MLBTeamMatchup';
 import MLBBullpen from './pages/mlb/MLBBullpen';
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/nfl/props" element={<PrivateRoute><NFLProps /></PrivateRoute>} />
           <Route path="/nfl/middles" element={<PrivateRoute><NFLMiddles /></PrivateRoute>} />
 
+          <Route path="/mlb/game-log" element={<PrivateRoute><MLBGameLog /></PrivateRoute>} />
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
           <Route path="/mlb/team-matchup" element={<PrivateRoute><MLBTeamMatchup /></PrivateRoute>} />
           <Route path="/mlb/bullpen" element={<PrivateRoute><MLBBullpen /></PrivateRoute>} />

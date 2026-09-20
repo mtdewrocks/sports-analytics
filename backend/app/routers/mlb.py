@@ -22,6 +22,21 @@ def matchup(pitcher: str = Query(...), _=Depends(require_access)):
 def hot_hitters(_=Depends(require_access)):
     return mlb_data.get_hot_hitters()
 
+@router.get("/game-log/players")
+def game_log_players(_=Depends(require_access)):
+    return mlb_data.get_mlb_game_log_players()
+
+@router.get("/game-log")
+def game_log(
+    player: str = Query(...),
+    stat: str = Query("batter_hits"),
+    threshold: float = Query(0),
+    home_away: Optional[str] = Query(None, pattern="^(home|away)$"),
+    pitcher_hand: Optional[str] = Query(None, pattern="^(L|R)$"),
+    _=Depends(require_access),
+):
+    return mlb_data.get_mlb_game_log(player, stat, threshold, home_away, pitcher_hand)
+
 @router.get("/pitcher-daily-report")
 def pitcher_daily_report(_=Depends(require_access)):
     return mlb_data.get_pitcher_daily_report()

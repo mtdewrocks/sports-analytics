@@ -46,6 +46,7 @@ const GROUPS: NavGroup[] = [
   {
     key: 'mlb', label: 'MLB', icon: '⚾',
     items: [
+      { label: 'Game Log', to: '/mlb/game-log' },
       { label: 'Pitcher Matchup', to: '/mlb/matchup' },
       { label: 'Team Matchup', to: '/mlb/team-matchup' },
       { label: 'Bullpen', to: '/mlb/bullpen' },

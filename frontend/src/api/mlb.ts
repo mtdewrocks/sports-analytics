@@ -12,3 +12,6 @@ export const getMLBTeamMatchup = (teamA: string, teamB: string) =>
   client.get('/api/mlb/team-matchup', { params: { team_a: teamA, team_b: teamB } });
 
 export const getMLBMiddles = (params: Record<string, any>) => client.get('/api/mlb/middles', { params });
+
+export const getMLBGameLogPlayers = () => client.get('/api/mlb/game-log/players');
+export const getMLBGameLog = (params: Record<string, any>) => client.get('/api/mlb/game-log', { params });

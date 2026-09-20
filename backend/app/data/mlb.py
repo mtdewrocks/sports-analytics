@@ -1560,3 +1560,180 @@ def get_mlb_hit_rate_sheet(
             })
 
     return out
+
+
+# ---------------------------------------------------------------------------
+# MLB Game Log (batters) -- Last 10 / Last 25 / Season hit rates, with a
+# Home/Away split and a vs-LHP/vs-RHP split, mirroring the NBA and NFL Game
+# Log pages. Built on the same batter_logs.parquet the Hit Rate Sheet already
+# uses (see _batter_logs_for_market above) -- no new data pull.
+# ---------------------------------------------------------------------------
+
+@ttl_cache(MLB_TTL)
+def _mlb_starting_pitcher_hand() -> pd.DataFrame:
+    """One row per (game_pk, is_home) for the STARTING pitcher on that side,
+    with his throwing hand attached: game_pk / is_home / pitcher_id /
+    pitcher / throws.
+
+    Built once per MLB_TTL window and reused for every batter's game-log
+    request, rather than re-merging pitcher_logs.parquet + starters.parquet
+    per call. `games_started == 1` isolates the starter from any reliever
+    who also has a row for that game_pk in pitcher_logs.parquet.
+    """
+    data = get_mlb_data()
+    pitcher_logs = data.get("pitcher_logs", pd.DataFrame())
+    starters_df = data.get("starters", pd.DataFrame())
+    if pitcher_logs.empty or "games_started" not in pitcher_logs.columns:
+        return pd.DataFrame(columns=["game_pk", "is_home", "pitcher_id", "pitcher", "throws"])
+
+    starters_only = pitcher_logs[pitcher_logs["games_started"] == 1][
+        ["game_pk", "is_home", "pitcher_id", "pitcher"]
+    ].drop_duplicates(subset=["game_pk", "is_home"])
+
+    pid_to_throws = (
+        dict(zip(starters_df["pitcher_id"], starters_df["throws"]))
+        if not starters_df.empty and "throws" in starters_df.columns else {}
+    )
+    starters_only = starters_only.copy()
+    starters_only["throws"] = starters_only["pitcher_id"].map(pid_to_throws)
+    return starters_only
+
+
+@ttl_cache(MLB_TTL)
+def _mlb_batter_index() -> Dict[str, int]:
+    """Display label -> player_id, for the Game Log player dropdown.
+
+    Almost every name in batter_logs.parquet is unique, but at least one
+    real collision exists this season (two different MLB players both named
+    Max Muncy -- Dodgers vs Athletics), so a bare name isn't always a safe
+    key. A colliding name gets its current team appended ("Max Muncy
+    (Athletics)"); every other name stays plain, so this only changes the
+    label for the players who actually need it.
+    """
+    logs = get_mlb_data().get("batter_logs", pd.DataFrame())
+    if logs.empty:
+        return {}
+    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
+    team_by_id = (
+        dict(zip(rosters["player_id"], rosters["team"]))
+        if not rosters.empty and "player_id" in rosters.columns else {}
+    )
+
+    index: Dict[str, int] = {}
+    for name, ids in logs.groupby("player")["player_id"].unique().items():
+        ids = list(ids)
+        if len(ids) == 1:
+            index[name] = int(ids[0])
+        else:
+            for pid in ids:
+                team = team_by_id.get(pid, "unknown team")
+                index[f"{name} ({team})"] = int(pid)
+    return index
+
+
+def get_mlb_game_log_players() -> List[str]:
+    return sorted(_mlb_batter_index().keys())
+
+
+def get_mlb_game_log(
+    player: str,
+    stat: str = "batter_hits",
+    threshold: float = 0,
+    home_away: Optional[str] = None,
+    pitcher_hand: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Per-game log for one batter, gradeable against a threshold, with an
+    optional Home/Away filter and an optional vs-LHP/vs-RHP filter (matched
+    against that specific game's actual starting pitcher -- see
+    _mlb_starting_pitcher_hand() -- the same handedness read the Pitcher
+    Matchup page's own vs L / vs R splits are built from, not a separate
+    guess).
+
+    Shape mirrors the NBA/NFL game-log endpoints: `games` (most recent 60 --
+    plenty for the chart and the recent-games table without dragging a full
+    150+ game season across the wire) and `over_counts` for Last 10, Last 25
+    and the full Season -- graded from the FULL filtered season, not just
+    the returned 60, so Season and even Last 25 stay correct for a player
+    with more than 60 games on the books.
+    """
+    empty_counts = {
+        "last10": {"over": 0, "total": 0, "pct": 0.0},
+        "last25": {"over": 0, "total": 0, "pct": 0.0},
+        "season": {"over": 0, "total": 0, "pct": 0.0},
+    }
+
+    if stat not in MLB_BATTER_MARKET_STAT:
+        return {"games": [], "over_counts": empty_counts}
+
+    player_id = _mlb_batter_index().get(player)
+    if player_id is None:
+        return {"games": [], "over_counts": empty_counts}
+
+    logs = get_mlb_data().get("batter_logs", pd.DataFrame())
+    if logs.empty:
+        return {"games": [], "over_counts": empty_counts}
+
+    rows = logs[logs["player_id"] == player_id].copy()
+    if rows.empty:
+        return {"games": [], "over_counts": empty_counts}
+
+    rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
+    rows = rows[rows["date"].notna()]
+
+    starter_hand = _mlb_starting_pitcher_hand()
+    if not starter_hand.empty:
+        rows = rows.merge(starter_hand, on="game_pk", how="left", suffixes=("", "_opp"))
+        # The merge brings in BOTH teams' starters for a shared game_pk --
+        # keep only the one on the other side of the ball from this batter.
+        # A game with no starter recorded at all (is_home_opp is NaN, e.g.
+        # an opener/bullpen game with no games_started row) is kept as-is
+        # rather than dropped, just without a hand to filter/display.
+        rows = rows[rows["is_home_opp"].isna() | (rows["is_home_opp"] != rows["is_home"])]
+        rows = rows.drop_duplicates(subset=["game_pk"], keep="first")
+    else:
+        rows["pitcher"] = None
+        rows["throws"] = None
+
+    spec = MLB_BATTER_MARKET_STAT[stat]
+    if callable(spec):
+        rows["stat_value"] = rows.apply(lambda r: _stat_value(r, spec), axis=1)
+    else:
+        rows["stat_value"] = pd.to_numeric(rows[spec], errors="coerce").fillna(0.0)
+
+    if home_away in ("home", "away"):
+        rows = rows[rows["is_home"] == (home_away == "home")]
+    if pitcher_hand in ("L", "R"):
+        rows = rows[rows["throws"] == pitcher_hand]
+
+    rows = rows.sort_values("date")
+    if rows.empty:
+        return {"games": [], "over_counts": empty_counts}
+
+    all_values = rows["stat_value"].tolist()
+    over_counts = {
+        "last10": grade_over_under(all_values[-10:], threshold),
+        "last25": grade_over_under(all_values[-25:], threshold),
+        "season": grade_over_under(all_values, threshold),
+    }
+
+    recent = rows.tail(60)
+    games: List[Dict[str, Any]] = []
+    for _, r in recent.iterrows():
+        opp_pitcher = r.get("pitcher")
+        opp_hand = r.get("throws")
+        d = r["date"]
+        # Built from parts rather than strftime("%-m/%-d"), which is
+        # platform specific and raises on Windows -- same convention as the
+        # pitcher-matchup game log above.
+        games.append({
+            "game_date": f"{d.month}/{d.day}",
+            "opponent": str(r.get("opponent") or ""),
+            "is_home": bool(r.get("is_home")),
+            "at_bats": int(r["at_bats"]) if _is_number(r.get("at_bats")) else None,
+            "hits": int(r["hits"]) if _is_number(r.get("hits")) else None,
+            "opp_pitcher": opp_pitcher if isinstance(opp_pitcher, str) else None,
+            "opp_pitcher_hand": opp_hand if opp_hand in ("L", "R") else None,
+            "stat_value": r["stat_value"],
+        })
+
+    return {"games": games, "over_counts": over_counts}

@@ -1,11 +1,25 @@
 import { theme } from '../theme';
 
 interface OverCount { over: number; total: number; pct: number; }
+export interface OverCountsPeriod { key: string; label: string; }
 interface OverCountsTableProps {
-  over_counts: { last5: OverCount; last10: OverCount; season: OverCount };
+  over_counts: Record<string, OverCount>;
   threshold: number;
   stat: string;
+  /** Which keys to show, in what order, and under what label. Defaults to
+   *  the original NBA/NFL Last 5 / Last 10 / Season shape, so those pages
+   *  need no changes -- MLB's Game Log passes Last 10 / Last 25 / Season
+   *  instead, since a 150+ game season makes "Last 5" too small a window to
+   *  be worth a row, and "Last 25" a more useful second lens than it would
+   *  be for a 17-game NFL season or an 82-game NBA one. */
+  periods?: OverCountsPeriod[];
 }
+
+const DEFAULT_PERIODS: OverCountsPeriod[] = [
+  { key: 'last5', label: 'Last 5' },
+  { key: 'last10', label: 'Last 10' },
+  { key: 'season', label: 'Season' },
+];
 
 function formatPct(pct: number): string {
   // Backend returns 0-1 decimal. Guard against already-percentage values.
@@ -18,12 +32,13 @@ function pctColor(pct: number): string {
   return val >= 0.6 ? theme.dataBlue : val >= 0.4 ? '#9ca3af' : theme.dataRed;
 }
 
-export default function OverCountsTable({ over_counts, threshold, stat }: OverCountsTableProps) {
-  const periods = [
-    { label: 'Last 5', data: over_counts.last5 },
-    { label: 'Last 10', data: over_counts.last10 },
-    { label: 'Season', data: over_counts.season },
-  ];
+const EMPTY_COUNT: OverCount = { over: 0, total: 0, pct: 0 };
+
+export default function OverCountsTable({ over_counts, threshold, stat, periods: periodDefs }: OverCountsTableProps) {
+  const periods = (periodDefs ?? DEFAULT_PERIODS).map((p) => ({
+    label: p.label,
+    data: over_counts[p.key] ?? EMPTY_COUNT,
+  }));
 
   return (
     <div style={{ marginTop: 20 }}>
