@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { getNFLGameLogPlayers, getNFLStats, getNFLGameLog } from '../../api/nfl';
+import React, { useState, useEffect, useRef } from 'react';
+import { getNFLGameLogPlayers, getNFLStats, getNFLGameLog, getNFLPositionVsDefense } from '../../api/nfl';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import WinLossBreakdownTable from '../../components/WinLossBreakdownTable';
@@ -41,6 +41,32 @@ interface UpcomingGame {
   def_ypa_rank_current?: number | null;
 }
 
+// "Position vs. Defense" -- how other RB/WR/TEs have fared against the
+// player's next opponent this season. Only ever fetched for those three
+// positions (see _POSITION_GROUP_MAP in backend/app/data/nfl.py); QB and
+// everything else just never gets a player_position the effect below will
+// act on.
+interface PvdRow {
+  week: number;
+  player: string;
+  team: string;
+  matchup: string;
+  carries: number;
+  rushing_yards: number;
+  rushing_tds: number;
+  targets: number;
+  receptions: number;
+  receiving_yards: number;
+  receiving_tds: number;
+}
+interface PvdExcluded extends PvdRow {
+  reason: string;
+}
+interface PvdData {
+  rows: PvdRow[];
+  excluded: PvdExcluded[];
+}
+
 interface OverCount {
   over: number;
   total: number;
@@ -66,6 +92,7 @@ interface GameData {
     W: WinLossSummary;
     L: WinLossSummary;
   };
+  player_position?: string | null;
 }
 
 // Now shared with the other five pages that had a filter sidebar -- see
@@ -116,6 +143,19 @@ function formatTooltip(tooltip?: Record<string, number | string | null>): string
     .join(' \u00b7 ');
 }
 
+const POSITION_PLURAL: Record<string, string> = { RB: 'RBs', WR: 'WRs', TE: 'TEs' };
+
+// One line per excluded player in the "Show N filtered out" disclosure --
+// same workload numbers the include/exclude decision was actually made on
+// (carries/targets for RB, targets/yards for WR/TE), so the rule is
+// checkable rather than just asserted.
+function formatExcluded(item: PvdExcluded, position: string): string {
+  const stats = position === 'RB'
+    ? `${item.carries} att, ${item.rushing_yards} yds, ${item.targets} tgt`
+    : `${item.targets} tgt, ${item.receiving_yards} yds`;
+  return `Wk${item.week} ${item.team} — ${item.player} (${position}): ${stats} — ${item.reason}`;
+}
+
 type RankMode = 'season' | 'last4';
 
 // Extend when a new season starts -- matches SEASONS in
@@ -141,6 +181,9 @@ export default function NFLGameLog() {
   const [winLoss, setWinLoss] = useState<'' | 'W' | 'L'>('');
   const [marginOperator, setMarginOperator] = useState<'' | '<' | '>'>('');
   const [marginValueStr, setMarginValueStr] = useState('');
+  const [pvdData, setPvdData] = useState<PvdData | null>(null);
+  const [pvdLoading, setPvdLoading] = useState(false);
+  const [showExcluded, setShowExcluded] = useState(false);
   const isMobile = useIsMobile();
   const panelLayout = usePanelLayout();
 
@@ -196,6 +239,40 @@ export default function NFLGameLog() {
     fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [season]);
+
+  // Position vs. Defense: scoped to the very next game on the schedule
+  // (gameData.upcoming[0]) and the selected player's own position, which
+  // the backend already resolved trade-aware in get_game_log(). Fires
+  // automatically once gameData lands -- no separate button, since it's
+  // just supporting detail for the "Upcoming" section, not a filter the
+  // user configures. exclude_player drops the selected player out of
+  // their own results, for the divisional-rematch case where they'd
+  // otherwise show up against their own upcoming opponent from an earlier
+  // meeting this season.
+  const pvdRequestIdRef = useRef(0);
+  const nextGame = gameData?.upcoming?.[0];
+  const pvdPosition = gameData?.player_position;
+
+  useEffect(() => {
+    setShowExcluded(false);
+    if (!nextGame?.opponent || !pvdPosition) {
+      setPvdData(null);
+      return;
+    }
+    const requestId = ++pvdRequestIdRef.current;
+    setPvdLoading(true);
+    getNFLPositionVsDefense(nextGame.opponent, pvdPosition, selectedPlayer)
+      .then((res) => {
+        if (requestId === pvdRequestIdRef.current) setPvdData(res.data);
+      })
+      .catch(() => {
+        if (requestId === pvdRequestIdRef.current) setPvdData(null);
+      })
+      .finally(() => {
+        if (requestId === pvdRequestIdRef.current) setPvdLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextGame?.opponent, nextGame?.week, pvdPosition, selectedPlayer]);
 
   // Whether this stat has any defensive context at all -- a player's own
   // defensive stats (sacks, tackles) have no mapped opponent context, so
@@ -465,12 +542,158 @@ export default function NFLGameLog() {
             {gameData.upcoming.length > 0 && (
               <>
                 <h3 style={{ marginTop: 28, marginBottom: 12, color: theme.textPrimary }}>Upcoming</h3>
+
+                {pvdPosition && nextGame && (
+                  <div style={{
+                    marginTop: 4, marginBottom: 22, borderRadius: 8,
+                    border: '1px solid rgba(29,158,117,0.35)', background: 'rgba(29,158,117,0.04)',
+                    padding: '16px 18px 18px',
+                  }}>
+                    <h4 style={{ fontSize: 14, margin: '0 0 2px', color: theme.textPrimary }}>
+                      Week {nextGame.week} — at {nextGame.opponent}
+                    </h4>
+                    <div style={{ fontSize: 12.5, color: theme.textMuted, marginBottom: 12 }}>
+                      {POSITION_PLURAL[pvdPosition] ?? pvdPosition} vs. {nextGame.opponent} this season, most recent first — the detail behind the W{nextGame.week} row below.
+                    </div>
+
+                    {pvdLoading && <div style={{ fontSize: 13, color: theme.textSecondary }}>Loading…</div>}
+
+                    {!pvdLoading && pvdData && pvdData.rows.length === 0 && (
+                      <div style={{ fontSize: 13, color: theme.textSecondary }}>
+                        No {POSITION_PLURAL[pvdPosition] ?? pvdPosition} have faced {nextGame.opponent} yet this season.
+                      </div>
+                    )}
+
+                    {!pvdLoading && pvdData && pvdData.rows.length > 0 && (
+                      isMobile ? (
+                        <div>
+                          {pvdData.rows.map((r, i) => (
+                            <div key={i} style={{
+                              padding: '10px 0', borderBottom: i < pvdData.rows.length - 1 ? `1px solid ${theme.border}` : 'none',
+                            }}>
+                              <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 2 }}>
+                                Week {r.week} — {r.matchup}
+                              </div>
+                              <div style={{ fontWeight: 700, color: theme.dataBlue, marginBottom: 2 }}>{r.player} <span style={{ fontWeight: 400, color: theme.textSecondary, fontSize: 12 }}>{r.team}</span></div>
+                              <div style={{ fontSize: 13, color: theme.textPrimary }}>
+                                {pvdPosition === 'RB'
+                                  ? `${r.carries} att, ${r.rushing_yards} rush yds, ${r.rushing_tds} TD · ${r.targets} tgt, ${r.receptions} rec, ${r.receiving_yards} rec yds`
+                                  : `${r.targets} tgt, ${r.receptions} rec, ${r.receiving_yards} rec yds, ${r.receiving_tds} TD`}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                          <thead>
+                            <tr>
+                              <th style={{ padding: '9px 12px', textAlign: 'left', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Week</th>
+                              <th style={{ padding: '9px 12px', textAlign: 'left', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Player</th>
+                              <th style={{ padding: '9px 12px', textAlign: 'left', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Team</th>
+                              {pvdPosition === 'RB' && (
+                                <>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Att</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rush Yds</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rush TD</th>
+                                </>
+                              )}
+                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Tgt</th>
+                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec</th>
+                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec Yds</th>
+                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec TD</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const elements: React.ReactElement[] = [];
+                              let lastWeekKey: string | null = null;
+                              pvdData.rows.forEach((r, i) => {
+                                const weekKey = `${r.week}-${r.matchup}`;
+                                if (weekKey !== lastWeekKey) {
+                                  lastWeekKey = weekKey;
+                                  const colSpan = pvdPosition === 'RB' ? 10 : 7;
+                                  elements.push(
+                                    <tr key={`div-${weekKey}`}>
+                                      <td colSpan={colSpan} style={{
+                                        padding: '6px 12px', background: theme.bgPage, color: theme.textMuted,
+                                        fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.04em',
+                                        borderBottom: `1px solid ${theme.border}`,
+                                      }}>
+                                        Week {r.week} — {r.matchup}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                                elements.push(
+                                  <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: theme.bgPage }}>
+                                    <td style={{ padding: '8px 14px', color: theme.textPrimary }}>{r.week}</td>
+                                    <td style={{ padding: '8px 14px', fontWeight: 600, color: theme.dataBlue }}>{r.player}</td>
+                                    <td style={{ padding: '8px 14px', color: theme.textSecondary }}>{r.team}</td>
+                                    {pvdPosition === 'RB' && (
+                                      <>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.carries}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.rushing_yards}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.rushing_tds}</td>
+                                      </>
+                                    )}
+                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.targets}</td>
+                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receptions}</td>
+                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_yards}</td>
+                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_tds}</td>
+                                  </tr>
+                                );
+                              });
+                              return elements;
+                            })()}
+                          </tbody>
+                        </table>
+                      )
+                    )}
+
+                    {!pvdLoading && pvdData && pvdData.excluded.length > 0 && (
+                      <>
+                        <span
+                          onClick={() => setShowExcluded((v) => !v)}
+                          style={{ marginTop: 14, fontSize: 12.5, color: theme.accent, cursor: 'pointer', display: 'inline-block', userSelect: 'none' }}
+                        >
+                          {showExcluded ? 'Hide' : 'Show'} {pvdData.excluded.length} filtered out {showExcluded ? '▴' : '▾'}
+                        </span>
+                        {showExcluded && (
+                          <div style={{
+                            marginTop: 10, padding: '12px 14px', background: theme.bgCard, border: `1px solid ${theme.border}`,
+                            borderRadius: 6, fontSize: 12.5, color: theme.textMuted, lineHeight: 1.7,
+                          }}>
+                            {pvdData.excluded.map((item, i) => (
+                              <div key={i}>{formatExcluded(item, pvdPosition)}</div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {pvdPosition && nextGame && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 10px' }}>
+                    <div style={{ flex: 1, height: 1, background: theme.border }} />
+                    <div style={{ fontSize: 11, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>Rest of schedule</div>
+                    <div style={{ flex: 1, height: 1, background: theme.border }} />
+                  </div>
+                )}
+
                 {isMobile ? (
                   <div>
                     {gameData.upcoming.map((g, i) => (
                       <StatCard
                         key={i}
-                        title={<span style={{ fontWeight: 700 }}>Week {g.week} · vs {g.opponent}</span>}
+                        title={
+                          <span style={{ fontWeight: 700 }}>
+                            Week {g.week} · vs {g.opponent}
+                            {i === 0 && pvdPosition && (
+                              <span style={{ fontWeight: 400, fontSize: 11, color: theme.textMuted }}> (detailed above)</span>
+                            )}
+                          </span>
+                        }
                         value={g.def_ypg_rank_current != null ? ordinal(g.def_ypg_rank_current) : '—'}
                         valueColor={rankColor(g.def_ypg_rank_current)}
                         valueLabel="Opp D (Yds/G)"
@@ -500,7 +723,12 @@ export default function NFLGameLog() {
                     {gameData.upcoming.map((g, i) => (
                       <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                         <td style={{ padding: '8px 14px' }}>W{g.week}</td>
-                        <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
+                        <td style={{ padding: '8px 14px' }}>
+                          {g.opponent}
+                          {i === 0 && pvdPosition && (
+                            <span style={{ fontSize: 11, color: theme.textMuted }}> (detailed above)</span>
+                          )}
+                        </td>
                         <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: rankColor(g.def_ypg_rank_current) }}>
                           {g.def_ypg_rank_current != null ? ordinal(g.def_ypg_rank_current) : '—'}
                           <span style={{ fontSize: 11, color: theme.textMuted, fontWeight: 400 }}> (current)</span>

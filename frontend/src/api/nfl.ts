@@ -8,6 +8,17 @@ export const getNFLStats = () => client.get('/api/nfl/stats');
 // the same treatment -- see getNFLUsagePlayers() below.
 export const getNFLGameLogPlayers = () => client.get('/api/nfl/game-log/players');
 export const getNFLGameLog = (params: Record<string, any>) => client.get('/api/nfl/game-log', { params });
+// "Position vs. Defense" -- how other players at the selected player's own
+// position have fared against their next opponent this season. position
+// must be RB/WR/TE (the backend 422s on anything else, including QB -- no
+// QB-vs-QB defensive comparison the same way makes sense); exclude_player
+// drops the selected player themselves out of the results, for the rare
+// divisional-rematch case where they'd otherwise show up against their own
+// upcoming opponent from an earlier meeting this season.
+export const getNFLPositionVsDefense = (opponent: string, position: string, excludePlayer?: string) =>
+  client.get('/api/nfl/position-vs-defense', {
+    params: excludePlayer ? { opponent, position, exclude_player: excludePlayer } : { opponent, position },
+  });
 export const getNFLMatchups = () => client.get('/api/nfl/matchups');
 export const getNFLMatchup = (matchup: string) => client.get('/api/nfl/matchup', { params: { matchup } });
 export const getNFLGameScript = (matchup: string) => client.get('/api/nfl/game-script', { params: { matchup } });

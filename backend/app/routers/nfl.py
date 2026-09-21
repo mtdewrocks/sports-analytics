@@ -28,6 +28,14 @@ def game_log(
 ):
     return nfl_data.get_game_log(player, stat, threshold, win_loss, margin_operator, margin_value, season)
 
+@router.get("/position-vs-defense")
+def position_vs_defense(
+    opponent: str = Query(...), position: str = Query(..., pattern="^(RB|WR|TE)$"),
+    exclude_player: Optional[str] = Query(None),
+    _=Depends(require_access),
+):
+    return nfl_data.get_nfl_position_vs_defense(opponent, position, exclude_player)
+
 @router.get("/matchups")
 def matchups(_=Depends(require_access)):
     return nfl_data.get_matchups()

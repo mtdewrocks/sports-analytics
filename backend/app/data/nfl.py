@@ -218,6 +218,156 @@ def _upcoming_games(stat: str, player_team: str, season: int) -> List[Dict[str, 
     return rows
 
 
+# Noise rules for "Position vs. Defense" -- landed on with Shawn by looking
+# at real data together (Ashton Jeanty vs. the Saints, 2026). Two different
+# shapes depending on position:
+#   - RB: a flat workload floor. A carries-only cutoff would hide a real
+#     game from a pass-catching back (e.g. 3 carries, 70 receiving yards),
+#     so it's an OR: carries >= 5 OR targets >= 4.
+#   - WR/TE: a flat floor either lets 5+ names through a pass-heavy
+#     shootout or none through a run-heavy blowout, so instead it's a
+#     top-N cap PER GAME (top 3 WRs / top 2 TEs), ranked by receiving
+#     yards (Shawn's call over targets -- means a lower-target,
+#     higher-yardage game can outrank a higher-target, lower-yardage one;
+#     surfaced in `excluded`, not hidden). Only players with >=1 target
+#     that game are even in the running, so the cap never gets padded out
+#     with a zero-target scrub just to hit the count -- a game with only 2
+#     real options shows 2 rows, not 3.
+_PVD_RB_MIN_CARRIES = 5
+_PVD_RB_MIN_TARGETS = 4
+_PVD_TOP_N = {"WR": 3, "TE": 2}
+
+# Maps a raw roster/game-log position onto the coarse RB/WR/TE grouping the
+# "Position vs. Defense" filters above are written for -- a roster can say
+# "FB" or "HB" for a back, or "QB" isn't supported by this feature at all
+# (no defense-by-QB-vs-QB comparison makes sense the same way), so this is
+# also where an unsupported position quietly becomes None rather than
+# something get_nfl_position_vs_defense() would reject.
+_POSITION_GROUP_MAP = {
+    "RB": "RB", "HB": "RB", "FB": "RB",
+    "WR": "WR",
+    "TE": "TE",
+}
+
+
+def _normalize_position_group(raw_position: Optional[str]) -> Optional[str]:
+    if not raw_position:
+        return None
+    return _POSITION_GROUP_MAP.get(str(raw_position).upper())
+
+
+def _pvd_num(v) -> int:
+    return int(v) if pd.notna(v) else 0
+
+
+def _pvd_row(row, week: int) -> Dict[str, Any]:
+    return {
+        "week": week,
+        "player": str(row.player_display_name),
+        "team": str(row.team),
+        "carries": _pvd_num(row.carries),
+        "rushing_yards": _pvd_num(row.rushing_yards),
+        "rushing_tds": _pvd_num(row.rushing_tds),
+        "targets": _pvd_num(row.targets),
+        "receptions": _pvd_num(row.receptions),
+        "receiving_yards": _pvd_num(row.receiving_yards),
+        "receiving_tds": _pvd_num(row.receiving_tds),
+    }
+
+
+def _pvd_matchup_label(season: int, week: int, team: str) -> str:
+    """'NO at DET' style label for a week's divider -- away team first, at
+    the home team -- looked up from the real schedule rather than assumed,
+    since box_stats itself doesn't say which side was home. Falls back to
+    just the team name if the schedule row can't be matched."""
+    schedule = get_nfl_schedule()
+    if schedule.empty:
+        return team
+    match = schedule[
+        (schedule["season"] == season) & (schedule["week"] == week)
+        & ((schedule["home_team"] == team) | (schedule["away_team"] == team))
+    ]
+    if match.empty:
+        return team
+    g = match.iloc[0]
+    return f"{g['away_team']} at {g['home_team']}"
+
+
+def get_nfl_position_vs_defense(opponent: str, position: str, exclude_player: Optional[str] = None) -> Dict[str, Any]:
+    """Weekly log of what a defense has allowed to one position this
+    season -- e.g. every RB who has faced the Saints in 2026, most recent
+    week first. Feeds the Game Log page's "Position vs. Defense" section,
+    which sits directly under the Upcoming schedule's header, scoped to
+    the next opponent on that schedule (not a general-purpose position
+    browser -- there's no user-facing toggle for it).
+
+    `exclude_player` drops the selected player's own row for `opponent`,
+    for the rare case a team faces the same opponent twice in a season
+    (a divisional rematch) and the player's own earlier game would
+    otherwise show up looking like "someone else's" data point.
+
+    Returns `rows` (already filtered) and `excluded` (everyone who didn't
+    clear the filter, with why) -- the frontend shows `excluded` behind a
+    "Show N filtered out" disclosure rather than dropping it silently, so
+    the filtering stays auditable instead of a black box.
+    """
+    position = (position or "").upper()
+    if position not in ("RB", "WR", "TE"):
+        return {"rows": [], "excluded": []}
+
+    box = get_nfl_player_box_stats()
+    if box.empty or "opponent_team" not in box.columns:
+        return {"rows": [], "excluded": []}
+
+    season = _current_nfl_season()
+    rows = box[
+        (box["season"] == season)
+        & (box["opponent_team"].str.upper() == str(opponent).upper())
+        & (box["position"] == position)
+    ].copy()
+    if exclude_player:
+        rows = rows[rows["player_display_name"] != exclude_player]
+    if rows.empty:
+        return {"rows": [], "excluded": []}
+
+    included: List[Dict[str, Any]] = []
+    excluded: List[Dict[str, Any]] = []
+
+    for week_val, week_rows in rows.groupby("week"):
+        week = int(week_val)
+        team = str(week_rows["team"].iloc[0])
+        matchup = _pvd_matchup_label(season, week, team)
+
+        if position == "RB":
+            for r in week_rows.itertuples():
+                item = {**_pvd_row(r, week), "matchup": matchup}
+                carries, targets = _pvd_num(r.carries), _pvd_num(r.targets)
+                if carries >= _PVD_RB_MIN_CARRIES or targets >= _PVD_RB_MIN_TARGETS:
+                    included.append(item)
+                elif carries == 0 and targets == 0:
+                    excluded.append({**item, "reason": "no involvement"})
+                else:
+                    excluded.append({**item, "reason": f"below thresholds (carries < {_PVD_RB_MIN_CARRIES}, targets < {_PVD_RB_MIN_TARGETS})"})
+        else:
+            top_n = _PVD_TOP_N[position]
+            involved = [r for r in week_rows.itertuples() if _pvd_num(r.targets) >= 1]
+            involved.sort(key=lambda r: _pvd_num(r.receiving_yards), reverse=True)
+            for r in involved[:top_n]:
+                included.append({**_pvd_row(r, week), "matchup": matchup})
+            for r in involved[top_n:]:
+                excluded.append({
+                    **_pvd_row(r, week), "matchup": matchup,
+                    "reason": f"cut by the {position} top-{top_n} cap (ranked below by receiving yards)",
+                })
+            for r in week_rows.itertuples():
+                if _pvd_num(r.targets) == 0:
+                    excluded.append({**_pvd_row(r, week), "matchup": matchup, "reason": "no involvement"})
+
+    included.sort(key=lambda x: x["week"], reverse=True)
+    excluded.sort(key=lambda x: x["week"], reverse=True)
+    return {"rows": included, "excluded": excluded}
+
+
 def get_game_log(
     player: str,
     stat: str = "passing_yards",
@@ -249,9 +399,21 @@ def get_game_log(
             "games": [], "upcoming": [],
             "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}},
             "win_loss_breakdown": {"W": empty_summary, "L": empty_summary},
+            "player_position": None,
         }
     team_col = _team_col(df)
     week_col = _week_col(df)
+
+    # Position drives the "Position vs. Defense" section on the frontend --
+    # resolved from the full (pre win_loss/margin filter) player_df so a
+    # narrow filter that empties the table doesn't also blank out the
+    # position, and the same trade-aware lookup used for team elsewhere
+    # (current roster preferred over the game log's own last row),
+    # normalized to the coarse RB/WR/TE group get_nfl_position_vs_defense()
+    # actually filters on (a raw roster position of "FB" or "HB" should
+    # still mean "RB" here).
+    _, _raw_position = _player_team_and_position(player_df, team_col, player)
+    player_position = _normalize_position_group(_raw_position)
 
     # Result (W/L/T), signed margin, and the actual score, computed before
     # any filtering so "all games" view can still show them, then filtered
@@ -313,6 +475,7 @@ def get_game_log(
             "games": [], "upcoming": [],
             "over_counts": {"last5": {"over": 0, "total": 0, "pct": 0}, "last10": {"over": 0, "total": 0, "pct": 0}, "season": {"over": 0, "total": 0, "pct": 0}},
             "win_loss_breakdown": win_loss_breakdown,
+            "player_position": player_position,
         }
     stat_values = pd.to_numeric(player_df.get(stat, pd.Series(dtype=float)), errors="coerce").fillna(0)
     player_df["_stat_value"] = stat_values
@@ -388,6 +551,7 @@ def get_game_log(
             "season": _over_count(all_vals),
         },
         "win_loss_breakdown": win_loss_breakdown,
+        "player_position": player_position,
     }
 
 
