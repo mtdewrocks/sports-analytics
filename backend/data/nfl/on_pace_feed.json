@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 2,
   "games_total": 17,
-  "generated_at": "2026-09-21T11:33:32.523846+00:00",
+  "generated_at": "2026-09-21T19:21:02.924568+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -2068,6 +2068,18 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "C.J. West": {
+      "team": "SF",
+      "position": "DT",
+      "games_played": 2,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 0.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
     "CJ Allen": {
       "team": "IND",
       "position": "LB",
@@ -2091,18 +2103,6 @@
       "receiving_yards": -2.0,
       "receiving_tds": 0.0,
       "receptions": 1.0
-    },
-    "CJ West": {
-      "team": "SF",
-      "position": "DT",
-      "games_played": 2,
-      "passing_yards": 0.0,
-      "passing_tds": 0.0,
-      "rushing_yards": 0.0,
-      "rushing_tds": 0.0,
-      "receiving_yards": 0.0,
-      "receiving_tds": 0.0,
-      "receptions": 0.0
     },
     "Cade Otton": {
       "team": "TB",
