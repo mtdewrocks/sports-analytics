@@ -41,10 +41,10 @@ interface UpcomingGame {
   def_ypa_rank_current?: number | null;
 }
 
-// "Position vs. Defense" -- how other RB/WR/TEs have fared against the
-// player's next opponent this season. Only ever fetched for those three
-// positions (see _POSITION_GROUP_MAP in backend/app/data/nfl.py); QB and
-// everything else just never gets a player_position the effect below will
+// "Position vs. Defense" -- how other players at the same position have
+// fared against the player's next opponent this season. Only ever fetched
+// for the positions in _POSITION_GROUP_MAP in backend/app/data/nfl.py;
+// anything else just never gets a player_position the effect below will
 // act on.
 interface PvdRow {
   week: number;
@@ -58,6 +58,12 @@ interface PvdRow {
   receptions: number;
   receiving_yards: number;
   receiving_tds: number;
+  // Only populated (non-zero) on QB rows.
+  attempts: number;
+  completions: number;
+  passing_yards: number;
+  passing_tds: number;
+  passing_interceptions: number;
 }
 interface PvdExcluded extends PvdRow {
   reason: string;
@@ -143,14 +149,16 @@ function formatTooltip(tooltip?: Record<string, number | string | null>): string
     .join(' \u00b7 ');
 }
 
-const POSITION_PLURAL: Record<string, string> = { RB: 'RBs', WR: 'WRs', TE: 'TEs' };
+const POSITION_PLURAL: Record<string, string> = { RB: 'RBs', WR: 'WRs', TE: 'TEs', QB: 'QBs' };
 
 // One line per excluded player in the "Show N filtered out" disclosure --
 // same workload numbers the include/exclude decision was actually made on
-// (carries/targets for RB, targets/yards for WR/TE), so the rule is
-// checkable rather than just asserted.
+// (attempts for QB, carries/targets for RB, targets/yards for WR/TE), so
+// the rule is checkable rather than just asserted.
 function formatExcluded(item: PvdExcluded, position: string): string {
-  const stats = position === 'RB'
+  const stats = position === 'QB'
+    ? `${item.attempts} att, ${item.completions} cmp, ${item.passing_yards} yds`
+    : position === 'RB'
     ? `${item.carries} att, ${item.rushing_yards} yds, ${item.targets} tgt`
     : `${item.targets} tgt, ${item.receiving_yards} yds`;
   return `Wk${item.week} ${item.team} — ${item.player} (${position}): ${stats} — ${item.reason}`;
@@ -576,7 +584,9 @@ export default function NFLGameLog() {
                               </div>
                               <div style={{ fontWeight: 700, color: theme.dataBlue, marginBottom: 2 }}>{r.player} <span style={{ fontWeight: 400, color: theme.textSecondary, fontSize: 12 }}>{r.team}</span></div>
                               <div style={{ fontSize: 13, color: theme.textPrimary }}>
-                                {pvdPosition === 'RB'
+                                {pvdPosition === 'QB'
+                                  ? `${r.attempts} att, ${r.completions} cmp, ${r.passing_yards} pass yds, ${r.passing_tds} TD, ${r.passing_interceptions} INT${r.rushing_yards ? ` · ${r.rushing_yards} rush yds` : ''}`
+                                  : pvdPosition === 'RB'
                                   ? `${r.carries} att, ${r.rushing_yards} rush yds, ${r.rushing_tds} TD · ${r.targets} tgt, ${r.receptions} rec, ${r.receiving_yards} rec yds`
                                   : `${r.targets} tgt, ${r.receptions} rec, ${r.receiving_yards} rec yds, ${r.receiving_tds} TD`}
                               </div>
@@ -597,10 +607,23 @@ export default function NFLGameLog() {
                                   <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rush TD</th>
                                 </>
                               )}
-                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Tgt</th>
-                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec</th>
-                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec Yds</th>
-                              <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec TD</th>
+                              {pvdPosition === 'QB' ? (
+                                <>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Att</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Cmp</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Pass Yds</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Pass TD</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>INT</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rush Yds</th>
+                                </>
+                              ) : (
+                                <>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Tgt</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec Yds</th>
+                                  <th style={{ padding: '9px 12px', textAlign: 'center', background: theme.bgCardHover, color: theme.textPrimary, fontWeight: 600 }}>Rec TD</th>
+                                </>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -611,7 +634,7 @@ export default function NFLGameLog() {
                                 const weekKey = `${r.week}-${r.matchup}`;
                                 if (weekKey !== lastWeekKey) {
                                   lastWeekKey = weekKey;
-                                  const colSpan = pvdPosition === 'RB' ? 10 : 7;
+                                  const colSpan = pvdPosition === 'RB' ? 10 : pvdPosition === 'QB' ? 9 : 7;
                                   elements.push(
                                     <tr key={`div-${weekKey}`}>
                                       <td colSpan={colSpan} style={{
@@ -636,10 +659,23 @@ export default function NFLGameLog() {
                                         <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.rushing_tds}</td>
                                       </>
                                     )}
-                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.targets}</td>
-                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receptions}</td>
-                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_yards}</td>
-                                    <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_tds}</td>
+                                    {pvdPosition === 'QB' ? (
+                                      <>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.attempts}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.completions}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.passing_yards}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.passing_tds}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.passing_interceptions}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.rushing_yards}</td>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.targets}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receptions}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_yards}</td>
+                                        <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.receiving_tds}</td>
+                                      </>
+                                    )}
                                   </tr>
                                 );
                               });

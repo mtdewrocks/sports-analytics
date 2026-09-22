@@ -30,11 +30,15 @@ def game_log(
 
 @router.get("/position-vs-defense")
 def position_vs_defense(
-    opponent: str = Query(...), position: str = Query(..., pattern="^(RB|WR|TE)$"),
+    opponent: str = Query(...), position: str = Query(..., pattern="^(RB|WR|TE|QB)$"),
     exclude_player: Optional[str] = Query(None),
     _=Depends(require_access),
 ):
     return nfl_data.get_nfl_position_vs_defense(opponent, position, exclude_player)
+
+@router.get("/weather")
+def weather(_=Depends(require_access)):
+    return nfl_data.get_nfl_weather()
 
 @router.get("/matchups")
 def matchups(_=Depends(require_access)):

@@ -26,6 +26,12 @@ def hot_hitters(_=Depends(require_access)):
 def game_log_players(_=Depends(require_access)):
     return mlb_data.get_mlb_game_log_players()
 
+@router.get("/game-log/all-players")
+def game_log_all_players(_=Depends(require_access)):
+    """Combined batter + pitcher list for the Game Log's single unified
+    search box -- see get_mlb_game_log_all_players()'s docstring."""
+    return mlb_data.get_mlb_game_log_all_players()
+
 @router.get("/game-log")
 def game_log(
     player: str = Query(...),
@@ -37,6 +43,20 @@ def game_log(
 ):
     return mlb_data.get_mlb_game_log(player, stat, threshold, home_away, pitcher_hand)
 
+@router.get("/pitcher-game-log/players")
+def pitcher_game_log_players(_=Depends(require_access)):
+    return mlb_data.get_mlb_pitcher_game_log_players()
+
+@router.get("/pitcher-game-log")
+def pitcher_game_log(
+    player: str = Query(...),
+    stat: str = Query("pitcher_strikeouts"),
+    threshold: float = Query(0),
+    home_away: Optional[str] = Query(None, pattern="^(home|away)$"),
+    _=Depends(require_access),
+):
+    return mlb_data.get_mlb_pitcher_game_log(player, stat, threshold, home_away)
+
 @router.get("/pitcher-daily-report")
 def pitcher_daily_report(_=Depends(require_access)):
     return mlb_data.get_pitcher_daily_report()
@@ -44,6 +64,17 @@ def pitcher_daily_report(_=Depends(require_access)):
 @router.get("/todays-matchups")
 def todays_matchups(_=Depends(require_access)):
     return mlb_data.get_mlb_todays_matchups()
+
+@router.get("/weather")
+def weather(_=Depends(require_access)):
+    return mlb_data.get_mlb_weather()
+
+@router.get("/matchup-edge")
+def matchup_edge(_=Depends(require_access)):
+    """Toughest/Best Matchups (hits), Platoon Edge Finder, and Strikeout
+    Risk/Contact Matchups for today's slate -- see
+    get_mlb_matchup_edge()'s docstring in app/data/mlb.py."""
+    return mlb_data.get_mlb_matchup_edge()
 
 @router.get("/team-matchup")
 def team_matchup(team_a: str = Query(...), team_b: str = Query(...), _=Depends(require_access)):

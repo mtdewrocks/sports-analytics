@@ -236,17 +236,24 @@ def _upcoming_games(stat: str, player_team: str, season: int) -> List[Dict[str, 
 _PVD_RB_MIN_CARRIES = 5
 _PVD_RB_MIN_TARGETS = 4
 _PVD_TOP_N = {"WR": 3, "TE": 2}
+# QBs get a plain attempts floor instead of a top-N cap or the RB-style
+# either/or threshold -- a team runs one real passer a week (barring an
+# in-game injury), so there's rarely anyone to rank; this just screens out
+# a kneel-down/trick-play attempt charted to a non-passer, or a backup who
+# only mopped up a couple of snaps, from looking like "the" QB the defense
+# faced that week.
+_PVD_QB_MIN_ATTEMPTS = 5
 
-# Maps a raw roster/game-log position onto the coarse RB/WR/TE grouping the
+# Maps a raw roster/game-log position onto the coarse grouping the
 # "Position vs. Defense" filters above are written for -- a roster can say
-# "FB" or "HB" for a back, or "QB" isn't supported by this feature at all
-# (no defense-by-QB-vs-QB comparison makes sense the same way), so this is
-# also where an unsupported position quietly becomes None rather than
-# something get_nfl_position_vs_defense() would reject.
+# "FB" or "HB" for a back, so this is also where an unsupported position
+# quietly becomes None rather than something get_nfl_position_vs_defense()
+# would reject.
 _POSITION_GROUP_MAP = {
     "RB": "RB", "HB": "RB", "FB": "RB",
     "WR": "WR",
     "TE": "TE",
+    "QB": "QB",
 }
 
 
@@ -272,6 +279,13 @@ def _pvd_row(row, week: int) -> Dict[str, Any]:
         "receptions": _pvd_num(row.receptions),
         "receiving_yards": _pvd_num(row.receiving_yards),
         "receiving_tds": _pvd_num(row.receiving_tds),
+        # Only populated (non-zero) for QB rows -- harmless extra fields on
+        # RB/WR/TE rows, which the frontend simply doesn't render.
+        "attempts": _pvd_num(row.attempts),
+        "completions": _pvd_num(row.completions),
+        "passing_yards": _pvd_num(row.passing_yards),
+        "passing_tds": _pvd_num(row.passing_tds),
+        "passing_interceptions": _pvd_num(row.passing_interceptions),
     }
 
 
@@ -312,7 +326,7 @@ def get_nfl_position_vs_defense(opponent: str, position: str, exclude_player: Op
     the filtering stays auditable instead of a black box.
     """
     position = (position or "").upper()
-    if position not in ("RB", "WR", "TE"):
+    if position not in ("RB", "WR", "TE", "QB"):
         return {"rows": [], "excluded": []}
 
     box = get_nfl_player_box_stats()
@@ -348,6 +362,16 @@ def get_nfl_position_vs_defense(opponent: str, position: str, exclude_player: Op
                     excluded.append({**item, "reason": "no involvement"})
                 else:
                     excluded.append({**item, "reason": f"below thresholds (carries < {_PVD_RB_MIN_CARRIES}, targets < {_PVD_RB_MIN_TARGETS})"})
+        elif position == "QB":
+            for r in week_rows.itertuples():
+                item = {**_pvd_row(r, week), "matchup": matchup}
+                attempts = _pvd_num(r.attempts)
+                if attempts >= _PVD_QB_MIN_ATTEMPTS:
+                    included.append(item)
+                elif attempts == 0:
+                    excluded.append({**item, "reason": "no involvement"})
+                else:
+                    excluded.append({**item, "reason": f"below threshold (attempts < {_PVD_QB_MIN_ATTEMPTS})"})
         else:
             top_n = _PVD_TOP_N[position]
             involved = [r for r in week_rows.itertuples() if _pvd_num(r.targets) >= 1]
@@ -2318,5 +2342,93 @@ def get_nfl_hit_rate_sheet(
                 "game_line": game_line,
                 "total": total,
             })
+
+    return out
+
+
+# Wind speed (mph) above which the backtest below buckets a game as
+# "high wind" -- roughly the sample median for 2026's outdoor games so far,
+# not a physically-derived cutoff. Revisit once there's a bigger sample.
+_WEATHER_WIND_BUCKET = 7.0
+# A game only counts as a wind-driven miss for the featured case study if
+# it also cleared this bucket -- otherwise the single biggest total miss of
+# the season could be a calm-weather blowout that has nothing to do with
+# weather, which would make the page's own headline number misleading.
+_WEATHER_FEATURED_MIN_WIND = _WEATHER_WIND_BUCKET
+
+
+def get_nfl_weather() -> Dict[str, Any]:
+    """Wind/temperature backtest for this season's outdoor games, from the
+    schedule's own post-game box-score fields (`roof`, `temp`, `wind`,
+    `total`, `total_line`) -- real recorded conditions, but only for games
+    already played; nothing here is a forecast. Feeds the NFL Weather page.
+
+    `roof` in ("outdoors", "open") is what counts as an outdoor game here
+    -- "open" is a retractable-roof stadium that happened to play with the
+    roof open, so its temp/wind readings are just as real as a fully open
+    stadium's. "dome" and "closed" are excluded outright (no weather to
+    speak of), and a handful of older/incomplete rows have `roof` as NaN
+    and get excluded by the same filter.
+
+    `featured_game` highlights the single largest total-line miss among
+    games that also cleared the high-wind bucket, so the page always leads
+    with its best real illustration of the effect rather than a hardcoded
+    game that will look stale in a month -- None once no such game exists
+    yet (e.g. very early in a season before any high-wind game has been
+    played).
+    """
+    schedule = get_nfl_schedule()
+    if schedule.empty:
+        return {"season": _current_nfl_season(), "games": [], "summary": None, "featured_game": None}
+
+    season = _current_nfl_season()
+    games = schedule[
+        (schedule["season"] == season)
+        & (schedule["roof"].isin(["outdoors", "open"]))
+        & schedule["total"].notna()
+        & schedule["wind"].notna()
+    ].copy()
+    if games.empty:
+        return {"season": season, "games": [], "summary": None, "featured_game": None}
+
+    games["diff"] = games["total"] - games["total_line"]
+
+    def _row(r) -> Dict[str, Any]:
+        # Takes a plain dict rather than an itertuples row or a Series
+        # directly -- a Series' own `.diff` is a bound method, not the
+        # "diff" column, so callers convert with dict(row._asdict()) or
+        # row.to_dict() before calling this.
+        return {
+            "week": int(r["week"]),
+            "home_team": str(r["home_team"]),
+            "away_team": str(r["away_team"]),
+            "stadium": str(r["stadium"]) if pd.notna(r["stadium"]) else None,
+            "roof": str(r["roof"]),
+            "wind": float(r["wind"]),
+            "temp": float(r["temp"]) if pd.notna(r["temp"]) else None,
+            "total_line": float(r["total_line"]),
+            "total": float(r["total"]),
+            "diff": round(float(r["diff"]), 1),
+        }
+
+    rows = [_row(r._asdict()) for r in games.sort_values("wind", ascending=False).itertuples()]
+
+    high = games[games["wind"] >= _WEATHER_WIND_BUCKET]
+    low = games[games["wind"] < _WEATHER_WIND_BUCKET]
+    summary = {
+        "wind_bucket_mph": _WEATHER_WIND_BUCKET,
+        "high_wind_unders": int((high["diff"] < 0).sum()),
+        "high_wind_games": int(len(high)),
+        "low_wind_unders": int((low["diff"] < 0).sum()),
+        "low_wind_games": int(len(low)),
+    }
+
+    featured_pool = games[(games["wind"] >= _WEATHER_FEATURED_MIN_WIND) & (games["diff"] < 0)]
+    featured_game = None
+    if not featured_pool.empty:
+        featured_row = featured_pool.loc[featured_pool["diff"].idxmin()]
+        featured_game = _row(featured_row.to_dict())
+
+    return {"season": season, "games": rows, "summary": summary, "featured_game": featured_game}
 
     return out

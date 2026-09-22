@@ -48,6 +48,71 @@ def _starter_row(starters_df: pd.DataFrame, pitcher_norm: str):
     return None if hit.empty else hit.iloc[0]
 
 
+def _pitcher_season_stats(starter) -> Dict[str, Any]:
+    """The compact season-stats line (Handedness/GS/W/L/ERA/IP/SO/K-IP/WHIP)
+    for one starters.parquet row -- factored out of get_pitcher_matchup()'s
+    season_stats section so a future second caller can reuse the exact same
+    numbers rather than re-deriving them. `starter` is a starters_df row
+    (from _starter_row()) or None; returns {} for either a missing pitcher
+    or a lookup failure, same as the season_stats section always has.
+
+    ERA, WHIP and K/IP are recomputed from summed components in
+    get_starters.py, so a traded pitcher's line is whole rather than one
+    team's partial figures.
+    """
+    stats: Dict[str, Any] = {}
+    if starter is None:
+        return stats
+    candidate = {
+        "Handedness": {"R": "RHP", "L": "LHP"}.get(starter.get("throws"), starter.get("throws")),
+        "GS": starter.get("games_started"),
+        "W": starter.get("wins"),
+        "L": starter.get("losses"),
+        "ERA": starter.get("era"),
+        "IP": starter.get("innings"),
+        "SO": starter.get("strikeouts"),
+        "K/IP": starter.get("k_per_ip"),
+        "WHIP": starter.get("whip"),
+    }
+    for key, val in candidate.items():
+        if val is None or (isinstance(val, float) and pd.isna(val)):
+            continue
+        # numpy scalars are not JSON serializable
+        stats[key] = val.item() if hasattr(val, "item") else val
+    return stats
+
+
+# Compact subset of get_pitcher_matchup()'s full SPLIT_STATS list (which
+# runs to 20+ Statcast columns meant for a dedicated splits table) -- picked
+# for the props-relevant read of "is this a good matchup for THIS batter's
+# side": how often he reaches base and for how much (AVG/SLG/wOBA), how
+# often he whiffs or walks (K%/BB%). (parquet column, display key) pairs.
+_PITCHER_SPLIT_DISPLAY = [
+    ("avg", "AVG"), ("woba", "wOBA"), ("slg", "SLG"), ("k_pct", "K%"), ("bb_pct", "BB%"),
+]
+
+
+def _pitcher_split_stats(splits_df: pd.DataFrame, pitcher_id, side: str) -> Dict[str, Any]:
+    """One pitcher's vs-L or vs-R split (AVG/wOBA/SLG/K%/BB%) from
+    pitcher_splits.parquet, or {} if that pitcher/side has no row (a rookie
+    or a September call-up can have too small a sample against one side to
+    have been written at all). `side` is "L" or "R"; matched against this
+    file's own "vs L" / "vs R" spelling internally."""
+    if splits_df is None or splits_df.empty or pd.isna(pitcher_id) or side not in ("L", "R"):
+        return {}
+    match = splits_df[(splits_df["player_id"] == pitcher_id) & (splits_df["split"] == f"vs {side}")]
+    if match.empty:
+        return {}
+    row = match.iloc[0]
+    stats: Dict[str, Any] = {}
+    for col, label in _PITCHER_SPLIT_DISPLAY:
+        val = row.get(col)
+        if val is None or (isinstance(val, float) and pd.isna(val)):
+            continue
+        stats[label] = val.item() if hasattr(val, "item") else val
+    return stats
+
+
 # Sanity bounds — corrupted historical values can reach e+100 from accumulation bugs
 _PERCENT_STATS = {"Weighted K%", "Weighted BB%", "Weighted GB%", "Weighted LD%",
                   "Weighted FB%", "Weighted HR/FB", "Weighted Soft%", "Weighted Med%", "Weighted Hard%"}
@@ -103,31 +168,10 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     # ------------------------------------------------------------------
     # 1. Season stats — starters.parquet (MLB Stats API)
     # ------------------------------------------------------------------
-    season_stats = {}
     try:
-        if starter is not None:
-            # ERA, WHIP and K/IP are recomputed from summed components in
-            # get_starters.py, so a traded pitcher's line is whole rather than
-            # one team's partial figures.
-            candidate = {
-                "Handedness": {"R": "RHP", "L": "LHP"}.get(
-                    starter.get("throws"), starter.get("throws")
-                ),
-                "GS": starter.get("games_started"),
-                "W": starter.get("wins"),
-                "L": starter.get("losses"),
-                "ERA": starter.get("era"),
-                "IP": starter.get("innings"),
-                "SO": starter.get("strikeouts"),
-                "K/IP": starter.get("k_per_ip"),
-                "WHIP": starter.get("whip"),
-            }
-            for key, val in candidate.items():
-                if val is None or (isinstance(val, float) and pd.isna(val)):
-                    continue
-                # numpy scalars are not JSON serializable
-                season_stats[key] = val.item() if hasattr(val, "item") else val
+        season_stats = _pitcher_season_stats(starter)
     except Exception as e:
+        season_stats = {}
         print(f"Warning: season_stats section failed for {pitcher_name}: {e}")
 
     # ------------------------------------------------------------------
@@ -1632,40 +1676,184 @@ def _mlb_starting_pitcher_hand() -> pd.DataFrame:
     return starters_only
 
 
+def _percentile_name_to_first_last(raw: str) -> str:
+    """The Statcast percentile leaderboards key on "Last, First" (a suffix
+    like "Jr." stays glued to the last-name half, e.g. "Rincones Jr.,
+    Gabriel"); every other name in this app is "First Last", so convert to
+    match."""
+    if ", " not in raw:
+        return raw
+    last, first = raw.split(", ", 1)
+    return f"{first} {last}"
+
+
+def _percentile_ids_by_name(percentiles: pd.DataFrame, known_ids: set) -> Dict[str, set]:
+    """name -> {player_id} for every percentile-leaderboard row not already
+    covered by known_ids, converted to "First Last". Shared by
+    _mlb_batter_index() and _mlb_pitcher_index() so a player who's hurt or
+    otherwise inactive -- and so has no recent logged game -- still shows up
+    in the Game Log search as long as they have a season-long Statcast
+    leaderboard entry, rather than disappearing from the list entirely.
+    """
+    out: Dict[str, set] = {}
+    if percentiles.empty or "player_name" not in percentiles.columns or "player_id" not in percentiles.columns:
+        return out
+    for _, row in percentiles.iterrows():
+        pid = row["player_id"]
+        if pd.isna(pid):
+            continue
+        pid = int(pid)
+        if pid in known_ids:
+            continue
+        name = _percentile_name_to_first_last(row["player_name"])
+        out.setdefault(name, set()).add(pid)
+    return out
+
+
+def _resolve_player_index(ids_by_name: Dict[str, set], team_by_id: Dict[int, str]) -> Dict[str, int]:
+    """Collapse name -> {ids} into label -> id, appending a team suffix only
+    for names that actually collide (2+ distinct ids)."""
+    index: Dict[str, int] = {}
+    for name, ids in ids_by_name.items():
+        ordered = sorted(ids)
+        if len(ordered) == 1:
+            index[name] = ordered[0]
+        else:
+            for pid in ordered:
+                team = team_by_id.get(pid, "unknown team")
+                index[f"{name} ({team})"] = pid
+    return index
+
+
 @ttl_cache(MLB_TTL)
 def _mlb_batter_index() -> Dict[str, int]:
     """Display label -> player_id, for the Game Log player dropdown.
 
-    Almost every name in batter_logs.parquet is unique, but at least one
-    real collision exists this season (two different MLB players both named
-    Max Muncy -- Dodgers vs Athletics), so a bare name isn't always a safe
-    key. A colliding name gets its current team appended ("Max Muncy
-    (Athletics)"); every other name stays plain, so this only changes the
-    label for the players who actually need it.
+    Sourced from batter_logs.parquet (every batter with an actual logged
+    game this season), plus anyone in hitter_percentiles.parquet not
+    already covered from there -- that Statcast leaderboard is a
+    season-long snapshot, not tied to the day-by-day game-log fetch, so it
+    still lists someone who's hurt or on the IL right now (Shohei Ohtani,
+    at the moment -- shut down as both a hitter and a pitcher since mid
+    September, with no batter_logs rows at all despite the leaderboard
+    entry) instead of dropping them from the search the moment their real
+    games stop coming in. A player only found this way simply comes back
+    with an empty game log until real rows exist for them, same as any
+    other filter combination with zero matches.
+
+    Almost every name is unique, but at least one real collision exists
+    this season (two different MLB players both named Max Muncy -- Dodgers
+    vs Athletics), so a bare name isn't always a safe key. A colliding name
+    gets its current team appended ("Max Muncy (Athletics)"); every other
+    name stays plain, so this only changes the label for the players who
+    actually need it.
     """
     logs = get_mlb_data().get("batter_logs", pd.DataFrame())
-    if logs.empty:
+    ids_by_name: Dict[str, set] = {}
+    if not logs.empty:
+        for name, ids in logs.groupby("player")["player_id"].unique().items():
+            ids_by_name.setdefault(name, set()).update(int(i) for i in ids)
+
+    known_ids = {i for ids in ids_by_name.values() for i in ids}
+    percentiles = get_mlb_data().get("hitter_percentiles", pd.DataFrame())
+    for name, ids in _percentile_ids_by_name(percentiles, known_ids).items():
+        ids_by_name.setdefault(name, set()).update(ids)
+
+    if not ids_by_name:
         return {}
     rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
     team_by_id = (
         dict(zip(rosters["player_id"], rosters["team"]))
         if not rosters.empty and "player_id" in rosters.columns else {}
     )
+    return _resolve_player_index(ids_by_name, team_by_id)
 
-    index: Dict[str, int] = {}
-    for name, ids in logs.groupby("player")["player_id"].unique().items():
-        ids = list(ids)
-        if len(ids) == 1:
-            index[name] = int(ids[0])
-        else:
-            for pid in ids:
-                team = team_by_id.get(pid, "unknown team")
-                index[f"{name} ({team})"] = int(pid)
-    return index
+
+@ttl_cache(MLB_TTL)
+def _mlb_batter_bats_index() -> Dict[int, str]:
+    """player_id -> bats ("L"/"R"/"S" for switch), for resolving which of a
+    pitcher's vs-L / vs-R splits actually applies to a given batter.
+
+    Sourced from daily_matchups.parquet -- the ONLY file in this pipeline
+    that carries a batter's throwing... batting hand at all, which means
+    real coverage is whoever is in TODAY's slate (a couple hundred batters),
+    not the full season's worth of names the Game Log dropdown offers. A
+    batter who isn't playing today (or on a team with no game today) simply
+    won't be in here; callers treat a miss as "unknown", not "switch" or any
+    other default, and fall back to showing both splits rather than
+    guessing.
+    """
+    matchups = get_mlb_data().get("matchups", pd.DataFrame())
+    if matchups.empty or "batter_id" not in matchups.columns or "bats" not in matchups.columns:
+        return {}
+    sub = matchups[["batter_id", "bats"]].dropna().drop_duplicates(subset=["batter_id"])
+    return dict(zip(sub["batter_id"].astype(int), sub["bats"]))
 
 
 def get_mlb_game_log_players() -> List[str]:
     return sorted(_mlb_batter_index().keys())
+
+
+# Real two-way players who should get a disambiguated "(Batter)" /
+# "(Pitcher)" entry in the combined Game Log search even though they clear
+# the at-bat floor below. Everyone else who shows up in both the batter and
+# pitcher indices is, in this data, a pitcher who got a single emergency or
+# pinch-hit plate appearance (or the rare reverse) -- not someone worth
+# making the user disambiguate for. Extend this set if another true
+# two-way player starts logging real at-bats.
+_TRUE_TWO_WAY_PLAYERS = {"Shohei Ohtani"}
+
+# Below this many total at-bats, a name that shows up in both indices is
+# treated as a one-off appearance and folded into whichever side is real
+# (see get_mlb_game_log_all_players()). Checked against every actual
+# collision in this season's data: the one-offs cap out at 1 career at-bat
+# apiece, so 10 leaves a wide, deliberate margin above that without being
+# anywhere close to what a real part-time two-way player would rack up.
+_TWO_WAY_AT_BAT_FLOOR = 10
+
+
+def get_mlb_game_log_all_players() -> List[Dict[str, Any]]:
+    """Combined batter + pitcher player list for the Game Log's unified
+    search box, so the page can infer Batter vs. Pitcher mode from which
+    player got picked instead of making the user choose a mode first.
+
+    Each entry is {"name": <label>, "types": [...]} where <label> is
+    exactly the string _mlb_batter_index()/_mlb_pitcher_index() key on --
+    pass it straight through as the `player` query param and the right
+    endpoint's own lookup resolves it. `types` is a single-element list for
+    almost everyone. A name that shows up in both the batter and pitcher
+    indices only keeps both entries when it's in _TRUE_TWO_WAY_PLAYERS (or,
+    failing that, actually clears _TWO_WAY_AT_BAT_FLOOR at-bats) -- otherwise
+    it's a one-off appearance and gets folded down to whichever side is
+    real, so the search box doesn't ask the user to disambiguate a pitcher's
+    single long-ago pinch-hit at-bat.
+    """
+    batter_idx = _mlb_batter_index()
+    pitcher_idx = _mlb_pitcher_index()
+    batter_names = set(batter_idx.keys())
+    pitcher_names = set(pitcher_idx.keys())
+
+    batter_logs = get_mlb_data().get("batter_logs", pd.DataFrame())
+    at_bats_by_id: Dict[int, float] = (
+        batter_logs.groupby("player_id")["at_bats"].sum().to_dict()
+        if not batter_logs.empty and "at_bats" in batter_logs.columns else {}
+    )
+
+    result: List[Dict[str, Any]] = []
+    for name in sorted(batter_names | pitcher_names):
+        in_batter = name in batter_names
+        in_pitcher = name in pitcher_names
+        if in_batter and in_pitcher and name not in _TRUE_TWO_WAY_PLAYERS:
+            total_at_bats = at_bats_by_id.get(batter_idx[name], 0)
+            if total_at_bats <= _TWO_WAY_AT_BAT_FLOOR:
+                in_batter = False  # fold the one-off appearance away
+        types = []
+        if in_batter:
+            types.append("batter")
+        if in_pitcher:
+            types.append("pitcher")
+        result.append({"name": name, "types": types})
+    return result
 
 
 def get_mlb_game_log(
@@ -1696,19 +1884,19 @@ def get_mlb_game_log(
     }
 
     if stat not in MLB_BATTER_MARKET_STAT:
-        return {"games": [], "over_counts": empty_counts}
+        return {"games": [], "over_counts": empty_counts, "pitcher_splits": {}, "batter_bats": None}
 
     player_id = _mlb_batter_index().get(player)
     if player_id is None:
-        return {"games": [], "over_counts": empty_counts}
+        return {"games": [], "over_counts": empty_counts, "pitcher_splits": {}, "batter_bats": None}
 
     logs = get_mlb_data().get("batter_logs", pd.DataFrame())
     if logs.empty:
-        return {"games": [], "over_counts": empty_counts}
+        return {"games": [], "over_counts": empty_counts, "pitcher_splits": {}, "batter_bats": None}
 
     rows = logs[logs["player_id"] == player_id].copy()
     if rows.empty:
-        return {"games": [], "over_counts": empty_counts}
+        return {"games": [], "over_counts": empty_counts, "pitcher_splits": {}, "batter_bats": None}
 
     rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
     rows = rows[rows["date"].notna()]
@@ -1740,7 +1928,7 @@ def get_mlb_game_log(
 
     rows = rows.sort_values("date")
     if rows.empty:
-        return {"games": [], "over_counts": empty_counts}
+        return {"games": [], "over_counts": empty_counts, "pitcher_splits": {}, "batter_bats": None}
 
     all_values = rows["stat_value"].tolist()
     over_counts = {
@@ -1754,6 +1942,7 @@ def get_mlb_game_log(
     for _, r in recent.iterrows():
         opp_pitcher = r.get("pitcher")
         opp_hand = r.get("throws")
+        opp_pitcher_id = r.get("pitcher_id")
         d = r["date"]
         # Built from parts rather than strftime("%-m/%-d"), which is
         # platform specific and raises on Windows -- same convention as the
@@ -1776,7 +1965,463 @@ def get_mlb_game_log(
             "stolen_bases": int(r["stolen_bases"]) if _is_number(r.get("stolen_bases")) else None,
             "opp_pitcher": opp_pitcher if isinstance(opp_pitcher, str) else None,
             "opp_pitcher_hand": opp_hand if opp_hand in ("L", "R") else None,
+            # Carried through purely so the frontend can key into
+            # pitcher_splits below without a fragile name match --
+            # never displayed directly.
+            "opp_pitcher_id": int(opp_pitcher_id) if _is_number(opp_pitcher_id) else None,
+            "stat_value": r["stat_value"],
+        })
+
+    # This batter's own bats hand, if he's in today's daily_matchups snapshot
+    # (see _mlb_batter_bats_index()'s docstring for why that's a real, not
+    # theoretical, "maybe not found" case). None here means "unknown", not
+    # "switch" -- the frontend shows both splits rather than guessing one.
+    batter_bats = _mlb_batter_bats_index().get(player_id)
+
+    # One split lookup per DISTINCT opposing pitcher actually shown above
+    # (never per row -- a batter can face the same starter several times),
+    # keyed by id as a string since that's what JSON object keys are anyway.
+    # `resolved_side` is which of vs_l/vs_r actually applies to THIS batter
+    # against THIS pitcher: his own bats hand if fixed, or -- since a switch
+    # hitter bats opposite the pitcher he's facing -- the side opposite this
+    # one pitcher's own throwing hand. A pitcher's throwing hand doesn't
+    # change game to game, so this is the same answer for every game this
+    # batter has faced him in; no need to resolve it per row.
+    starters_df = get_mlb_data().get("starters", pd.DataFrame())
+    splits_df = get_mlb_data().get("pitcher_splits", pd.DataFrame())
+    pitcher_hands: Dict[int, Optional[str]] = {}
+    for g in games:
+        pid = g["opp_pitcher_id"]
+        if pid is not None and pid not in pitcher_hands:
+            pitcher_hands[pid] = g["opp_pitcher_hand"]
+
+    pitcher_splits: Dict[str, Any] = {}
+    for pid, opp_hand in pitcher_hands.items():
+        if batter_bats in ("L", "R"):
+            resolved_side = batter_bats
+        elif batter_bats == "S" and opp_hand in ("L", "R"):
+            resolved_side = "R" if opp_hand == "L" else "L"
+        else:
+            resolved_side = None
+
+        vs_l = _pitcher_split_stats(splits_df, pid, "L")
+        vs_r = _pitcher_split_stats(splits_df, pid, "R")
+        if vs_l or vs_r:
+            pitcher_splits[str(pid)] = {"resolved_side": resolved_side, "vs_l": vs_l, "vs_r": vs_r}
+
+    return {"games": games, "over_counts": over_counts, "pitcher_splits": pitcher_splits, "batter_bats": batter_bats}
+
+
+# ---------------------------------------------------------------------------
+# Pitcher Game Log -- same per-game, gradeable-against-a-threshold shape as
+# the batter Game Log above, but for a PITCHER's own props (strikeouts,
+# earned runs, hits/walks allowed, outs recorded, record-a-win) using
+# MLB_PITCHER_MARKET_STAT and pitcher_logs.parquet -- the same market
+# definitions and same file the Hit Rate Sheet already grades pitcher props
+# from (see _pitcher_logs_for_market above), just interactive and scoped to
+# one pitcher instead of scanning every pitcher at once. No opposing-hand
+# filter here -- unlike a batter facing one starter a game, a pitcher faces
+# a whole lineup of both hands, so "vs LHP/RHP" isn't a meaningful split on
+# his own game log the way it is on a batter's.
+# ---------------------------------------------------------------------------
+
+@ttl_cache(MLB_TTL)
+def _mlb_pitcher_index() -> Dict[str, int]:
+    """Display label -> pitcher_id, for the Pitcher Game Log dropdown --
+    mirrors _mlb_batter_index() above: same collision handling, and the same
+    pitcher_percentiles.parquet fallback so a hurt or inactive pitcher with
+    no recent logged appearance is still searchable rather than dropping
+    out of the list. Sourced from pitcher_logs.parquet so every pitcher with
+    a logged appearance is selectable, not just current starters.
+    """
+    logs = get_mlb_data().get("pitcher_logs", pd.DataFrame())
+    ids_by_name: Dict[str, set] = {}
+    if not logs.empty:
+        for name, ids in logs.groupby("pitcher")["pitcher_id"].unique().items():
+            ids_by_name.setdefault(name, set()).update(int(i) for i in ids)
+
+    known_ids = {i for ids in ids_by_name.values() for i in ids}
+    percentiles = get_mlb_data().get("pitcher_percentiles", pd.DataFrame())
+    for name, ids in _percentile_ids_by_name(percentiles, known_ids).items():
+        ids_by_name.setdefault(name, set()).update(ids)
+
+    if not ids_by_name:
+        return {}
+    rosters = get_mlb_data().get("mlb_rosters", pd.DataFrame())
+    team_by_id = (
+        dict(zip(rosters["player_id"], rosters["team"]))
+        if not rosters.empty and "player_id" in rosters.columns else {}
+    )
+    return _resolve_player_index(ids_by_name, team_by_id)
+
+
+def get_mlb_pitcher_game_log_players() -> List[str]:
+    return sorted(_mlb_pitcher_index().keys())
+
+
+def get_mlb_pitcher_game_log(
+    player: str,
+    stat: str = "pitcher_strikeouts",
+    threshold: float = 0,
+    home_away: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Per-game log for one pitcher, gradeable against a threshold -- the
+    pitcher-side counterpart to get_mlb_game_log() above, so pitcher props
+    (Ks, earned runs, hits/walks allowed, outs, record-a-win) get the same
+    chart/threshold/hit-rate treatment batter props already have instead of
+    only showing up aggregated on the Hit Rate Sheet.
+
+    Every logged appearance is included, not just starts -- a relief
+    outing is a real result against a real prop line the same as a start
+    is, and MLB_PITCHER_MARKET_STAT's own hit-rate-sheet grading doesn't
+    filter starts out either, so this stays consistent with it.
+    """
+    empty_counts = {
+        "last10": {"over": 0, "total": 0, "pct": 0.0},
+        "last25": {"over": 0, "total": 0, "pct": 0.0},
+        "season": {"over": 0, "total": 0, "pct": 0.0},
+    }
+    empty = {"games": [], "over_counts": empty_counts}
+
+    if stat not in MLB_PITCHER_MARKET_STAT:
+        return empty
+
+    player_id = _mlb_pitcher_index().get(player)
+    if player_id is None:
+        return empty
+
+    logs = get_mlb_data().get("pitcher_logs", pd.DataFrame())
+    if logs.empty:
+        return empty
+
+    rows = logs[logs["pitcher_id"] == player_id].copy()
+    if rows.empty:
+        return empty
+
+    rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
+    rows = rows[rows["date"].notna()]
+
+    spec = MLB_PITCHER_MARKET_STAT[stat]
+    if callable(spec):
+        rows["stat_value"] = rows.apply(lambda r: _stat_value(r, spec), axis=1)
+    else:
+        rows["stat_value"] = pd.to_numeric(rows[spec], errors="coerce").fillna(0.0)
+
+    if home_away in ("home", "away"):
+        rows = rows[rows["is_home"] == (home_away == "home")]
+
+    rows = rows.sort_values("date")
+    if rows.empty:
+        return empty
+
+    all_values = rows["stat_value"].tolist()
+    over_counts = {
+        "last10": grade_over_under(all_values[-10:], threshold),
+        "last25": grade_over_under(all_values[-25:], threshold),
+        "season": grade_over_under(all_values, threshold),
+    }
+
+    recent = rows.tail(60)
+    games: List[Dict[str, Any]] = []
+    for _, r in recent.iterrows():
+        d = r["date"]
+        games.append({
+            "game_date": f"{d.month}/{d.day}",
+            "opponent": str(r.get("opponent") or ""),
+            "is_home": bool(r.get("is_home")),
+            "innings": float(r["innings"]) if _is_number(r.get("innings")) else None,
+            "hits": int(r["hits"]) if _is_number(r.get("hits")) else None,
+            "runs": int(r["runs"]) if _is_number(r.get("runs")) else None,
+            "earned_runs": int(r["earned_runs"]) if _is_number(r.get("earned_runs")) else None,
+            "home_runs": int(r["home_runs"]) if _is_number(r.get("home_runs")) else None,
+            "walks": int(r["walks"]) if _is_number(r.get("walks")) else None,
+            "strikeouts": int(r["strikeouts"]) if _is_number(r.get("strikeouts")) else None,
+            "pitches": int(r["pitches"]) if _is_number(r.get("pitches")) else None,
+            "win": bool(r.get("wins")) if _is_number(r.get("wins")) else None,
+            "loss": bool(r.get("losses")) if _is_number(r.get("losses")) else None,
+            "is_start": bool(r.get("games_started")) if _is_number(r.get("games_started")) else None,
             "stat_value": r["stat_value"],
         })
 
     return {"games": games, "over_counts": over_counts}
+
+
+# Static ballpark-effect profiles -- there is no live per-game wind/weather
+# field anywhere in the MLB data pipeline (unlike the NFL schedule, which
+# has real post-game temp/wind columns), so this is well-documented,
+# season-independent park knowledge rather than anything computed from a
+# live feed. Feeds the MLB Weather page's one real section; see
+# get_mlb_weather()'s docstring for what a live version would still need.
+_MLB_BALLPARK_PROFILES = [
+    {
+        "park": "Wrigley Field",
+        "team": "CHC",
+        "effect": (
+            "The most wind-driven park in the sport: fly balls turn into home runs at "
+            "roughly 23% when the wind is blowing out toward the ivy, versus about 13% "
+            "when it's blowing in off the lake -- same lineup, wildly different park "
+            "depending on which way the flags point that day."
+        ),
+    },
+    {
+        "park": "Coors Field",
+        "team": "COL",
+        "effect": (
+            "Elevation (5,200 ft, the highest in MLB), not wind, is the driver -- thinner "
+            "air lets fly balls carry farther and strips movement off breaking pitches, "
+            "inflating offense independent of daily conditions. The Rockies store game "
+            "balls in a humidor specifically to blunt this."
+        ),
+    },
+    {
+        "park": "Oracle Park",
+        "team": "SF",
+        "effect": (
+            "A marine layer and consistent bay wind (engineered down from the old "
+            "Candlestick Park's levels, but still present) make this one of the most "
+            "reliably power-suppressing parks in the league by Statcast park factors."
+        ),
+    },
+]
+
+
+def get_mlb_weather() -> Dict[str, Any]:
+    """Ballpark wind/elevation effect profiles -- MLB has no live per-game
+    weather field to backtest the way the NFL schedule does (see
+    get_nfl_weather() in app/data/nfl.py for that side), so this is static,
+    well-documented park knowledge rather than a computed backtest. Feeds
+    the MLB Weather page, paired with a source note on what a live version
+    would need (a per-game wind-speed/direction feed, keyed to game time,
+    for each home ballpark)."""
+    return {"ballparks": _MLB_BALLPARK_PROFILES}
+
+
+# ---------------------------------------------------------------------------
+# Matchup Edge -- today's real batter/pitcher pairings flagged for a
+# platoon-driven edge the odds may not fully price in, for both hits (wOBA)
+# and strikeouts (K%). Built entirely from data already in this pipeline --
+# daily_matchups.parquet (today's slate; GitHub Actions has already joined
+# in each batter's OWN split against today's opposing starter's handedness
+# AND his season-overall line, plus the mirror image on the pitcher's side)
+# and pitcher_splits.parquet (season-long vs-L/vs-R splits for every
+# pitcher, used only to build the league-wide TBF-weighted benchmark). No
+# new data pull, and no dependency on the predictions/ ML pipeline (which,
+# as of this writing, has a leftover `from src.X import` bug from an old
+# folder layout and no trained model/feature artifacts in this checkout --
+# see the conversation this was built in for the full status).
+#
+# Methodology, per row (one batter facing today's probable/confirmed
+# starter):
+#   pitcher signal = is this pitcher unusually tough/generous against this
+#     batter's handedness, beyond both league average AND his own overall
+#     rate this season?
+#   batter signal  = do the batter's own numbers back that up -- either his
+#     split against this handedness is meaningfully off his season line in
+#     the matching direction, or his split is already on the wrong side of
+#     league average?
+#
+# Thresholds (agreed with the user 2026-09-21; the strikeout side was
+# lowered from an original 8-pt bar to 5, on request -- a looser filter
+# that surfaces more rows at the cost of weaker signal on the margins. The
+# wOBA/hits side was explicitly left unchanged):
+#   wOBA tables (hits): 50+ pt gap vs league average, 15+ pt gap vs the
+#     pitcher's own average; batter confirmation needs a 25+ pt split-vs-
+#     season gap in the matching direction, OR his split already being on
+#     the wrong side of league average.
+#   K% tables (strikeouts): same shape, 5+ pt gaps throughout.
+#   Sample floors: 60+ PA (proxy for batters faced) on the pitcher's split
+#     this season, 30+ PA on the batter's split this season.
+#
+# Platoon Edge Finder is a pure BATTER-skill list, independent of Toughest/
+# Best Matchups: a fixed-handed batter (not a switch hitter, who always gets
+# to pick the favorable box) who is genuinely better against the opposite
+# handedness than his own season line -- the classic "lefty who mashes
+# right-handed pitching" -- facing that opposite hand today. It does not
+# require the pitcher himself to be unusually weak; a real platoon hitter
+# facing an average-or-better opposite-hand arm still belongs here. (Revised
+# 2026-09-21 at the user's request -- the original version instead listed
+# pitcher-side signals whose batter confirmation hadn't cleared yet, which
+# wasn't what "platoon edge" was supposed to mean.) There is no "where both
+# signals agree" tab -- dropped earlier at the user's request as redundant
+# with cross-referencing the Toughest/Best Matchups lists directly.
+# ---------------------------------------------------------------------------
+
+_ME_WOBA_LEAGUE_GAP = 50   # points (wOBA * 1000)
+_ME_WOBA_OWN_GAP = 15
+_ME_WOBA_BATTER_GAP = 25
+_ME_K_LEAGUE_GAP = 5       # points (K% is already a percentage, no scaling)
+_ME_K_OWN_GAP = 5
+_ME_K_BATTER_GAP = 5
+_ME_PITCHER_PA_FLOOR = 60
+_ME_BATTER_PA_FLOOR = 30
+_ME_MAX_ROWS = 25
+
+
+def _matchup_edge_league_benchmarks(splits_df: pd.DataFrame) -> Dict[str, Dict[str, Optional[float]]]:
+    """TBF-weighted league-average wOBA and K% allowed, by handedness --
+    pooled across every pitcher's split row (weighted by tbf) rather than a
+    plain mean, so a September call-up with 8 innings doesn't count the
+    same as a 150-inning starter."""
+    woba: Dict[str, Optional[float]] = {}
+    k: Dict[str, Optional[float]] = {}
+    if splits_df.empty:
+        return {"woba": {"L": None, "R": None}, "k": {"L": None, "R": None}}
+
+    for hand, key in (("vs L", "L"), ("vs R", "R")):
+        side = splits_df[splits_df["split"] == hand]
+        w = side.dropna(subset=["tbf", "woba"])
+        w = w[w["tbf"] > 0]
+        woba[key] = float((w["tbf"] * w["woba"]).sum() / w["tbf"].sum()) if not w.empty else None
+        kk = side.dropna(subset=["tbf", "k_pct"])
+        kk = kk[kk["tbf"] > 0]
+        k[key] = float((kk["tbf"] * kk["k_pct"]).sum() / kk["tbf"].sum()) if not kk.empty else None
+
+    return {"woba": woba, "k": k}
+
+
+def _matchup_edge_resolved_hand(bats: Optional[str], throws: Optional[str]) -> Optional[str]:
+    """Which league-benchmark bucket (L/R) a batter's split falls under. A
+    switch hitter bats from the side opposite the pitcher he's facing --
+    same convention _mlb_batter_bats_index()'s docstring documents -- so his
+    split is always measured on that opposite side, never his raw 'S'."""
+    if bats in ("L", "R"):
+        return bats
+    if bats == "S" and throws in ("L", "R"):
+        return "R" if throws == "L" else "L"
+    return None
+
+
+def get_mlb_matchup_edge() -> Dict[str, Any]:
+    """Toughest/Best Matchups (hits, by wOBA), Platoon Edge Finder, and
+    Strikeout Risk/Contact Matchups (by K%) for today's real slate. See the
+    module comment block above this function for the full methodology."""
+    data = get_mlb_data()
+    matchups = data.get("matchups", pd.DataFrame())
+    splits_df = data.get("pitcher_splits", pd.DataFrame())
+    percentiles = data.get("hitter_percentiles", pd.DataFrame())
+
+    empty: Dict[str, Any] = {
+        "asOf": None,
+        "leagueBenchmarks": {"L": None, "R": None},
+        "kLeagueBenchmarks": {"L": None, "R": None},
+        "avoidFlat": [], "targetFlat": [], "platoonFinder": [],
+        "kRisk": [], "contactMatchups": [],
+    }
+    if matchups.empty:
+        return empty
+
+    required = [
+        "player", "bats", "batter_id", "split_pa", "split_woba", "all_woba",
+        "split_k_pct", "all_k_pct", "pitcher", "throws", "p_split_pa",
+        "p_split_woba", "p_all_woba", "p_split_k_pct", "p_all_k_pct",
+    ]
+    if any(c not in matchups.columns for c in required):
+        return empty
+
+    bench = _matchup_edge_league_benchmarks(splits_df)
+
+    pctl_by_id: Dict[int, float] = {}
+    if not percentiles.empty and "player_id" in percentiles.columns and "xwoba" in percentiles.columns:
+        sub = percentiles.dropna(subset=["player_id"])
+        pctl_by_id = dict(zip(sub["player_id"].astype(int), sub["xwoba"]))
+
+    rows = matchups.dropna(subset=required).copy()
+    rows = rows[rows["split_pa"] >= _ME_BATTER_PA_FLOOR]
+    rows = rows[rows["p_split_pa"] >= _ME_PITCHER_PA_FLOOR]
+
+    as_of = None
+    if "date" in matchups.columns and not matchups["date"].dropna().empty:
+        as_of = str(matchups["date"].dropna().max())
+
+    avoid: List[Dict[str, Any]] = []
+    target: List[Dict[str, Any]] = []
+    platoon: List[Dict[str, Any]] = []
+    k_risk: List[Dict[str, Any]] = []
+    k_safe: List[Dict[str, Any]] = []
+
+    for _, r in rows.iterrows():
+        hand = _matchup_edge_resolved_hand(r["bats"], r["throws"])
+        if hand is None:
+            continue
+        league_woba = bench["woba"].get(hand)
+        league_k = bench["k"].get(hand)
+        if league_woba is None or league_k is None:
+            continue
+
+        league_gap = (float(r["p_split_woba"]) - league_woba) * 1000
+        within_gap = (float(r["p_split_woba"]) - float(r["p_all_woba"])) * 1000
+        platoon_gap = (float(r["split_woba"]) - float(r["all_woba"])) * 1000
+        vs_league_own = (float(r["split_woba"]) - league_woba) * 1000
+
+        k_league_gap = float(r["p_split_k_pct"]) - league_k
+        k_within_gap = float(r["p_split_k_pct"]) - float(r["p_all_k_pct"])
+        k_batter_gap = float(r["split_k_pct"]) - float(r["all_k_pct"])
+        k_vs_league_own = float(r["split_k_pct"]) - league_k
+
+        pctl = pctl_by_id.get(int(r["batter_id"]))
+
+        base = {
+            "name": r["player"], "bats": r["bats"],
+            "seasonWoba": round(float(r["all_woba"]), 3),
+            "splitWobaBatter": round(float(r["split_woba"]), 3),
+            "pctl": round(float(pctl)) if pctl is not None and not pd.isna(pctl) else None,
+            "pitcher": r["pitcher"], "throws": r["throws"],
+            "splitWobaPitcher": round(float(r["p_split_woba"]), 3),
+            "leagueGap": round(league_gap), "withinGap": round(within_gap),
+            "platoonGap": round(platoon_gap), "vsLeagueOwn": round(vs_league_own),
+        }
+        k_base = {
+            "name": r["player"], "bats": r["bats"],
+            "seasonK": round(float(r["all_k_pct"]), 1),
+            "splitKBatter": round(float(r["split_k_pct"]), 1),
+            "kGap": round(k_batter_gap, 1),
+            "kVsLeague": round(k_vs_league_own, 1),
+            "pitcher": r["pitcher"], "throws": r["throws"],
+            "splitKPitcher": round(float(r["p_split_k_pct"]), 1),
+            "kLeagueGap": round(k_league_gap, 1),
+            "kWithinGap": round(k_within_gap, 1),
+        }
+
+        # -- Toughest / Best Matchups (wOBA) --
+        batter_confirms_tough = platoon_gap <= -_ME_WOBA_BATTER_GAP or vs_league_own <= 0
+        batter_confirms_soft = platoon_gap >= _ME_WOBA_BATTER_GAP or vs_league_own >= 0
+        if league_gap <= -_ME_WOBA_LEAGUE_GAP and within_gap <= -_ME_WOBA_OWN_GAP and batter_confirms_tough:
+            avoid.append(base)
+        elif league_gap >= _ME_WOBA_LEAGUE_GAP and within_gap >= _ME_WOBA_OWN_GAP and batter_confirms_soft:
+            target.append(base)
+
+        # -- Platoon Edge Finder (wOBA, batter-skill only) --
+        # A fixed-handed batter (never a switch hitter -- he always gets the
+        # favorable box, so there's no "edge" to find) who is genuinely
+        # better against this handedness than his own season line, facing
+        # that opposite hand today. No requirement on the pitcher at all --
+        # see module docstring for why this changed from the original
+        # pitcher-signal-without-confirmation version.
+        opposite_hand = r["bats"] in ("L", "R") and r["bats"] != r["throws"]
+        if opposite_hand and batter_confirms_soft:
+            platoon.append({**base, "direction": "target"})
+
+        # -- Strikeout Risk / Contact Matchups (K%) --
+        k_batter_confirms_risk = k_batter_gap >= _ME_K_BATTER_GAP or k_vs_league_own >= 0
+        k_batter_confirms_safe = k_batter_gap <= -_ME_K_BATTER_GAP or k_vs_league_own <= 0
+        if k_league_gap >= _ME_K_LEAGUE_GAP and k_within_gap >= _ME_K_OWN_GAP and k_batter_confirms_risk:
+            k_risk.append(k_base)
+        elif k_league_gap <= -_ME_K_LEAGUE_GAP and k_within_gap <= -_ME_K_OWN_GAP and k_batter_confirms_safe:
+            k_safe.append(k_base)
+
+    avoid.sort(key=lambda x: x["leagueGap"])
+    target.sort(key=lambda x: -x["leagueGap"])
+    platoon.sort(key=lambda x: -x["platoonGap"])
+    k_risk.sort(key=lambda x: -x["kLeagueGap"])
+    k_safe.sort(key=lambda x: x["kLeagueGap"])
+
+    return {
+        "asOf": as_of,
+        "leagueBenchmarks": {kk: (round(v, 3) if v is not None else None) for kk, v in bench["woba"].items()},
+        "kLeagueBenchmarks": {kk: (round(v, 1) if v is not None else None) for kk, v in bench["k"].items()},
+        "avoidFlat": avoid[:_ME_MAX_ROWS],
+        "targetFlat": target[:_ME_MAX_ROWS],
+        "platoonFinder": platoon[:_ME_MAX_ROWS],
+        "kRisk": k_risk[:_ME_MAX_ROWS],
+        "contactMatchups": k_safe[:_ME_MAX_ROWS],
+    }

@@ -63,6 +63,7 @@ import NFLMismatches from './pages/nfl/NFLMismatches';
 import NFLProps from './pages/nfl/NFLProps';
 import NFLTeamUsage from './pages/nfl/NFLTeamUsage';
 import NFLPlayerUsageTrend from './pages/nfl/NFLPlayerUsageTrend';
+import NFLWeather from './pages/nfl/NFLWeather';
 
 import MLBGameLog from './pages/mlb/MLBGameLog';
 import MLBMatchup from './pages/mlb/MLBMatchup';
@@ -73,6 +74,8 @@ import MLBHotHitters from './pages/mlb/MLBHotHitters';
 import MLBProps from './pages/mlb/MLBProps';
 import NFLMiddles from './pages/nfl/NFLMiddles';
 import MLBMiddles from './pages/mlb/MLBMiddles';
+import MLBWeather from './pages/mlb/MLBWeather';
+import MLBMatchupEdge from './pages/mlb/MLBMatchupEdge';
 import HitRateSheet from './pages/HitRateSheet';
 
 export default function App() {
@@ -105,6 +108,7 @@ export default function App() {
           <Route path="/nfl/usage-trend" element={<PrivateRoute><NFLPlayerUsageTrend /></PrivateRoute>} />
           <Route path="/nfl/props" element={<PrivateRoute><NFLProps /></PrivateRoute>} />
           <Route path="/nfl/middles" element={<PrivateRoute><NFLMiddles /></PrivateRoute>} />
+          <Route path="/nfl/weather" element={<PrivateRoute><NFLWeather /></PrivateRoute>} />
 
           <Route path="/mlb/game-log" element={<PrivateRoute><MLBGameLog /></PrivateRoute>} />
           <Route path="/mlb/matchup" element={<PrivateRoute><MLBMatchup /></PrivateRoute>} />
@@ -114,6 +118,8 @@ export default function App() {
           <Route path="/mlb/hot-hitters" element={<PrivateRoute><MLBHotHitters /></PrivateRoute>} />
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
           <Route path="/mlb/middles" element={<PrivateRoute><MLBMiddles /></PrivateRoute>} />
+          <Route path="/mlb/weather" element={<PrivateRoute><MLBWeather /></PrivateRoute>} />
+          <Route path="/mlb/matchup-edge" element={<PrivateRoute><MLBMatchupEdge /></PrivateRoute>} />
 
           <Route path="/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
 

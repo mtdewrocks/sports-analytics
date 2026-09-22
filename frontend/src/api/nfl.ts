@@ -10,8 +10,7 @@ export const getNFLGameLogPlayers = () => client.get('/api/nfl/game-log/players'
 export const getNFLGameLog = (params: Record<string, any>) => client.get('/api/nfl/game-log', { params });
 // "Position vs. Defense" -- how other players at the selected player's own
 // position have fared against their next opponent this season. position
-// must be RB/WR/TE (the backend 422s on anything else, including QB -- no
-// QB-vs-QB defensive comparison the same way makes sense); exclude_player
+// must be RB/WR/TE/QB (the backend 422s on anything else); exclude_player
 // drops the selected player themselves out of the results, for the rare
 // divisional-rematch case where they'd otherwise show up against their own
 // upcoming opponent from an earlier meeting this season.
@@ -81,3 +80,8 @@ export const getNFLUsageTrend = (player: string, stat: string) =>
 
 export const getNFLProps = (params: Record<string, any>) => client.get('/api/nfl/props', { params });
 export const getNFLMiddles = (params: Record<string, any>) => client.get('/api/nfl/middles', { params });
+
+// Wind/temp backtest for this season's outdoor games -- real recorded
+// post-game conditions only, no live forecast (see get_nfl_weather()'s
+// docstring in backend/app/data/nfl.py).
+export const getNFLWeather = () => client.get('/api/nfl/weather');

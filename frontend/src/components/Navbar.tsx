@@ -41,12 +41,14 @@ const GROUPS: NavGroup[] = [
       { label: 'Mismatches', to: '/nfl/mismatches' },
       { label: 'Props', to: '/nfl/props' },
       { label: 'Middles & Arbs', to: '/nfl/middles' },
+      { label: 'Weather', to: '/nfl/weather' },
     ],
   },
   {
     key: 'mlb', label: 'MLB', icon: '⚾',
     items: [
       { label: 'Game Log', to: '/mlb/game-log' },
+      { label: 'Matchup Edge', to: '/mlb/matchup-edge' },
       { label: 'Pitcher Matchup', to: '/mlb/matchup' },
       { label: 'Team Matchup', to: '/mlb/team-matchup' },
       { label: 'Bullpen', to: '/mlb/bullpen' },
@@ -54,6 +56,7 @@ const GROUPS: NavGroup[] = [
       { label: 'Hot Hitters', to: '/mlb/hot-hitters' },
       { label: 'Props', to: '/mlb/props' },
       { label: 'Middles & Arbs', to: '/mlb/middles' },
+      { label: 'Weather', to: '/mlb/weather' },
     ],
   },
 ];
