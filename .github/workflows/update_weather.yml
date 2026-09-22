@@ -1,0 +1,57 @@
+name: Update Weather
+
+on:
+  schedule:
+    # Every 2 hours, offset off the top of the hour on purpose -- :00 is the
+    # most contended minute on GitHub's scheduler (see update_statcast.yml's
+    # comment on this same thing). Forecasts don't move fast enough to need
+    # anything tighter than this, but "periodic through the day" is the
+    # point -- a wind forecast that firms up between runs should reach the
+    # MLB/NFL Weather pages within a couple of hours, for whatever's still
+    # upcoming at run time.
+    - cron: "15 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-weather
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests pyarrow
+
+      # get_weather_forecast.py rebuilds both files fully from the live MLB
+      # schedule / nfl_schedule.parquet + Open-Meteo on every run (a
+      # forecast is a snapshot, not something to accumulate), so unlike
+      # update_lineups.yml there's nothing to restore first.
+      - name: Pull weather forecasts
+        run: python -u backend/app/get_weather_forecast.py
+
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh push data-mlb backend/data/mlb/mlb_weather_forecast.parquet
+          bash scripts/release_data.sh push data-nfl backend/data/nfl/nfl_weather_forecast.parquet
