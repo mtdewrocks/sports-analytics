@@ -2185,15 +2185,52 @@ _MLB_BALLPARK_PROFILES = [
 ]
 
 
+# park name -> the note above, for attaching to a live forecast row below.
+_MLB_BALLPARK_NOTES_BY_PARK = {p["park"]: p["effect"] for p in _MLB_BALLPARK_PROFILES}
+
+_COMPASS_POINTS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+
+
+def _compass(degrees: Optional[float]) -> Optional[str]:
+    if degrees is None or pd.isna(degrees):
+        return None
+    return _COMPASS_POINTS[round(float(degrees) / 45) % 8]
+
+
 def get_mlb_weather() -> Dict[str, Any]:
-    """Ballpark wind/elevation effect profiles -- MLB has no live per-game
-    weather field to backtest the way the NFL schedule does (see
-    get_nfl_weather() in app/data/nfl.py for that side), so this is static,
-    well-documented park knowledge rather than a computed backtest. Feeds
-    the MLB Weather page, paired with a source note on what a live version
-    would need (a per-game wind-speed/direction feed, keyed to game time,
-    for each home ballpark)."""
-    return {"ballparks": _MLB_BALLPARK_PROFILES}
+    """Live wind/temp/precip FORECAST for today's not-yet-started MLB games,
+    from get_weather_forecast.py's Open-Meteo pull (rebuilt every 2 hours --
+    see that script's docstring). Replaces the old static-ballpark-trivia
+    version of this page -- this is real, per-game, updates-through-the-day
+    data, not a fixed fact sheet.
+
+    A dome game (Tropicana Field is the only true fixed dome in MLB right
+    now) still gets a row, with weather fields left null, rather than
+    silently vanishing from the list -- the page shows "Indoors" for it.
+    Retractable-roof parks get a real forecast (most are played open more
+    often than not) plus a `roof: "retractable"` tag so the page can note
+    it may end up climate-controlled on the day.
+    """
+    forecast = get_mlb_data().get("weather_forecast", pd.DataFrame())
+    if forecast.empty:
+        return {"games": []}
+
+    games = []
+    for _, r in forecast.sort_values("game_time_utc").iterrows():
+        stadium = r.get("stadium")
+        games.append({
+            "home_team": r.get("home_team"), "away_team": r.get("away_team"),
+            "stadium": stadium, "roof": r.get("roof"),
+            "game_time_utc": r.get("game_time_utc"),
+            "temp_f": round(float(r["temp_f"])) if _is_number(r.get("temp_f")) else None,
+            "wind_mph": round(float(r["wind_mph"])) if _is_number(r.get("wind_mph")) else None,
+            "wind_gust_mph": round(float(r["wind_gust_mph"])) if _is_number(r.get("wind_gust_mph")) else None,
+            "wind_dir": _compass(r.get("wind_dir_deg")),
+            "precip_pct": round(float(r["precip_pct"])) if _is_number(r.get("precip_pct")) else None,
+            "note": _MLB_BALLPARK_NOTES_BY_PARK.get(stadium),
+        })
+
+    return {"games": games}
 
 
 # ---------------------------------------------------------------------------

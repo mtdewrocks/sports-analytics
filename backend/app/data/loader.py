@@ -202,6 +202,18 @@ def get_nfl_schedule() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_weather_forecast() -> pd.DataFrame:
+    """Live wind/temp/precip forecast for upcoming (not-yet-started) NFL
+    games, from Open-Meteo -- see get_weather_forecast.py's own docstring
+    for the full methodology. Rebuilt every 2 hours by that script, so this
+    OTHER_TTL just bounds how long a worker serves its own last fetch
+    between GitHub Actions runs, not how often the forecast itself moves.
+    """
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/nfl_weather_forecast.parquet", pd.read_parquet, "nfl weather forecast")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nfl_game_lines() -> pd.DataFrame:
     """Daily game-level spreads/totals, from get_game_lines.py -- pulled
     once a day (separate from the frequent player-props pull) since
@@ -402,6 +414,8 @@ def get_mlb_data() -> dict:
         # cheaper cadence from the props pull -- see that script's
         # docstring) ---
         ("game_lines", "game_lines.parquet", pd.read_parquet),  # daily spread/total, for Hit Rate Sheet
+        # --- Open-Meteo, rebuilt every 2 hours by get_weather_forecast.py ---
+        ("weather_forecast", "mlb_weather_forecast.parquet", pd.read_parquet),  # live forecast, upcoming games only
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}

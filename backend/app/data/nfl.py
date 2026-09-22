@@ -2,7 +2,7 @@
 from typing import Optional, List, Dict, Any
 import math
 import pandas as pd
-from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats, get_nfl_game_lines, ttl_cache, OTHER_TTL
+from app.data.loader import get_nfl_stats, get_nfl_team_stats, get_nfl_schedule, get_nfl_player_week_usage, get_nfl_weekly_defense_ranks, get_nfl_team_game_script, get_nfl_defense_by_position, get_nfl_snap_counts, get_nfl_rosters, get_nfl_season_totals, get_nfl_player_box_stats, get_nfl_game_lines, get_nfl_weather_forecast, ttl_cache, OTHER_TTL
 from app.data.hit_rate import grade_over_under, split_season_recent, RECENT_WINDOW
 
 # Stat groups for reference / display -- Game Log only (Fantasy Matchup,
@@ -2346,89 +2346,51 @@ def get_nfl_hit_rate_sheet(
     return out
 
 
-# Wind speed (mph) above which the backtest below buckets a game as
-# "high wind" -- roughly the sample median for 2026's outdoor games so far,
-# not a physically-derived cutoff. Revisit once there's a bigger sample.
-_WEATHER_WIND_BUCKET = 7.0
-# A game only counts as a wind-driven miss for the featured case study if
-# it also cleared this bucket -- otherwise the single biggest total miss of
-# the season could be a calm-weather blowout that has nothing to do with
-# weather, which would make the page's own headline number misleading.
-_WEATHER_FEATURED_MIN_WIND = _WEATHER_WIND_BUCKET
+_COMPASS_POINTS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+
+
+def _compass(degrees) -> Optional[str]:
+    if degrees is None or (isinstance(degrees, float) and pd.isna(degrees)):
+        return None
+    return _COMPASS_POINTS[round(float(degrees) / 45) % 8]
+
+
+def _wx_num(v) -> Optional[float]:
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return None
+    return float(v)
 
 
 def get_nfl_weather() -> Dict[str, Any]:
-    """Wind/temperature backtest for this season's outdoor games, from the
-    schedule's own post-game box-score fields (`roof`, `temp`, `wind`,
-    `total`, `total_line`) -- real recorded conditions, but only for games
-    already played; nothing here is a forecast. Feeds the NFL Weather page.
+    """Live wind/temp/precip FORECAST for upcoming (not-yet-started) NFL
+    games, from get_weather_forecast.py's Open-Meteo pull (rebuilt every 2
+    hours -- see that script's docstring). Replaces the old version of this
+    page, which was a BACKTEST of already-played games' real recorded
+    conditions vs. how the total came in -- useful in its own way, but not
+    what "weather page" should mean: nothing on it could tell you what to
+    expect for a game that hasn't been played yet.
 
-    `roof` in ("outdoors", "open") is what counts as an outdoor game here
-    -- "open" is a retractable-roof stadium that happened to play with the
-    roof open, so its temp/wind readings are just as real as a fully open
-    stadium's. "dome" and "closed" are excluded outright (no weather to
-    speak of), and a handful of older/incomplete rows have `roof` as NaN
-    and get excluded by the same filter.
-
-    `featured_game` highlights the single largest total-line miss among
-    games that also cleared the high-wind bucket, so the page always leads
-    with its best real illustration of the effect rather than a hardcoded
-    game that will look stale in a month -- None once no such game exists
-    yet (e.g. very early in a season before any high-wind game has been
-    played).
+    Covers every game still on the schedule with a future kickoff, not just
+    this week's -- a Thursday run already has next Sunday's slate. A dome
+    or usually-closed-roof game still gets a row with weather fields left
+    null (tagged `roof`) rather than disappearing from the list outright.
     """
-    schedule = get_nfl_schedule()
-    if schedule.empty:
-        return {"season": _current_nfl_season(), "games": [], "summary": None, "featured_game": None}
+    forecast = get_nfl_weather_forecast()
+    if forecast.empty:
+        return {"games": []}
 
-    season = _current_nfl_season()
-    games = schedule[
-        (schedule["season"] == season)
-        & (schedule["roof"].isin(["outdoors", "open"]))
-        & schedule["total"].notna()
-        & schedule["wind"].notna()
-    ].copy()
-    if games.empty:
-        return {"season": season, "games": [], "summary": None, "featured_game": None}
+    games = []
+    for _, r in forecast.sort_values("kickoff_utc").iterrows():
+        games.append({
+            "week": int(r["week"]) if pd.notna(r.get("week")) else None,
+            "home_team": r.get("home_team"), "away_team": r.get("away_team"),
+            "stadium": r.get("stadium"), "roof": r.get("roof"),
+            "kickoff_utc": r.get("kickoff_utc"),
+            "temp_f": round(_wx_num(r.get("temp_f"))) if _wx_num(r.get("temp_f")) is not None else None,
+            "wind_mph": round(_wx_num(r.get("wind_mph"))) if _wx_num(r.get("wind_mph")) is not None else None,
+            "wind_gust_mph": round(_wx_num(r.get("wind_gust_mph"))) if _wx_num(r.get("wind_gust_mph")) is not None else None,
+            "wind_dir": _compass(r.get("wind_dir_deg")),
+            "precip_pct": round(_wx_num(r.get("precip_pct"))) if _wx_num(r.get("precip_pct")) is not None else None,
+        })
 
-    games["diff"] = games["total"] - games["total_line"]
-
-    def _row(r) -> Dict[str, Any]:
-        # Takes a plain dict rather than an itertuples row or a Series
-        # directly -- a Series' own `.diff` is a bound method, not the
-        # "diff" column, so callers convert with dict(row._asdict()) or
-        # row.to_dict() before calling this.
-        return {
-            "week": int(r["week"]),
-            "home_team": str(r["home_team"]),
-            "away_team": str(r["away_team"]),
-            "stadium": str(r["stadium"]) if pd.notna(r["stadium"]) else None,
-            "roof": str(r["roof"]),
-            "wind": float(r["wind"]),
-            "temp": float(r["temp"]) if pd.notna(r["temp"]) else None,
-            "total_line": float(r["total_line"]),
-            "total": float(r["total"]),
-            "diff": round(float(r["diff"]), 1),
-        }
-
-    rows = [_row(r._asdict()) for r in games.sort_values("wind", ascending=False).itertuples()]
-
-    high = games[games["wind"] >= _WEATHER_WIND_BUCKET]
-    low = games[games["wind"] < _WEATHER_WIND_BUCKET]
-    summary = {
-        "wind_bucket_mph": _WEATHER_WIND_BUCKET,
-        "high_wind_unders": int((high["diff"] < 0).sum()),
-        "high_wind_games": int(len(high)),
-        "low_wind_unders": int((low["diff"] < 0).sum()),
-        "low_wind_games": int(len(low)),
-    }
-
-    featured_pool = games[(games["wind"] >= _WEATHER_FEATURED_MIN_WIND) & (games["diff"] < 0)]
-    featured_game = None
-    if not featured_pool.empty:
-        featured_row = featured_pool.loc[featured_pool["diff"].idxmin()]
-        featured_game = _row(featured_row.to_dict())
-
-    return {"season": season, "games": rows, "summary": summary, "featured_game": featured_game}
-
-    return out
+    return {"games": games}
