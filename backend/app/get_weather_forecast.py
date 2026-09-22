@@ -28,6 +28,7 @@ forecast window covers.)
 
 from __future__ import annotations
 
+import io
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -37,6 +38,16 @@ import requests
 
 MLB_API = "https://statsapi.mlb.com/api/v1"
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
+# Same value as Settings.NFL_BASE_URL in app/config.py, duplicated here on
+# purpose: this script runs as a bare `python backend/app/get_weather_
+# forecast.py` from the repo root in CI (see .github/workflows/
+# update_weather.yml), with no PYTHONPATH pointing at backend/, so `app` is
+# not an importable package in that context -- importing app.config raises
+# ModuleNotFoundError: No module named 'app'. Every sibling get_*.py script
+# in this file avoids the same trap by staying self-contained rather than
+# reaching into app.*, so this follows that convention instead of trying to
+# special-case an import path for one script.
+NFL_SCHEDULE_URL = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl/nfl_schedule.parquet"
 TIMEOUT = 30
 
 MLB_OUT = Path(__file__).resolve().parent.parent / "data" / "mlb" / "mlb_weather_forecast.parquet"
@@ -242,10 +253,8 @@ def _nfl_upcoming_games() -> pd.DataFrame:
     published schedule (this season, kickoff still in the future) -- not
     just this week's, so a Thursday run already has next Sunday's slate
     ready rather than waiting for the week to turn over."""
-    from app.config import settings
-    r = requests.get(f"{settings.NFL_BASE_URL}/nfl_schedule.parquet", timeout=TIMEOUT)
+    r = requests.get(NFL_SCHEDULE_URL, timeout=TIMEOUT)
     r.raise_for_status()
-    import io
     df = pd.read_parquet(io.BytesIO(r.content))
 
     now = datetime.now(timezone.utc)
