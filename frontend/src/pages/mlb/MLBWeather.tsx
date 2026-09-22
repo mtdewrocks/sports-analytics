@@ -4,6 +4,11 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
+interface WindEffect {
+  favors: 'hitters' | 'pitchers' | 'lhb' | 'rhb' | 'neutral';
+  label: string;
+}
+
 interface WeatherGame {
   home_team: string;
   away_team: string;
@@ -16,6 +21,18 @@ interface WeatherGame {
   wind_dir: string | null;
   precip_pct: number | null;
   note: string | null;
+  wind_effect: WindEffect | null;
+}
+
+// Same blue/red tough-vs-favorable scale as the Matchup pages: blue reads as
+// good for hitters, red as tough for hitters (favors pitchers). A crosswind
+// call (lhb/rhb) still favors somebody's fly balls over a calm day, so it
+// gets blue too -- it just isn't evenly split between both sides the way a
+// straight-out wind is.
+function windEffectColor(favors: WindEffect['favors']): string {
+  if (favors === 'pitchers') return theme.dataRed;
+  if (favors === 'neutral') return theme.textSecondary;
+  return theme.dataBlue;
 }
 
 function fmtTime(iso: string): string {
@@ -55,6 +72,11 @@ export default function MLBWeather() {
         Live forecast for today's not-yet-started games -- wind, temperature and rain chance at each
         ballpark, refreshed every couple of hours as game time approaches. Not a forecast for games
         that have already started or finished.
+        <div style={{ marginTop: 6 }}>
+          Wind effect (out/in/favors a side) assumes a park facing the standard east-northeast MLB
+          orientation, since real per-park layouts aren't published anywhere we could verify --
+          treat it as a reasonable approximation, not an exact reading for every park.
+        </div>
       </div>
 
       {loading && <LoadingSpinner />}
@@ -115,6 +137,12 @@ export default function MLBWeather() {
                         Retractable roof -- may end up played closed
                       </div>
                     )}
+                  </div>
+                )}
+
+                {g.wind_effect && (
+                  <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: windEffectColor(g.wind_effect.favors) }}>
+                    {g.wind_effect.label}
                   </div>
                 )}
 

@@ -2197,6 +2197,84 @@ def _compass(degrees: Optional[float]) -> Optional[str]:
     return _COMPASS_POINTS[round(float(degrees) / 45) % 8]
 
 
+# Home-plate-to-center-field compass bearing (0=N, 90=E, ...), used only to
+# classify which way today's wind is blowing relative to the field: "out"
+# carries fly balls and helps hitters, "in" knocks them down and helps
+# pitchers, and a crosswind favors whichever side's pull power it's
+# blowing toward.
+#
+# CAVEAT, please read before trusting this for any one park: we could not
+# find a real, per-park orientation dataset anywhere -- Baseball Almanac,
+# Wikipedia's stadium list, the Hardball Times' ballpark-orientation piece,
+# and several GitHub ballpark-dimension datasets were all checked, and
+# every one of them only shows this as a diagram/image, never as numbers.
+# So every park below shares one default: the "East Northeast" orientation
+# Official Baseball Rule 1.04 recommends for home plate through the
+# pitcher's mound to second base, which most modern parks were built to
+# roughly follow. A handful of real parks are known to deviate from this
+# (Daikin Park's downtown-Houston layout is the most commonly cited
+# example) but without a verified number for which ones and by how much,
+# guessing a specific bearing per park would risk being confidently wrong
+# for that park -- worse than a labeled approximation. The frontend calls
+# this out as an assumption rather than presenting it as fact. If a park's
+# real orientation gets confirmed, give it its own override here.
+_MLB_DEFAULT_CF_BEARING = 67.5  # "East Northeast"
+
+# Below this speed, direction isn't a meaningful signal -- a 3 mph breeze
+# blowing "out" doesn't actually carry a fly ball anywhere.
+_WIND_EFFECT_CALM_MPH = 6.0
+
+
+def _wind_field_effect(wind_dir_deg: Optional[float], wind_mph: Optional[float]) -> Optional[Dict[str, Any]]:
+    """Classifies today's forecasted wind against _MLB_DEFAULT_CF_BEARING
+    (see its comment for why this is a labeled approximation) into one of:
+    calm / out (helps both sides) / in (helps pitchers) / toward left field
+    (helps RHB pull power) / toward right field (helps LHB pull power).
+    Returns None when there's no wind data to classify (e.g. a dome)."""
+    if not _is_number(wind_dir_deg) or not _is_number(wind_mph):
+        return None
+    wind_mph = float(wind_mph)
+    if wind_mph < _WIND_EFFECT_CALM_MPH:
+        return {
+            "favors": "neutral",
+            "label": "Light wind -- shouldn't move fly balls much either way.",
+        }
+
+    # Open-Meteo's wind_direction_10m is the direction the wind blows FROM;
+    # flip it 180 to get the direction it's blowing TOWARD.
+    travel_deg = (float(wind_dir_deg) + 180) % 360
+    # Signed difference between where the wind's headed and straight-out-to-
+    # center, normalized to -180..180 (negative = toward left field as the
+    # batter faces out, positive = toward right field).
+    diff = ((travel_deg - _MLB_DEFAULT_CF_BEARING + 180) % 360) - 180
+
+    # Phrasing matches the "blowing right to left / left to right" style
+    # sites like RotoWire use in their own per-game weather notes -- as
+    # seen from the usual home-plate camera angle facing out toward center,
+    # right field is screen-right and left field is screen-left, so "right
+    # to left" is wind traveling toward left field (favors RHB pull power)
+    # and "left to right" is wind traveling toward right field (favors LHB).
+    if abs(diff) <= 30:
+        return {
+            "favors": "hitters",
+            "label": "Wind blowing out to center field -- helps fly balls carry, some boost to home run chances for both sides.",
+        }
+    if abs(diff) >= 150:
+        return {
+            "favors": "pitchers",
+            "label": "Wind blowing in from center field -- knocks down fly balls, reduces home run chances for both sides.",
+        }
+    if diff > 0:
+        return {
+            "favors": "lhb",
+            "label": "Wind blowing left to right, toward right field -- favors left-handed pull power over right-handed.",
+        }
+    return {
+        "favors": "rhb",
+        "label": "Wind blowing right to left, toward left field -- favors right-handed pull power over left-handed.",
+    }
+
+
 def get_mlb_weather() -> Dict[str, Any]:
     """Live wind/temp/precip FORECAST for today's not-yet-started MLB games,
     from get_weather_forecast.py's Open-Meteo pull (rebuilt every 2 hours --
@@ -2218,9 +2296,15 @@ def get_mlb_weather() -> Dict[str, Any]:
     games = []
     for _, r in forecast.sort_values("game_time_utc").iterrows():
         stadium = r.get("stadium")
+        roof = r.get("roof")
+        # A dome has no wind to classify; a closed retractable roof wouldn't
+        # either, but we don't know ahead of time whether it'll be open, so
+        # it gets the same treatment as an outdoor park (the page's existing
+        # "may end up played closed" note already covers that uncertainty).
+        wind_effect = None if roof == "dome" else _wind_field_effect(r.get("wind_dir_deg"), r.get("wind_mph"))
         games.append({
             "home_team": r.get("home_team"), "away_team": r.get("away_team"),
-            "stadium": stadium, "roof": r.get("roof"),
+            "stadium": stadium, "roof": roof,
             "game_time_utc": r.get("game_time_utc"),
             "temp_f": round(float(r["temp_f"])) if _is_number(r.get("temp_f")) else None,
             "wind_mph": round(float(r["wind_mph"])) if _is_number(r.get("wind_mph")) else None,
@@ -2228,6 +2312,7 @@ def get_mlb_weather() -> Dict[str, Any]:
             "wind_dir": _compass(r.get("wind_dir_deg")),
             "precip_pct": round(float(r["precip_pct"])) if _is_number(r.get("precip_pct")) else None,
             "note": _MLB_BALLPARK_NOTES_BY_PARK.get(stadium),
+            "wind_effect": wind_effect,
         })
 
     return {"games": games}
