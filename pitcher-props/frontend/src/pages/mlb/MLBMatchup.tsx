@@ -1,0 +1,994 @@
+import React, { useState, useEffect, useRef } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { getMLBPitchers, getMLBMatchup, getMLBPitcherProps } from '../../api/mlb';
+import { formatOdds, prettyBook } from '../../components/PropsExplorer';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import SearchDropdown from '../../components/SearchDropdown';
+import ScrollTable from '../../components/ScrollTable';
+import { stickyColStyle } from '../../components/tableStyles';
+import FilterPanel from '../../components/FilterPanel';
+import { usePanelLayout } from '../../components/filterStyles';
+import useIsMobile from '../../hooks/useIsMobile';
+import { theme } from '../../theme';
+
+const IMAGE_BASE = 'https://github.com/mtdewrocks/sports-analytics/raw/main/backend/data/mlb/pitcher_images';
+
+interface PitcherSplit {
+  avg?: number; woba?: number; slg?: number; iso?: number;
+  k_pct?: number; bb_pct?: number; hr_pct?: number;
+}
+
+interface MatchupData {
+  season_stats?: Record<string, any>;
+  game_logs?: Record<string, any>[];
+  splits?: Record<string, any>[];
+  percentiles?: { Statistic: string; Percentile: number }[];
+  opposing_hitters?: Record<string, any>[];
+  pitcher_splits?: { vs_r?: PitcherSplit; vs_l?: PitcherSplit };
+  [key: string]: any;
+}
+
+// ── Colorblind-safe tier system: red = tough matchup for the pitcher,
+// blue = favorable, gray = neutral. Blue/red stays distinguishable for the
+// common (red-green) forms of color blindness, since blue sits outside
+// that confusion line entirely.
+//
+// Redesigned for the dark theme: DARK now means "most vivid/visible tier"
+// (matching theme.dataRed/dataBlue) rather than "most saturated pastel" as
+// in the old light-mode version, and NEUTRAL is now a dark fill that blends
+// into the dark table -- the old light gray NEUTRAL (#eeeeee) would stand
+// out as its own highlight against a dark background, which is backwards
+// from its intended "nothing notable here" meaning. ──────────────────────
+const RED_DARK = theme.dataRed;
+const RED_MED = '#c2645a';
+const BLUE_MED = '#0ea5e9';
+const BLUE_DARK = '#1d4ed8';
+const NEUTRAL = theme.bgCardHover;
+
+function tier5(v: number | null | undefined, t90: number, t75: number, t25: number, t10: number): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > t90) return RED_DARK;
+  if (v > t75) return RED_MED;
+  if (v > t25) return NEUTRAL;
+  if (v > t10) return BLUE_MED;
+  return BLUE_DARK;
+}
+
+// AVG/ISO: fixed thresholds (not percentile-derived).
+function tierAvg(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 0.285) return RED_DARK;
+  if (v >= 0.270) return RED_MED;
+  if (v <= 0.200) return BLUE_DARK;
+  if (v <= 0.225) return BLUE_MED;
+  return NEUTRAL;
+}
+function tierIso(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 0.235) return RED_DARK;
+  if (v > 0.195) return RED_MED;
+  if (v <= 0.100) return BLUE_DARK;
+  if (v <= 0.125) return BLUE_MED;
+  return NEUTRAL;
+}
+// OBP/SLG/OPS/wOBA: real league-percentile-derived thresholds (90th/75th/25th/10th).
+const tierObp = (v?: number | null) => tier5(v, 0.370, 0.345, 0.295, 0.265);
+const tierSlg = (v?: number | null) => tier5(v, 0.495, 0.450, 0.365, 0.320);
+const tierOps = (v?: number | null) => tier5(v, 0.850, 0.790, 0.670, 0.600);
+const tierWoba = (v?: number | null) => tier5(v, 0.375, 0.355, 0.310, 0.280);
+
+// K%: INVERTED vs. the others -- a high strikeout rate is GOOD for the
+// pitcher (easy out), so high K% is blue, not red.
+function tierKpct(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 31) return BLUE_DARK;
+  if (v > 25) return BLUE_MED;
+  if (v < 14) return RED_DARK;
+  if (v < 17) return RED_MED;
+  return null;
+}
+function tierBb(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 13) return RED_DARK;
+  if (v > 11) return RED_MED;
+  if (v < 4.5) return BLUE_DARK;
+  if (v < 6.5) return BLUE_MED;
+  return null;
+}
+// Pitcher's OWN K rate -- high is good for the pitcher (blue). Only used in
+// the PDF's restored mini split-table; the page relies on the fuller,
+// pooled-season Splits table instead (see the duplicate-stats discussion).
+function tierPitcherKpct(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 27) return BLUE_DARK;
+  if (v > 23) return BLUE_MED;
+  if (v < 16) return RED_DARK;
+  if (v < 18) return RED_MED;
+  return null;
+}
+function tierHrPct(v: number | null | undefined): string | null {
+  if (v == null || isNaN(v)) return null;
+  if (v > 4.0) return RED_DARK;
+  if (v < 1.5) return BLUE_DARK;
+  return null;
+}
+
+function cellStyle(color: string | null): React.CSSProperties {
+  // Verified via WCAG contrast ratios against each specific fill: black
+  // text clears 4.5:1 on RED_DARK (6.28), RED_MED (5.26), and BLUE_MED
+  // (7.58). Two colors need light text instead: NEUTRAL is a dark fill
+  // (blends into the dark table, 16.17:1 with light text), and BLUE_DARK
+  // is a more saturated royal blue that actually FAILS with black text
+  // (3.13:1) but passes comfortably with theme.textPrimary (5.37:1).
+  if (!color) return {};
+  const useLightText = color === NEUTRAL || color === BLUE_DARK;
+  return { background: color, color: useLightText ? theme.textPrimary : '#000000', fontWeight: 600 };
+}
+
+function pctBarColor(pct: number) {
+  if (pct >= 70) return theme.dataBlue;
+  if (pct >= 40) return '#9ca3af';
+  return theme.dataRed;
+}
+
+const num = (v: any) => (v === '' || v == null ? null : Number(v));
+
+const SEASON_DISPLAY = ['Handedness', 'GS', 'W', 'L', 'ERA', 'IP', 'SO', 'K/IP', 'WHIP'];
+const LOG_COLUMNS = ['Date', 'Opponent', 'W', 'L', 'IP', 'H', 'R', 'ER', 'HR', 'BB', 'SO', 'Pitches'];
+const HITTER_COLUMNS = ['Batting Order', 'Player', 'Bats', 'Average', 'wOBA', 'OBP', 'SLG', 'OPS', 'ISO', 'K%', 'BB%', 'Last Week BA'];
+
+const cardStyle: React.CSSProperties = {
+  background: theme.bgCard,
+  borderRadius: 8,
+  boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+  marginBottom: 20,
+  overflow: 'hidden',
+};
+const cardHeaderStyle: React.CSSProperties = {
+  background: theme.bgCardHover,
+  color: theme.textPrimary,
+  padding: '10px 16px',
+  fontWeight: 700,
+  fontSize: 14,
+  textAlign: 'center',
+};
+const thStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  fontWeight: 600,
+  color: theme.textPrimary,
+  whiteSpace: 'nowrap',
+  background: theme.bgCardHover,
+  textAlign: 'center',
+};
+const tdStyle: React.CSSProperties = {
+  padding: '7px 12px',
+  textAlign: 'center',
+  whiteSpace: 'nowrap',
+  borderBottom: `1px solid ${theme.border}`,
+  color: theme.textPrimary,
+};
+
+// ── Shared pieces, reused by both the full page and the PDF summary, so the
+// two views can't silently drift out of sync with each other. ─────────────
+
+/**
+ * `compact` is the phone treatment, and it's only ever passed by the page --
+ * never by the hidden PDF layout, which must keep rendering at its fixed
+ * 1300px regardless of the browser width.
+ *
+ * These tables deliberately stay tables on a phone. They're matrices: the
+ * point of the opposing lineup is scanning a column of K% down the batting
+ * order, and a card per hitter destroys exactly that. So instead the row's
+ * identity sticks to the left edge and the numbers scroll under it.
+ */
+function GameLogTable({ logs, title, compact }: { logs: Record<string, any>[]; title: string; compact?: boolean }) {
+  if (logs.length === 0) return null;
+  const cols = LOG_COLUMNS.filter((c) => c in logs[0]);
+  const table = (
+    <table style={{
+      width: compact ? undefined : '100%', borderCollapse: 'collapse',
+      fontSize: compact ? 12 : 13, fontVariantNumeric: 'tabular-nums',
+    }}>
+      <thead>
+        <tr>
+          {cols.map((col, ci) => (
+            <th key={col} style={ci === 0 && compact ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), zIndex: 2, textAlign: 'left' } : thStyle}>
+              {col}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {logs.map((row, i) => {
+          const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+          return (
+            <tr key={i} style={{ background: bg }}>
+              {LOG_COLUMNS.filter((c) => c in row).map((col, ci) => (
+                <td
+                  key={col}
+                  style={ci === 0 && compact
+                    ? { ...tdStyle, ...stickyColStyle(bg), textAlign: 'left', fontWeight: 600, padding: '7px 10px' }
+                    : compact ? { ...tdStyle, padding: '7px 8px' } : tdStyle}
+                >
+                  {String(row[col] ?? '—')}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+
+  if (compact) {
+    return <div style={{ ...cardStyle, marginBottom: 0 }}><ScrollTable>{table}</ScrollTable></div>;
+  }
+
+  return (
+    <div style={{ ...cardStyle, flex: 2, minWidth: 400, marginBottom: 0 }}>
+      <div style={cardHeaderStyle}>{title}</div>
+      <div style={{ overflowX: 'auto' }}>{table}</div>
+    </div>
+  );
+}
+
+/** `dense` is the desktop side-column treatment, where the summary shares
+ *  its column with the Pitcher Props card and has to give up height. */
+function MatchupSummaryTable({ flags, dense }: { flags: { label: string; count: number }[]; dense?: boolean }) {
+  if (flags.length === 0) return null;
+  const pad = dense ? '4px 14px' : '7px 14px';
+  return (
+    <div style={{ ...cardStyle, flex: dense ? undefined : 1, minWidth: 260, marginBottom: 0 }}>
+      <div style={dense ? { ...cardHeaderStyle, padding: '8px 16px', fontSize: 13 } : cardHeaderStyle}>Matchup Summary</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: dense ? 12 : 13, lineHeight: dense ? 1.3 : undefined }}>
+        <tbody>
+          {flags.map((f) => (
+            <tr key={f.label} style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <td style={{ padding: pad, color: theme.textSecondary }}>{f.label}</td>
+              <td style={{ padding: pad, textAlign: 'right', fontWeight: 700, color: theme.textPrimary }}>{f.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Pitcher props ───────────────────────────────────────────────────────────
+
+interface PropSide { line: number | null; price: number; books: string[] }
+interface PitcherPropMarket {
+  market: string; label: string; consensus_line: number | null; book_count: number;
+  over: PropSide | null; under: PropSide | null;
+}
+interface PitcherPropsData {
+  markets: PitcherPropMarket[]; commence_time: string | null; is_live: boolean; fetched_at: string | null;
+}
+
+/** IP is outs in disguise: '5.2' is 17 outs, not 5.2 innings. */
+function ipToOuts(ip: any): number | null {
+  const [whole, frac] = String(ip ?? '').split('.');
+  const w = Number(whole);
+  if (whole === '' || isNaN(w)) return null;
+  return w * 3 + (frac ? Number(frac[0]) || 0 : 0);
+}
+
+/** The game-log value each market settles on. */
+const MARKET_STAT: Record<string, (row: Record<string, any>) => number | null> = {
+  pitcher_strikeouts: (r) => num(r['SO']),
+  pitcher_outs: (r) => ipToOuts(r['IP']),
+  pitcher_hits_allowed: (r) => num(r['H']),
+  pitcher_earned_runs: (r) => num(r['ER']),
+  pitcher_walks: (r) => num(r['BB']),
+  pitcher_record_a_win: (r) => num(r['W']),
+};
+
+/** How many of these starts went over the consensus line (or, for the win
+ *  market, how many were wins). Graded at the consensus rather than the
+ *  best-of lines so the count describes the number most books agree on. */
+function lastNOvers(m: PitcherPropMarket, logs: Record<string, any>[]): { overs: number; n: number } | null {
+  const get = MARKET_STAT[m.market];
+  if (!get || logs.length === 0) return null;
+  const line = m.market === 'pitcher_record_a_win' ? 0.5 : m.consensus_line;
+  if (line == null) return null;
+  const vals = logs.map(get).filter((v): v is number => v != null);
+  if (vals.length === 0) return null;
+  return { overs: vals.filter((v) => v > line).length, n: vals.length };
+}
+
+function sideLabel(m: PitcherPropMarket, side: 'over' | 'under', s: PropSide): string {
+  if (m.market === 'pitcher_record_a_win') return side === 'over' ? 'Yes' : 'No';
+  return `${side === 'over' ? 'o' : 'u'}${s.line}`;
+}
+
+function PropSideCell({ m, side, compact }: { m: PitcherPropMarket; side: 'over' | 'under'; compact?: boolean }) {
+  const s = m[side];
+  if (!s) return <td style={{ ...tdStyle, color: theme.textMuted, padding: compact ? '6px 8px' : '6px 10px' }}>—</td>;
+  // Flag a best line that's off the consensus -- that's the whole reason to
+  // shop it, and otherwise it reads as just another number.
+  const offConsensus = s.line != null && m.consensus_line != null && s.line !== m.consensus_line;
+  const books = s.books.map(prettyBook);
+  return (
+    <td style={{ ...tdStyle, padding: compact ? '6px 8px' : '6px 10px' }}>
+      <div>
+        <span style={{ color: offConsensus ? theme.accent : theme.textPrimary, fontWeight: offConsensus ? 700 : 400 }}>
+          {sideLabel(m, side, s)}
+        </span>{' '}
+        <span style={{ fontWeight: 700 }}>{formatOdds(s.price)}</span>
+      </div>
+      <div style={{ fontSize: 11, color: theme.textSecondary }}>
+        {books[0]}{books.length > 1 ? ` +${books.length - 1}` : ''}
+      </div>
+    </td>
+  );
+}
+
+function PitcherPropsCard({ data, logs, compact }: { data: PitcherPropsData | null; logs: Record<string, any>[]; compact?: boolean }) {
+  const header = compact ? null : <div style={{ ...cardHeaderStyle, padding: '8px 16px', fontSize: 13 }}>Pitcher Props — best line / price</div>;
+  const wrap = { ...cardStyle, marginBottom: 0, flex: compact ? undefined : 1 };
+  if (!data || data.markets.length === 0) {
+    return (
+      <div style={wrap}>
+        {header}
+        <div style={{ padding: '12px 16px', fontSize: 12, color: theme.textSecondary }}>
+          No lines posted for this pitcher yet.
+        </div>
+      </div>
+    );
+  }
+  const n = logs.length;
+  const start = data.commence_time ? new Date(data.commence_time) : null;
+  const th = { ...thStyle, padding: compact ? '6px 8px' : '6px 10px', fontSize: 12 };
+  return (
+    <div style={wrap}>
+      {header}
+      <ScrollTable>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, lineHeight: 1.3, fontVariantNumeric: 'tabular-nums' }}>
+          <thead>
+            <tr>
+              <th style={{ ...th, textAlign: 'left' }}>Prop</th>
+              <th style={th}>Best over</th>
+              <th style={th}>Best under</th>
+              <th style={th} title={`Starts, of the last ${n}, that went over the consensus line`}>{compact ? `L${n}` : `Last ${n}`}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.markets.map((m, i) => {
+              const hr = lastNOvers(m, logs);
+              const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+              return (
+                <tr key={m.market} style={{ background: bg }}>
+                  <td style={{ ...tdStyle, textAlign: 'left', padding: compact ? '6px 8px' : '6px 10px' }}>
+                    <div style={{ fontWeight: 600 }}>{m.label}</div>
+                    <div style={{ fontSize: 11, color: theme.textSecondary }}>
+                      {m.consensus_line != null ? `line ${m.consensus_line} · ` : ''}{m.book_count} {m.book_count === 1 ? 'book' : 'books'}
+                    </div>
+                  </td>
+                  <PropSideCell m={m} side="over" compact={compact} />
+                  <PropSideCell m={m} side="under" compact={compact} />
+                  <td style={{ ...tdStyle, padding: compact ? '6px 8px' : '6px 10px' }}>
+                    {hr ? <>{hr.overs}/{hr.n}{!compact && <> <span style={{ fontSize: 11, color: theme.textSecondary }}>{m.market === 'pitcher_record_a_win' ? 'W' : 'over'}</span></>}</> : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </ScrollTable>
+      <div style={{ padding: '6px 12px', fontSize: 11, lineHeight: 1.4, color: data.is_live ? theme.warningText : theme.textMuted }}>
+        {data.is_live
+          ? 'Game has started — prices frozen at first pitch.'
+          : start ? `First pitch ${start.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}. ` : ''}
+        {!data.is_live && 'Lowest over line and highest under line, then best price. Pick\u2019em apps excluded.'}
+      </div>
+    </div>
+  );
+}
+
+/** Fixed width for the batting-order column on mobile, so the player column
+ *  beside it knows what `left` offset to stick at. */
+const ORDER_COL_W = 30;
+
+function OpposingLineupTable({ hitters, compact }: { hitters: Record<string, any>[]; compact?: boolean }) {
+  if (hitters.length === 0) return null;
+  const table = (
+        <table style={{
+          width: compact ? undefined : '100%', borderCollapse: 'collapse',
+          fontSize: compact ? 12 : 13, fontVariantNumeric: 'tabular-nums',
+        }}>
+          <thead>
+            <tr>
+              {HITTER_COLUMNS.filter((c) => c in hitters[0]).map((col, ci) => (
+                <th
+                  key={col}
+                  style={compact && ci < 2
+                    ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), left: ci === 0 ? 0 : ORDER_COL_W, zIndex: 2, textAlign: 'left', width: ci === 0 ? ORDER_COL_W : undefined, padding: '8px 8px' }
+                    : thStyle}
+                >
+                  {compact && col === 'Batting Order' ? '#' : col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {hitters.map((row, i) => {
+              const tierMap: Record<string, string | null> = {
+                'Average': tierAvg(num(row['Average'])),
+                'wOBA': tierWoba(num(row['wOBA'])),
+                'OBP': tierObp(num(row['OBP'])),
+                'SLG': tierSlg(num(row['SLG'])),
+                'OPS': tierOps(num(row['OPS'])),
+                'ISO': tierIso(num(row['ISO'])),
+                'K%': tierKpct(num(row['K%'])),
+                'BB%': tierBb(num(row['BB%'])),
+              };
+              return (
+                <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
+                  {HITTER_COLUMNS.filter((c) => c in row).map((col, ci) => {
+                    const v = row[col];
+                    const displayVal = v === '' || v == null ? '—'
+                      : col === 'Batting Order' ? String(Math.round(Number(v)))
+                      : String(v);
+                    const tinted = cellStyle(tierMap[col] ?? null);
+                    // Batting order AND player both stick: the order alone is a
+                    // useless anchor once the name has scrolled away, and the
+                    // name is what you're actually reading the row for.
+                    // A sticky cell has to stay opaque, so it keeps the row
+                    // background rather than a tint that would let the scrolling
+                    // cells show through it.
+                    const sticky = compact && ci < 2
+                      ? stickyColStyle((i % 2 === 0 ? theme.bgCard : theme.bgPage), {
+                          left: ci === 0 ? 0 : ORDER_COL_W,
+                          textAlign: 'left', fontWeight: 600, padding: '7px 8px',
+                          width: ci === 0 ? ORDER_COL_W : undefined,
+                        })
+                      : null;
+                    return (
+                      <td key={col} style={{ ...tdStyle, ...tinted, ...(sticky ?? {}) }}>
+                        {displayVal}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+  );
+
+  return (
+    <div style={cardStyle}>
+      {!compact && <div style={cardHeaderStyle}>Opposing Lineup (batting order)</div>}
+      {compact
+        ? <ScrollTable>{table}</ScrollTable>
+        : <div style={{ overflowX: 'auto' }}>{table}</div>}
+      <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 16px' }}>
+        Darker red = tougher matchup for the pitcher; darker blue = more favorable. K% runs opposite
+        the others (a high strikeout rate favors the pitcher).
+      </div>
+    </div>
+  );
+}
+
+function PitcherSplitTable({ label, d }: { label: string; d?: PitcherSplit }) {
+  if (!d) return null;
+  const rows: { stat: string; val: number | undefined; fmt: (v: number) => string; color: string | null }[] = [
+    { stat: 'AVG', val: d.avg, fmt: (v) => v.toFixed(3), color: tierAvg(d.avg) },
+    { stat: 'wOBA', val: d.woba, fmt: (v) => v.toFixed(3), color: tierWoba(d.woba) },
+    { stat: 'SLG', val: d.slg, fmt: (v) => v.toFixed(3), color: tierSlg(d.slg) },
+    { stat: 'ISO', val: d.iso, fmt: (v) => v.toFixed(3), color: tierIso(d.iso) },
+    { stat: 'K%', val: d.k_pct, fmt: (v) => v.toFixed(1), color: tierPitcherKpct(d.k_pct) },
+    { stat: 'BB%', val: d.bb_pct, fmt: (v) => v.toFixed(1), color: tierBb(d.bb_pct) },
+    { stat: 'HR%', val: d.hr_pct, fmt: (v) => v.toFixed(1), color: tierHrPct(d.hr_pct) },
+  ];
+  return (
+    <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
+      <thead>
+        <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
+          <th colSpan={2} style={{ padding: '7px 12px', fontWeight: 700 }}>{label}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.stat} style={{ borderBottom: `1px solid ${theme.border}` }}>
+            <td style={{ padding: '6px 12px', fontWeight: 600, color: theme.textSecondary }}>{r.stat}</td>
+            <td style={{ padding: '6px 12px', textAlign: 'center', ...cellStyle(r.color) }}>
+              {r.val != null ? r.fmt(r.val) : '—'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/**
+ * One collapsible section of the mobile page.
+ *
+ * This is the biggest page in the app -- summary, game logs, splits,
+ * percentiles and an opposing-hitter grid, which on a phone is six or seven
+ * screens of scrolling to reach any one of them. You arrive here for one of
+ * those four things, so four taps' worth of choice beats the scroll. The row
+ * count sits in the header so a section says what it holds before you open it.
+ */
+function Section({
+  title, count, defaultOpen = false, children,
+}: { title: string; count?: number; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: open ? theme.bgCardHover : theme.bgCard, border: 'none',
+          borderRadius: open ? '8px 8px 0 0' : 8, padding: '13px 14px', minHeight: 46,
+          color: theme.textPrimary, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span>{title}</span>
+        <span style={{ color: theme.textMuted, fontSize: 11, fontWeight: 400 }}>
+          {count != null && `${count} `}<span aria-hidden>{open ? '▴' : '▾'}</span>
+        </span>
+      </button>
+      {open && <div style={{ paddingTop: 8 }}>{children}</div>}
+    </div>
+  );
+}
+
+export default function MLBMatchup() {
+  const [pitchers, setPitchers] = useState<string[]>([]);
+  const [loadingPitchers, setLoadingPitchers] = useState(true);
+  const [selectedPitcher, setSelectedPitcher] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
+  const [pitcherProps, setPitcherProps] = useState<PitcherPropsData | null>(null);
+  const latestPitcher = useRef('');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const panelLayout = usePanelLayout();
+
+  useEffect(() => {
+    setLoadingPitchers(true);
+    getMLBPitchers()
+      .then((res) => setPitchers(res.data))
+      .catch(() => setPitchers([]))
+      .finally(() => setLoadingPitchers(false));
+  }, []);
+
+  const fetchMatchup = async (pitcher: string) => {
+    if (!pitcher) return;
+    setLoading(true);
+    setError('');
+    setMatchupData(null);
+    setPitcherProps(null);
+    // Props load alongside, never blocking the page: a pitcher with no lines
+    // posted (or a failed props fetch) just shows the card's empty state.
+    // The pitcher check drops a response that lands after the user has
+    // already moved on to someone else.
+    getMLBPitcherProps(pitcher)
+      .then((res) => setPitcherProps((cur) => (latestPitcher.current === pitcher ? res.data : cur)))
+      .catch(() => {});
+    latestPitcher.current = pitcher;
+    try {
+      const res = await getMLBMatchup(pitcher);
+      setMatchupData(res.data);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Failed to fetch matchup data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // html2canvas snapshots the DOM as it is right now -- if the pitcher photo
+  // (a remote image, not guaranteed to be cached) hasn't finished loading
+  // yet, that region just renders blank with no error. Explicitly wait for
+  // every image inside the target element first.
+  const waitForImages = (el: HTMLElement): Promise<void[]> => {
+    const imgs = Array.from(el.querySelectorAll('img'));
+    return Promise.all(
+      imgs.map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // don't hang the export on a broken image
+          setTimeout(() => resolve(), 5000); // safety net either way
+        });
+      })
+    );
+  };
+
+  const downloadPdf = async () => {
+    const el = pdfRef.current;
+    if (!el || !matchupData) return;
+    setDownloadingPdf(true);
+    try {
+      await waitForImages(el);
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: theme.bgPage, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let w = maxWidth, h = w / ratio;
+      if (h > maxHeight) { h = maxHeight; w = h * ratio; }
+      pdf.addImage(imgData, 'PNG', (pageWidth - w) / 2, (pageHeight - h) / 2, w, h);
+      pdf.save(`${selectedPitcher.replace(/\s+/g, '_')}_matchup_summary.pdf`);
+    } catch {
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const seasonStats = matchupData?.season_stats;
+  const allGameLogs = matchupData?.game_logs ?? [];
+  const gameLogsFull = allGameLogs.slice(0, 10);   // full page: last 10
+  const gameLogsPdf = allGameLogs.slice(0, 5);      // PDF summary: last 5
+  const splits = matchupData?.splits ?? [];
+  const percentiles = matchupData?.percentiles ?? [];
+  const opposingHitters = matchupData?.opposing_hitters ?? [];
+  const pitcherSplits = matchupData?.pitcher_splits ?? {};
+  const splitsColumns = splits.length > 0 ? Object.keys(splits[0]) : [];
+
+  const seasonDisplay = seasonStats
+    ? SEASON_DISPLAY.filter((k) => k in seasonStats).map((k) => ({ key: k, val: seasonStats[k] }))
+    : [];
+
+  const photoUrl = selectedPitcher ? `${IMAGE_BASE}/${encodeURIComponent(selectedPitcher)}.jpg` : '';
+
+  // Matchup summary: count opposing hitters clearing each threshold. Shared
+  // by both the page and the PDF, since it's derived from the same
+  // opposingHitters data either way.
+  const summaryFlags: { label: string; count: number }[] = opposingHitters.length > 0 ? [
+    { label: 'Tough AVG (>.270)', count: opposingHitters.filter((h) => { const c = tierAvg(num(h['Average'])); return c === RED_DARK || c === RED_MED; }).length },
+    { label: 'Favorable AVG (<.250)', count: opposingHitters.filter((h) => { const c = tierAvg(num(h['Average'])); return c === BLUE_DARK || c === BLUE_MED; }).length },
+    { label: 'Tough ISO (>.150)', count: opposingHitters.filter((h) => { const c = tierIso(num(h['ISO'])); return c === RED_DARK || c === RED_MED; }).length },
+    { label: 'Favorable K (K%>25)', count: opposingHitters.filter((h) => tierKpct(num(h['K%'])) && [BLUE_DARK, BLUE_MED].includes(tierKpct(num(h['K%']))!)).length },
+    { label: 'Tough contact (K%<17)', count: opposingHitters.filter((h) => tierKpct(num(h['K%'])) && [RED_DARK, RED_MED].includes(tierKpct(num(h['K%']))!)).length },
+    { label: 'Tough BB (BB%>11)', count: opposingHitters.filter((h) => tierBb(num(h['BB%'])) && [RED_DARK, RED_MED].includes(tierBb(num(h['BB%']))!)).length },
+  ] : [];
+
+  const hasPitcherSplits = !!(pitcherSplits.vs_r || pitcherSplits.vs_l);
+
+  return (
+    <div style={{ ...panelLayout, overflow: isMobile ? 'visible' : 'hidden', background: theme.bgPage }}>
+
+      {/* ── Pitcher picker ── */}
+      <FilterPanel title="MLB Pitcher Matchup" width={220}>
+        <div style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Pitcher</div>
+        {loadingPitchers ? (
+          <div style={{ color: theme.textSecondary, fontSize: 12, padding: '8px 4px' }}>Loading pitchers…</div>
+        ) : (
+          <SearchDropdown
+            players={pitchers}
+            value={selectedPitcher}
+            onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
+            placeholder="Search pitcher..."
+            inputStyle={{ padding: '9px 10px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
+          />
+        )}
+        {/* Like the NFL matchup PDF, this renders a fixed 1300px landscape
+            layout -- a download you can't read on a phone. Desktop action. */}
+        {matchupData && !isMobile && (
+          <button
+            onClick={downloadPdf}
+            disabled={downloadingPdf}
+            style={{
+              width: '100%', marginTop: 16,
+              padding: '9px 0', background: downloadingPdf ? theme.bgCardHover : theme.accent, color: downloadingPdf ? theme.textMuted : 'white',
+              border: 'none', borderRadius: 4, fontWeight: 700, fontSize: 13,
+              cursor: downloadingPdf ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {downloadingPdf ? 'Generating PDF...' : 'Download Matchup Summary Report'}
+          </button>
+        )}
+      </FilterPanel>
+
+      {/* ── Main Content (full detail) ── */}
+      <div style={{
+        flex: 1,
+        overflowY: isMobile ? 'visible' : 'auto',
+        padding: isMobile ? 16 : '20px 24px',
+      }}>
+        {loading && <LoadingSpinner />}
+        {error && (
+          <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
+            {error}
+          </div>
+        )}
+
+        {!loading && matchupData && isMobile && (
+          <div>
+            {/* Summary stays open; everything else is one tap away. */}
+            <div style={{ ...cardStyle, padding: '14px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <img
+                src={photoUrl}
+                alt={selectedPitcher}
+                onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.border}`, flexShrink: 0 }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 16, color: theme.textPrimary }}>{selectedPitcher}</div>
+                {seasonDisplay.length > 0 && (
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+                    {seasonDisplay.map(({ key, val }, i) => (
+                      <span key={key}>
+                        {i > 0 && ' · '}
+                        <span style={{ color: theme.textPrimary, fontWeight: 700 }}>{String(val ?? '—')}</span> {key}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ height: 12 }} />
+
+            {gameLogsFull.length > 0 && (
+              <Section title="Last 10 starts" count={gameLogsFull.length}>
+                <GameLogTable logs={gameLogsFull} title="Last 10 Starts" compact />
+              </Section>
+            )}
+
+            <Section title="Pitcher props" count={pitcherProps?.markets.length ?? 0}>
+              <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} compact />
+            </Section>
+
+            {summaryFlags.length > 0 && (
+              <Section title="Matchup summary" count={summaryFlags.length}>
+                <MatchupSummaryTable flags={summaryFlags} />
+              </Section>
+            )}
+
+            {splits.length > 0 && (
+              <Section title="Splits vs L / vs R" count={splits.length}>
+                <div style={{ ...cardStyle, marginBottom: 0 }}>
+                  <ScrollTable>
+                    <table style={{ borderCollapse: 'collapse', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+                      <thead>
+                        <tr>
+                          {splitsColumns.map((col, ci) => (
+                            <th key={col} style={ci === 0 ? { ...thStyle, ...stickyColStyle(theme.bgCardHover), zIndex: 2, textAlign: 'left' } : thStyle}>
+                              {col}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {splits.map((row, i) => {
+                          const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+                          return (
+                            <tr key={i} style={{ background: bg }}>
+                              {splitsColumns.map((col, ci) => (
+                                <td
+                                  key={col}
+                                  style={ci === 0
+                                    ? { ...tdStyle, ...stickyColStyle(bg), textAlign: 'left', fontWeight: 600 }
+                                    : { ...tdStyle, padding: '7px 8px' }}
+                                >
+                                  {String(row[col] ?? '—')}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </ScrollTable>
+                  <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 14px' }}>
+                    2026 plate appearances count double relative to 2025 when the two seasons are combined.
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {percentiles.length > 0 && (
+              <Section title="2026 percentile rankings" count={percentiles.length}>
+                <div style={{ ...cardStyle, marginBottom: 0, padding: '12px 14px' }}>
+                  {percentiles.map((row, i) => {
+                    const pct = Math.round(Number(row.Percentile));
+                    const color = pctBarColor(pct);
+                    return (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 3 }}>
+                          <span style={{ fontWeight: 600, color: theme.textSecondary }}>{row.Statistic}</span>
+                          <span style={{ fontWeight: 700, color }}>{pct}th</span>
+                        </div>
+                        <div style={{ background: theme.bgCardHover, borderRadius: 4, height: 9, overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: color, borderRadius: 4 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
+            {opposingHitters.length > 0 && (
+              <Section title="Opposing hitters" count={opposingHitters.length} defaultOpen>
+                <OpposingLineupTable hitters={opposingHitters} compact />
+              </Section>
+            )}
+          </div>
+        )}
+
+        {!loading && matchupData && !isMobile && (
+          <div style={{ background: theme.bgPage, padding: 4 }}>
+
+            {/* ── Pitcher Photo + Season Stats ── */}
+            <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <img
+                src={photoUrl}
+                alt={selectedPitcher}
+                onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${theme.border}`, flexShrink: 0 }}
+              />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 18, color: theme.textPrimary, marginBottom: 10 }}>{selectedPitcher}</div>
+                {seasonDisplay.length > 0 && (
+                  <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
+                        {seasonDisplay.map(({ key }) => (
+                          <th key={key} style={{ padding: '7px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{key}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {seasonDisplay.map(({ key, val }) => (
+                          <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: theme.textPrimary, whiteSpace: 'nowrap', borderTop: `1px solid ${theme.border}` }}>
+                            {String(val ?? '—')}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            {/* ── Last 10 Starts + Matchup Summary side by side ── */}
+            <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+              <GameLogTable logs={gameLogsFull} title="Last 10 Starts" />
+              <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <MatchupSummaryTable flags={summaryFlags} dense />
+                <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} />
+              </div>
+            </div>
+
+            {/* ── Splits + Percentiles (full detail only -- not in the PDF) ── */}
+            {(splits.length > 0 || percentiles.length > 0) && (
+              <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+                {splits.length > 0 && (
+                  <div style={{ ...cardStyle, flex: 1, minWidth: 300, marginBottom: 0 }}>
+                    <div style={cardHeaderStyle}>Splits (vs L / vs R) — 2025–2026</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                          <tr>{splitsColumns.map((col) => <th key={col} style={thStyle}>{col}</th>)}</tr>
+                        </thead>
+                        <tbody>
+                          {splits.map((row, i) => (
+                            <tr key={i} style={{ background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
+                              {splitsColumns.map((col) => (
+                                <td key={col} style={{ ...tdStyle, fontWeight: col === 'Statistic' ? 600 : 400 }}>
+                                  {String(row[col] ?? '—')}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div style={{ fontSize: 11, color: theme.textMuted, fontStyle: 'italic', padding: '8px 16px' }}>
+                      2026 plate appearances count double relative to 2025 when the two seasons are combined.
+                    </div>
+                  </div>
+                )}
+                {percentiles.length > 0 && (
+                  <div style={{ ...cardStyle, flex: 1, minWidth: 300, marginBottom: 0 }}>
+                    <div style={cardHeaderStyle}>2026 Percentile Rankings</div>
+                    <div style={{ padding: '12px 16px' }}>
+                      {percentiles.map((row, i) => {
+                        const pct = Math.round(Number(row.Percentile));
+                        const color = pctBarColor(pct);
+                        return (
+                          <div key={i} style={{ marginBottom: 10 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+                              <span style={{ fontWeight: 600, color: theme.textSecondary }}>{row.Statistic}</span>
+                              <span style={{ fontWeight: 700, color }}>{pct}th</span>
+                            </div>
+                            <div style={{ background: theme.bgCardHover, borderRadius: 4, height: 10, overflow: 'hidden' }}>
+                              <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: color, borderRadius: 4, transition: 'width 0.4s ease' }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Opposing Hitters, with conditional formatting -- kept as
+                 the LAST section, matching the order used across every PDF
+                 draft we iterated on. ── */}
+            <OpposingLineupTable hitters={opposingHitters} />
+          </div>
+        )}
+
+        {!loading && !error && !matchupData && (
+          <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 16, marginTop: 80 }}>
+            Select a pitcher to load matchup data.
+          </div>
+        )}
+      </div>
+
+      {/* ── Hidden PDF-only layout: a shorter one-page summary, not a
+           screenshot of the full page above. Rendered off-screen at a
+           fixed width so it always captures the same landscape layout
+           regardless of the browser's actual size. ── */}
+      {matchupData && (
+        <div
+          ref={pdfRef}
+          style={{ position: 'fixed', top: 0, left: -10000, width: 1300, background: theme.bgPage, padding: 12 }}
+        >
+          <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <img
+              src={photoUrl}
+              alt={selectedPitcher}
+              crossOrigin="anonymous"
+              style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${theme.border}`, flexShrink: 0 }}
+            />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18, color: theme.textPrimary, marginBottom: 10 }}>{selectedPitcher}</div>
+              {seasonDisplay.length > 0 && (
+                <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: theme.bgCardHover, color: theme.textPrimary }}>
+                      {seasonDisplay.map(({ key }) => (
+                        <th key={key} style={{ padding: '7px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{key}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {seasonDisplay.map(({ key, val }) => (
+                        <td key={key} style={{ padding: '7px 14px', textAlign: 'center', fontWeight: 700, color: theme.textPrimary, whiteSpace: 'nowrap', borderTop: `1px solid ${theme.border}` }}>
+                          {String(val ?? '—')}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </div>
+            {hasPitcherSplits && (
+              <div style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
+                {pitcherSplits.vs_r && <div style={{ width: 200 }}><PitcherSplitTable label="vs. RHB" d={pitcherSplits.vs_r} /></div>}
+                {pitcherSplits.vs_l && <div style={{ width: 200 }}><PitcherSplitTable label="vs. LHB" d={pitcherSplits.vs_l} /></div>}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+            <GameLogTable logs={gameLogsPdf} title="Last 5 Starts" />
+            <MatchupSummaryTable flags={summaryFlags} />
+          </div>
+
+          <OpposingLineupTable hitters={opposingHitters} />
+        </div>
+      )}
+    </div>
+  );
+}
