@@ -18,6 +18,11 @@ def pitchers(_=Depends(require_access)):
 def matchup(pitcher: str = Query(...), _=Depends(require_access)):
     return mlb_data.get_pitcher_matchup(pitcher)
 
+@router.get("/pitcher-props")
+def pitcher_props(pitcher: str = Query(...), _=Depends(require_access)):
+    from app.data.props import get_pitcher_props
+    return get_pitcher_props(pitcher)
+
 @router.get("/hot-hitters")
 def hot_hitters(_=Depends(require_access)):
     return mlb_data.get_hot_hitters()

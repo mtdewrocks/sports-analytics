@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { getMLBPitcherDailyReport } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useIsMobile from '../../hooks/useIsMobile';
@@ -155,6 +156,20 @@ function PitcherCard({ r }: { r: PitcherRow }) {
           </div>
         </>
       )}
+
+      {/* An explicit link rather than making the whole card tappable, so a
+          scroll that lands on a card can't navigate away by accident. */}
+      <div style={{
+        display: 'flex', justifyContent: 'flex-end',
+        marginTop: 10, paddingTop: 9, borderTop: `1px solid ${theme.border}`,
+      }}>
+        <Link
+          to={`/mlb/matchup?pitcher=${encodeURIComponent(r.player)}`}
+          style={{ color: theme.accent, fontSize: 12, fontWeight: 600, textDecoration: 'none', padding: '2px 0' }}
+        >
+          Pitcher matchup →
+        </Link>
+      </div>
     </div>
   );
 }

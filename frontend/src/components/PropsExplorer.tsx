@@ -128,7 +128,7 @@ function parseOdds(val: any): number | null {
   return isNaN(n) ? null : n;
 }
 
-function formatOdds(n: number): string {
+export function formatOdds(n: number): string {
   return n > 0 ? `+${n}` : String(n);
 }
 
@@ -156,7 +156,7 @@ const BOOK_NAME: Record<string, string> = {
   mybookieag: 'MyBookie', betus: 'BetUS', fanatics: 'Fanatics', hardrockbet: 'Hard Rock Bet',
 };
 
-function prettyBook(book: string): string {
+export function prettyBook(book: string): string {
   return BOOK_NAME[book.toLowerCase()] ?? book.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 

@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from app.data.loader import get_middles_data, get_props_data
-from app.props_config import UNBETTABLE_BOOKS
+from app.props_config import NO_SINGLE_BET_BOOKS, UNBETTABLE_BOOKS
 
 # Only the books you can't bet at. Deliberately NOT the middles screen's list:
 # that one also drops prizepicks and pick6, which belong on this grid -- their
@@ -186,3 +186,111 @@ def get_middles(
         df = df[df["market"].astype(str).str.lower().str.strip() == _normalize(market)]
 
     return df.fillna("").to_dict(orient="records")
+
+
+# ── Pitcher props card (MLB Matchup page) ───────────────────────────────────
+
+# Main markets only. The alternate ladders are Over-only rungs running from
+# 2.5 K at -2500 upward, so "lowest line" across them would always be the
+# bottom rung -- a number nobody means by "best line".
+PITCHER_MARKETS = [
+    ("pitcher_strikeouts", "Strikeouts"),
+    ("pitcher_outs", "Outs"),
+    ("pitcher_hits_allowed", "Hits allowed"),
+    ("pitcher_earned_runs", "Earned runs"),
+    ("pitcher_walks", "Walks"),
+    ("pitcher_record_a_win", "To record a win"),
+]
+
+
+def _name_key(name: str) -> str:
+    """Accent-, case- and punctuation-insensitive, so 'José Berríos' on the
+    matchup page finds 'Jose Berrios' in The Odds API feed."""
+    import unicodedata
+    s = unicodedata.normalize("NFKD", str(name))
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return " ".join(s.lower().replace(".", "").split())
+
+
+def _best_side(df: pd.DataFrame, price_col: str, prefer_low_line: bool) -> Optional[Dict[str, Any]]:
+    """Most favorable line first (lowest for Over, highest for Under), then
+    the best price among the books at that line. Every book tied at that
+    line and price is returned, so the page can say 'FanDuel +2'."""
+    side = df.dropna(subset=[price_col])
+    if side.empty:
+        return None
+    has_line = side["Line"].notna().any()
+    if has_line:
+        side = side.dropna(subset=["Line"])
+        target = side["Line"].min() if prefer_low_line else side["Line"].max()
+        side = side[side["Line"] == target]
+    best = side[price_col].max()
+    books = sorted(side.loc[side[price_col] == best, "bookmakers"].astype(str).unique())
+    return {
+        "line": float(target) if has_line else None,
+        "price": int(best),
+        "books": books,
+    }
+
+
+def get_pitcher_props(pitcher: str) -> Dict[str, Any]:
+    """Best Over and Under for each main pitcher market, for the pitcher's
+    next (or in-progress) game."""
+    empty = {"markets": [], "commence_time": None, "is_live": False, "fetched_at": None}
+    df = get_props_data("mlb")
+    if df.empty or "Player" not in df.columns:
+        return empty
+
+    keys = {m for m, _ in PITCHER_MARKETS}
+    df = df[df["market"].isin(keys)]
+    # Pick'em apps are left out as well as the unbettable books: their
+    # "price" is a notional multiplier share, not odds a single bet is paid
+    # at (see NO_SINGLE_BET_BOOKS), so letting Dabble's +103 beat a real
+    # book's -110 would make "best price" mean something it doesn't.
+    books = df["bookmakers"].astype(str).str.lower()
+    df = df[~books.isin(EXCLUDED_BOOKS) & ~books.isin(NO_SINGLE_BET_BOOKS)]
+    df = df[df["Player"].map(_name_key) == _name_key(pitcher)]
+    if df.empty:
+        return empty
+
+    # A pitcher can carry lines for today AND a start later in the week
+    # (books post tomorrow's probables tonight), so pin one game: the
+    # earliest one that hasn't been over for long. Rows for a started game
+    # stay in the file ~6h (see get_props.py RETENTION); those are frozen
+    # pre-game prices, flagged live rather than hidden.
+    if "commence_time" in df.columns:
+        start = pd.to_datetime(df["commence_time"], utc=True, errors="coerce")
+        cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=5)
+        upcoming = start[start >= cutoff]
+        if upcoming.empty:
+            return empty
+        game_start = upcoming.min()
+        df = df[start == game_start]
+    else:
+        game_start = None
+
+    markets = []
+    for key, label in PITCHER_MARKETS:
+        m = df[df["market"] == key]
+        if m.empty:
+            continue
+        # The consensus line -- what most books hang -- for context next to
+        # the best-of lines, and as the number the L10 hit rate is graded at.
+        lines = m["Line"].dropna()
+        consensus = float(lines.mode().min()) if not lines.empty else None
+        markets.append({
+            "market": key,
+            "label": label,
+            "consensus_line": consensus,
+            "book_count": int(m["bookmakers"].nunique()),
+            "over": _best_side(m, "Over Price", prefer_low_line=True),
+            "under": _best_side(m, "Under Price", prefer_low_line=False),
+        })
+
+    fetched = df["fetched_at"].max() if "fetched_at" in df.columns else None
+    return {
+        "markets": markets,
+        "commence_time": game_start.isoformat() if game_start is not None else None,
+        "is_live": bool(game_start is not None and game_start <= pd.Timestamp.now(tz="UTC")),
+        "fetched_at": str(fetched) if fetched is not None else None,
+    }

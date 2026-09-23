@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { getMLBPitchers, getMLBMatchup } from '../../api/mlb';
+import { useSearchParams } from 'react-router-dom';
+import { getMLBPitchers, getMLBMatchup, getMLBPitcherProps } from '../../api/mlb';
+import { formatOdds, prettyBook } from '../../components/PropsExplorer';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import ScrollTable from '../../components/ScrollTable';
@@ -232,21 +234,161 @@ function GameLogTable({ logs, title, compact }: { logs: Record<string, any>[]; t
   );
 }
 
-function MatchupSummaryTable({ flags }: { flags: { label: string; count: number }[] }) {
+/** `dense` is the desktop side-column treatment, where the summary shares
+ *  its column with the Pitcher Props card and has to give up height. */
+function MatchupSummaryTable({ flags, dense }: { flags: { label: string; count: number }[]; dense?: boolean }) {
   if (flags.length === 0) return null;
+  const pad = dense ? '4px 14px' : '7px 14px';
   return (
-    <div style={{ ...cardStyle, flex: 1, minWidth: 260, marginBottom: 0 }}>
-      <div style={cardHeaderStyle}>Matchup Summary</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+    <div style={{ ...cardStyle, flex: dense ? undefined : 1, minWidth: 260, marginBottom: 0 }}>
+      <div style={dense ? { ...cardHeaderStyle, padding: '8px 16px', fontSize: 13 } : cardHeaderStyle}>Matchup Summary</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: dense ? 12 : 13, lineHeight: dense ? 1.3 : undefined }}>
         <tbody>
           {flags.map((f) => (
             <tr key={f.label} style={{ borderBottom: `1px solid ${theme.border}` }}>
-              <td style={{ padding: '7px 14px', color: theme.textSecondary }}>{f.label}</td>
-              <td style={{ padding: '7px 14px', textAlign: 'right', fontWeight: 700, color: theme.textPrimary }}>{f.count}</td>
+              <td style={{ padding: pad, color: theme.textSecondary }}>{f.label}</td>
+              <td style={{ padding: pad, textAlign: 'right', fontWeight: 700, color: theme.textPrimary }}>{f.count}</td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ── Pitcher props ───────────────────────────────────────────────────────────
+
+interface PropSide { line: number | null; price: number; books: string[] }
+interface PitcherPropMarket {
+  market: string; label: string; consensus_line: number | null; book_count: number;
+  over: PropSide | null; under: PropSide | null;
+}
+interface PitcherPropsData {
+  markets: PitcherPropMarket[]; commence_time: string | null; is_live: boolean; fetched_at: string | null;
+}
+
+/** Accent-, case- and punctuation-insensitive name key. Mirrors _name_key()
+ *  in backend/app/data/props.py. */
+function pitcherKey(name: string): string {
+  return name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+}
+
+/** IP is outs in disguise: '5.2' is 17 outs, not 5.2 innings. */
+function ipToOuts(ip: any): number | null {
+  const [whole, frac] = String(ip ?? '').split('.');
+  const w = Number(whole);
+  if (whole === '' || isNaN(w)) return null;
+  return w * 3 + (frac ? Number(frac[0]) || 0 : 0);
+}
+
+/** The game-log value each market settles on. */
+const MARKET_STAT: Record<string, (row: Record<string, any>) => number | null> = {
+  pitcher_strikeouts: (r) => num(r['SO']),
+  pitcher_outs: (r) => ipToOuts(r['IP']),
+  pitcher_hits_allowed: (r) => num(r['H']),
+  pitcher_earned_runs: (r) => num(r['ER']),
+  pitcher_walks: (r) => num(r['BB']),
+  pitcher_record_a_win: (r) => num(r['W']),
+};
+
+/** How many of these starts went over the consensus line (or, for the win
+ *  market, how many were wins). Graded at the consensus rather than the
+ *  best-of lines so the count describes the number most books agree on. */
+function lastNOvers(m: PitcherPropMarket, logs: Record<string, any>[]): { overs: number; n: number } | null {
+  const get = MARKET_STAT[m.market];
+  if (!get || logs.length === 0) return null;
+  const line = m.market === 'pitcher_record_a_win' ? 0.5 : m.consensus_line;
+  if (line == null) return null;
+  const vals = logs.map(get).filter((v): v is number => v != null);
+  if (vals.length === 0) return null;
+  return { overs: vals.filter((v) => v > line).length, n: vals.length };
+}
+
+function sideLabel(m: PitcherPropMarket, side: 'over' | 'under', s: PropSide): string {
+  if (m.market === 'pitcher_record_a_win') return side === 'over' ? 'Yes' : 'No';
+  return `${side === 'over' ? 'o' : 'u'}${s.line}`;
+}
+
+function PropSideCell({ m, side, compact }: { m: PitcherPropMarket; side: 'over' | 'under'; compact?: boolean }) {
+  const s = m[side];
+  if (!s) return <td style={{ ...tdStyle, color: theme.textMuted, padding: compact ? '6px 8px' : '6px 10px' }}>—</td>;
+  // Flag a best line that's off the consensus -- that's the whole reason to
+  // shop it, and otherwise it reads as just another number.
+  const offConsensus = s.line != null && m.consensus_line != null && s.line !== m.consensus_line;
+  const books = s.books.map(prettyBook);
+  return (
+    <td style={{ ...tdStyle, padding: compact ? '6px 8px' : '6px 10px' }}>
+      <div>
+        <span style={{ color: offConsensus ? theme.accent : theme.textPrimary, fontWeight: offConsensus ? 700 : 400 }}>
+          {sideLabel(m, side, s)}
+        </span>{' '}
+        <span style={{ fontWeight: 700 }}>{formatOdds(s.price)}</span>
+      </div>
+      <div style={{ fontSize: 11, color: theme.textSecondary }}>
+        {books[0]}{books.length > 1 ? ` +${books.length - 1}` : ''}
+      </div>
+    </td>
+  );
+}
+
+function PitcherPropsCard({ data, logs, compact }: { data: PitcherPropsData | null; logs: Record<string, any>[]; compact?: boolean }) {
+  const header = compact ? null : <div style={{ ...cardHeaderStyle, padding: '8px 16px', fontSize: 13 }}>Pitcher Props — best line / price</div>;
+  const wrap = { ...cardStyle, marginBottom: 0, flex: compact ? undefined : 1 };
+  if (!data || data.markets.length === 0) {
+    return (
+      <div style={wrap}>
+        {header}
+        <div style={{ padding: '12px 16px', fontSize: 12, color: theme.textSecondary }}>
+          No lines posted for this pitcher yet.
+        </div>
+      </div>
+    );
+  }
+  const n = logs.length;
+  const start = data.commence_time ? new Date(data.commence_time) : null;
+  const th = { ...thStyle, padding: compact ? '6px 8px' : '6px 10px', fontSize: 12 };
+  return (
+    <div style={wrap}>
+      {header}
+      <ScrollTable>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, lineHeight: 1.3, fontVariantNumeric: 'tabular-nums' }}>
+          <thead>
+            <tr>
+              <th style={{ ...th, textAlign: 'left' }}>Prop</th>
+              <th style={th}>Best over</th>
+              <th style={th}>Best under</th>
+              <th style={th} title={`Starts, of the last ${n}, that went over the consensus line`}>{compact ? `L${n}` : `Last ${n}`}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.markets.map((m, i) => {
+              const hr = lastNOvers(m, logs);
+              const bg = i % 2 === 0 ? theme.bgCard : theme.bgPage;
+              return (
+                <tr key={m.market} style={{ background: bg }}>
+                  <td style={{ ...tdStyle, textAlign: 'left', padding: compact ? '6px 8px' : '6px 10px' }}>
+                    <div style={{ fontWeight: 600 }}>{m.label}</div>
+                    <div style={{ fontSize: 11, color: theme.textSecondary }}>
+                      {m.consensus_line != null ? `line ${m.consensus_line} · ` : ''}{m.book_count} {m.book_count === 1 ? 'book' : 'books'}
+                    </div>
+                  </td>
+                  <PropSideCell m={m} side="over" compact={compact} />
+                  <PropSideCell m={m} side="under" compact={compact} />
+                  <td style={{ ...tdStyle, padding: compact ? '6px 8px' : '6px 10px' }}>
+                    {hr ? <>{hr.overs}/{hr.n}{!compact && <> <span style={{ fontSize: 11, color: theme.textSecondary }}>{m.market === 'pitcher_record_a_win' ? 'W' : 'over'}</span></>}</> : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </ScrollTable>
+      <div style={{ padding: '6px 12px', fontSize: 11, lineHeight: 1.4, color: data.is_live ? theme.warningText : theme.textMuted }}>
+        {data.is_live
+          ? 'Game has started — prices frozen at first pitch.'
+          : start ? `First pitch ${start.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}. ` : ''}
+        {!data.is_live && 'Lowest over line and highest under line, then best price. Pick\u2019em apps excluded.'}
+      </div>
     </div>
   );
 }
@@ -410,17 +552,42 @@ export default function MLBMatchup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
+  const [pitcherProps, setPitcherProps] = useState<PitcherPropsData | null>(null);
+  const latestPitcher = useRef('');
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const panelLayout = usePanelLayout();
 
+  // `?pitcher=` lets other pages (the Daily Report cards) open straight to
+  // one pitcher, and makes any matchup shareable as a link.
+  const [searchParams, setSearchParams] = useSearchParams();
+
   useEffect(() => {
+    // Arriving from a link lower down another page (e.g. the third Daily
+    // Report card), the router keeps that scroll position -- which lands
+    // past this page's header and pitcher picker. Start at the top.
+    window.scrollTo(0, 0);
     setLoadingPitchers(true);
     getMLBPitchers()
-      .then((res) => setPitchers(res.data))
+      .then((res) => {
+        const list: string[] = res.data;
+        setPitchers(list);
+        const wanted = searchParams.get('pitcher');
+        if (wanted) {
+          // Resolve against the dropdown's own list, so a name that differs
+          // only by accents or case ('Jose' vs 'José') still selects the
+          // right entry. Unmatched names are still tried as-is -- the
+          // matchup call then reports "not found" like any other miss.
+          const key = pitcherKey(wanted);
+          const match = list.find((n) => pitcherKey(n) === key) ?? wanted;
+          setSelectedPitcher(match);
+          fetchMatchup(match);
+        }
+      })
       .catch(() => setPitchers([]))
       .finally(() => setLoadingPitchers(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMatchup = async (pitcher: string) => {
@@ -428,6 +595,15 @@ export default function MLBMatchup() {
     setLoading(true);
     setError('');
     setMatchupData(null);
+    setPitcherProps(null);
+    // Props load alongside, never blocking the page: a pitcher with no lines
+    // posted (or a failed props fetch) just shows the card's empty state.
+    // The pitcher check drops a response that lands after the user has
+    // already moved on to someone else.
+    getMLBPitcherProps(pitcher)
+      .then((res) => setPitcherProps((cur) => (latestPitcher.current === pitcher ? res.data : cur)))
+      .catch(() => {});
+    latestPitcher.current = pitcher;
     try {
       const res = await getMLBMatchup(pitcher);
       setMatchupData(res.data);
@@ -524,7 +700,7 @@ export default function MLBMatchup() {
           <SearchDropdown
             players={pitchers}
             value={selectedPitcher}
-            onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); }}
+            onSelect={(p) => { setSelectedPitcher(p); fetchMatchup(p); setSearchParams({ pitcher: p }, { replace: true }); }}
             placeholder="Search pitcher..."
             inputStyle={{ padding: '9px 10px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
           />
@@ -592,6 +768,10 @@ export default function MLBMatchup() {
                 <GameLogTable logs={gameLogsFull} title="Last 10 Starts" compact />
               </Section>
             )}
+
+            <Section title="Pitcher props" count={pitcherProps?.markets.length ?? 0}>
+              <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} compact />
+            </Section>
 
             {summaryFlags.length > 0 && (
               <Section title="Matchup summary" count={summaryFlags.length}>
@@ -710,7 +890,10 @@ export default function MLBMatchup() {
             {/* ── Last 10 Starts + Matchup Summary side by side ── */}
             <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
               <GameLogTable logs={gameLogsFull} title="Last 10 Starts" />
-              <MatchupSummaryTable flags={summaryFlags} />
+              <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <MatchupSummaryTable flags={summaryFlags} dense />
+                <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} />
+              </div>
             </div>
 
             {/* ── Splits + Percentiles (full detail only -- not in the PDF) ── */}
