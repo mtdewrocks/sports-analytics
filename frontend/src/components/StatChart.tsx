@@ -113,6 +113,7 @@ export default function StatChart({ games, threshold, stat }: StatChartProps) {
           tickLine={false}
           tick={{ fontSize: 11, fill: theme.textSecondary }}
           width={36}
+          allowDecimals={false}
         />
         <Tooltip content={<CustomTooltip stat={stat} />} />
         <ReferenceLine
