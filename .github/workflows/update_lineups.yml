@@ -2,9 +2,10 @@ name: Update Lineups
 
 on:
   schedule:
-    # Every 20 minutes, 8:40 AM - 9:40 PM Central during daylight saving time
+    # Every 30 minutes, 10:07 AM - 9:07 PM Central during daylight saving time
     # (UTC-5). GitHub Actions cron is UTC, and the window crosses midnight UTC,
-    # so it takes two entries.
+    # so it takes several entries. During standard time (UTC-6, Nov-Mar) the
+    # same UTC entries land an hour earlier: 9:07 AM - 8:07 PM Central.
     #
     # WHY THREE SLOTS AN HOUR FOR AN HOURLY JOB
     # -----------------------------------------
@@ -36,8 +37,9 @@ on:
     # "7 14,19,1 * * *" is three times a day and plenty -- so you aren't
     # running 42 redundant jobs. Leave them as-is until the Render side has
     # proven itself for a day or two.
-    - cron: "7,27,47 13-23 * * *"   # 8:40 AM - 6:40 PM CDT
-    - cron: "7,27,47 0-2 * * *"     # 7:40 PM - 9:40 PM CDT
+    - cron: "7,37 15-23 * * *"   # 10:07 AM - 6:37 PM CDT
+    - cron: "7,37 0-1 * * *"     # 7:07 PM - 8:37 PM CDT
+    - cron: "7 2 * * *"          # 9:07 PM CDT
   workflow_dispatch:
 
 permissions:

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
 import { theme } from '../theme';
+import { flatPages, sportsBySeason } from '../siteMap';
 
 /** Height of the fixed mobile tab bar. App.tsx pads the page by this much so
  *  the last card on a page isn't sitting underneath it. */
@@ -15,51 +16,19 @@ export const NAV_HEIGHT = 56;
 export const CHIPBAR_HEIGHT = 54;
 
 interface NavItem { label: string; to: string; }
-interface NavGroup { key: string; label: string; icon: string; items: NavItem[]; }
+interface NavSection { label: string; items: NavItem[]; }
+interface NavGroup { key: string; label: string; icon: string; sections: NavSection[]; items: NavItem[]; }
 
-const GROUPS: NavGroup[] = [
-  {
-    key: 'nba', label: 'NBA', icon: '🏀',
-    items: [
-      { label: 'Game Logs', to: '/nba/game-log' },
-      { label: 'In/Out', to: '/nba/in-out' },
-      { label: 'Team Usage', to: '/nba/team-usage' },
-      { label: 'Team Matchup', to: '/nba/team-matchup' },
-      { label: 'Props', to: '/nba/props' },
-    ],
-  },
-  {
-    key: 'nfl', label: 'NFL', icon: '🏈',
-    items: [
-      { label: 'Game Log', to: '/nfl/game-log' },
-      { label: 'Team Matchup', to: '/nfl/matchup' },
-      { label: 'Fantasy Matchup', to: '/nfl/fantasy-matchup' },
-      { label: 'In/Out', to: '/nfl/in-out' },
-      { label: 'Screener', to: '/nfl/season-screener' },
-      { label: 'Team Usage', to: '/nfl/team-usage' },
-      { label: 'Usage Trend', to: '/nfl/usage-trend' },
-      { label: 'Mismatches', to: '/nfl/mismatches' },
-      { label: 'Props', to: '/nfl/props' },
-      { label: 'Middles & Arbs', to: '/nfl/middles' },
-      { label: 'Weather', to: '/nfl/weather' },
-    ],
-  },
-  {
-    key: 'mlb', label: 'MLB', icon: '⚾',
-    items: [
-      { label: 'Game Log', to: '/mlb/game-log' },
-      { label: 'Matchup Edge', to: '/mlb/matchup-edge' },
-      { label: 'Pitcher Matchup', to: '/mlb/matchup' },
-      { label: 'Team Matchup', to: '/mlb/team-matchup' },
-      { label: 'Bullpen', to: '/mlb/bullpen' },
-      { label: 'Pitcher Daily Report', to: '/mlb/pitcher-daily-report' },
-      { label: 'Hot Hitters', to: '/mlb/hot-hitters' },
-      { label: 'Props', to: '/mlb/props' },
-      { label: 'Middles & Arbs', to: '/mlb/middles' },
-      { label: 'Weather', to: '/mlb/weather' },
-    ],
-  },
-];
+// Built from siteMap.ts -- the one list the Dashboard and Landing page also
+// read -- with in-season sports first. `items` is the sections flattened in
+// order, for the mobile chip bar and the tab bar's landing page.
+const GROUPS: NavGroup[] = sportsBySeason().map((s) => ({
+  key: s.key,
+  label: s.label,
+  icon: s.icon,
+  sections: s.sections.map((sec) => ({ label: sec.label, items: sec.pages })),
+  items: flatPages(s),
+}));
 
 const styles: Record<string, React.CSSProperties> = {
   nav: {
@@ -100,8 +69,19 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 6,
     minWidth: 180,
     boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-    overflow: 'hidden',
+    // NFL runs 11 pages plus section headers -- scroll rather than run off
+    // the bottom of a short laptop screen.
+    maxHeight: 'calc(100vh - 72px)',
+    overflowY: 'auto',
     zIndex: 2000,
+  },
+  dropdownHeader: {
+    padding: '8px 16px 2px',
+    color: theme.textSecondary,
+    fontSize: 11,
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   dropdownLink: {
     display: 'block',
@@ -126,7 +106,7 @@ const styles: Record<string, React.CSSProperties> = {
 /** Desktop dropdown. Opens on click rather than hover, and closes on an
  *  outside click -- the hover version left menus stuck open on any device
  *  without a real pointer. */
-function NavDropdown({ label, items }: { label: string; items: NavItem[] }) {
+function NavDropdown({ label, sections }: { label: string; sections: NavSection[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLLIElement>(null);
 
@@ -151,23 +131,28 @@ function NavDropdown({ label, items }: { label: string; items: NavItem[] }) {
       </button>
       {open && (
         <div style={styles.dropdown}>
-          {items.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              style={styles.dropdownLink}
-              onClick={() => setOpen(false)}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = theme.bgCardHover;
-                (e.currentTarget as HTMLElement).style.color = theme.textPrimary;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = '';
-                (e.currentTarget as HTMLElement).style.color = theme.textSecondary;
-              }}
-            >
-              {item.label}
-            </Link>
+          {sections.map((section, i) => (
+            <div key={section.label} style={i > 0 ? { borderTop: `1px solid ${theme.border}` } : undefined}>
+              <div style={styles.dropdownHeader}>{section.label}</div>
+              {section.items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  style={styles.dropdownLink}
+                  onClick={() => setOpen(false)}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = theme.bgCardHover;
+                    (e.currentTarget as HTMLElement).style.color = theme.textPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = '';
+                    (e.currentTarget as HTMLElement).style.color = theme.textSecondary;
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -360,7 +345,7 @@ export default function Navbar() {
             Hit Rate Sheet
           </Link>
         </li>
-        {GROUPS.map((g) => <NavDropdown key={g.key} label={g.label} items={g.items} />)}
+        {GROUPS.map((g) => <NavDropdown key={g.key} label={g.label} sections={g.sections} />)}
       </ul>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

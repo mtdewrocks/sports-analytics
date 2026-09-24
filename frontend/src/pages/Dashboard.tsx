@@ -1,85 +1,87 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
+import { CROSS_SPORT_PAGES, isInSeason, sportsBySeason } from '../siteMap';
+import type { SitePage } from '../siteMap';
 
-interface PageLink {
-  label: string;
-  to: string;
-  description: string;
+// Every page comes from siteMap.ts, the same list the Navbar reads, so a new
+// page can't be added to the menu and forgotten here again. Sport colors are
+// defined there too (verified for contrast against theme.bgCard).
+
+function PageCard({ page, color }: { page: SitePage; color: string }) {
+  return (
+    <Link
+      to={page.to}
+      style={{
+        display: 'block', textDecoration: 'none', color: 'inherit',
+        background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8,
+        padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.bgCardHover; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.bgCard; }}
+    >
+      <div style={{ fontWeight: 700, fontSize: 15, color, marginBottom: 6 }}>{page.label}</div>
+      <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.4 }}>{page.description}</div>
+    </Link>
+  );
 }
 
-interface SportSection {
-  sport: string;
-  color: string;
-  pages: PageLink[];
-}
+const grid: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+  gap: 12,
+};
 
-// Colors verified via WCAG contrast check against the dark card background
-// (theme.bgCard, #161b22) -- the original light-mode sport colors (navy
-// #1a1a2e, blue #0f3460, purple #7b2d8e) all fail the 4.5:1 minimum here
-// (1.01 / 1.38 / 2.15), since they were tuned for use on a WHITE card.
-// These are brighter equivalents that keep each sport visually distinct
-// while actually being legible on a dark surface.
-const sections: SportSection[] = [
-  {
-    sport: 'NFL',
-    color: '#5b9bf0',
-    pages: [
-      { label: 'Game Log', to: '/nfl/game-log', description: 'Player stats by week, with opponent defense context' },
-      { label: 'Matchup', to: '/nfl/matchup', description: 'Team comparison and projected game script for an upcoming game' },
-      { label: 'Mismatches', to: '/nfl/mismatches', description: "This week's biggest statistical edges, league-wide" },
-    ],
-  },
-  {
-    sport: 'MLB',
-    color: '#3ab7d1',
-    pages: [
-      { label: 'Matchup', to: '/mlb/matchup', description: 'Starting pitcher matchup breakdown' },
-      { label: 'Bullpen', to: '/mlb/bullpen', description: 'Bullpen workload and freshness by team' },
-      { label: 'Hot Hitters', to: '/mlb/hot-hitters', description: 'Players trending up recently' },
-      { label: 'Props', to: '/mlb/props', description: 'Prop research across recent games' },
-    ],
-  },
-  {
-    sport: 'NBA',
-    color: '#c674db',
-    pages: [
-      { label: 'Game Log', to: '/nba/game-log', description: 'Player stats by game' },
-      { label: 'In/Out', to: '/nba/in-out', description: 'Availability and injury context' },
-      { label: 'Props', to: '/nba/props', description: 'Prop research across recent games' },
-    ],
-  },
-];
+const sectionLabel: CSSProperties = {
+  color: theme.textSecondary,
+  fontSize: 12,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: 0.6,
+  margin: '16px 0 8px',
+};
 
 export default function Dashboard() {
-  return (
-    <div style={{ padding: 32, maxWidth: 1100, margin: '0 auto', background: theme.bgPage, minHeight: 'calc(100vh - 56px)' }}>
-      <h1 style={{ color: theme.textPrimary, marginBottom: 4 }}>Sports Analytics</h1>
-      <p style={{ color: theme.textSecondary, marginBottom: 32 }}>Pick a sport and a page to get started.</p>
+  const isMobile = useIsMobile();
+  const sports = sportsBySeason();
 
-      {sections.map((section) => (
-        <div key={section.sport} style={{ marginBottom: 32 }}>
-          <h2 style={{ color: section.color, fontSize: 18, marginBottom: 12 }}>{section.sport}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-            {section.pages.map((page) => (
-              <Link
-                key={page.to}
-                to={page.to}
-                style={{
-                  display: 'block', textDecoration: 'none', color: 'inherit',
-                  background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8,
-                  padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.bgCardHover; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.bgCard; }}
-              >
-                <div style={{ fontWeight: 700, fontSize: 15, color: section.color, marginBottom: 6 }}>
-                  {page.label}
-                </div>
-                <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.4 }}>{page.description}</div>
-              </Link>
-            ))}
-          </div>
-        </div>
+  return (
+    <div style={{
+      padding: isMobile ? 16 : 32, maxWidth: 1100, margin: '0 auto',
+      background: theme.bgPage, minHeight: 'calc(100vh - 56px)',
+    }}>
+      <h1 style={{ color: theme.textPrimary, fontSize: isMobile ? 26 : 32, lineHeight: 1.2, margin: '0 0 6px' }}>Sports Analytics</h1>
+      <p style={{ color: theme.textSecondary, marginBottom: 24 }}>Pick a sport and a page to get started.</p>
+
+      <div style={{ ...grid, marginBottom: 32 }}>
+        {CROSS_SPORT_PAGES.map((page) => <PageCard key={page.to} page={page} color={theme.accent} />)}
+      </div>
+
+      {sports.map((sport) => (
+        <section key={sport.key} style={{ marginBottom: 36 }}>
+          <h2 style={{ color: sport.color, fontSize: 20, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span aria-hidden>{sport.icon}</span>
+            {sport.label}
+            {!isInSeason(sport) && (
+              <span style={{
+                fontSize: 11, fontWeight: 600, color: theme.textSecondary,
+                border: `1px solid ${theme.borderStrong}`, borderRadius: 999, padding: '2px 8px',
+              }}>
+                Off-season
+              </span>
+            )}
+          </h2>
+
+          {sport.sections.map((sec) => (
+            <div key={sec.label}>
+              <div style={sectionLabel}>{sec.label}</div>
+              <div style={grid}>
+                {sec.pages.map((page) => <PageCard key={page.to} page={page} color={sport.color} />)}
+              </div>
+            </div>
+          ))}
+        </section>
       ))}
     </div>
   );

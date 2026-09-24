@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { flatPages, sportsBySeason } from '../siteMap';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -88,23 +89,12 @@ export default function Landing() {
             Comprehensive Sports Coverage
           </h2>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[
-              {
-                icon: '🏀',
-                title: 'NBA Analysis',
-                desc: 'Game logs, player props, in/out analysis, teammate correlations, and advanced stat filters. Track performance against specific opponents and in back-to-back scenarios.',
-              },
-              {
-                icon: '🏈',
-                title: 'NFL Analysis',
-                desc: 'Weekly game logs, team matchup breakdowns, and player performance data. Compare teams side-by-side with detailed stat rankings.',
-              },
-              {
-                icon: '⚾',
-                title: 'MLB Analysis',
-                desc: 'Pitcher vs. hitter matchups, hot hitter trends, and prop odds from top sportsbooks. Percentile rankings and last-10 game performance logs.',
-              },
-            ].map((card) => (
+            {sportsBySeason().map((s) => ({
+              icon: s.icon,
+              title: `${s.label} Analysis`,
+              desc: s.pitch,
+              count: flatPages(s).length,
+            })).map((card) => (
               <div
                 key={card.title}
                 style={{
@@ -129,6 +119,7 @@ export default function Landing() {
                 <div style={{ fontSize: 48, marginBottom: 16 }}>{card.icon}</div>
                 <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: theme.textPrimary }}>{card.title}</h3>
                 <p style={{ color: theme.textSecondary, lineHeight: 1.6, fontSize: 14 }}>{card.desc}</p>
+                <div style={{ marginTop: 16, color: theme.accent, fontSize: 13, fontWeight: 600 }}>{card.count} tools</div>
               </div>
             ))}
           </div>
