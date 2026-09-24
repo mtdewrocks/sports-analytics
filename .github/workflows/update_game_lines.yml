@@ -8,7 +8,7 @@ on:
     # endpoint (one call covers every upcoming game), so they're cheap
     # enough to refresh daily but don't need props' frequent cadence.
     # 14:00 UTC = 9:00 AM CDT / 8:00 AM CST.
-    - cron: "0 14 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch:
 
 permissions:
