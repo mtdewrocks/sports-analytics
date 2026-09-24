@@ -10,7 +10,7 @@ on:
     # whole day without fresh Statcast rather than an hour. The second slot is
     # the retry; the job is idempotent, so a second run just re-uploads the
     # same assets over themselves.
-    - cron: "9 13 * * *"
+    - cron: "9 11 * * *"
     - cron: "38 14 * * *"
   workflow_dispatch:
 
