@@ -145,7 +145,7 @@ function NavDropdown({ label, sections }: { label: string; sections: NavSection[
         <div style={styles.dropdown}>
           {sections.map((section, i) => (
             <div key={section.label} style={i > 0 ? { borderTop: `1px solid ${theme.border}` } : undefined}>
-              <div style={styles.dropdownHeader}>{section.label}</div>
+              {section.label && <div style={styles.dropdownHeader}>{section.label}</div>}
               {section.items.map((item) => (
                 <Link
                   key={item.to}

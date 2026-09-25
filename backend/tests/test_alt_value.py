@@ -53,3 +53,24 @@ def test_live_and_yes_no_rows_skipped():
     rows = [row(5.5, {"betmgm": 130}, "17/30", "6/10", live=True),
             row("Yes", {"betmgm": 130}, "17/30", "6/10", market="pitcher_record_a_win")]
     assert build_ladders(rows, flagged_only=False, min_rungs=1) == []
+
+
+def test_core_range_is_minus_400_to_plus_600():
+    rows = [row(0.5, {"fanatics": -8000}, "29/30", "10/10"),
+            row(1.5, {"fanatics": -1400}, "27/30", "10/10"),
+            row(2.5, {"betmgm": -400}, "25/30", "8/10"),
+            row(3.5, {"espnbet": -220}, "23/30", "7/10"),
+            row(4.5, {"fanduel": 128}, "18/30", "6/10"),
+            row(6.5, {"fanduel": 600}, "11/30", "5/10"),
+            row(8.5, {"espnbet": 2000}, "2/30", "1/10")]
+    out = build_ladders(rows, min_games=10, rung_range="core", flagged_only=False)
+    assert [r["line"] for r in out[0]["rungs"]] == [2.5, 3.5, 4.5, 6.5]
+    assert len(build_ladders(rows, min_games=10, rung_range="all", flagged_only=False)[0]["rungs"]) == 7
+
+
+def test_context_fn_attached_and_favorable_filter():
+    rows = [row(4.5, {"fanduel": 128}, "18/30", "6/10"), row(5.5, {"espnbet": 240}, "14/30", "6/10")]
+    out = build_ladders(rows, min_games=10, context_fn=lambda l: {"verdict": "tough"})
+    assert out[0]["matchup"] == {"verdict": "tough"}
+    assert build_ladders(rows, min_games=10, context_fn=lambda l: {"verdict": "tough"},
+                         favorable_only=True) == []

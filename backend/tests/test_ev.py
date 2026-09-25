@@ -79,3 +79,13 @@ def test_price_since_from_snapshots(patch):
     patch(_rows([("pinnacle", -118, -102), ("fanduel", 112, -140)]), snaps)
     out = ev.get_ev("nba")
     assert out[0]["price_since"] == "2026-09-25T11:40:00+00:00"
+
+
+def test_one_card_per_bet_with_other_books(patch):
+    patch(_rows([("pinnacle", -108, -123), ("betmgm", -140, 110), ("draftkings", -135, 106),
+                 ("fanduel", -130, -110)]))
+    out = ev.get_ev("nba", source="auto")
+    unders = [r for r in out if r["side"] == "under"]
+    assert len(unders) == 1
+    assert (unders[0]["book"], unders[0]["price"]) == ("betmgm", 110)
+    assert [o["book"] for o in unders[0]["other_books"]] == ["draftkings"]

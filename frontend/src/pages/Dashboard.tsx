@@ -87,8 +87,8 @@ export default function Dashboard() {
           {BETTING.label}
         </h2>
         {BETTING.sections.map((sec) => (
-          <div key={sec.label}>
-            <div style={sectionLabel}>{sec.label}</div>
+          <div key={sec.label} style={sec.label ? undefined : { marginTop: 12 }}>
+            {sec.label && <div style={sectionLabel}>{sec.label}</div>}
             <div style={grid}>
               {sec.pages.map((page) => <PageCard key={page.to} page={page} color={BETTING.color} />)}
             </div>

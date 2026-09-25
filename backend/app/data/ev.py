@@ -222,5 +222,29 @@ def get_ev(
                     "fetched_at": fetched,
                 })
 
+    return best_book_only(out)
+
+
+def best_book_only(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """One row per bet (prop line + side): the book with the highest EV.
+    Other books that also clear the bar are listed in `other_books` so the
+    card can say "also +EV at ..." -- every book's price is still in
+    `prices` for the expanded view."""
+    best: Dict[tuple, Dict[str, Any]] = {}
+    others: Dict[tuple, List[Dict[str, Any]]] = {}
+    for r in rows:
+        key = (r["event_id"], r["player"], r["market"], r["line"], r["side"])
+        cur = best.get(key)
+        if cur is None or (r["ev_pct"], r["price"]) > (cur["ev_pct"], cur["price"]):
+            if cur is not None:
+                others.setdefault(key, []).append(cur)
+            best[key] = r
+        else:
+            others.setdefault(key, []).append(r)
+    out = []
+    for key, r in best.items():
+        alt = sorted(others.get(key, []), key=lambda x: x["ev_pct"], reverse=True)
+        out.append({**r, "other_books": [
+            {"book": a["book"], "price": a["price"], "ev_pct": a["ev_pct"]} for a in alt]})
     out.sort(key=lambda x: x["ev_pct"], reverse=True)
     return out

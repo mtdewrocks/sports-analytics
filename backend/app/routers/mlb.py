@@ -137,11 +137,13 @@ def mlb_ev(
 def mlb_alt_value(
     market: Optional[str] = Query(None), player: Optional[str] = Query(None),
     min_ev: float = Query(3.0, ge=0, le=100), flagged_only: bool = Query(True),
+    rungs: str = Query("core", pattern="^(core|all)$"), favorable_only: bool = Query(False),
     _=Depends(require_access),
 ):
     """Alt-Line Value -- see app/data/alt_value.py."""
     from app.data.alt_value import get_alt_value
-    return get_alt_value("mlb", mlb_data.get_mlb_hit_rate_sheet, market, player, min_ev, flagged_only)
+    return get_alt_value("mlb", mlb_data.get_mlb_hit_rate_sheet, market, player, min_ev, flagged_only,
+                         rungs, favorable_only)
 
 
 @router.post("/refresh")

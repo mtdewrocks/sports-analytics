@@ -49,6 +49,7 @@ PRIOR_GAMES = 15.0
 PRIOR_EXPECTED_HITS = 3.0
 RECENT_WEIGHT = 0.2
 MAX_FLAG_PRICE = 600
+MIN_SHOWN_PRICE = -400
 MIN_GAMES = {"mlb": 10, "nfl": 4}
 DEFAULT_MIN_GAMES = 6
 LONGSHOT_PRICE = 300
@@ -111,10 +112,30 @@ def _qualifies(rung: Dict[str, Any], min_ev: float, min_games: int) -> bool:
     return rung["ev_pct"] >= min_ev
 
 
+def _in_range(rung: Dict[str, Any], rung_range: str) -> bool:
+    """"core" keeps the rungs worth looking at: -400 up to the flagging cap
+    (+600). Heavier favorites (-1400, -8000) pay too little to matter and far
+    long shots are never flagged anyway, so by default neither is shown."""
+    if rung_range == "all":
+        return True
+    return MIN_SHOWN_PRICE <= rung["best_price"] <= MAX_FLAG_PRICE
+
+
 def build_ladders(rows: List[Dict[str, Any]], min_ev: float = 3.0, min_rungs: int = 2,
-                  flagged_only: bool = True, min_games: int = DEFAULT_MIN_GAMES) -> List[Dict[str, Any]]:
+                  flagged_only: bool = True, min_games: int = DEFAULT_MIN_GAMES,
+                  rung_range: str = "all",
+                  context_fn: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
+                  favorable_only: bool = False) -> List[Dict[str, Any]]:
     """Group Hit Rate Sheet rows into ladders and pick each ladder's best
-    rung. Pure function of its input, so it's tested directly."""
+    rung. Pure function of its input (plus `context_fn`), so it's tested
+    directly.
+
+    rung_range      "all", or "core" for rungs priced MIN_SHOWN_PRICE to MAX_FLAG_PRICE.
+                    The best rung is chosen from the rungs shown.
+    context_fn      Optional today's-matchup context per ladder (MLB:
+                    app/data/mlb_context.py). Attached as `matchup`.
+    favorable_only  Keep only ladders whose matchup verdict is favorable.
+    """
     ladders: Dict[Tuple[str, str], Dict[str, Any]] = {}
     for row in rows:
         if row.get("is_live") or isinstance(row.get("line"), str):
@@ -146,8 +167,13 @@ def build_ladders(rows: List[Dict[str, Any]], min_ev: float = 3.0, min_rungs: in
             cur = by_line.get(r["line"])
             if cur is None or r["best_price"] > cur["best_price"]:
                 by_line[r["line"]] = r
-        rungs = sorted(by_line.values(), key=lambda r: r["line"])
-        if len(rungs) < min_rungs:
+        # A ladder needs min_rungs priced rungs in total (a single standard
+        # line isn't a ladder); the range filter then decides which are SHOWN.
+        full = sorted(by_line.values(), key=lambda r: r["line"])
+        if len(full) < min_rungs:
+            continue
+        rungs = [r for r in full if _in_range(r, rung_range)]
+        if not rungs:
             continue
         for r in rungs:
             r["flagged"] = _qualifies(r, min_ev, min_games)
@@ -163,6 +189,9 @@ def build_ladders(rows: List[Dict[str, Any]], min_ev: float = 3.0, min_rungs: in
         lad["rungs"] = rungs
         lad["best_line"] = best["line"] if best else None
         lad["best_ev_pct"] = best["ev_pct"] if best else None
+        lad["matchup"] = context_fn(lad) if context_fn else None
+        if favorable_only and (lad["matchup"] or {}).get("verdict") != "favorable":
+            continue
         out.append(lad)
 
     out.sort(key=lambda l: (l["best_ev_pct"] is not None, l["best_ev_pct"] or 0), reverse=True)
@@ -171,9 +200,16 @@ def build_ladders(rows: List[Dict[str, Any]], min_ev: float = 3.0, min_rungs: in
 
 def get_alt_value(sport: str, sheet_fn: Callable[..., List[Dict[str, Any]]],
                   market: Optional[str] = None, player: Optional[str] = None,
-                  min_ev: float = 3.0, flagged_only: bool = True) -> List[Dict[str, Any]]:
+                  min_ev: float = 3.0, flagged_only: bool = True,
+                  rung_range: str = "core", favorable_only: bool = False) -> List[Dict[str, Any]]:
     """`sheet_fn` is get_mlb_hit_rate_sheet or get_nfl_hit_rate_sheet."""
     rows = sheet_fn(market=market, min_pct=0, min_odds=None, period="season",
                     player=player, books=None)
+    context_fn = None
+    if sport == "mlb":
+        from app.data.mlb_context import mlb_ladder_context
+        context_fn = mlb_ladder_context
     return build_ladders(rows, min_ev=min_ev, flagged_only=flagged_only,
-                         min_games=MIN_GAMES.get(sport, DEFAULT_MIN_GAMES))
+                         min_games=MIN_GAMES.get(sport, DEFAULT_MIN_GAMES),
+                         rung_range=rung_range,
+                         context_fn=context_fn, favorable_only=favorable_only)

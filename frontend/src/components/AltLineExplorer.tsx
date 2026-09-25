@@ -44,7 +44,23 @@ interface Ladder {
   best_line: number | null;
   best_ev_pct: number | null;
   rungs: Rung[];
+  /** Today's matchup (MLB only; null for other sports). */
+  matchup: Matchup | null;
 }
+
+interface Matchup {
+  status: 'ok' | 'no_lineup';
+  verdict: 'favorable' | 'neutral' | 'tough' | null;
+  facts: string[];
+}
+
+type RungRange = 'core' | 'all';
+
+const VERDICT: Record<string, { label: string; color: string }> = {
+  favorable: { label: 'Matchup: favorable', color: theme.accent },
+  neutral: { label: 'Matchup: neutral', color: theme.textSecondary },
+  tough: { label: 'Matchup: tough', color: theme.dataRed },
+};
 
 interface AltLineExplorerProps {
   fetcher: (params: Record<string, unknown>) => Promise<{ data: Ladder[] }>;
@@ -78,6 +94,9 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
   const [scope, setScope] = useState<Scope>('flagged');
   const [minEv, setMinEv] = useState(3);
   const [market, setMarket] = useState('');
+  const [rungRange, setRungRange] = useState<RungRange>('core');
+  const [favorableOnly, setFavorableOnly] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [rows, setRows] = useState<Ladder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -85,15 +104,20 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
   useEffect(() => {
     setLoading(true);
     setError('');
-    fetcher({ min_ev: minEv, flagged_only: scope === 'flagged' })
+    fetcher({
+      min_ev: minEv, flagged_only: scope === 'flagged',
+      rungs: rungRange, favorable_only: favorableOnly,
+    })
       .then((res) => setRows(res.data))
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to load.'))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minEv, scope]);
+  }, [minEv, scope, rungRange, favorableOnly]);
 
   const markets = useMemo(() => [...new Set(rows.map((r) => r.market))].sort(), [rows]);
   const shown = useMemo(() => rows.filter((r) => !market || r.market === market), [rows, market]);
+  // Matchup context only exists for MLB; keep the control off other sports.
+  const hasMatchups = useMemo(() => rows.some((r) => r.matchup), [rows]) || favorableOnly;
 
   return (
     <div style={{
@@ -103,11 +127,38 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>{title}</h2>
       {toolbar}
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 14, lineHeight: 1.55 }}>
-        Every rung of a player's alt ladder, with how often he's cleared it compared to what the
-        best available price implies. The highlighted rung is the best value. Hit rates are
-        blended with the market's own price so a short hot streak can't make a long shot look
-        like a lock, and very long odds are never flagged.
+        Each player's alternate lines, with how often he's cleared each one compared to what the
+        best price implies. The highlighted rung is the best value.{' '}
+        <button
+          onClick={() => setShowHelp((v) => !v)}
+          style={{
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            color: theme.accent, fontSize: 13, textDecoration: 'underline',
+          }}
+        >
+          {showHelp ? 'Hide explanation' : 'How to read this'}
+        </button>
       </div>
+
+      {showHelp && (
+        <div style={{
+          background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8,
+          padding: '12px 14px', marginBottom: 14, fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.6,
+        }}>
+          <div><strong style={{ color: theme.textPrimary }}>Implied</strong> — the chance the best price is
+            betting on. +300 implies 25%: you need it to hit more often than that to profit.</div>
+          <div style={{ marginTop: 6 }}><strong style={{ color: theme.textPrimary }}>Our chance</strong> — our
+            estimate of how often this rung hits. It starts from his hit rate this season (80%) and over
+            his last 10 games (20%), then pulls that toward the sportsbooks' own price, harder when the
+            sample is small or the outcome is rare. It's based on his history only; it doesn't know
+            today's opponent, which is what the matchup note below each card is for.</div>
+          <div style={{ marginTop: 6 }}><strong style={{ color: theme.textPrimary }}>EV</strong> — average profit
+            per $100 if our chance is right. Positive means the price pays more than the rung's worth.</div>
+          <div style={{ marginTop: 6 }}><strong style={{ color: theme.textPrimary }}>Matchup</strong> (MLB) — today's
+            opposing pitcher or lineup compared to league average, once lineups are posted. Favorable
+            means today points toward more of this stat than usual.</div>
+        </div>
+      )}
 
       <OddsDisclaimer fetchedAt={latestFetchedAt(shown)} compact={isMobile} />
 
@@ -123,6 +174,20 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
       />
 
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 16 }}>
+        <select value={rungRange} onChange={(e) => setRungRange(e.target.value as RungRange)} style={selectStyle(isMobile)}>
+          <option value="core">Rungs from -400 to +600</option>
+          <option value="all">Every rung</option>
+        </select>
+        {hasMatchups && (
+          <select
+            value={favorableOnly ? 'fav' : 'any'}
+            onChange={(e) => setFavorableOnly(e.target.value === 'fav')}
+            style={selectStyle(isMobile)}
+          >
+            <option value="any">Any matchup</option>
+            <option value="fav">Favorable matchups only</option>
+          </select>
+        )}
         <select value={minEv} onChange={(e) => setMinEv(Number(e.target.value))} style={selectStyle(isMobile)}>
           {[3, 5, 10].map((v) => <option key={v} value={v}>Min EV {v}%</option>)}
         </select>
@@ -176,6 +241,30 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
               </span>
             )}
           </div>
+
+          {lad.matchup && (
+            <div style={{
+              marginTop: 8, fontSize: 12, lineHeight: 1.5, color: theme.textSecondary,
+              borderLeft: `3px solid ${lad.matchup.verdict ? VERDICT[lad.matchup.verdict].color : theme.border}`,
+              paddingLeft: 8,
+            }}>
+              {lad.matchup.status === 'no_lineup' ? (
+                <span style={{ color: theme.textMuted }}>
+                  Lineup not posted yet — the matchup check appears once it is.
+                </span>
+              ) : (
+                <>
+                  {lad.matchup.verdict && (
+                    <strong style={{ color: VERDICT[lad.matchup.verdict].color }}>
+                      {VERDICT[lad.matchup.verdict].label}
+                    </strong>
+                  )}
+                  {lad.matchup.verdict && lad.matchup.facts.length > 0 && ' · '}
+                  {lad.matchup.facts.join(' · ')}
+                </>
+              )}
+            </div>
+          )}
 
           <ScrollTable hint={isMobile ? 'swipe for more →' : null} style={{ marginTop: 10 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -232,11 +321,9 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
 
       {!loading && shown.length > 0 && (
         <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 6, lineHeight: 1.6 }}>
-          <strong>Our chance</strong> blends the season and last-10 hit rates, then pulls that toward
-          the market's own price — harder for rare outcomes — so small samples can't carry a long shot.
-          Hit rates don't know about today's matchup (the opposing pitcher, a defense, a role change);
-          the price does. Use this to find the rung worth a closer look, then check the matchup.
-          Rungs above +600 are shown but never flagged. Pick'em apps aren't counted as a best price.
+          Hit rates come from his own game log and don't know about today's opponent — use the
+          matchup note on each card and check the Pitcher Matchup page before betting. Rungs above
+          +600 are never flagged, and pick'em apps aren't counted as a best price.
         </div>
       )}
     </div>

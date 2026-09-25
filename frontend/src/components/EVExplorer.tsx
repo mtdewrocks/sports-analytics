@@ -50,6 +50,8 @@ export interface EVRow {
   home_team: string | null;
   away_team: string | null;
   fetched_at: string | null;
+  /** Other books that also clear the bar on this same bet, best first. */
+  other_books: { book: string; price: number; ev_pct: number }[];
 }
 
 interface EVExplorerProps {
@@ -245,6 +247,18 @@ export default function EVExplorer({ fetcher, title, toolbar }: EVExplorerProps)
                   {since && <> · price up {since}</>}
                   {r.away_team && <><br />{r.away_team} @ {r.home_team} · {kickoff(r.commence_time)}</>}
                 </div>
+
+                {r.other_books.length > 0 && (
+                  <div style={{ fontSize: 11.5, color: theme.textSecondary, marginTop: 6 }}>
+                    Also +EV at{' '}
+                    {r.other_books.map((o, i) => (
+                      <span key={o.book}>
+                        {i > 0 && ', '}
+                        {prettyBook(o.book)} {formatOdds(o.price)} (+{o.ev_pct.toFixed(1)}%)
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {r.suspicious && (
                   <div style={{ fontSize: 11.5, color: theme.warningText, marginTop: 6 }}>
