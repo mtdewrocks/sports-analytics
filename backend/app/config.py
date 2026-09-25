@@ -63,7 +63,25 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# SQLAlchemy requires "postgresql://" but Render provides "postgres://"
-# Auto-fix this common gotcha so it works regardless of what Render gives us
-if settings.DATABASE_URL.startswith("postgres://"):
-    settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# Normalize the database URL to the one driver this app installs.
+#
+# requirements.txt ships psycopg2 (psycopg2-binary). A URL can arrive in a few
+# spellings depending on where it was copied from:
+#   postgres://...             Render / Heroku style -- SQLAlchemy rejects it
+#   postgresql+psycopg://...   psycopg 3, which some hosts' "SQLAlchemy" connection
+#                              strings use -- fails with "No module named 'psycopg'"
+#   postgresql+asyncpg://...   async driver, also not installed
+# All of them point at the same database; only the driver prefix differs. So
+# rewrite any of them to an EXPLICIT postgresql+psycopg2://.
+#
+# Explicit on purpose: SQLAlchemy 2.1 changed what a bare "postgresql://" means
+# -- it now defaults to psycopg 3 instead of psycopg2. requirements.txt doesn't
+# pin SQLAlchemy, so a fresh Render build picked up 2.1 and the app crashed at
+# startup with "No module named 'psycopg'" even though nothing here changed.
+# Naming the driver makes the URL mean the same thing on every version.
+# The rest of the URL (user, password, host, ?sslmode=...) is left untouched.
+for _prefix in ("postgres://", "postgresql://", "postgresql+psycopg://",
+                "postgresql+asyncpg://"):
+    if settings.DATABASE_URL.startswith(_prefix):
+        settings.DATABASE_URL = "postgresql+psycopg2://" + settings.DATABASE_URL[len(_prefix):]
+        break
