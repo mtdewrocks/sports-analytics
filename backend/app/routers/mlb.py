@@ -121,6 +121,29 @@ def hit_rate_sheet(
     return mlb_data.get_mlb_hit_rate_sheet(market, min_pct, min_odds, period, player, books)
 
 
+@router.get("/ev")
+def mlb_ev(
+    source: str = Query("auto", pattern="^(auto|sharp|consensus)$"),
+    min_edge: float = Query(2.0, ge=0, le=100), min_books: int = Query(2, ge=1, le=10),
+    market: Optional[str] = Query(None), player: Optional[str] = Query(None),
+    _=Depends(require_access),
+):
+    """EV Finder -- see app/data/ev.py."""
+    from app.data.ev import get_ev
+    return get_ev("mlb", source, min_edge, min_books, market, player)
+
+
+@router.get("/alt-value")
+def mlb_alt_value(
+    market: Optional[str] = Query(None), player: Optional[str] = Query(None),
+    min_ev: float = Query(3.0, ge=0, le=100), flagged_only: bool = Query(True),
+    _=Depends(require_access),
+):
+    """Alt-Line Value -- see app/data/alt_value.py."""
+    from app.data.alt_value import get_alt_value
+    return get_alt_value("mlb", mlb_data.get_mlb_hit_rate_sheet, market, player, min_ev, flagged_only)
+
+
 @router.post("/refresh")
 def refresh_cache(_=Depends(require_access)):
     """Clear all MLB data caches so fresh files are fetched from GitHub on next request."""

@@ -13,13 +13,17 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from app.data.loader import get_middles_data, get_props_data
-from app.props_config import NO_SINGLE_BET_BOOKS, UNBETTABLE_BOOKS
+from app.props_config import NO_SINGLE_BET_BOOKS, SHARP_BOOKS, UNBETTABLE_BOOKS
 
 # Only the books you can't bet at. Deliberately NOT the middles screen's list:
 # that one also drops prizepicks and pick6, which belong on this grid -- their
 # lines are often the softest available. They just can't be PAIRED, because a
 # single leg isn't placeable at the quoted price.
-EXCLUDED_BOOKS = UNBETTABLE_BOOKS
+# SHARP_BOOKS too: Pinnacle is pulled only as the EV Finder's reference
+# price and can't be bet from the US, so it must never read as a column you
+# can shop, or win a "best price" anywhere downstream (Hit Rate Sheet,
+# pitcher props card) -- all of which read through this list.
+EXCLUDED_BOOKS = UNBETTABLE_BOOKS | SHARP_BOOKS
 
 
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:

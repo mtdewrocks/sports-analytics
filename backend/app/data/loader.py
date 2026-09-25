@@ -354,6 +354,36 @@ _MIDDLES_URLS = {
 }
 
 
+_SNAPSHOT_URLS = {
+    "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_odds_snapshots.parquet",
+    "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_odds_snapshots.parquet",
+}
+_CLOSING_URLS = {
+    "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_closing_lines.parquet",
+    "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_closing_lines.parquet",
+}
+
+
+@ttl_cache(MLB_TTL)
+def get_odds_snapshots_data(sport: str) -> pd.DataFrame:
+    """Price history from build_odds_snapshots.py -- one row per prop per
+    book each time its price CHANGED. Empty until the first workflow run
+    after that script ships; every reader treats empty as "no history yet"."""
+    url = _SNAPSHOT_URLS.get(sport)
+    if url is None:
+        return pd.DataFrame()
+    return _load(url(), pd.read_parquet, f"{sport} odds snapshots")
+
+
+@ttl_cache(MLB_TTL)
+def get_closing_lines_data(sport: str) -> pd.DataFrame:
+    """Last pre-game price per prop per book, from build_odds_snapshots.py."""
+    url = _CLOSING_URLS.get(sport)
+    if url is None:
+        return pd.DataFrame()
+    return _load(url(), pd.read_parquet, f"{sport} closing lines")
+
+
 @ttl_cache(MLB_TTL)
 def get_props_data(sport: str) -> pd.DataFrame:
     """Long-format props for one sport."""

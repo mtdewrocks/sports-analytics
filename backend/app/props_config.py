@@ -202,7 +202,21 @@ BOOKMAKERS = (
     "espnbet",
     # us_dfs -- see DFS_BOOKS below before trusting a pair that involves one
     "prizepicks", "underdog", "pick6", "dabble_us_dfs",
+    # eu -- the sharp reference price for the EV Finder. The TENTH book, so
+    # it bills inside the same single region-equivalent as the nine above:
+    # free. Adding an eleventh book would double every call -- see the
+    # region-equivalents note at the top of get_props.py before you do.
+    # Pinnacle's player-prop coverage on The Odds API is thinner than the US
+    # books'; wherever it's missing, the EV Finder falls back to the
+    # consensus of the books above (app/data/ev.py).
+    "pinnacle",
 )
+
+# Sharp books used as a REFERENCE price only. Not bettable for US users, so
+# they never appear on the Props grid, are never paired by Middles & Arbs and
+# never count as a "best price" -- the EV Finder reads them straight from the
+# long-format file to compute a fair, no-vig price, and nothing else sees them.
+SHARP_BOOKS = frozenset({"pinnacle"})
 
 # Pick'em apps, not sportsbooks, and the difference matters for pairing.
 #

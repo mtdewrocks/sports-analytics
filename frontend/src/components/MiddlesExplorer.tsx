@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import SegmentedToggle from './SegmentedToggle';
 import ScrollTable from './ScrollTable';
@@ -30,6 +31,8 @@ interface Row {
 interface MiddlesExplorerProps {
   fetcher: (params: Record<string, any>) => Promise<{ data: Row[] }>;
   title: string;
+  /** Rendered under the heading -- the Betting pages' sport toggle. */
+  toolbar?: ReactNode;
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -60,7 +63,7 @@ function book(b: string): string {
   return String(b || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps) {
+export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExplorerProps) {
   const [kind, setKind] = useState<Kind>('all');
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
@@ -112,6 +115,7 @@ export default function MiddlesExplorer({ fetcher, title }: MiddlesExplorerProps
       background: theme.bgPage, minHeight: 'calc(100vh - 60px)',
     }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>{title}</h2>
+      {toolbar}
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 14, lineHeight: 1.55 }}>
         Pairs where one book's Over and another book's Under are both plus money.
         An <strong style={{ color: theme.accent }}>arb</strong> pays whichever side wins.

@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
-import { flatPages, sportsBySeason } from '../siteMap';
+import { BETTING, bettingPages, flatPages, sportsBySeason } from '../siteMap';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -89,12 +89,16 @@ export default function Landing() {
             Comprehensive Sports Coverage
           </h2>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {sportsBySeason().map((s) => ({
-              icon: s.icon,
-              title: `${s.label} Analysis`,
-              desc: s.pitch,
-              count: flatPages(s).length,
-            })).map((card) => (
+            {[
+              ...sportsBySeason().map((s) => ({
+                icon: s.icon,
+                title: `${s.label} Analysis`,
+                desc: s.pitch,
+                count: flatPages(s).length,
+              })),
+              // Last, after the sports -- see siteMap.ts's BETTING note.
+              { icon: BETTING.icon, title: 'Betting Tools', desc: BETTING.pitch, count: bettingPages().length },
+            ].map((card) => (
               <div
                 key={card.title}
                 style={{

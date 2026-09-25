@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../theme';
 import useIsMobile from '../hooks/useIsMobile';
-import { CROSS_SPORT_PAGES, isInSeason, sportsBySeason } from '../siteMap';
+import { BETTING, isInSeason, sportsBySeason } from '../siteMap';
 import type { SitePage } from '../siteMap';
 
 // Every page comes from siteMap.ts, the same list the Navbar reads, so a new
@@ -54,10 +54,6 @@ export default function Dashboard() {
       <h1 style={{ color: theme.textPrimary, fontSize: isMobile ? 26 : 32, lineHeight: 1.2, margin: '0 0 6px' }}>Sports Analytics</h1>
       <p style={{ color: theme.textSecondary, marginBottom: 24 }}>Pick a sport and a page to get started.</p>
 
-      <div style={{ ...grid, marginBottom: 32 }}>
-        {CROSS_SPORT_PAGES.map((page) => <PageCard key={page.to} page={page} color={theme.accent} />)}
-      </div>
-
       {sports.map((sport) => (
         <section key={sport.key} style={{ marginBottom: 36 }}>
           <h2 style={{ color: sport.color, fontSize: 20, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -83,6 +79,22 @@ export default function Dashboard() {
           ))}
         </section>
       ))}
+
+      {/* After the sports, same as the nav: analytics first, tools on top. */}
+      <section style={{ marginBottom: 36 }}>
+        <h2 style={{ color: BETTING.color, fontSize: 20, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span aria-hidden>{BETTING.icon}</span>
+          {BETTING.label}
+        </h2>
+        {BETTING.sections.map((sec) => (
+          <div key={sec.label}>
+            <div style={sectionLabel}>{sec.label}</div>
+            <div style={grid}>
+              {sec.pages.map((page) => <PageCard key={page.to} page={page} color={BETTING.color} />)}
+            </div>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }

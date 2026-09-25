@@ -111,7 +111,7 @@ const MARKET_LABELS: Record<string, string> = {
   assists: 'assisted tackles',
 };
 
-function prettyMarket(market: string): string {
+export function prettyMarket(market: string): string {
   const key = String(market || '');
   const alt = key.endsWith('_alternate');
   const base = alt ? key.slice(0, -'_alternate'.length) : key;

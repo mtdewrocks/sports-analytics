@@ -95,6 +95,14 @@ jobs:
           python -u backend/app/build_prop_middles.py --sport mlb
           python -u backend/app/build_prop_middles.py --sport nfl
 
+      # Free -- price history (only rows whose price changed) and each
+      # started game's closing line, for line movement and CLV. See the
+      # docstring in build_odds_snapshots.py.
+      - name: Record odds snapshots and closing lines
+        run: |
+          python -u backend/app/build_odds_snapshots.py --sport mlb
+          python -u backend/app/build_odds_snapshots.py --sport nfl
+
       # NFL props go to the data-nfl tag, MLB to data-mlb -- assets are a flat
       # namespace per tag, and both sports would otherwise be fighting over
       # names like prop_middles.parquet.
@@ -104,7 +112,11 @@ jobs:
         run: |
           bash scripts/release_data.sh push data-mlb \
             backend/data/mlb/Daily_Props.parquet \
-            backend/data/mlb/mlb_prop_middles.parquet
+            backend/data/mlb/mlb_prop_middles.parquet \
+            backend/data/mlb/mlb_odds_snapshots.parquet \
+            backend/data/mlb/mlb_closing_lines.parquet
           bash scripts/release_data.sh push data-nfl \
             backend/data/nfl/NFL_Props.parquet \
-            backend/data/nfl/nfl_prop_middles.parquet
+            backend/data/nfl/nfl_prop_middles.parquet \
+            backend/data/nfl/nfl_odds_snapshots.parquet \
+            backend/data/nfl/nfl_closing_lines.parquet

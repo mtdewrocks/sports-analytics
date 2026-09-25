@@ -72,11 +72,12 @@ import MLBBullpen from './pages/mlb/MLBBullpen';
 import MLBPitcherDailyReport from './pages/mlb/MLBPitcherDailyReport';
 import MLBHotHitters from './pages/mlb/MLBHotHitters';
 import MLBProps from './pages/mlb/MLBProps';
-import NFLMiddles from './pages/nfl/NFLMiddles';
-import MLBMiddles from './pages/mlb/MLBMiddles';
 import MLBWeather from './pages/mlb/MLBWeather';
 import MLBMatchupEdge from './pages/mlb/MLBMatchupEdge';
 import HitRateSheet from './pages/HitRateSheet';
+import BettingEVFinder from './pages/betting/EVFinder';
+import BettingAltLineValue from './pages/betting/AltLineValue';
+import BettingMiddles from './pages/betting/Middles';
 
 export default function App() {
   return (
@@ -107,7 +108,6 @@ export default function App() {
           <Route path="/nfl/team-usage" element={<PrivateRoute><NFLTeamUsage /></PrivateRoute>} />
           <Route path="/nfl/usage-trend" element={<PrivateRoute><NFLPlayerUsageTrend /></PrivateRoute>} />
           <Route path="/nfl/props" element={<PrivateRoute><NFLProps /></PrivateRoute>} />
-          <Route path="/nfl/middles" element={<PrivateRoute><NFLMiddles /></PrivateRoute>} />
           <Route path="/nfl/weather" element={<PrivateRoute><NFLWeather /></PrivateRoute>} />
 
           <Route path="/mlb/game-log" element={<PrivateRoute><MLBGameLog /></PrivateRoute>} />
@@ -117,11 +117,18 @@ export default function App() {
           <Route path="/mlb/pitcher-daily-report" element={<PrivateRoute><MLBPitcherDailyReport /></PrivateRoute>} />
           <Route path="/mlb/hot-hitters" element={<PrivateRoute><MLBHotHitters /></PrivateRoute>} />
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
-          <Route path="/mlb/middles" element={<PrivateRoute><MLBMiddles /></PrivateRoute>} />
           <Route path="/mlb/weather" element={<PrivateRoute><MLBWeather /></PrivateRoute>} />
           <Route path="/mlb/matchup-edge" element={<PrivateRoute><MLBMatchupEdge /></PrivateRoute>} />
 
-          <Route path="/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
+          {/* Betting tools: cross-sport, listed after the sports (see siteMap.ts). */}
+          <Route path="/betting/ev" element={<PrivateRoute><BettingEVFinder /></PrivateRoute>} />
+          <Route path="/betting/alt-lines" element={<PrivateRoute><BettingAltLineValue /></PrivateRoute>} />
+          <Route path="/betting/middles" element={<PrivateRoute><BettingMiddles /></PrivateRoute>} />
+          <Route path="/betting/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
+          {/* Old addresses, kept working for bookmarks. */}
+          <Route path="/hit-rate-sheet" element={<Navigate to="/betting/hit-rate-sheet" replace />} />
+          <Route path="/mlb/middles" element={<Navigate to="/betting/middles?sport=mlb" replace />} />
+          <Route path="/nfl/middles" element={<Navigate to="/betting/middles?sport=nfl" replace />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

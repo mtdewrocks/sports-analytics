@@ -85,3 +85,7 @@ export const getNFLMiddles = (params: Record<string, any>) => client.get('/api/n
 // post-game conditions only, no live forecast (see get_nfl_weather()'s
 // docstring in backend/app/data/nfl.py).
 export const getNFLWeather = () => client.get('/api/nfl/weather');
+
+// EV Finder and Alt-Line Value -- see backend/app/data/ev.py and alt_value.py.
+export const getNFLEV = (params: Record<string, any>) => client.get('/api/nfl/ev', { params });
+export const getNFLAltValue = (params: Record<string, any>) => client.get('/api/nfl/alt-value', { params });

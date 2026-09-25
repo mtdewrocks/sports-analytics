@@ -38,3 +38,7 @@ export const getMLBWeather = () => client.get('/api/mlb/weather');
 // Risk/Contact Matchups for today's slate -- see get_mlb_matchup_edge()'s
 // docstring in backend/app/data/mlb.py.
 export const getMLBMatchupEdge = () => client.get('/api/mlb/matchup-edge');
+
+// EV Finder and Alt-Line Value -- see backend/app/data/ev.py and alt_value.py.
+export const getMLBEV = (params: Record<string, any>) => client.get('/api/mlb/ev', { params });
+export const getMLBAltValue = (params: Record<string, any>) => client.get('/api/mlb/alt-value', { params });

@@ -1627,6 +1627,10 @@ def get_mlb_hit_rate_sheet(
                 # -- not part of the row's core contract, just passed along
                 # from get_props()'s own per-row meta.
                 "fetched_at": row.get("fetched_at"),
+                # For Alt-Line Value (app/data/alt_value.py), which groups these
+                # rows into ladders and must drop games already under way.
+                "commence_time": row.get("commence_time"),
+                "is_live": bool(row.get("is_live")),
                 # Daily spread (this row's own team, bettor-facing sign) and
                 # total from game_lines.parquet -- None when there's no
                 # game-lines match yet (line not posted, or the daily

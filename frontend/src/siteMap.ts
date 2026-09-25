@@ -42,7 +42,7 @@ const SPORTS: Sport[] = [
   {
     key: 'nfl', label: 'NFL', icon: '🏈', color: '#5b9bf0',
     season: { start: 9, end: 2 },
-    pitch: 'A weekly mismatch finder, team and fantasy matchups, target and carry share, and a season-long stat screener. Props, middles and game-day weather for every game.',
+    pitch: 'A weekly mismatch finder, team and fantasy matchups, target and carry share, and a season-long stat screener. Props and game-day weather for every game.',
     sections: [
       {
         label: 'This week',
@@ -68,10 +68,9 @@ const SPORTS: Sport[] = [
         ],
       },
       {
-        label: 'Betting',
+        label: 'Lines',
         pages: [
           { label: 'Props', to: '/nfl/props', description: 'Player prop lines with the best price across books' },
-          { label: 'Middles & Arbs', to: '/nfl/middles', description: 'Line gaps between sportsbooks worth middling or arbing' },
         ],
       },
       {
@@ -85,7 +84,7 @@ const SPORTS: Sport[] = [
   {
     key: 'mlb', label: 'MLB', icon: '⚾', color: '#3ab7d1',
     season: { start: 3, end: 10 },
-    pitch: 'Daily pitcher reports and slate-wide matchup edges, pitcher vs. lineup splits, bullpen workload and hot hitters. Props, middles and ballpark weather for every game.',
+    pitch: 'Daily pitcher reports and slate-wide matchup edges, pitcher vs. lineup splits, bullpen workload and hot hitters. Props and ballpark weather for every game.',
     sections: [
       {
         label: 'Today',
@@ -110,10 +109,9 @@ const SPORTS: Sport[] = [
         ],
       },
       {
-        label: 'Betting',
+        label: 'Lines',
         pages: [
           { label: 'Props', to: '/mlb/props', description: 'Pitcher and hitter prop lines with the best price across books' },
-          { label: 'Middles & Arbs', to: '/mlb/middles', description: 'Line gaps between sportsbooks worth middling or arbing' },
         ],
       },
       {
@@ -144,7 +142,7 @@ const SPORTS: Sport[] = [
         ],
       },
       {
-        label: 'Betting',
+        label: 'Lines',
         pages: [
           { label: 'Props', to: '/nba/props', description: 'Player prop lines with the best price across books' },
         ],
@@ -153,10 +151,59 @@ const SPORTS: Sport[] = [
   },
 ];
 
-/** Cross-sport pages, shown above the per-sport sections. */
-export const CROSS_SPORT_PAGES: SitePage[] = [
-  { label: 'Hit Rate Sheet', to: '/hit-rate-sheet', description: "How often players have cleared today's prop lines, MLB and NFL" },
-];
+/**
+ * Betting tools -- cross-sport, one page per tool with its own sport toggle,
+ * rather than a copy under every sport. Deliberately placed AFTER the sports
+ * everywhere (desktop menu, mobile tab bar, Dashboard, Landing): the sport
+ * analytics are the product's focus, these are the tools built on top of it.
+ * Props stays under each sport -- it's reference data for that sport, not a
+ * bet finder.
+ */
+export interface BettingGroup {
+  key: 'betting';
+  label: string;
+  icon: string;
+  color: string;
+  pitch: string;
+  sections: PageSection[];
+}
+
+export const BETTING: BettingGroup = {
+  key: 'betting',
+  label: 'Betting',
+  icon: '💰',
+  color: '#1d9e75',
+  pitch: 'Tools that turn the research into bets: +EV prices across books, the best rung on every alt ladder, hit rates against today\'s lines, and middles and arbs.',
+  sections: [
+    {
+      label: 'Find edges',
+      pages: [
+        { label: 'EV Finder', to: '/betting/ev', description: 'Props where a book is paying more than the fair, no-vig price' },
+        { label: 'Alt-Line Value', to: '/betting/alt-lines', description: "The best-value rung on each player's alternate ladder" },
+        { label: 'Middles & Arbs', to: '/betting/middles', description: 'Line gaps between sportsbooks worth middling or arbing' },
+      ],
+    },
+    {
+      label: 'Research',
+      pages: [
+        { label: 'Hit Rate Sheet', to: '/betting/hit-rate-sheet', description: "How often players have cleared today's prop lines" },
+      ],
+    },
+  ],
+};
+
+export function bettingPages(): SitePage[] {
+  return BETTING.sections.flatMap((s) => s.pages);
+}
+
+/** Sports the betting tools cover, in-season first -- the default for their
+ *  sport toggle. NBA joins once its props come from the same pipeline. */
+export type BettingSport = 'mlb' | 'nfl';
+export function bettingSports(date: Date = new Date()): BettingSport[] {
+  return sportsBySeason(date)
+    .map((s) => s.key)
+    .filter((k): k is BettingSport => k === 'mlb' || k === 'nfl');
+}
 
 export function isInSeason(sport: Sport, date: Date = new Date()): boolean {
   const m = date.getMonth() + 1;

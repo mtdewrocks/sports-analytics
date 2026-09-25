@@ -129,7 +129,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from props_config import (  # noqa: E402
-    DFS_BOOKS, NO_SINGLE_BET_BOOKS, SPORTS, UNBETTABLE_BOOKS,
+    DFS_BOOKS, NO_SINGLE_BET_BOOKS, SHARP_BOOKS, SPORTS, UNBETTABLE_BOOKS,
 )
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
@@ -138,7 +138,7 @@ DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 # single leg can't be placed at the quoted price. The second group stays in
 # Daily_Props.parquet and on the props page -- they're excluded from PAIRS,
 # not from the data.
-EXCLUDED_BOOKS = UNBETTABLE_BOOKS | NO_SINGLE_BET_BOOKS
+EXCLUDED_BOOKS = UNBETTABLE_BOOKS | NO_SINGLE_BET_BOOKS | SHARP_BOOKS
 
 # NOTE: the *_alternate markets are deliberately NOT excluded here, unlike the
 # original script. Alternate lines are the entire reason a gap can exist -- the
