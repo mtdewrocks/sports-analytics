@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Navbar, { TABBAR_HEIGHT } from './components/Navbar';
 import Footer from './components/Footer';
 import useIsMobile from './hooks/useIsMobile';
+import LoadingSpinner from './components/LoadingSpinner';
 
 declare global {
   interface Window {
@@ -42,42 +43,46 @@ function AppShell({ children }: { children: ReactNode }) {
   return <div style={{ paddingBottom: isMobile ? TABBAR_HEIGHT : 0 }}>{children}</div>;
 }
 
+// Every page except Landing is loaded on demand: a visitor downloads the code
+// for the page they open, not all ~30 pages (and the charting/PDF libraries
+// only a few of them use) up front. Landing stays in the main bundle so the
+// first thing a new visitor sees paints without a second round trip.
 import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Billing from './pages/Billing';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Billing = lazy(() => import('./pages/Billing'));
 
-import NBAGameLog from './pages/nba/NBAGameLog';
-import NBAInOut from './pages/nba/NBAInOut';
-import NBAProps from './pages/nba/NBAProps';
-import NBATeamUsage from './pages/nba/NBATeamUsage';
-import NBATeamMatchup from './pages/nba/NBATeamMatchup';
+const NBAGameLog = lazy(() => import('./pages/nba/NBAGameLog'));
+const NBAInOut = lazy(() => import('./pages/nba/NBAInOut'));
+const NBAProps = lazy(() => import('./pages/nba/NBAProps'));
+const NBATeamUsage = lazy(() => import('./pages/nba/NBATeamUsage'));
+const NBATeamMatchup = lazy(() => import('./pages/nba/NBATeamMatchup'));
 
-import NFLGameLog from './pages/nfl/NFLGameLog';
-import NFLMatchup from './pages/nfl/NFLMatchup';
-import NFLFantasyMatchup from './pages/nfl/NFLFantasyMatchup';
-import NFLInOut from './pages/nfl/NFLInOut';
-import NFLSeasonScreener from './pages/nfl/NFLSeasonScreener';
-import NFLMismatches from './pages/nfl/NFLMismatches';
-import NFLProps from './pages/nfl/NFLProps';
-import NFLTeamUsage from './pages/nfl/NFLTeamUsage';
-import NFLPlayerUsageTrend from './pages/nfl/NFLPlayerUsageTrend';
-import NFLWeather from './pages/nfl/NFLWeather';
+const NFLGameLog = lazy(() => import('./pages/nfl/NFLGameLog'));
+const NFLMatchup = lazy(() => import('./pages/nfl/NFLMatchup'));
+const NFLFantasyMatchup = lazy(() => import('./pages/nfl/NFLFantasyMatchup'));
+const NFLInOut = lazy(() => import('./pages/nfl/NFLInOut'));
+const NFLSeasonScreener = lazy(() => import('./pages/nfl/NFLSeasonScreener'));
+const NFLMismatches = lazy(() => import('./pages/nfl/NFLMismatches'));
+const NFLProps = lazy(() => import('./pages/nfl/NFLProps'));
+const NFLTeamUsage = lazy(() => import('./pages/nfl/NFLTeamUsage'));
+const NFLPlayerUsageTrend = lazy(() => import('./pages/nfl/NFLPlayerUsageTrend'));
+const NFLWeather = lazy(() => import('./pages/nfl/NFLWeather'));
 
-import MLBGameLog from './pages/mlb/MLBGameLog';
-import MLBMatchup from './pages/mlb/MLBMatchup';
-import MLBTeamMatchup from './pages/mlb/MLBTeamMatchup';
-import MLBBullpen from './pages/mlb/MLBBullpen';
-import MLBPitcherDailyReport from './pages/mlb/MLBPitcherDailyReport';
-import MLBHotHitters from './pages/mlb/MLBHotHitters';
-import MLBProps from './pages/mlb/MLBProps';
-import MLBWeather from './pages/mlb/MLBWeather';
-import MLBMatchupEdge from './pages/mlb/MLBMatchupEdge';
-import HitRateSheet from './pages/HitRateSheet';
-import BettingEVFinder from './pages/betting/EVFinder';
-import BettingAltLineValue from './pages/betting/AltLineValue';
-import BettingMiddles from './pages/betting/Middles';
+const MLBGameLog = lazy(() => import('./pages/mlb/MLBGameLog'));
+const MLBMatchup = lazy(() => import('./pages/mlb/MLBMatchup'));
+const MLBTeamMatchup = lazy(() => import('./pages/mlb/MLBTeamMatchup'));
+const MLBBullpen = lazy(() => import('./pages/mlb/MLBBullpen'));
+const MLBPitcherDailyReport = lazy(() => import('./pages/mlb/MLBPitcherDailyReport'));
+const MLBHotHitters = lazy(() => import('./pages/mlb/MLBHotHitters'));
+const MLBProps = lazy(() => import('./pages/mlb/MLBProps'));
+const MLBWeather = lazy(() => import('./pages/mlb/MLBWeather'));
+const MLBMatchupEdge = lazy(() => import('./pages/mlb/MLBMatchupEdge'));
+const HitRateSheet = lazy(() => import('./pages/HitRateSheet'));
+const BettingEVFinder = lazy(() => import('./pages/betting/EVFinder'));
+const BettingAltLineValue = lazy(() => import('./pages/betting/AltLineValue'));
+const BettingMiddles = lazy(() => import('./pages/betting/Middles'));
 
 export default function App() {
   return (
@@ -86,6 +91,7 @@ export default function App() {
         <PageTracker />
         <Navbar />
         <AppShell>
+        <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
@@ -132,6 +138,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
         <Footer />
         </AppShell>
       </BrowserRouter>

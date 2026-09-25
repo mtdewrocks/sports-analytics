@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { useSearchParams } from 'react-router-dom';
 import { getMLBPitchers, getMLBMatchup, getMLBPitcherProps } from '../../api/mlb';
 import { formatOdds, prettyBook } from '../../components/PropsExplorer';
@@ -638,6 +636,11 @@ export default function MLBMatchup() {
     setDownloadingPdf(true);
     try {
       await waitForImages(el);
+      // Loaded only when someone actually downloads a PDF -- together these
+      // libraries are ~750 KB, far more than the rest of the page.
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'), import('jspdf'),
+      ]);
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: theme.bgPage, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });

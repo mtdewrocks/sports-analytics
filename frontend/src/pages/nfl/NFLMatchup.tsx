@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { getNFLMatchups, getNFLMatchup, getNFLGameScript } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { NAV_HEIGHT, CHIPBAR_HEIGHT } from '../../components/Navbar';
@@ -398,6 +396,11 @@ export default function NFLMatchup() {
 
     setDownloadingPdf(true);
     try {
+      // Loaded only when someone actually downloads a PDF -- together these
+      // libraries are ~750 KB, far more than the rest of the page.
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'), import('jspdf'),
+      ]);
       const canvas = await html2canvas(page, { scale: 2, backgroundColor: theme.bgPage });
       const imgData = canvas.toDataURL('image/png');
 
