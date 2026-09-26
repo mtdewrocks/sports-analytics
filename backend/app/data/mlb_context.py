@@ -35,7 +35,10 @@ _BATTER_K_MARKETS = {"batter_strikeouts"}
 
 WOBA_EDGE = 0.020      # combined wOBA gap vs league (20 points) for a verdict
 K_EDGE = 2.0           # K% points vs league for a verdict
-GAME_WINDOW_HOURS = 4  # a matchup row counts only if its game is the prop's game
+GAME_WINDOW_HOURS = 4
+LEAGUE_BB_PCT = 8.3    # MLB walk rate, near enough for a +/- 1.5-point verdict
+BB_EDGE = 1.5
+BIG_WOBA_GAP = 0.025   # lineup-vs-usual gap that breaks a neutral call  # a matchup row counts only if its game is the prop's game
 
 
 def _key(name: Any) -> str:
@@ -166,6 +169,10 @@ def _pitcher_context(market: str, rows: pd.DataFrame, bench) -> Dict[str, Any]:
     if lineup_w is not None:
         facts.append(f"Lineup wOBA vs {throws}HP: {_w(lineup_w)}"
                      + (f" (league {_w(lw)})" if lw is not None else ""))
+    bbs = pd.to_numeric(rows["split_bb_pct"], errors="coerce").dropna() if "split_bb_pct" in rows.columns \
+        else pd.Series(dtype=float)
+    if not bbs.empty:
+        facts.append(f"Lineup walk rate vs {throws}HP: {float(bbs.mean()):.1f}% (league {LEAGUE_BB_PCT:.1f}%)")
     if own_k is not None:
         facts.append(f"His season K rate: {own_k:.1f}%")
     ctx["facts"] = facts
@@ -177,6 +184,26 @@ def _pitcher_context(market: str, rows: pd.DataFrame, bench) -> Dict[str, Any]:
     elif market == "pitcher_outs" and lineup_w is not None and lw is not None:
         # A weaker lineup means a longer outing: the Over likes a LOW wOBA.
         ctx["verdict"] = _verdict(lw - lineup_w, WOBA_EDGE)
+    elif market == "pitcher_walks" and not bbs.empty:
+        ctx["verdict"] = _verdict(float(bbs.mean()) - LEAGUE_BB_PCT, BB_EDGE)
+
+    # Today's lineup vs the team's usual one against his hand. His history
+    # was built against full-strength lineups, so a big gap is exactly what
+    # it can't see. It only breaks a neutral call; it never overrides one.
+    from app.data.mlb_lineups import for_opposing_lineup
+    vs = for_opposing_lineup(rows)
+    ctx["vs_usual"] = vs
+    if vs and ctx["verdict"] == "neutral":
+        d = vs["diff"]
+        shift = {
+            "pitcher_strikeouts": _verdict(d["k"], K_EDGE),
+            "pitcher_walks": _verdict(d["bb"], BB_EDGE),
+            "pitcher_hits_allowed": _verdict(d["woba"], BIG_WOBA_GAP),
+            "pitcher_earned_runs": _verdict(d["woba"], BIG_WOBA_GAP),
+            "pitcher_outs": _verdict(-d["woba"], BIG_WOBA_GAP),
+        }.get(market)
+        if shift in ("favorable", "tough"):
+            ctx["verdict"] = shift
     return ctx
 
 

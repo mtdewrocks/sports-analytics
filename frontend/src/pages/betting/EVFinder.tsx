@@ -14,6 +14,7 @@ export default function BettingEVFinder() {
       // loads once on mount, same as the old per-sport pages did.
       key={sport}
       fetcher={FETCHERS[sport]}
+      sport={sport}
       title="EV Finder"
       toolbar={<BettingSportToggle sport={sport} options={options} onChange={setSport} />}
     />

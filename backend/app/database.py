@@ -28,7 +28,7 @@ def get_db():
 def create_tables():
     import logging
     logger = logging.getLogger(__name__)
-    from app.models import User, Subscription  # noqa
+    from app.models import User, Subscription, Bet  # noqa
     try:
         Base.metadata.create_all(bind=engine, checkfirst=True)
         logger.info("Database tables ready.")

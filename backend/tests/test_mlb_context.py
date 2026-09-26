@@ -62,3 +62,35 @@ def test_neutral_when_close_to_league(data):
     data([lineup_row(f"H{i}", i, k=22.5) for i in range(1, 10)])
     c = ctx.mlb_ladder_context({"player": "Tarik Skubal", "market": "pitcher_strikeouts", "commence_time": GAME})
     assert c["verdict"] == "neutral"
+
+
+def test_lineup_vs_usual_breaks_a_neutral_call(data, monkeypatch):
+    import app.data.mlb_lineups as L
+    data([lineup_row(f"H{i}", i, k=22.5) for i in range(1, 10)])
+    monkeypatch.setattr(L, "for_opposing_lineup",
+                        lambda rows: {"diff": {"woba": -0.03, "k": 2.5, "bb": 0.0}, "notable": True, "big": True})
+    k = ctx.mlb_ladder_context({"player": "Tarik Skubal", "market": "pitcher_strikeouts", "commence_time": GAME})
+    assert k["verdict"] == "favorable" and k["vs_usual"]["big"]
+    outs = ctx.mlb_ladder_context({"player": "Tarik Skubal", "market": "pitcher_outs", "commence_time": GAME})
+    assert outs["verdict"] == "favorable"      # weaker lineup -> longer outing
+
+
+def test_usual_lineup_by_hand_and_fallback(monkeypatch):
+    import app.data.mlb_lineups as L
+    rows = []
+    # 10 games vs RHP with lineup A..I, 3 games vs LHP with lineup A..H + Z.
+    for g in range(13):
+        hand = "R" if g < 10 else "L"
+        names = list("ABCDEFGHI") if hand == "R" else list("ABCDEFGH") + ["Z"]
+        for n in names:
+            rows.append({"player_id": n, "player": n, "game_pk": g, "team": "T", "hand": hand,
+                         "started": True, "date": pd.Timestamp("2026-09-01") + pd.Timedelta(days=g),
+                         "plate_appearances": 4, "hits": 1, "doubles": 0, "triples": 0,
+                         "home_runs": 0, "walks": 0, "strikeouts": 1})
+    g = pd.DataFrame(rows)
+    monkeypatch.setattr(L, "_games", lambda: g)
+    monkeypatch.setattr(L, "get_mlb_data", lambda: {"mlb_rosters": pd.DataFrame()})
+    r = L.usual_lineup("T", "R", pd.Timestamp("2026-10-01"))
+    assert r["basis"] == "vs_hand" and set(r["player_ids"]) == set("ABCDEFGHI")
+    l = L.usual_lineup("T", "L", pd.Timestamp("2026-10-01"))
+    assert l["basis"] == "overall"              # only 3 games vs LHP: falls back

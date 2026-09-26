@@ -1,0 +1,61 @@
+name: Update Injuries
+
+on:
+  schedule:
+    # Every 15 minutes, 9 AM - 11:59 PM Central (CDT). Injury news breaks
+    # in bursts before games; this is what lets the Today page flag a
+    # downgrade before the prop lines react. Free: no paid APIs.
+    - cron: "4,19,34,49 14-23 * * *"
+    - cron: "4,19,34,49 0-4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-injuries
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update-injuries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests pyarrow
+
+      # Required: the change log is built by comparing against the last
+      # run's file. Skipping this would log every listed player as "new".
+      - name: Restore previous injury files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_injur*.parquet'
+          bash scripts/release_data.sh pull data-mlb backend/data/mlb 'mlb_injur*.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_injur*.parquet'
+
+      - name: Pull injuries
+        run: |
+          python -u backend/app/get_injuries.py --sport nfl
+          python -u backend/app/get_injuries.py --sport nba
+          python -u backend/app/get_injuries.py --sport mlb
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh push data-nfl backend/data/nfl/nfl_injuries.parquet backend/data/nfl/nfl_injury_changes.parquet
+          bash scripts/release_data.sh push data-mlb backend/data/mlb/mlb_injuries.parquet backend/data/mlb/mlb_injury_changes.parquet
+          bash scripts/release_data.sh push data-nba backend/data/nba/nba_injuries.parquet backend/data/nba/nba_injury_changes.parquet

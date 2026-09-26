@@ -5,6 +5,10 @@ import SegmentedToggle from './SegmentedToggle';
 import ScrollTable from './ScrollTable';
 import OddsDisclaimer, { latestFetchedAt } from './OddsDisclaimer';
 import { formatOdds, prettyBook, prettyMarket } from './PropsExplorer';
+import BetSheet from './BetSheet';
+import LineupVsUsual from './LineupVsUsual';
+import type { VsUsual } from './LineupVsUsual';
+import type { BetDraft } from '../api/betting';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
@@ -30,6 +34,8 @@ interface Rung {
   ev_pct: number;
   flagged: boolean;
   is_best: boolean;
+  /** EV so large it's almost certainly a stale or mis-posted price. */
+  suspicious?: boolean;
 }
 
 interface Ladder {
@@ -52,6 +58,8 @@ interface Matchup {
   status: 'ok' | 'no_lineup';
   verdict: 'favorable' | 'neutral' | 'tough' | null;
   facts: string[];
+  /** Pitcher ladders: today's opposing lineup vs its usual one vs his hand. */
+  vs_usual?: VsUsual | null;
 }
 
 type RungRange = 'core' | 'all';
@@ -67,6 +75,8 @@ interface AltLineExplorerProps {
   title: string;
   /** Rendered under the heading -- the Betting pages' sport toggle. */
   toolbar?: ReactNode;
+  /** Enables the "Bet" button on each ladder's best rung. */
+  sport?: BetDraft['sport'];
 }
 
 type Scope = 'flagged' | 'all';
@@ -89,7 +99,7 @@ const th = (right: boolean) => ({
   letterSpacing: '0.03em', borderBottom: `1px solid ${theme.borderStrong}`, whiteSpace: 'nowrap' as const,
 });
 
-export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExplorerProps) {
+export default function AltLineExplorer({ fetcher, title, toolbar, sport }: AltLineExplorerProps) {
   const isMobile = useIsMobile();
   const [scope, setScope] = useState<Scope>('flagged');
   const [minEv, setMinEv] = useState(3);
@@ -97,6 +107,7 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
   const [rungRange, setRungRange] = useState<RungRange>('core');
   const [favorableOnly, setFavorableOnly] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [betting, setBetting] = useState<BetDraft | null>(null);
   const [rows, setRows] = useState<Ladder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -232,14 +243,31 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
                 {!lad.enough_games && <span style={{ color: theme.warningText }}> · too few to flag</span>}
               </div>
             </div>
-            {lad.best_line !== null && (
-              <span style={{
-                fontSize: 11, fontWeight: 700, color: theme.accent, border: `1px solid ${theme.accent}`,
-                borderRadius: 999, padding: '2px 8px', whiteSpace: 'nowrap',
-              }}>
-                Best: Over {lad.best_line}
-              </span>
-            )}
+            {lad.best_line !== null && (() => {
+              const best = lad.rungs.find((r) => r.is_best);
+              return sport && best ? (
+                <button
+                  onClick={() => setBetting({
+                    sport, player: lad.player, market: lad.market, line: best.line, side: 'over',
+                    book: best.best_book, price: best.best_price, tool: 'alt',
+                  })}
+                  style={{
+                    padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.accent}`,
+                    background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12.5,
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}
+                >
+                  Bet Over {lad.best_line}
+                </button>
+              ) : (
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: theme.accent, border: `1px solid ${theme.accent}`,
+                  borderRadius: 999, padding: '2px 8px', whiteSpace: 'nowrap',
+                }}>
+                  Best: Over {lad.best_line}
+                </span>
+              );
+            })()}
           </div>
 
           {lad.matchup && (
@@ -261,6 +289,7 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
                   )}
                   {lad.matchup.verdict && lad.matchup.facts.length > 0 && ' · '}
                   {lad.matchup.facts.join(' · ')}
+                  {lad.matchup.vs_usual && <LineupVsUsual v={lad.matchup.vs_usual} />}
                 </>
               )}
             </div>
@@ -289,7 +318,14 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
                   };
                   return (
                     <tr key={r.line} style={{ background: r.is_best ? 'rgba(29,158,117,0.12)' : undefined }}>
-                      <td style={{ ...cell, textAlign: 'left', fontWeight: r.is_best ? 700 : 400 }}>O {r.line}</td>
+                      <td style={{ ...cell, textAlign: 'left', fontWeight: r.is_best ? 700 : 400 }}>
+                        O {r.line}
+                        {r.suspicious && (
+                          <div style={{ fontSize: 10.5, color: theme.warningText, fontWeight: 400 }}>
+                            check price
+                          </div>
+                        )}
+                      </td>
                       <td style={cell}>
                         {formatOdds(r.best_price)}
                         <div style={{ fontSize: 10.5, color: theme.textMuted }}>{prettyBook(r.best_book)}</div>
@@ -326,6 +362,7 @@ export default function AltLineExplorer({ fetcher, title, toolbar }: AltLineExpl
           +600 are never flagged, and pick'em apps aren't counted as a best price.
         </div>
       )}
+      <BetSheet key={betting ? JSON.stringify(betting) : 'none'} bet={betting} onClose={() => setBetting(null)} />
     </div>
   );
 }

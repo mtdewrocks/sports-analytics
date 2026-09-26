@@ -102,7 +102,11 @@ MLB = SportConfig(
         "pitcher_hits_allowed_alternate", "pitcher_strikeouts_alternate",
     ),
     # A baseball slate is visible for about a day, so the tiers are in hours.
-    core_tiers=((3.0, 1.0), (8.0, 3.0), (float("inf"), 6.0)),
+    # (0.75, 0.3): one last core refresh in the ~45 minutes before first
+    # pitch, so the closing line CLV is graded against is minutes old, not
+    # an hour. Workflow slots are 20 minutes apart, so it lands ~10-30 min
+    # out. Costs one extra core pull per game (~13 credits).
+    core_tiers=((0.75, 0.3), (3.0, 1.0), (8.0, 3.0), (float("inf"), 6.0)),
     alt_tiers=((3.0, 4.0), (float("inf"), 12.0)),
     strip_prefixes=("batter_",),
 )
@@ -171,6 +175,7 @@ NFL = SportConfig(
     # fire every 30 minutes anyway -- that tier needs the Render-cron dispatch
     # to mean anything.)
     core_tiers=(
+        (0.75, 0.3),           # pre-kickoff pull for closing lines (CLV), ~24 credits/game
         (72.0, 6.0),           # inside 3 days -- 4x a day
         (float("inf"), 12.0),  # further out -- 2x a day
     ),

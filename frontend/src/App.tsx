@@ -83,6 +83,8 @@ const HitRateSheet = lazy(() => import('./pages/HitRateSheet'));
 const BettingEVFinder = lazy(() => import('./pages/betting/EVFinder'));
 const BettingAltLineValue = lazy(() => import('./pages/betting/AltLineValue'));
 const BettingMiddles = lazy(() => import('./pages/betting/Middles'));
+const BettingToday = lazy(() => import('./pages/betting/Today'));
+const BettingMyBets = lazy(() => import('./pages/betting/MyBets'));
 
 export default function App() {
   return (
@@ -130,6 +132,8 @@ export default function App() {
           <Route path="/betting/ev" element={<PrivateRoute><BettingEVFinder /></PrivateRoute>} />
           <Route path="/betting/alt-lines" element={<PrivateRoute><BettingAltLineValue /></PrivateRoute>} />
           <Route path="/betting/middles" element={<PrivateRoute><BettingMiddles /></PrivateRoute>} />
+          <Route path="/betting/today" element={<PrivateRoute><BettingToday /></PrivateRoute>} />
+          <Route path="/betting/my-bets" element={<PrivateRoute><BettingMyBets /></PrivateRoute>} />
           <Route path="/betting/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
           {/* Old addresses, kept working for bookmarks. */}
           <Route path="/hit-rate-sheet" element={<Navigate to="/betting/hit-rate-sheet" replace />} />

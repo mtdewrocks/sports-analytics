@@ -384,6 +384,36 @@ def get_closing_lines_data(sport: str) -> pd.DataFrame:
     return _load(url(), pd.read_parquet, f"{sport} closing lines")
 
 
+_SPORT_BASE = {
+    "mlb": lambda: settings.MLB_BASE_URL,
+    "nfl": lambda: settings.NFL_BASE_URL,
+    "nba": lambda: settings.NBA_BASE_URL,
+}
+
+
+@ttl_cache(300)
+def get_injuries_data(sport: str) -> pd.DataFrame:
+    """Currently listed players, from get_injuries.py (refreshed every 15 min)."""
+    base = _SPORT_BASE.get(sport)
+    return _load(f"{base()}/{sport}_injuries.parquet", pd.read_parquet, f"{sport} injuries") if base else pd.DataFrame()
+
+
+@ttl_cache(300)
+def get_injury_changes_data(sport: str) -> pd.DataFrame:
+    """Every status change get_injuries.py has seen, with when it noticed."""
+    base = _SPORT_BASE.get(sport)
+    return (_load(f"{base()}/{sport}_injury_changes.parquet", pd.read_parquet, f"{sport} injury changes")
+            if base else pd.DataFrame())
+
+
+@ttl_cache(MLB_TTL)
+def get_flagged_plays_data(sport: str) -> pd.DataFrame:
+    """EV Finder plays logged and graded by build_flagged_plays.py."""
+    base = _SPORT_BASE.get(sport)
+    return (_load(f"{base()}/{sport}_flagged_plays.parquet", pd.read_parquet, f"{sport} flagged plays")
+            if base else pd.DataFrame())
+
+
 @ttl_cache(MLB_TTL)
 def get_props_data(sport: str) -> pd.DataFrame:
     """Long-format props for one sport."""

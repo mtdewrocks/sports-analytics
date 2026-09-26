@@ -4,6 +4,8 @@ import LoadingSpinner from './LoadingSpinner';
 import SegmentedToggle from './SegmentedToggle';
 import OddsDisclaimer, { latestFetchedAt } from './OddsDisclaimer';
 import { formatOdds, prettyBook, prettyMarket } from './PropsExplorer';
+import BetSheet from './BetSheet';
+import type { BetDraft } from '../api/betting';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
@@ -59,6 +61,8 @@ interface EVExplorerProps {
   title: string;
   /** Rendered under the heading -- the Betting pages' sport toggle. */
   toolbar?: ReactNode;
+  /** Enables the "Bet this" button. */
+  sport?: BetDraft['sport'];
 }
 
 function ago(iso: string | null): string | null {
@@ -89,7 +93,7 @@ const selectStyle = (isMobile: boolean) => ({
   boxSizing: 'border-box' as const, width: isMobile ? '100%' : undefined,
 });
 
-export default function EVExplorer({ fetcher, title, toolbar }: EVExplorerProps) {
+export default function EVExplorer({ fetcher, title, toolbar, sport }: EVExplorerProps) {
   const isMobile = useIsMobile();
   const [mode, setMode] = useState<Mode>('auto');
   const [minEdge, setMinEdge] = useState(2);
@@ -99,6 +103,7 @@ export default function EVExplorer({ fetcher, title, toolbar }: EVExplorerProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [open, setOpen] = useState<string | null>(null);
+  const [betting, setBetting] = useState<BetDraft | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -303,8 +308,28 @@ export default function EVExplorer({ fetcher, title, toolbar }: EVExplorerProps)
                     </tbody>
                   </table>
                 )}
-                <div style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 6 }}>
-                  {expanded ? 'Tap to hide prices' : 'Tap for every book\'s price'}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                  <span style={{ fontSize: 10.5, color: theme.textMuted }}>
+                    {expanded ? 'Tap to hide prices' : 'Tap for every book\'s price'}
+                  </span>
+                  {sport && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBetting({
+                          sport, player: r.player, market: r.market, line: r.line, side: r.side,
+                          book: r.book, price: r.price, tool: 'ev', event_id: r.event_id,
+                        });
+                      }}
+                      style={{
+                    padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.accent}`,
+                    background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12.5,
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}
+                    >
+                      Bet this
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -320,6 +345,7 @@ export default function EVExplorer({ fetcher, title, toolbar }: EVExplorerProps)
           aren't single bets you can place.
         </div>
       )}
+      <BetSheet key={betting ? JSON.stringify(betting) : 'none'} bet={betting} onClose={() => setBetting(null)} />
     </div>
   );
 }

@@ -60,6 +60,12 @@ class Settings(BaseSettings):
     # (MLBMatchup.tsx IMAGE_BASE), which a flat asset namespace cannot serve.
     MLB_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-mlb"
     NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl"
+    # NBA injuries (get_injuries.py) -- the first NBA file published to a release.
+    NBA_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nba"
+    # The Odds API key, for the "Bet this" live price check (app/odds_live.py).
+    # Same key the props workflow uses; set it on Render. Blank = the bet sheet
+    # falls back to the last scheduled pull's price.
+    ODDS_API_KEY: str = ""
 
 settings = Settings()
 

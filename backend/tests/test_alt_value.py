@@ -74,3 +74,11 @@ def test_context_fn_attached_and_favorable_filter():
     assert out[0]["matchup"] == {"verdict": "tough"}
     assert build_ladders(rows, min_games=10, context_fn=lambda l: {"verdict": "tough"},
                          favorable_only=True) == []
+
+
+def test_absurd_ev_rung_is_marked_and_never_best():
+    rows = [row(4.5, {"fanduel": 128}, "18/30", "6/10"),
+            row(5.5, {"espnbet": 500}, "20/30", "7/10")]
+    out = build_ladders(rows, min_games=10, flagged_only=False)
+    r55 = [r for r in out[0]["rungs"] if r["line"] == 5.5][0]
+    assert r55["suspicious"] and not r55["is_best"] and not r55["flagged"]

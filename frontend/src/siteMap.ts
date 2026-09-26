@@ -173,7 +173,7 @@ export const BETTING: BettingGroup = {
   label: 'Betting',
   icon: '💰',
   color: '#1d9e75',
-  pitch: 'Tools that turn the research into bets: +EV prices across books, the best rung on every alt ladder, hit rates against today\'s lines, and middles and arbs.',
+  pitch: 'Tools that turn the research into bets: a daily feed with injury news, +EV prices across books, the best rung on every alt ladder, hit rates against today\'s lines, middles and arbs, and bet tracking with closing line value.',
   // One unlabeled section: four pages don't need sub-headers. A section with
   // an empty label renders without a header in the Navbar and Dashboard.
   sections: [
@@ -181,9 +181,11 @@ export const BETTING: BettingGroup = {
       label: '',
       pages: [
         { label: 'Hit Rate Sheet', to: '/betting/hit-rate-sheet', description: "How often players have cleared today's prop lines" },
+        { label: 'Today', to: '/betting/today', description: "Injury news, +EV prices, alt-line value and more, ranked in one feed" },
         { label: 'EV Finder', to: '/betting/ev', description: 'Props where a book is paying more than the fair, no-vig price' },
         { label: 'Alt-Line Value', to: '/betting/alt-lines', description: "The best-value rung on each player's alternate ladder" },
         { label: 'Middles & Arbs', to: '/betting/middles', description: 'Line gaps between sportsbooks worth middling or arbing' },
+        { label: 'My Bets', to: '/betting/my-bets', description: 'Your logged bets, record and closing line value' },
       ],
     },
   ],

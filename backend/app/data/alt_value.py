@@ -50,6 +50,10 @@ PRIOR_EXPECTED_HITS = 3.0
 RECENT_WEIGHT = 0.2
 MAX_FLAG_PRICE = 600
 MIN_SHOWN_PRICE = -400
+# No real alt-ladder price is worth +50% EV. Above this it's a mis-posted or
+# stale number (e.g. a book hanging +500 on a 5.5 K rung the pitcher clears
+# two-thirds of the time) -- shown with a warning, never picked as "best".
+SUSPICIOUS_EV = 50.0
 MIN_GAMES = {"mlb": 10, "nfl": 4}
 DEFAULT_MIN_GAMES = 6
 LONGSHOT_PRICE = 300
@@ -106,6 +110,8 @@ def score_rung(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 def _qualifies(rung: Dict[str, Any], min_ev: float, min_games: int) -> bool:
     if rung["_season_n"] < min_games or rung["best_price"] > MAX_FLAG_PRICE:
+        return False
+    if rung["ev_pct"] > SUSPICIOUS_EV:
         return False
     if rung["best_price"] > LONGSHOT_PRICE:
         return rung["_season_n"] >= LONGSHOT_MIN_GAMES and rung["ev_pct"] >= 2 * min_ev
@@ -177,6 +183,7 @@ def build_ladders(rows: List[Dict[str, Any]], min_ev: float = 3.0, min_rungs: in
             continue
         for r in rungs:
             r["flagged"] = _qualifies(r, min_ev, min_games)
+            r["suspicious"] = r["ev_pct"] > SUSPICIOUS_EV
         candidates = [r for r in rungs if r["flagged"]]
         best = max(candidates, key=lambda r: r["ev_pct"]) if candidates else None
         if flagged_only and best is None:

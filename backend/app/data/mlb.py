@@ -1323,9 +1323,18 @@ def get_pitcher_daily_report() -> Dict[str, Any]:
     def clean_int(v):
         return int(v) if pd.notna(v) else None
 
+    # Today's lineup vs the opponent's usual one against this pitcher's hand
+    # (app/data/mlb_lineups.py) -- None until the lineup posts.
+    from app.data.mlb_lineups import for_opposing_lineup
+    vs_usual_by_pitcher = {}
+    if not matchups.empty and "pitcher" in matchups.columns:
+        for p_name, rows in matchups.groupby("pitcher"):
+            vs_usual_by_pitcher[p_name] = for_opposing_lineup(rows)
+
     out = []
     for _, r in combined.iterrows():
         out.append({
+            "vs_usual": vs_usual_by_pitcher.get(r["pitcher"]),
             "player": r["pitcher"],
             "team": r["team"],
             "opposing_team": r["opponent"],

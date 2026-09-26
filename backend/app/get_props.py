@@ -135,7 +135,7 @@ RETRY_SLEEPS = (2, 6, 15)
 
 OUT_COLS = ["Player", "market", "Line", "bookmakers", "Over Price", "Under Price",
             "commence_time", "home_team", "away_team", "event_id",
-            "fetched_at", "alt_fetched_at"]
+            "fetched_at", "alt_fetched_at", "Over Link", "Under Link"]
 
 
 class QuotaExhausted(RuntimeError):
@@ -261,6 +261,9 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
             "markets": ",".join(event["_markets"]),
             "oddsFormat": "american",
             "dateFormat": "iso",
+            # Bet-slip deep links for the "Bet this" button. Free: cost is
+            # markets returned x regions, and links add neither.
+            "includeLinks": "true",
         },
     )
 
@@ -296,6 +299,9 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
                     "point": outcome.get("point"),
                     "market": market.get("key"),
                     "bookmakers": book.get("key"),
+                    # Deepest link the book offers: the selection itself
+                    # (adds it to the slip), else the market, else the event.
+                    "link": outcome.get("link") or market.get("link") or book.get("link"),
                 })
     if not rows:
         return pd.DataFrame()
@@ -343,8 +349,12 @@ def to_over_under(df: pd.DataFrame, cfg: SportConfig) -> pd.DataFrame:
     df = df.copy()
     df["name"] = df["name"].replace({"Yes": "Over", "No": "Under"})
 
-    over = df[df["name"] == "Over"].drop(columns=["name"]).rename(columns={"price": "Over Price"})
-    under = df[df["name"] == "Under"].drop(columns=["name"]).rename(columns={"price": "Under Price"})
+    if "link" not in df.columns:
+        df["link"] = pd.NA
+    over = df[df["name"] == "Over"].drop(columns=["name"]).rename(
+        columns={"price": "Over Price", "link": "Over Link"})
+    under = df[df["name"] == "Under"].drop(columns=["name"]).rename(
+        columns={"price": "Under Price", "link": "Under Link"})
     merged = over.merge(under, on=keys, how="outer")
     merged = merged.rename(columns={"description": "Player", "point": "Line"})
 

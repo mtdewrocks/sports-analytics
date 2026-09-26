@@ -5,7 +5,14 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 
+import LineupVsUsual from '../../components/LineupVsUsual';
+import type { VsUsual } from '../../components/LineupVsUsual';
+
 interface PitcherRow {
+  /** Today's opposing lineup vs its usual one against this pitcher's hand. */
+  vs_usual: VsUsual | null;
+  /** Derived for the desktop table: today's lineup wOBA minus usual, in points. */
+  vs_usual_pts?: number | null;
   player: string;
   team: string;
   opposing_team: string;
@@ -41,6 +48,7 @@ const columns: { key: SortKey; label: string; align?: 'left' | 'right' }[] = [
   { key: 'opp_avg', label: 'Opp AVG' },
   { key: 'opp_k_pct', label: 'Opp K%' },
   { key: 'opp_bb_pct', label: 'Opp BB%' },
+  { key: 'vs_usual_pts', label: 'vs Usual' },
   { key: 'high_k_hitter', label: 'Hi K' },
   { key: 'high_bb_hitter', label: 'Hi BB' },
   { key: 'high_avg_hitter', label: 'Hi Avg' },
@@ -129,6 +137,7 @@ function PitcherCard({ r }: { r: PitcherRow }) {
             {fmt(r.opp_k_pct, '%')}
           </span> K
           {' · '}{fmt(r.opp_bb_pct, '%')} BB
+          {r.vs_usual && <LineupVsUsual v={r.vs_usual} compact />}
         </div>
       ) : (
         <div style={{ fontSize: 12, color: theme.textMuted }}>Waiting on today's lineup.</div>
@@ -187,7 +196,10 @@ export default function MLBPitcherDailyReport() {
     getMLBPitcherDailyReport()
       .then((res) => {
         setDate(res.data.date);
-        setRows(res.data.pitchers);
+        setRows(res.data.pitchers.map((p: PitcherRow) => ({
+          ...p,
+          vs_usual_pts: p.vs_usual ? Math.round(p.vs_usual.diff.woba * 1000) : null,
+        })));
       })
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to fetch pitcher report.'))
       .finally(() => setLoading(false));
@@ -296,6 +308,16 @@ export default function MLBPitcherDailyReport() {
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_avg ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_k_pct ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.opp_bb_pct ?? '—'}</td>
+                  <td
+                    title={r.vs_usual?.missing.length ? `Missing: ${r.vs_usual.missing.map((m) => m.player).join(', ')}` : undefined}
+                    style={{
+                      padding: '7px 10px', textAlign: 'right',
+                      color: r.vs_usual_pts == null || Math.abs(r.vs_usual_pts) < 15 ? theme.textSecondary
+                        : r.vs_usual_pts < 0 ? theme.accent : theme.dataRed,
+                    }}
+                  >
+                    {r.vs_usual_pts == null ? '—' : `${r.vs_usual_pts > 0 ? '+' : ''}${r.vs_usual_pts}`}
+                  </td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_k_hitter ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_bb_hitter ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_avg_hitter ?? '—'}</td>
