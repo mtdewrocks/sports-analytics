@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
 import { theme } from '../theme';
-import { BETTING, bettingPages, flatPages, sportsBySeason } from '../siteMap';
+import { BETTING, BRIEFING_PAGE, bettingPages, flatPages, sportsBySeason } from '../siteMap';
 
 /** Height of the fixed mobile tab bar. App.tsx pads the page by this much so
  *  the last card on a page isn't sitting underneath it. */
@@ -288,6 +288,17 @@ export default function Navbar() {
 
             <BottomSheet open={moreOpen} onClose={() => setMoreOpen(false)} title="More">
               <Link
+                to={BRIEFING_PAGE.to}
+                onClick={() => setMoreOpen(false)}
+                style={{
+                  display: 'block', padding: '13px 2px', minHeight: 44, fontSize: 15,
+                  color: theme.textPrimary, textDecoration: 'none', fontWeight: 700,
+                  borderBottom: `1px solid ${theme.border}`,
+                }}
+              >
+                {BRIEFING_PAGE.label}
+              </Link>
+              <Link
                 to="/dashboard"
                 onClick={() => setMoreOpen(false)}
                 style={{
@@ -331,6 +342,18 @@ export default function Navbar() {
       <Link to={isAuthenticated ? '/dashboard' : '/'} style={styles.brand}>Sports Analytics</Link>
 
       <ul style={{ display: 'flex', alignItems: 'center', gap: 4, listStyle: 'none', margin: 0, padding: 0 }}>
+        {/* Daily Briefing: its own page, ahead of the menus -- the one to open first. */}
+        <li>
+          <Link
+            to={BRIEFING_PAGE.to}
+            style={{
+              ...styles.navBtn, textDecoration: 'none', display: 'inline-block',
+              color: location.pathname === BRIEFING_PAGE.to ? theme.accent : theme.textSecondary,
+            }}
+          >
+            {BRIEFING_PAGE.label}
+          </Link>
+        </li>
         {GROUPS.map((g) => <NavDropdown key={g.key} label={g.label} sections={g.sections} />)}
       </ul>
 

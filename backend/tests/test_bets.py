@@ -70,3 +70,24 @@ def test_today_tiers_and_stake_sizing():
     assert alt_longshot_ok({"season_sample": "10/30", "recent_sample": "3/10", "implied_pct": 22})
     assert not alt_longshot_ok({"season_sample": "10/30", "recent_sample": "1/10", "implied_pct": 22})
     assert not alt_longshot_ok({"season_sample": "5/15", "recent_sample": "4/10", "implied_pct": 22})
+
+
+def test_briefing_line_moves_filters_noise():
+    from app.data.briefing import line_moves
+    now = pd.Timestamp("2026-09-27T12:00:00Z")
+    future = "2026-09-27T17:00:00Z"
+    props = pd.DataFrame([
+        {"event_id": "e", "Player": "Starter", "market": "rush_yds", "Line": 55.5, "commence_time": future},
+        {"event_id": "e", "Player": "Backup", "market": "reception_yds", "Line": 0.5, "commence_time": future},
+        {"event_id": "e", "Player": "Steady", "market": "receptions", "Line": 4.5, "commence_time": future},
+    ])
+    snaps = pd.DataFrame([
+        {"event_id": "e", "Player": "Starter", "market": "rush_yds", "Line": 42.5, "bookmakers": "dk",
+         "observed_at": "2026-09-26T20:00:00+00:00"},
+        {"event_id": "e", "Player": "Backup", "market": "reception_yds", "Line": 1.5, "bookmakers": "dk",
+         "observed_at": "2026-09-26T20:00:00+00:00"},
+        {"event_id": "e", "Player": "Steady", "market": "receptions", "Line": 4.5, "bookmakers": "dk",
+         "observed_at": "2026-09-26T20:00:00+00:00"},
+    ])
+    out = line_moves("nfl", props, snaps, now)
+    assert [o["title"] for o in out] == ["Starter rushing yards 42.5 → 55.5"]

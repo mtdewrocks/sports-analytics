@@ -44,3 +44,4 @@ export const setBetResult = (id: string, result: 'win' | 'loss' | 'push' | 'void
   client.patch(`/api/betting/bets/${id}`, { result });
 export const deleteBet = (id: string) => client.delete(`/api/betting/bets/${id}`);
 export const getReportCard = () => client.get('/api/betting/report-card');
+export const getBriefing = () => client.get('/api/betting/briefing');

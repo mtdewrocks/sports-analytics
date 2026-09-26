@@ -181,7 +181,7 @@ export const BETTING: BettingGroup = {
       label: '',
       pages: [
         { label: 'Hit Rate Sheet', to: '/betting/hit-rate-sheet', description: "How often players have cleared today's prop lines" },
-        { label: 'Today', to: '/betting/today', description: "Injury news, +EV prices, alt-line value and more, ranked in one feed" },
+        { label: 'Edge Board', to: '/betting/edge-board', description: 'Mispriced odds, alt-line value and middles, ranked in one list' },
         { label: 'EV Finder', to: '/betting/ev', description: 'Props where a book is paying more than the fair, no-vig price' },
         { label: 'Alt-Line Value', to: '/betting/alt-lines', description: "The best-value rung on each player's alternate ladder" },
         { label: 'Middles & Arbs', to: '/betting/middles', description: 'Line gaps between sportsbooks worth middling or arbing' },
@@ -222,3 +222,13 @@ export function sportsBySeason(date: Date = new Date()): Sport[] {
 export function flatPages(sport: Sport): SitePage[] {
   return sport.sections.flatMap((s) => s.pages);
 }
+
+/**
+ * Daily Briefing -- its own top-level page, separate from the sports and
+ * Betting menus: what changed today, then the day's games with context.
+ */
+export const BRIEFING_PAGE: SitePage = {
+  label: 'Daily Briefing',
+  to: '/briefing',
+  description: "What changed today, and every game on the slate with its context in one place",
+};

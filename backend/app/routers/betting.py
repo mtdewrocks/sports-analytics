@@ -17,6 +17,13 @@ router = APIRouter(prefix="/api/betting", tags=["betting"])
 Sport = Literal["mlb", "nfl", "nba"]
 
 
+@router.get("/briefing")
+def briefing(_=Depends(require_access)):
+    """Daily Briefing -- see app/data/briefing.py."""
+    from app.data.briefing import get_briefing
+    return get_briefing()
+
+
 @router.get("/today")
 def today(_=Depends(require_access)):
     from app.data.today import get_today

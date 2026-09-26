@@ -89,10 +89,10 @@ export default function Today() {
       padding: isMobile ? 16 : 24, maxWidth: 900, margin: '0 auto',
       background: theme.bgPage, minHeight: 'calc(100vh - 60px)',
     }}>
-      <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>Today</h2>
+      <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>Edge Board</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 14, lineHeight: 1.55 }}>
-        The strongest signals from every page, ranked. Injury news comes first because it moves
-        fastest. Bets priced from -250 to +250 follow the normal rules. Long shots (+251 to +600)
+        Every edge on today's board in one ranked list: mispriced odds, alt-line value, middles, and
+        the injury news behind them. Bets priced from -250 to +250 follow the normal rules. Long shots (+251 to +600)
         have to pass extra checks, are limited to two per sport, and are labeled. Each bet shows a
         suggested stake as a share of your bankroll: long shots lose often even when they're good
         bets, so they're sized smaller.

@@ -125,8 +125,10 @@ def parse_espn(payload: Dict[str, Any], sport: str) -> List[Dict[str, Any]]:
             if not name or not status:
                 continue
             details = inj.get("details") or {}
+            # ESPN fills unknown parts with "Not Specified"; drop those.
             detail = " ".join(str(x) for x in (details.get("type"), details.get("detail"),
-                                               details.get("side")) if x) or inj.get("shortComment")
+                                               details.get("side"))
+                              if x and str(x).strip().lower() != "not specified") or inj.get("shortComment")
             pos = (athlete.get("position") or {}).get("abbreviation")
             rows.append({
                 "sport": sport, "player": name, "player_key": player_key(name),

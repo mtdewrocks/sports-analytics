@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../theme';
 import useIsMobile from '../hooks/useIsMobile';
-import { BETTING, isInSeason, sportsBySeason } from '../siteMap';
+import { BETTING, BRIEFING_PAGE, isInSeason, sportsBySeason } from '../siteMap';
 import type { SitePage } from '../siteMap';
 
 // Every page comes from siteMap.ts, the same list the Navbar reads, so a new
@@ -53,6 +53,10 @@ export default function Dashboard() {
     }}>
       <h1 style={{ color: theme.textPrimary, fontSize: isMobile ? 26 : 32, lineHeight: 1.2, margin: '0 0 6px' }}>Sports Analytics</h1>
       <p style={{ color: theme.textSecondary, marginBottom: 24 }}>Pick a sport and a page to get started.</p>
+
+      <div style={{ ...grid, marginBottom: 28 }}>
+        <PageCard page={BRIEFING_PAGE} color={theme.accent} />
+      </div>
 
       {sports.map((sport) => (
         <section key={sport.key} style={{ marginBottom: 36 }}>
