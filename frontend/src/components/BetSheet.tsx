@@ -35,7 +35,10 @@ const input = {
 
 export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClose: () => void }) {
   // Parents key this component by the bet, so every new bet starts from
-  // fresh state -- no resetting inside an effect.
+  // fresh state -- no resetting inside an effect. `draft` is the bet as the
+  // user has adjusted it (side can be flipped: the Props and Hit Rate pages
+  // open on the Over, but either side can be logged).
+  const [draft, setDraft] = useState<BetDraft | null>(bet);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(!!bet);
   const [price, setPrice] = useState(bet ? String(bet.price) : '');
@@ -44,31 +47,48 @@ export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClo
   const [done, setDone] = useState<null | { verification: string }>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!bet) return;
-    getQuote(bet)
+  const loadQuote = (b: BetDraft) => {
+    getQuote(b)
       .then((res) => {
         setQuote(res.data);
-        const p = res.data.at_book?.price;
+        const at = res.data.at_book;
+        const best = res.data.best;
+        // The chosen book isn't hanging this side/line: move to the best one
+        // that is, so the bet is logged at a book that actually offers it.
+        if (!at && best) setDraft((d) => (d ? { ...d, book: best.book } : d));
+        const p = at?.price ?? best?.price;
         if (p !== undefined && p !== null) setPrice(String(p));
       })
       .catch(() => setQuote(null))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (bet) loadQuote(bet);
   }, [bet]);
 
-  if (!bet) return null;
+  const switchSide = (side: 'over' | 'under') => {
+    if (!draft || draft.side === side) return;
+    const next = { ...draft, side };
+    setDraft(next); setQuote(null); setLoading(true); setError(''); setPrice('');
+    loadQuote(next);
+  };
 
-  const atBook = quote?.at_book;
+  if (!bet || !draft) return null;
+
+  // The offer at the book currently chosen (it can change: see loadQuote and
+  // the "Use" button), falling back to the quote's own at-book match.
+  const atBook = (quote?.offers ?? []).find((o) => o.book === draft?.book) ?? quote?.at_book ?? null;
   const best = quote?.best;
   const started = quote?.reason === 'started';
-  const moved = atBook && atBook.price !== bet.price;
+  const moved = atBook && draft.side === bet.side && atBook.price !== bet.price;
   const betterElsewhere = best && atBook && best.book !== atBook.book && best.price > atBook.price;
 
   const submit = () => {
     const p = parseInt(price, 10);
     if (!(p >= 100 || p <= -100)) { setError('Enter American odds, like -110 or +150.'); return; }
     setSaving(true); setError('');
-    logBet({ ...bet, price: p, stake: stake ? Number(stake) : null, event_id: quote?.event_id ?? bet.event_id })
+    logBet({ ...draft, price: p, stake: stake ? Number(stake) : null, event_id: quote?.event_id ?? draft.event_id })
       .then((res) => setDone({ verification: res.data.verification }))
       .catch((err) => setError(err?.response?.data?.detail || 'Could not log this bet.'))
       .finally(() => setSaving(false));
@@ -78,8 +98,27 @@ export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClo
     <BottomSheet open={!!bet} onClose={onClose} title="Bet this">
       <div style={{ padding: '4px 16px 18px', color: theme.textSecondary, fontSize: 13.5, lineHeight: 1.5 }}>
         <div style={{ color: theme.textPrimary, fontWeight: 700, fontSize: 15 }}>{bet.player}</div>
-        <div>{marketText(bet.market)} · <strong style={{ color: theme.textPrimary }}>{sideText(bet)}</strong></div>
+        <div>{marketText(bet.market)} · <strong style={{ color: theme.textPrimary }}>{sideText(draft)}</strong></div>
         {quote?.away_team && <div style={{ fontSize: 12, color: theme.textMuted }}>{quote.away_team} @ {quote.home_team}</div>}
+
+        {!done && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+            {(['over', 'under'] as const).map((sd) => (
+              <button
+                key={sd}
+                onClick={() => switchSide(sd)}
+                style={{
+                  flex: 1, padding: '7px 10px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  border: `1px solid ${draft.side === sd ? theme.accent : theme.border}`,
+                  background: draft.side === sd ? theme.accent : theme.bgPage,
+                  color: draft.side === sd ? 'white' : theme.textSecondary,
+                }}
+              >
+                {sideText({ ...draft, side: sd })}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading && <LoadingSpinner />}
 
@@ -112,12 +151,27 @@ export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClo
                 </>
               ) : (
                 <div>
-                  {prettyBook(bet.book)} no longer shows this line in our data. It may have moved or been pulled.
+                  {best
+                    ? <>{prettyBook(draft.book)} isn't showing this side right now; best available below.</>
+                    : <>No book is showing this line right now. It may have moved or been pulled.</>}
                 </div>
               )}
               {betterElsewhere && best && (
-                <div style={{ marginTop: 6 }}>
-                  Better price: <strong style={{ color: theme.accent }}>{prettyBook(best.book)} {formatOdds(best.price)}</strong>
+                <div style={{ marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span>Better price: <strong style={{ color: theme.accent }}>{prettyBook(best.book)} {formatOdds(best.price)}</strong></span>
+                  <button
+                    onClick={() => {
+                      setDraft({ ...draft, book: best.book, price: best.price });
+                      setQuote({ ...quote!, at_book: best });
+                      setPrice(String(best.price));
+                    }}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, border: `1px solid ${theme.accent}`,
+                      background: 'transparent', color: theme.accent, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    }}
+                  >
+                    Use {prettyBook(best.book)}
+                  </button>
                 </div>
               )}
             </div>

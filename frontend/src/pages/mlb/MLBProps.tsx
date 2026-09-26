@@ -11,6 +11,7 @@ export default function MLBProps() {
     <PropsExplorer
       fetcher={getMLBProps}
       title="MLB Props"
+      sport="mlb"
       pitcherContextFetcher={getMLBPitcherLineupContext}
     />
   );

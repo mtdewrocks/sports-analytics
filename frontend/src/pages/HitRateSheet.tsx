@@ -11,6 +11,8 @@ import ScrollTable from '../components/ScrollTable';
 import { stickyColStyle } from '../components/tableStyles';
 import OddsDisclaimer, { latestFetchedAt } from '../components/OddsDisclaimer';
 import { fieldLabelStyle, fieldStyle } from '../components/filterStyles';
+import BetSheet from '../components/BetSheet';
+import type { BetDraft } from '../api/betting';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
@@ -228,6 +230,12 @@ export default function HitRateSheet() {
   const isMobile = useIsMobile();
 
   const [sport, setSport] = useState<Sport>('mlb');
+  const [betting, setBetting] = useState<BetDraft | null>(null);
+  const betDraft = (r: HitRateRow): BetDraft => ({
+    sport, player: r.player, market: r.market,
+    line: typeof r.line === 'number' ? r.line : null, side: 'over',
+    book: r.best_book, price: r.best_odds, tool: 'hit_rate',
+  });
   const [market, setMarket] = useState<string>('all');
   const [minHitRateStr, setMinHitRateStr] = useState('');
   const [minOddsStr, setMinOddsStr] = useState('');
@@ -499,16 +507,23 @@ export default function HitRateSheet() {
                   Line {formatGameLine(r.game_line)} &middot; {formatTotal(r.total)}
                 </span>,
               ]}
-            />
+            >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+                <button onClick={() => setBetting(betDraft(r))} style={{
+                padding: '5px 11px', borderRadius: 6, border: `1px solid ${theme.accent}`,
+                background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              }}>Bet</button>
+              </div>
+            </StatCard>
           ))}
         </div>
       )}
 
       {!loading && !error && rows.length > 0 && !isMobile && (
         <ScrollTable>
-          <div style={{ border: `1px solid ${theme.border}`, borderRadius: 8, overflow: 'hidden', minWidth: 1200 }}>
+          <div style={{ border: `1px solid ${theme.border}`, borderRadius: 8, overflow: 'hidden', minWidth: 1290 }}>
             <div style={{
-              display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px', gap: 16,
+              display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px 70px', gap: 16,
               background: theme.bgCardHover, padding: '10px 16px', fontSize: 11, color: theme.textSecondary,
               textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600,
             }}>
@@ -521,6 +536,7 @@ export default function HitRateSheet() {
               <button onClick={() => onSort('recent')} style={headerStyle('recent')}>Recent{headerArrow('recent')}</button>
               <div>Game Line</div>
               <div>Total</div>
+              <div />
             </div>
             {rows.map((r, i) => {
               const bg = i % 2 === 0 ? theme.bgCard : theme.bgCardHover;
@@ -528,7 +544,7 @@ export default function HitRateSheet() {
                 <div
                   key={`${r.player}-${r.market}-${r.line}-${i}`}
                   style={{
-                    display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px', gap: 16,
+                    display: 'grid', gridTemplateColumns: '220px 160px 220px 100px 150px 150px 150px 110px 110px 70px', gap: 16,
                     padding: '10px 16px', background: bg, borderTop: `1px solid ${theme.border}`,
                     alignItems: 'center', fontVariantNumeric: 'tabular-nums',
                   }}
@@ -557,6 +573,12 @@ export default function HitRateSheet() {
                   </div>
                   <div style={{ fontSize: 13, color: theme.textPrimary }}>{formatGameLine(r.game_line)}</div>
                   <div style={{ fontSize: 13, color: theme.textPrimary }}>{formatTotal(r.total)}</div>
+                  <div>
+                    <button onClick={() => setBetting(betDraft(r))} style={{
+                      padding: '5px 11px', borderRadius: 6, border: `1px solid ${theme.accent}`,
+                      background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              }}>Bet</button>
+                  </div>
                 </div>
               );
             })}
@@ -572,6 +594,7 @@ export default function HitRateSheet() {
           )}
         </div>
       )}
+      <BetSheet key={betting ? JSON.stringify(betting) : 'none'} bet={betting} onClose={() => setBetting(null)} />
     </div>
   );
 }
