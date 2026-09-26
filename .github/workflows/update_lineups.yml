@@ -84,7 +84,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests pyarrow
+          pip install "pandas>=2.2,<3" requests pyarrow
 
       # Pulls the WHOLE tag, not just this job's own outputs, and deliberately
       # so. Two reasons:

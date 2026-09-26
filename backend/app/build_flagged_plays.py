@@ -50,7 +50,10 @@ def new_flags(ev_rows: list, logged: pd.DataFrame, now_iso: str) -> pd.DataFrame
         return df.reset_index(drop=True)
 
     def k(frame):
-        return frame[KEY].astype(str).agg("|".join, axis=1)
+        # Fill blanks (e.g. HR props have no line) with "nan" explicitly, so keys
+        # match rows logged under pandas 2 and the join never sees a float.
+        keys = frame[KEY].astype(object)
+        return keys.where(keys.notna(), "nan").astype(str).agg("|".join, axis=1)
 
     return df[~k(df).isin(set(k(logged)))].reset_index(drop=True)
 

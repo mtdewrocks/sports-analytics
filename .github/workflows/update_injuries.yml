@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests pyarrow
+          pip install "pandas>=2.2,<3" requests pyarrow
 
       # Required: the change log is built by comparing against the last
       # run's file. Skipping this would log every listed player as "new".

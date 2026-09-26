@@ -8,7 +8,7 @@ python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
 stripe
-pandas
+pandas>=2.2,<3
 pyarrow
 openpyxl
 requests

@@ -7,7 +7,7 @@ alembic
 python-jose[cryptography]
 passlib[bcrypt]
 stripe
-pandas
+pandas>=2.2,<3
 pyarrow
 openpyxl
 requests
