@@ -1084,12 +1084,19 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                           const odds = parseOdds(row[book]);
                           const passes = odds !== null && (minOdds === null || odds >= minOdds);
                           const isBest = passes && odds !== null && odds === bestOdds;
+                          // Any priced cell opens the Bet sheet at THAT book, so you
+                          // can bet the book you want rather than only the best one.
+                          const cellDraft = passes && odds !== null ? draftFor(row, book, odds) : null;
                           return (
-                            <td key={book} style={{
+                            <td key={book}
+                              onClick={cellDraft ? () => setBetting(cellDraft) : undefined}
+                              title={cellDraft ? `Bet at ${prettyBook(book)}` : undefined}
+                              style={{
                               padding: '8px 14px', textAlign: 'center', whiteSpace: 'nowrap',
                               background: isBest ? '#d4edda' : 'transparent',
                               color: isBest ? '#155724' : passes ? theme.textPrimary : theme.textMuted,
                               fontWeight: isBest ? 700 : 400,
+                              cursor: cellDraft ? 'pointer' : undefined,
                             }}>
                               {passes && odds !== null ? formatOdds(Math.round(odds)) : '—'}
                             </td>

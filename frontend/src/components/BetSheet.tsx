@@ -157,24 +157,41 @@ export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClo
                 </div>
               )}
               {betterElsewhere && best && (
-                <div style={{ marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                  <span>Better price: <strong style={{ color: theme.accent }}>{prettyBook(best.book)} {formatOdds(best.price)}</strong></span>
-                  <button
-                    onClick={() => {
-                      setDraft({ ...draft, book: best.book, price: best.price });
-                      setQuote({ ...quote!, at_book: best });
-                      setPrice(String(best.price));
-                    }}
-                    style={{
-                      padding: '4px 10px', borderRadius: 6, border: `1px solid ${theme.accent}`,
-                      background: 'transparent', color: theme.accent, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    }}
-                  >
-                    Use {prettyBook(best.book)}
-                  </button>
+                <div style={{ marginTop: 6 }}>
+                  Better price: <strong style={{ color: theme.accent }}>{prettyBook(best.book)} {formatOdds(best.price)}</strong>
                 </div>
               )}
             </div>
+
+            {(quote?.offers?.length ?? 0) > 1 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 11.5, marginBottom: 6 }}>Choose a book</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {quote!.offers!.map((o) => {
+                    const on = o.book === draft.book;
+                    return (
+                      <button
+                        key={o.book}
+                        onClick={() => {
+                          setDraft({ ...draft, book: o.book, price: o.price });
+                          setPrice(String(o.price));
+                          setError('');
+                        }}
+                        style={{
+                          padding: '6px 10px', borderRadius: 6, fontSize: 12.5, cursor: 'pointer',
+                          border: `1px solid ${on ? theme.accent : theme.border}`,
+                          background: on ? 'rgba(29,158,117,0.15)' : theme.bgPage,
+                          color: on ? theme.textPrimary : theme.textSecondary,
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {prettyBook(o.book)} <strong style={{ color: on ? theme.accent : theme.textPrimary }}>{formatOdds(o.price)}</strong>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {atBook?.link && (
               <a
