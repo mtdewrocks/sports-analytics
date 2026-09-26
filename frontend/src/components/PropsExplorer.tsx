@@ -14,7 +14,7 @@ import { theme } from '../theme';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const META_COLS = new Set([
-  'line_id', 'player', 'player_name', 'name', 'team', 'market',
+  'alt_only', 'line_id', 'player', 'player_name', 'name', 'team', 'market',
   'prop_type', 'stat', 'line', 'line_value', 'over_under',
   'bet_type', 'category', 'description', 'mlb_team_long',
   'date', 'game_date', 'home_team', 'away_team', 'commence_time', 'sport',
@@ -394,6 +394,62 @@ const dividerStyle: React.CSSProperties = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+/** Standard and alternate lines, shown together.
+ *
+ *  The feed carries a book's alternate ladder as a separate market
+ *  ("hits_alternate") from its standard line ("hits"), and a ladder often
+ *  re-quotes the standard number too. So rows are merged per player, base
+ *  market and line: each book keeps its better price of the two, the market
+ *  becomes the base ("hits"), and `alt_only` marks a line only the ladder
+ *  offers -- the page labels those "Alt line". Selecting "Hits" then shows
+ *  every hits line, standard and alternate, in line order. */
+function mergeAlternates(rows: Record<string, unknown>[], market: string, player: string, line: string,
+                         isBook: (c: string) => boolean): Record<string, unknown>[] {
+  if (!market) return rows;
+  const merged = new Map<string, Record<string, unknown>>();
+  const order: string[] = [];
+  for (const r of rows) {
+    const m = String(r[market] ?? '');
+    const alt = m.endsWith('_alternate');
+    const base = alt ? m.slice(0, -'_alternate'.length) : m;
+    const key = `${String(r[player] ?? '')}|${base}|${String(line ? r[line] : '')}`;
+    const cur = merged.get(key);
+    if (!cur) {
+      merged.set(key, { ...r, [market]: base, alt_only: alt });
+      order.push(key);
+      continue;
+    }
+    for (const c of Object.keys(r)) {
+      if (!isBook(c)) continue;
+      const a = parseOdds(cur[c]);
+      const b = parseOdds(r[c]);
+      if (b !== null && (a === null || b > a)) cur[c] = r[c];
+    }
+    if (!alt) cur.alt_only = false;
+  }
+  const out = order.map((k) => merged.get(k)!);
+  // Player, then market, then line -- so a whole ladder reads top to bottom.
+  const num = (v: unknown) => { const f = parseFloat(String(v ?? '')); return isNaN(f) ? -1 : f; };
+  out.sort((a, b) =>
+    String(a[player] ?? '').localeCompare(String(b[player] ?? ''))
+    || String(a[market] ?? '').localeCompare(String(b[market] ?? ''))
+    || (line ? num(a[line]) - num(b[line]) : 0));
+  return out;
+}
+
+/** Small "Alt line" tag for lines only the alternate ladder offers. */
+function AltTag() {
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase',
+      color: theme.textSecondary, border: `1px solid ${theme.borderStrong}`,
+      borderRadius: 4, padding: '1px 5px', marginLeft: 6, whiteSpace: 'nowrap',
+    }}>
+      Alt line
+    </span>
+  );
+}
+
 export interface PropsExplorerProps {
   /** Returns the long-format prop rows for one sport. */
   fetcher: (params: Record<string, any>) => Promise<{ data: Record<string, any>[] }>;
@@ -447,7 +503,19 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
   useEffect(() => {
     setLoading(true);
     fetcher({})
-      .then(res => setAllProps(res.data))
+      .then(res => {
+        const rows = res.data;
+        if (!rows.length) { setAllProps(rows); return; }
+        const cols = Object.keys(rows[0]);
+        const find = (...names: string[]) => cols.find(c => names.includes(c.toLowerCase())) || '';
+        setAllProps(mergeAlternates(
+          rows,
+          find('market', 'prop_type', 'stat', 'bet_type', 'category'),
+          find('player', 'player_name', 'name'),
+          find('line', 'line_value'),
+          (c) => !META_COLS.has(c.toLowerCase()),
+        ));
+      })
       .catch(err => setError(err?.response?.data?.detail || 'Failed to load props.'))
       .finally(() => setLoading(false));
   }, []);
@@ -606,7 +674,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
       if (!entries) continue;
       // Prefer the core market's rows for the main line: an alternate rung
       // is never "the" line even when more pick'em apps happen to hang it.
-      const core = entries.filter((e) => !String(e.row[colRoles.market] ?? '').endsWith('_alternate') && e.best);
+      const core = entries.filter((e) => !e.row['alt_only'] && e.best);
       const pool = core.length > 0 ? core : entries.filter((e) => e.best);
       const main = [...pool].sort((a, b) =>
         b.count - a.count || distFromEven(a.best!.odds) - distFromEven(b.best!.odds))[0] ?? entries[0];
@@ -867,7 +935,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                   return (
                     <StatCard
                       key={card.key}
-                      title={<span style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</span>}
+                      title={<span style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['alt_only'] ? <AltTag /> : null}{row['is_live'] ? <LiveBadge /> : null}</span>}
                       titleAside={colRoles.player && row['team'] ? String(row['team']) : undefined}
                       value={best ? formatOdds(Math.round(best.odds)) : '—'}
                       valueColor={best ? theme.dataBlue : theme.textMuted}
@@ -939,7 +1007,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                             padding: '7px 10px', fontSize: 11.5, color: theme.textPrimary,
                             borderRight: `1px solid ${theme.border}`,
                           }}>
-                            <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</div>
+                            <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['alt_only'] ? <AltTag /> : null}{row['is_live'] ? <LiveBadge /> : null}</div>
                             {(market || line) && (
                               <div style={{ fontSize: 10, color: theme.textMuted }}>
                                 {[market ? cardMarketLabel(market) : '', line].filter(Boolean).join(' ')}
@@ -1009,6 +1077,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                           {colRoles.player && colRoles.market
                             ? `${String(row[colRoles.player] ?? '')} · ${cardMarketLabel(String(row[colRoles.market] ?? ''))} ${colRoles.line ? String(row[colRoles.line] ?? '') : ''}`.trim()
                             : String(row['line_id'] ?? '—')}
+                          {row['alt_only'] ? <AltTag /> : null}
                           {row['is_live'] ? <LiveBadge /> : null}
                         </td>
                         {activeCols.map(book => {
