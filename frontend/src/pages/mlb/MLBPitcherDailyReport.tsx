@@ -296,7 +296,17 @@ export default function MLBPitcherDailyReport() {
             <tbody>
               {sorted.map((r, i) => (
                 <tr key={r.player} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage, color: theme.textPrimary }}>
-                  <td style={{ padding: '7px 10px', fontWeight: 600 }}>{r.player}</td>
+                  <td style={{ padding: '7px 10px', fontWeight: 600 }}>
+                    <Link
+                      to={`/mlb/matchup?pitcher=${encodeURIComponent(r.player)}`}
+                      title={`Open ${r.player}'s pitcher matchup`}
+                      style={{ color: theme.accent, textDecoration: 'none' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                    >
+                      {r.player}
+                    </Link>
+                  </td>
                   <td style={{ padding: '7px 10px', color: theme.textSecondary }}>{r.team}</td>
                   <td style={{ padding: '7px 10px', color: theme.textSecondary }}>{r.opposing_team}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.games}</td>

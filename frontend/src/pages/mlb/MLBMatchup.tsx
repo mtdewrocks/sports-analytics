@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getMLBPitchers, getMLBMatchup, getMLBPitcherProps } from '../../api/mlb';
 import { formatOdds, prettyBook } from '../../components/PropsExplorer';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -329,8 +329,28 @@ function PropSideCell({ m, side, compact }: { m: PitcherPropMarket; side: 'over'
   );
 }
 
-function PitcherPropsCard({ data, logs, compact }: { data: PitcherPropsData | null; logs: Record<string, any>[]; compact?: boolean }) {
-  const header = compact ? null : <div style={{ ...cardHeaderStyle, padding: '8px 16px', fontSize: 13 }}>Pitcher Props — best line / price</div>;
+function PitcherPropsCard({ data, logs, compact, pitcher }: { data: PitcherPropsData | null; logs: Record<string, any>[]; compact?: boolean; pitcher: string }) {
+  // Every market and line for this pitcher on the Props page (it resolves
+  // accent/suffix spelling differences itself -- see resolvePropsPlayer).
+  const hasLines = !!data && data.markets.length > 0;
+  const allLines = hasLines ? (
+    <Link
+      to={`/mlb/props?player=${encodeURIComponent(pitcher)}`}
+      style={{ color: theme.accent, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+    >
+      All lines →
+    </Link>
+  ) : null;
+  const header = compact
+    ? (allLines && (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '2px 4px 8px' }}>{allLines}</div>
+    ))
+    : (
+      <div style={{ ...cardHeaderStyle, padding: '8px 16px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <span>Pitcher Props — best line / price</span>
+        {allLines}
+      </div>
+    );
   const wrap = { ...cardStyle, marginBottom: 0, flex: compact ? undefined : 1 };
   if (!data || data.markets.length === 0) {
     return (
@@ -773,7 +793,7 @@ export default function MLBMatchup() {
             )}
 
             <Section title="Pitcher props" count={pitcherProps?.markets.length ?? 0}>
-              <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} compact />
+              <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} compact pitcher={selectedPitcher} />
             </Section>
 
             {summaryFlags.length > 0 && (
@@ -895,7 +915,7 @@ export default function MLBMatchup() {
               <GameLogTable logs={gameLogsFull} title="Last 10 Starts" />
               <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <MatchupSummaryTable flags={summaryFlags} dense />
-                <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} />
+                <PitcherPropsCard data={pitcherProps} logs={gameLogsFull} pitcher={selectedPitcher} />
               </div>
             </div>
 

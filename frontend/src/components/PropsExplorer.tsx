@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
 import StatCard from './StatCard';
 import SegmentedToggle from './SegmentedToggle';
@@ -175,6 +176,27 @@ function cardMarketLabel(market: string): string {
 function nameKey(name: string): string {
   return String(name).normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/\./g, '').split(/\s+/).filter(Boolean).join(' ');
+}
+
+/** nameKey() with a trailing Jr./Sr./II/III/IV dropped -- the props feed and
+ *  the stats feeds don't always agree on suffixes ("Bobby Witt Jr." vs
+ *  "Bobby Witt"), so a link can still land on the right player. */
+function nameKeyNoSuffix(name: string): string {
+  return nameKey(name).replace(/\s+(jr|sr|ii|iii|iv)$/, '');
+}
+
+/** Resolve a name from another page (a `?player=` link) to this feed's own
+ *  spelling: exact first, then accent/case/punctuation-insensitive, then
+ *  ignoring a name suffix. null when the player has no lines posted. */
+function resolvePropsPlayer(wanted: string, players: string[]): string | null {
+  if (!wanted) return null;
+  const exact = players.find((p) => p === wanted);
+  if (exact) return exact;
+  const k = nameKey(wanted);
+  const byKey = players.find((p) => nameKey(p) === k);
+  if (byKey) return byKey;
+  const ks = nameKeyNoSuffix(wanted);
+  return players.find((p) => nameKeyNoSuffix(p) === ks) ?? null;
 }
 
 /** How far a price sits from even money, in cents: -110 and +110 are both 10. */
@@ -490,6 +512,12 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
   const [selectedPlayer, setSelectedPlayer]   = useState('');
   const [selectedMarket, setSelectedMarket]   = useState('');
   const [selectedBooks, setSelectedBooks]     = useState<Set<string>>(new Set());
+  // `?player=` (and optionally `?market=`) let other pages -- e.g. the
+  // Pitcher Matchup page's "All lines" link -- open straight to one player
+  // with every market and line showing. `linkedMissing` is the name that
+  // came in on the link but has no lines posted right now.
+  const [searchParams] = useSearchParams();
+  const [linkedMissing, setLinkedMissing] = useState('');
   const [minOdds, setMinOdds]                 = useState<number | null>(null);
 
   const isMobile = useIsMobile();
@@ -590,6 +618,26 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
     if (!colRoles.player) return [];
     return [...new Set(allProps.map(r => String(r[colRoles.player] || '')).filter(Boolean))].sort();
   }, [allProps, colRoles.player]);
+
+  // Apply a `?player=` / `?market=` link once the props have loaded.
+  useEffect(() => {
+    if (!allProps.length) return;
+    const wantedPlayer = searchParams.get('player') ?? '';
+    const wantedMarket = searchParams.get('market') ?? '';
+    if (wantedPlayer) {
+      const match = resolvePropsPlayer(wantedPlayer, uniquePlayers);
+      if (match) {
+        setSelectedPlayer(match);
+        setPlayerSearch(match);
+        setLinkedMissing('');
+      } else {
+        setLinkedMissing(wantedPlayer);
+      }
+    }
+    if (wantedMarket) setSelectedMarket(wantedMarket);
+    // Only when the data (or the link) changes -- not on every filter edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allProps.length, searchParams]);
 
   // A market the current player doesn't have still belongs in the <select>,
   // or the control renders blank while the filter is demonstrably still
@@ -910,6 +958,12 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
         )}
 
         {loading && <LoadingSpinner />}
+
+        {!loading && linkedMissing && (
+          <div style={{ background: 'rgba(232,163,61,0.10)', border: `1px solid ${theme.warningText}`, borderRadius: 4, padding: 12, color: theme.warningText, marginBottom: 12, fontSize: 13 }}>
+            No lines are posted for {linkedMissing} right now -- showing everyone instead.
+          </div>
+        )}
 
         {error && (
           <div style={{ background: 'rgba(244,87,63,0.12)', border: `1px solid ${theme.dataRed}`, borderRadius: 4, padding: 16, color: theme.dataRed, marginBottom: 16 }}>
