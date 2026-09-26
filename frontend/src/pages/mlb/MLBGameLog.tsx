@@ -12,6 +12,11 @@ import FilterPanel from '../../components/FilterPanel';
 import { fieldLabelStyle, fieldStyle, usePanelLayout } from '../../components/filterStyles';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
+import { BatterNextGameCard, PitcherNextStartCard } from './MLBGameLogContext';
+import {
+  lineupOrder, fmtMetric, METRIC_SHORT,
+  type NextGame, type VsHand, type NextStart, type LineupStats,
+} from './mlbGameLogContextUtils';
 
 // Same FilterPanel / usePanelLayout / StatChart / OverCountsTable pieces the
 // NBA and NFL Game Log pages are built on. The Player search is a single
@@ -116,6 +121,10 @@ interface BatterGameData {
   // starter shown in `games`, not one per row.
   pitcher_splits: Record<string, PitcherSplitEntry>;
   batter_bats: 'L' | 'R' | 'S' | null;
+  // Upcoming game + his record vs that starter's hand -- see
+  // MLBGameLogContext.tsx. Optional so an older backend still renders.
+  next_game?: NextGame | null;
+  vs_hand?: VsHand | null;
 }
 
 interface PitcherGame {
@@ -133,12 +142,16 @@ interface PitcherGame {
   win?: boolean | null;
   loss?: boolean | null;
   is_start?: boolean | null;
+  // Averages of the lineup he faced that game (season rates of the nine
+  // opposing hitters with the most plate appearances).
+  lineup?: (LineupStats & { flag_count?: number | null }) | null;
   stat_value: number;
 }
 
 interface PitcherGameData {
   games: PitcherGame[];
   over_counts: { last10: BatterOverCount; last25: BatterOverCount; season: BatterOverCount };
+  next_start?: NextStart | null;
 }
 
 const labelStyle = fieldLabelStyle;
@@ -216,9 +229,14 @@ function boxLine(g: BatterGame): string | null {
 // Same idea for a pitcher's own box line.
 function pitcherBoxLine(g: PitcherGame): string | null {
   if (g.innings == null) return null;
-  const parts = [`${g.innings} IP`, `${g.hits ?? 0} H`, `${g.runs ?? 0} R`, `${g.earned_runs ?? 0} ER`, `${g.walks ?? 0} BB`, `${g.strikeouts ?? 0} SO`];
-  if (g.home_runs) parts.push(`${g.home_runs} HR`);
+  const parts = [`${g.innings} IP`, `${g.hits ?? 0} H`, `${g.runs ?? 0} R`, `${g.earned_runs ?? 0} ER`, `${g.walks ?? 0} BB`, `${g.strikeouts ?? 0} SO`, `${g.home_runs ?? 0} HR`];
   return parts.join(', ');
+}
+
+// "Lineup: 24.2% K · .238 avg · ..." in this stat's column order.
+function lineupLine(g: PitcherGame, stat: string): string | null {
+  if (!g.lineup) return null;
+  return 'Lineup: ' + lineupOrder(stat).map((m) => `${fmtMetric(m, g.lineup?.[m])} ${METRIC_SHORT[m]}`).join(' · ');
 }
 
 function decisionLabel(g: PitcherGame): string | null {
@@ -242,6 +260,8 @@ export default function MLBGameLog() {
   const [thresholdStr, setThresholdStr] = useState('');
   const [homeAway, setHomeAway] = useState<HomeAway>('all');
   const [pitcherHand, setPitcherHand] = useState<PitcherHand>('all');
+  // Recent-games view relative to the next starter's hand.
+  const [handView, setHandView] = useState<'all' | 'highlight' | 'only'>('highlight');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [batterData, setBatterData] = useState<BatterGameData | null>(null);
@@ -344,7 +364,19 @@ export default function MLBGameLog() {
   }, [homeAway, pitcherHand]);
 
   const gameData = playerType === 'batter' ? batterData : pitcherData;
-  const recentBatterGames = batterData ? batterData.games.slice(-25).reverse() : [];
+  const nextHand = batterData?.next_game?.throws ?? null;
+  const recentBatterGames = batterData
+    ? batterData.games.slice(-25).reverse().filter((g) => handView !== 'only' || !nextHand || g.opp_pitcher_hand === nextHand)
+    : [];
+  const highlightRow = (g: BatterGame) => handView !== 'all' && !!nextHand && g.opp_pitcher_hand === nextHand;
+  const statLabel = formatStatLabel(playerType, selectedStat);
+  const batterPeriods = batterData?.vs_hand && batterData.vs_hand.games > 0
+    ? [...OVER_COUNTS_PERIODS, { key: 'vs_hand', label: `vs ${batterData.vs_hand.hand}HP — next starter's hand` }]
+    : OVER_COUNTS_PERIODS;
+  const pitcherSimilar = pitcherData?.next_start?.similar;
+  const pitcherPeriods = pitcherSimilar
+    ? [...OVER_COUNTS_PERIODS, { key: 'similar', label: `vs lineups ${pitcherSimilar.side} his average ${METRIC_SHORT[pitcherSimilar.metric]} — like tonight's` }]
+    : OVER_COUNTS_PERIODS;
   const recentPitcherGames = pitcherData ? pitcherData.games.slice(-25).reverse() : [];
   const threshold = parseFloat(thresholdStr) || 0;
   const statOptions = playerType === 'batter' ? BATTER_STAT_OPTIONS : PITCHER_STAT_OPTIONS;
@@ -457,15 +489,53 @@ export default function MLBGameLog() {
                     150+ game season plotted unscaled would be an unreadable
                     smear of bars, and the hit-rate table below already covers
                     the true full season regardless of this cap. */}
-                <StatChart games={gameData.games} threshold={threshold} stat={formatStatLabel(playerType, selectedStat)} />
+                {playerType === 'batter' && batterData && (
+                  <BatterNextGameCard
+                    next={batterData.next_game}
+                    vsHand={batterData.vs_hand}
+                    player={selectedPlayer}
+                    statLabel={statLabel}
+                    threshold={threshold}
+                    isMobile={isMobile}
+                  />
+                )}
+                {playerType === 'pitcher' && pitcherData && (
+                  <PitcherNextStartCard
+                    next={pitcherData.next_start}
+                    pitcher={selectedPlayer}
+                    stat={selectedStat}
+                    statLabel={statLabel}
+                    threshold={threshold}
+                    isMobile={isMobile}
+                  />
+                )}
+                <StatChart games={gameData.games} threshold={threshold} stat={statLabel} />
                 <OverCountsTable
-                  over_counts={gameData.over_counts}
+                  over_counts={
+                    playerType === 'batter'
+                      ? { ...gameData.over_counts, ...(batterData?.vs_hand ? { vs_hand: batterData.vs_hand } : {}) }
+                      : { ...gameData.over_counts, ...(pitcherSimilar ? { similar: pitcherSimilar } : {}) }
+                  }
                   threshold={threshold}
-                  stat={formatStatLabel(playerType, selectedStat)}
-                  periods={OVER_COUNTS_PERIODS}
+                  stat={statLabel}
+                  periods={playerType === 'batter' ? batterPeriods : pitcherPeriods}
+                  highlightKeys={['vs_hand', 'similar']}
                 />
 
-                <h3 style={{ marginTop: 28, marginBottom: 12, color: theme.textPrimary }}>Recent Games (Last 25)</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginTop: 28, marginBottom: 12 }}>
+                  <h3 style={{ margin: 0, color: theme.textPrimary }}>Recent Games (Last 25)</h3>
+                  {playerType === 'batter' && nextHand && (
+                    <SegmentedToggle
+                      value={handView}
+                      onChange={setHandView}
+                      options={[
+                        { value: 'all', label: 'All' },
+                        { value: 'highlight', label: `Highlight vs ${nextHand}HP` },
+                        { value: 'only', label: `Only vs ${nextHand}HP` },
+                      ]}
+                    />
+                  )}
+                </div>
 
                 {playerType === 'batter' && batterData ? (
                   isMobile ? (
@@ -473,6 +543,7 @@ export default function MLBGameLog() {
                       {recentBatterGames.map((g, i) => (
                         <StatCard
                           key={i}
+                          style={highlightRow(g) ? { background: '#13201b' } : undefined}
                           title={g.game_date}
                           titleAside={opponentLabel(g)}
                           value={g.stat_value}
@@ -504,7 +575,7 @@ export default function MLBGameLog() {
                       </thead>
                       <tbody>
                         {recentBatterGames.map((g, i) => (
-                          <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
+                          <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: highlightRow(g) ? '#13201b' : i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
                             <td style={{ padding: '8px 14px' }}>{g.game_date}</td>
                             <td style={{ padding: '8px 14px' }}>{opponentLabel(g)}</td>
                             <td style={{ padding: '8px 14px', color: theme.textSecondary }}>
@@ -560,6 +631,7 @@ export default function MLBGameLog() {
                           valueColor={g.stat_value >= threshold ? theme.dataBlue : theme.dataRed}
                           footer={formatStatLabel(playerType, selectedStat)}
                           meta={[pitcherBoxLine(g)]}
+                          metaSecondary={[lineupLine(g, selectedStat)]}
                         />
                       ))}
                     </div>
@@ -577,6 +649,11 @@ export default function MLBGameLog() {
                           <th style={{ padding: '10px 14px', textAlign: 'center' }}>BB</th>
                           <th style={{ padding: '10px 14px', textAlign: 'center' }}>SO</th>
                           <th style={{ padding: '10px 14px', textAlign: 'center' }}>HR</th>
+                          {lineupOrder(selectedStat).map((m) => (
+                            <th key={m} style={{ padding: '10px 14px', textAlign: 'center', background: '#1a2a24' }}>
+                              Lineup {METRIC_SHORT[m]}
+                            </th>
+                          ))}
                           <th style={{ padding: '10px 14px', textAlign: 'center' }}>{formatStatLabel(playerType, selectedStat)}</th>
                         </tr>
                       </thead>
@@ -612,6 +689,11 @@ export default function MLBGameLog() {
                             <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                               {g.home_runs ?? '—'}
                             </td>
+                            {lineupOrder(selectedStat).map((m) => (
+                              <td key={m} style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
+                                {fmtMetric(m, g.lineup?.[m])}
+                              </td>
+                            ))}
                             <td style={{
                               padding: '8px 14px',
                               textAlign: 'center',
@@ -626,6 +708,11 @@ export default function MLBGameLog() {
                     </table>
                   )
                 ) : null}
+                {playerType === 'pitcher' && pitcherData && (
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 8 }}>
+                    Lineup columns = averages of the nine opposing hitters with the most plate appearances that game, at their season rates. HR = home runs he allowed.
+                  </div>
+                )}
               </>
             )}
           </>

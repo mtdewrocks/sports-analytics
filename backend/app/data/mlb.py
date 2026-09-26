@@ -2176,6 +2176,9 @@ def get_mlb_game_log(
 
     if home_away in ("home", "away"):
         rows = rows[rows["is_home"] == (home_away == "home")]
+    # Kept before the vs-LHP/RHP filter so the next-game card can always show
+    # his record against the hand he's about to face, whatever filter is on.
+    rows_all_hands = rows
     if pitcher_hand in ("L", "R"):
         rows = rows[rows["throws"] == pitcher_hand]
 
@@ -2262,7 +2265,18 @@ def get_mlb_game_log(
         if vs_l or vs_r:
             pitcher_splits[str(pid)] = {"resolved_side": resolved_side, "vs_l": vs_l, "vs_r": vs_r}
 
-    return {"games": games, "over_counts": over_counts, "pitcher_splits": pitcher_splits, "batter_bats": batter_bats}
+    # Upcoming game + his record against that starter's hand. Context only --
+    # a failure here must never take the game log itself down.
+    next_game, vs_hand = None, None
+    try:
+        from app.data.mlb_game_log_context import batter_next_game, batter_vs_hand
+        next_game = batter_next_game(int(player_id), player, stat, threshold)
+        vs_hand = batter_vs_hand(rows_all_hands, next_game.get("throws"), threshold)
+    except Exception as e:
+        print(f"game log: next-game context failed for {player} ({e})")
+
+    return {"games": games, "over_counts": over_counts, "pitcher_splits": pitcher_splits,
+            "batter_bats": batter_bats, "next_game": next_game, "vs_hand": vs_hand}
 
 
 # ---------------------------------------------------------------------------
@@ -2334,7 +2348,7 @@ def get_mlb_pitcher_game_log(
         "last25": {"over": 0, "total": 0, "pct": 0.0},
         "season": {"over": 0, "total": 0, "pct": 0.0},
     }
-    empty = {"games": [], "over_counts": empty_counts}
+    empty = {"games": [], "over_counts": empty_counts, "next_start": None}
 
     if stat not in MLB_PITCHER_MARKET_STAT:
         return empty
@@ -2367,6 +2381,14 @@ def get_mlb_pitcher_game_log(
     if rows.empty:
         return empty
 
+    # Averages of the lineup he faced in each game (see
+    # mlb_game_log_context.py). Context only -- never fatal.
+    try:
+        from app.data.mlb_game_log_context import attach_lineups_faced
+        rows = attach_lineups_faced(rows, stat).sort_values("date")
+    except Exception as e:
+        print(f"pitcher game log: lineup context failed for {player} ({e})")
+
     all_values = rows["stat_value"].tolist()
     over_counts = {
         "last10": grade_over_under(all_values[-10:], threshold),
@@ -2393,10 +2415,31 @@ def get_mlb_pitcher_game_log(
             "win": bool(r.get("wins")) if _is_number(r.get("wins")) else None,
             "loss": bool(r.get("losses")) if _is_number(r.get("losses")) else None,
             "is_start": bool(r.get("games_started")) if _is_number(r.get("games_started")) else None,
+            # Straight averages of the nine opposing hitters with the most
+            # plate appearances that game, at their season rates -- or None
+            # when that game's box score isn't in batter_logs.
+            "lineup": _lineup_block(r),
             "stat_value": r["stat_value"],
         })
 
-    return {"games": games, "over_counts": over_counts}
+    next_start = None
+    try:
+        from app.data.mlb_game_log_context import pitcher_next_start
+        next_start = pitcher_next_start(int(player_id), player, stat, threshold, rows)
+    except Exception as e:
+        print(f"pitcher game log: next-start context failed for {player} ({e})")
+
+    return {"games": games, "over_counts": over_counts, "next_start": next_start}
+
+
+def _lineup_block(r) -> Optional[Dict[str, Any]]:
+    from app.data.mlb_game_log_context import LINEUP_METRICS, _r
+    block = {m: _r(m, r.get(f"lineup_{m}")) for m in LINEUP_METRICS}
+    if all(v is None for v in block.values()):
+        return None
+    flag = r.get("lineup_flag")
+    block["flag_count"] = int(flag) if _is_number(flag) else None
+    return block
 
 
 # Static ballpark-effect profiles -- there is no live per-game wind/weather

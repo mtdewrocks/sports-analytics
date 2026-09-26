@@ -13,6 +13,9 @@ interface OverCountsTableProps {
    *  be worth a row, and "Last 25" a more useful second lens than it would
    *  be for a 17-game NFL season or an 82-game NBA one. */
   periods?: OverCountsPeriod[];
+  /** Period keys to draw with a highlighted background -- e.g. the MLB Game
+   *  Log's "vs LHP" row that matches the next opposing starter. */
+  highlightKeys?: string[];
 }
 
 const DEFAULT_PERIODS: OverCountsPeriod[] = [
@@ -34,10 +37,11 @@ function pctColor(pct: number): string {
 
 const EMPTY_COUNT: OverCount = { over: 0, total: 0, pct: 0 };
 
-export default function OverCountsTable({ over_counts, threshold, stat, periods: periodDefs }: OverCountsTableProps) {
+export default function OverCountsTable({ over_counts, threshold, stat, periods: periodDefs, highlightKeys }: OverCountsTableProps) {
   const periods = (periodDefs ?? DEFAULT_PERIODS).map((p) => ({
     label: p.label,
     data: over_counts[p.key] ?? EMPTY_COUNT,
+    highlight: highlightKeys?.includes(p.key) ?? false,
   }));
 
   return (
@@ -55,9 +59,9 @@ export default function OverCountsTable({ over_counts, threshold, stat, periods:
           </tr>
         </thead>
         <tbody>
-          {periods.map(({ label, data }) => (
-            <tr key={label} style={{ borderBottom: `1px solid ${theme.border}` }}>
-              <td style={{ padding: '8px 12px', color: theme.textSecondary }}>{label}</td>
+          {periods.map(({ label, data, highlight }) => (
+            <tr key={label} style={{ borderBottom: `1px solid ${theme.border}`, background: highlight ? '#13201b' : undefined }}>
+              <td style={{ padding: '8px 12px', color: highlight ? '#3fcf9a' : theme.textSecondary, fontWeight: highlight ? 600 : undefined }}>{label}</td>
               <td style={{ padding: '8px 12px', textAlign: 'center', color: theme.textPrimary }}>{data.over}</td>
               <td style={{ padding: '8px 12px', textAlign: 'center', color: theme.textPrimary }}>{data.total}</td>
               <td style={{
