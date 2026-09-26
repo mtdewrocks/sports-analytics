@@ -160,6 +160,174 @@ export function prettyBook(book: string): string {
   return BOOK_NAME[book.toLowerCase()] ?? book.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Market label for a card that already carries the player's name: the
+ *  batter/pitcher qualifier is redundant there ("Strikeouts 3.5" under a
+ *  pitcher's name), so it's dropped and the first letter capitalised. */
+function cardMarketLabel(market: string): string {
+  const label = prettyMarket(market).replace(/\b(pitcher|batter) /g, '');
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/** Accent-, case- and punctuation-insensitive name, matching the backend's
+ *  _name_key() so an Odds API "Jose Berrios" finds "José Berríos". */
+function nameKey(name: string): string {
+  return String(name).normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/\./g, '').split(/\s+/).filter(Boolean).join(' ');
+}
+
+/** How far a price sits from even money, in cents: -110 and +110 are both 10. */
+const distFromEven = (o: number) => Math.abs(Math.abs(o) - 100);
+
+// ── Opposing-lineup strip for pitcher props ───────────────────────────────────
+
+type LineupCountKey =
+  | 'high_k_hitter' | 'high_bb_hitter' | 'high_avg_hitter'
+  | 'low_avg_hitter' | 'high_iso_hitter' | 'high_woba_hitter';
+
+export interface PitcherLineupContext {
+  league: { avg: number | null; woba: number | null; k_pct: number | null; bb_pct: number | null };
+  pitchers: Record<string, {
+    pitcher: string;
+    throws: 'L' | 'R' | null;
+    opponent: string | null;
+    lineup_posted: boolean;
+    batters: number;
+    avg: number | null; woba: number | null; k_pct: number | null; bb_pct: number | null;
+    counts: Record<LineupCountKey, number> | null;
+  }>;
+}
+
+type LineupStat = 'avg' | 'woba' | 'k_pct' | 'bb_pct';
+
+/** Which lineup numbers each pitcher market cares about. `higherHelpsPitcher`
+ *  sets the colour direction; the counts reuse the Pitcher Daily Report's
+ *  cutoffs (backend HITTER_FLAG_THRESHOLDS). No entry = no strip. */
+const LINEUP_STRIP: Record<string, { stats: LineupStat[]; counts: LineupCountKey[] }> = {
+  pitcher_strikeouts:   { stats: ['k_pct'],                  counts: ['high_k_hitter'] },
+  pitcher_hits_allowed: { stats: ['avg', 'woba'],            counts: ['high_avg_hitter', 'low_avg_hitter'] },
+  pitcher_earned_runs:  { stats: ['woba', 'avg'],            counts: ['high_woba_hitter', 'high_iso_hitter'] },
+  pitcher_walks:        { stats: ['bb_pct'],                 counts: ['high_bb_hitter'] },
+  pitcher_outs:         { stats: ['woba', 'bb_pct', 'k_pct'], counts: ['high_woba_hitter', 'high_bb_hitter'] },
+};
+
+const STAT_META: Record<LineupStat, { label: string; higherHelpsPitcher: boolean; margin: number; fmt: (v: number) => string }> = {
+  k_pct:  { label: 'strikeout rate',  higherHelpsPitcher: true,  margin: 1.5,   fmt: (v) => `${v.toFixed(1)}%` },
+  bb_pct: { label: 'walk rate',       higherHelpsPitcher: false, margin: 1.0,   fmt: (v) => `${v.toFixed(1)}%` },
+  avg:    { label: 'batting average', higherHelpsPitcher: false, margin: 0.010, fmt: (v) => v.toFixed(3).replace(/^0/, '') },
+  woba:   { label: 'wOBA',            higherHelpsPitcher: false, margin: 0.010, fmt: (v) => v.toFixed(3).replace(/^0/, '') },
+};
+
+const COUNT_META: Record<LineupCountKey, { label: string; helpsPitcher: boolean }> = {
+  high_k_hitter:    { label: 'high strikeout',   helpsPitcher: true },
+  low_avg_hitter:   { label: 'low average',      helpsPitcher: true },
+  high_bb_hitter:   { label: 'high walk',        helpsPitcher: false },
+  high_avg_hitter:  { label: 'high average',     helpsPitcher: false },
+  high_iso_hitter:  { label: 'high power (ISO)', helpsPitcher: false },
+  high_woba_hitter: { label: 'high wOBA',        helpsPitcher: false },
+};
+
+function LineupStrip({ ctx, player, market }: { ctx: PitcherLineupContext | null; player: string; market: string }) {
+  const spec = LINEUP_STRIP[market];
+  const p = ctx?.pitchers[nameKey(player)];
+  if (!spec || !p) return null;
+
+  const label = (
+    <div style={{ fontSize: 9.5, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      Opposing lineup{p.throws ? ` vs ${p.throws === 'L' ? 'left' : 'right'}-handed pitching` : ''}
+    </div>
+  );
+  const wrap: React.CSSProperties = { marginTop: 10, paddingTop: 10, borderTop: `1px solid ${theme.border}` };
+
+  if (!p.lineup_posted) {
+    return (
+      <div style={wrap}>
+        {label}
+        <span style={{
+          display: 'inline-block', marginTop: 5, fontSize: 10.5, fontWeight: 600, padding: '2px 8px',
+          borderRadius: 999, background: 'rgba(232,163,61,0.15)', color: theme.warningText,
+        }}>
+          Waiting on today's lineup
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={wrap}>
+      {label}
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 5 }}>
+        {spec.stats.map((k) => {
+          const v = p[k];
+          const m = STAT_META[k];
+          const lg = ctx?.league[k];
+          let color: string = theme.textPrimary;
+          if (v != null && lg != null) {
+            const diff = m.higherHelpsPitcher ? v - lg : lg - v;
+            if (diff >= m.margin) color = theme.dataBlue;
+            else if (diff <= -m.margin) color = theme.dataRed;
+          }
+          return (
+            <div key={k}>
+              <div style={{ fontSize: 16, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                {v == null ? '—' : m.fmt(v)}
+              </div>
+              <div style={{ fontSize: 10.5, color: theme.textMuted }}>{m.label}</div>
+            </div>
+          );
+        })}
+      </div>
+      {p.counts && (
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
+          {spec.counts.map((c) => {
+            const n = p.counts![c] ?? 0;
+            const good = COUNT_META[c].helpsPitcher;
+            return (
+              <span key={c} style={{
+                fontSize: 10.5, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
+                fontVariantNumeric: 'tabular-nums',
+                background: n === 0 ? theme.bgPage : good ? 'rgba(107,168,240,0.15)' : 'rgba(244,87,63,0.15)',
+                color: n === 0 ? theme.textMuted : good ? theme.dataBlue : theme.dataRed,
+              }}>
+                {n} of {p.batters} {COUNT_META[c].label}
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Tap-to-open list of the other lines in a group, best price + book each. */
+export function AltLines({ items }: { items: { label: string; price: number; book: string }[] }) {
+  const [open, setOpen] = useState(false);
+  if (items.length === 0) return null;
+  return (
+    <div style={{ marginTop: 10, paddingTop: 8, borderTop: `1px solid ${theme.border}` }}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        style={{
+          background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer',
+          color: theme.accent, fontSize: 12, fontWeight: 600,
+        }}
+      >
+        {items.length} alternate line{items.length !== 1 ? 's' : ''} {open ? '▴' : '▾'}
+      </button>
+      {open && items.map((it, i) => (
+        <div key={i} style={{
+          display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center',
+          padding: '7px 0', fontSize: 12.5, color: theme.textPrimary,
+          borderBottom: i < items.length - 1 ? `1px solid ${theme.border}` : undefined,
+        }}>
+          <span>{it.label}</span>
+          <span style={{ color: theme.dataBlue, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatOdds(Math.round(it.price))}</span>
+          <span style={{ color: theme.textMuted, fontSize: 11, minWidth: 72, textAlign: 'right' }}>{prettyBook(it.book)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Marks a row whose game has already started. The book stopped taking these
  *  lines at kickoff, so this is a frozen pre-game snapshot rather than a
  *  current price -- shown rather than hidden (unlike Middles & Arbs, which
@@ -231,6 +399,11 @@ export interface PropsExplorerProps {
    *  default would have let the NFL page keep rendering "MLB Props", which is
    *  exactly the bug this parameter exists to prevent. */
   title: string;
+  /** MLB only: opposing-lineup context per probable starter. When given,
+   *  pitcher props on the mobile Best view are grouped one card per
+   *  pitcher per market (main line + tap-open alternates) with an
+   *  "Opposing lineup" strip. */
+  pitcherContextFetcher?: () => Promise<{ data: PitcherLineupContext }>;
 }
 
 /** Line-shopping grid, shared by the MLB and NFL props pages.
@@ -239,7 +412,13 @@ export interface PropsExplorerProps {
  *  are pivoted by the same backend helper, so the only thing that differs is
  *  which endpoint to call. Forking this into two 600-line files would mean
  *  every future fix landing once and being forgotten the other time. */
-export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
+export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }: PropsExplorerProps) {
+  const [pitcherCtx, setPitcherCtx] = useState<PitcherLineupContext | null>(null);
+  useEffect(() => {
+    if (!pitcherContextFetcher) return;
+    // A bonus layer: if it fails the cards just render without the strip.
+    pitcherContextFetcher().then((res) => setPitcherCtx(res.data)).catch(() => setPitcherCtx(null));
+  }, [pitcherContextFetcher]);
   const [allProps, setAllProps]   = useState<Record<string, any>[]>([]);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
@@ -363,6 +542,67 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
       }),
     );
   }, [filteredProps, activeCols, minOdds]);
+
+  // Mobile Best view cards. Each row's best price (and the rest, best first)
+  // among the active books that clear the min-odds filter. With
+  // pitcherContextFetcher set, pitcher props collapse to one card per
+  // pitcher per market: the main line -- the one the most books hang, ties
+  // to the price closest to even -- on the card, every other line (the
+  // _alternate ladder included) in a tap-open list. Everything else stays
+  // one card per line, as before.
+  const bestCards = useMemo(() => {
+    type Priced = { book: string; odds: number };
+    type Row = (typeof displayProps)[number];
+    type Entry = { row: Row; best: Priced | null; rest: Priced[]; count: number };
+    const price = (row: Row): Entry => {
+      const priced = activeCols
+        .map((b) => ({ book: b, odds: parseOdds(row[b]) }))
+        .filter((x): x is Priced => x.odds !== null && (minOdds === null || x.odds >= minOdds))
+        .sort((a, b) => b.odds - a.odds);
+      return { row, best: priced[0] ?? null, rest: priced.slice(1), count: priced.length };
+    };
+    const lineOf = (r: Row) => parseFloat(String(colRoles.line ? r[colRoles.line] : '')) || 0;
+
+    const cards: { key: string; main: Entry; alternates: Entry[]; baseMarket: string | null }[] = [];
+    const groups = new Map<string, Entry[]>();
+    displayProps.forEach((row, i) => {
+      const market = colRoles.market ? String(row[colRoles.market] ?? '') : '';
+      const base = market.replace(/_alternate$/, '');
+      if (pitcherContextFetcher && base.startsWith('pitcher_') && colRoles.player) {
+        const key = `${String(row[colRoles.player] ?? '')}|${base}`;
+        if (!groups.has(key)) {
+          groups.set(key, []);
+          cards.push({ key, main: null as unknown as Entry, alternates: [], baseMarket: base });
+        }
+        groups.get(key)!.push(price(row));
+      } else {
+        cards.push({ key: `row-${i}`, main: price(row), alternates: [], baseMarket: null });
+      }
+    });
+    for (const card of cards) {
+      const entries = groups.get(card.key);
+      if (!entries) continue;
+      // Prefer the core market's rows for the main line: an alternate rung
+      // is never "the" line even when more pick'em apps happen to hang it.
+      const core = entries.filter((e) => !String(e.row[colRoles.market] ?? '').endsWith('_alternate') && e.best);
+      const pool = core.length > 0 ? core : entries.filter((e) => e.best);
+      const main = [...pool].sort((a, b) =>
+        b.count - a.count || distFromEven(a.best!.odds) - distFromEven(b.best!.odds))[0] ?? entries[0];
+      card.main = main;
+      // One entry per line: a core and an alternate row at the same number
+      // collapse to whichever pays more.
+      const byLine = new Map<number, Entry>();
+      for (const e of entries) {
+        if (e === main || !e.best) continue;
+        const ln = lineOf(e.row);
+        if (ln === lineOf(main.row)) continue;
+        const cur = byLine.get(ln);
+        if (!cur || e.best.odds > cur.best!.odds) byLine.set(ln, e);
+      }
+      card.alternates = [...byLine.entries()].sort((a, b) => a[0] - b[0]).map(([, e]) => e);
+    }
+    return cards;
+  }, [displayProps, activeCols, minOdds, colRoles, pitcherContextFetcher]);
 
   const toggleBook = (book: string) => {
     setSelectedBooks(prev => {
@@ -595,23 +835,16 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
             </div>
             {isMobile && mobileView === 'best' && (
               <div>
-                {displayProps.map((row, i) => {
-                  const priced = activeCols
-                    .map((b) => ({ book: b, odds: parseOdds(row[b]) }))
-                    .filter((x): x is { book: string; odds: number } =>
-                      x.odds !== null && (minOdds === null || x.odds >= minOdds))
-                    .sort((a, b) => b.odds - a.odds);
-                  const best = priced[0] ?? null;
-                  const rest = priced.slice(1);
-
+                {bestCards.map((card) => {
+                  const { row, best, rest } = card.main;
                   const player = colRoles.player ? String(row[colRoles.player] ?? '') : '';
                   const market = colRoles.market ? String(row[colRoles.market] ?? '') : '';
                   const line = colRoles.line ? String(row[colRoles.line] ?? '') : '';
-                  const descriptor = [market, line].filter(Boolean).join(' ');
+                  const descriptor = [market ? cardMarketLabel(market) : '', line].filter(Boolean).join(' ');
 
                   return (
                     <StatCard
-                      key={i}
+                      key={card.key}
                       title={<span style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</span>}
                       titleAside={colRoles.player && row['team'] ? String(row['team']) : undefined}
                       value={best ? formatOdds(Math.round(best.odds)) : '—'}
@@ -621,7 +854,18 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                       metaSecondary={rest.length > 0
                         ? rest.map((p) => <>{shortBook(p.book)} {formatOdds(Math.round(p.odds))}</>)
                         : undefined}
-                    />
+                    >
+                      {card.baseMarket && (
+                        <LineupStrip ctx={pitcherCtx} player={player} market={card.baseMarket} />
+                      )}
+                      {card.alternates.length > 0 && (
+                        <AltLines items={card.alternates.map((a) => ({
+                          label: `Over ${colRoles.line ? String(a.row[colRoles.line] ?? '') : ''}`.trim(),
+                          price: a.best!.odds,
+                          book: a.best!.book,
+                        }))} />
+                      )}
+                    </StatCard>
                   );
                 })}
               </div>
@@ -671,7 +915,7 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                             <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}</div>
                             {(market || line) && (
                               <div style={{ fontSize: 10, color: theme.textMuted }}>
-                                {[market, line].filter(Boolean).join(' ')}
+                                {[market ? cardMarketLabel(market) : '', line].filter(Boolean).join(' ')}
                               </div>
                             )}
                           </td>
@@ -734,7 +978,10 @@ export default function PropsExplorer({ fetcher, title }: PropsExplorerProps) {
                           background: i % 2 === 0 ? theme.bgCard : theme.bgPage, zIndex: 1,
                           borderRight: `1px solid ${theme.border}`,
                         }}>
-                          {String(row['line_id'] ?? '—')}{row['is_live'] ? <LiveBadge /> : null}
+                          {colRoles.player && colRoles.market
+                            ? `${String(row[colRoles.player] ?? '')} · ${cardMarketLabel(String(row[colRoles.market] ?? ''))} ${colRoles.line ? String(row[colRoles.line] ?? '') : ''}`.trim()
+                            : String(row['line_id'] ?? '—')}
+                          {row['is_live'] ? <LiveBadge /> : null}
                         </td>
                         {activeCols.map(book => {
                           const odds = parseOdds(row[book]);

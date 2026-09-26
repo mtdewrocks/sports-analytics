@@ -12,7 +12,7 @@ its original March-May snapshot) with no way to close the gap going forward.
 
 One row per active roster spot:
 
-    player_id, player, team
+    player_id, player, team, bats
 
 Overwritten in full on every run -- a roster is a current snapshot, not
 something to accumulate history for.
@@ -43,7 +43,10 @@ def roster_for(team_id: int) -> list[dict]:
     try:
         r = requests.get(
             f"{API}/teams/{team_id}/roster",
-            params={"rosterType": "active"},
+            # hydrate=person adds each player's batSide, which Hot Hitters
+            # needs to pick the right half of a pitcher's vs-L / vs-R split
+            # before today's lineup has posted.
+            params={"rosterType": "active", "hydrate": "person"},
             timeout=TIMEOUT,
         )
         r.raise_for_status()
@@ -51,7 +54,13 @@ def roster_for(team_id: int) -> list[dict]:
         print(f"  team {team_id} failed: {e}")
         return []
     return [
-        {"player_id": p["person"]["id"], "player": p["person"]["fullName"]}
+        {
+            "player_id": p["person"]["id"],
+            "player": p["person"]["fullName"],
+            # "L" / "R" / "S" (switch). Blank when the API omits it -- the
+            # reader treats blank as unknown, never as a default side.
+            "bats": (p["person"].get("batSide") or {}).get("code", ""),
+        }
         for p in r.json().get("roster", [])
     ]
 

@@ -298,3 +298,89 @@ def get_pitcher_props(pitcher: str) -> Dict[str, Any]:
         "is_live": bool(game_start is not None and game_start <= pd.Timestamp.now(tz="UTC")),
         "fetched_at": str(fetched) if fetched is not None else None,
     }
+
+
+# ── Per-player price lookups (Hot Hitters, Matchup Edge) ────────────────────
+#
+# The same "best bettable price" rules get_pitcher_props() applies above --
+# no unbettable books, no sharp reference books, no pick'em apps -- but for
+# pages that need one or two specific lines for many players at once. The
+# frame is filtered and name-keyed ONCE per request (bettable_props()) and
+# then sliced per player, rather than re-mapping _name_key over ~13k rows
+# for every card.
+
+
+def bettable_props(sport: str = "mlb") -> pd.DataFrame:
+    """Props rows from books a single bet can actually be placed at, with a
+    `_key` column holding the accent/case/punctuation-insensitive name."""
+    df = get_props_data(sport)
+    if df.empty or "Player" not in df.columns or "bookmakers" not in df.columns:
+        return pd.DataFrame()
+    books = df["bookmakers"].astype(str).str.lower()
+    df = df[~books.isin(EXCLUDED_BOOKS) & ~books.isin(NO_SINGLE_BET_BOOKS)].copy()
+    df["_key"] = df["Player"].map(_name_key)
+    return df
+
+
+def _pin_next_game(df: pd.DataFrame) -> "tuple[pd.DataFrame, Optional[pd.Timestamp]]":
+    """Same rule as get_pitcher_props(): the earliest game that hasn't been
+    over for long, so tomorrow's early-posted lines never stand in for
+    today's, and a game in progress still shows its frozen pre-game price."""
+    if df.empty or "commence_time" not in df.columns:
+        return df, None
+    start = pd.to_datetime(df["commence_time"], utc=True, errors="coerce")
+    cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=5)
+    upcoming = start[start >= cutoff]
+    if upcoming.empty:
+        return df.iloc[0:0], None
+    game_start = upcoming.min()
+    return df[start == game_start], game_start
+
+
+def player_ladder(
+    df: pd.DataFrame,
+    player: str,
+    markets: "set[str] | list[str]",
+    side: str = "over",
+    team: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Best price and book(s) at every line one player has in the given
+    markets (a base market plus its _alternate ladder), for his next game.
+    One entry per line, sorted low to high. `team` narrows to games that
+    team is in -- two players can share a name ("Will Smith")."""
+    if df is None or df.empty:
+        return []
+    price_col = "Over Price" if side == "over" else "Under Price"
+    sub = df[(df["_key"] == _name_key(player)) & df["market"].isin(list(markets))]
+    if team and {"home_team", "away_team"} <= set(sub.columns):
+        sub = sub[(sub["home_team"] == team) | (sub["away_team"] == team)]
+    sub, game_start = _pin_next_game(sub)
+    sub = sub.dropna(subset=[price_col, "Line"])
+    if sub.empty:
+        return []
+    is_live = bool(game_start is not None and game_start <= pd.Timestamp.now(tz="UTC"))
+    out = []
+    for line, g in sub.groupby("Line"):
+        best = g[price_col].max()
+        out.append({
+            "line": float(line),
+            "price": int(best),
+            "books": sorted(g.loc[g[price_col] == best, "bookmakers"].astype(str).unique()),
+            "is_live": is_live,
+        })
+    return sorted(out, key=lambda x: x["line"])
+
+
+def best_price_at_line(
+    df: pd.DataFrame,
+    player: str,
+    markets: "set[str] | list[str]",
+    line: float,
+    side: str = "over",
+    team: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Just the one rung of player_ladder() -- e.g. hits over 0.5."""
+    for rung in player_ladder(df, player, markets, side, team):
+        if abs(rung["line"] - line) < 1e-9:
+            return rung
+    return None

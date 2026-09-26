@@ -23,6 +23,12 @@ def pitcher_props(pitcher: str = Query(...), _=Depends(require_access)):
     from app.data.props import get_pitcher_props
     return get_pitcher_props(pitcher)
 
+@router.get("/pitcher-lineup-context")
+def pitcher_lineup_context(_=Depends(require_access)):
+    """Opposing-lineup averages + standout-hitter counts per probable
+    starter, for the "Opposing lineup" strip on the Props page."""
+    return mlb_data.get_pitcher_lineup_context()
+
 @router.get("/hot-hitters")
 def hot_hitters(_=Depends(require_access)):
     return mlb_data.get_hot_hitters()

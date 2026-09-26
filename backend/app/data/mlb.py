@@ -411,6 +411,124 @@ def get_pitcher_matchup(pitcher_name: str) -> Dict[str, Any]:
     }
 
 
+# Pitcher-side stats shown next to each hot hitter -- the four the page asks
+# for, all read against the side this hitter bats from today.
+_HOT_HITTER_PITCHER_STATS = [("avg", "avg"), ("woba", "woba"), ("k_pct", "k_pct"), ("bb_pct", "bb_pct")]
+
+
+def _pitcher_throws_lookup(data: dict) -> Dict[int, str]:
+    """pitcher_id -> "L"/"R". starters.parquet first (the file the Matchup
+    page trusts), season_pitching_stats as the fallback for an opener or a
+    call-up making a first start who isn't in the starters list yet."""
+    out: Dict[int, str] = {}
+    for key in ("season_pitching_stats", "starters"):  # later wins
+        df = data.get(key, pd.DataFrame())
+        if df.empty or "pitcher_id" not in df.columns or "throws" not in df.columns:
+            continue
+        sub = df.dropna(subset=["pitcher_id"])
+        for pid, t in zip(sub["pitcher_id"].astype(int), sub["throws"]):
+            if t in ("L", "R"):
+                out[pid] = t
+    return out
+
+
+def _hot_hitter_today(
+    player_id: Optional[int],
+    player: str,
+    team: str,
+    data: dict,
+    throws_by_id: Dict[int, str],
+    bats_by_id: Dict[int, str],
+    props_df: pd.DataFrame,
+) -> Dict[str, Any]:
+    """Today's context for one hot hitter: lineup status, the starter he
+    faces with that starter's numbers against this hitter's side, and the
+    best price on 1+ hit.
+
+    status is one of:
+      in_lineup   -- in a posted lineup; batting slot + resolved side known
+      pending     -- team plays today, lineup not posted yet
+      out         -- team's lineup is posted and he isn't in it
+      no_game     -- team isn't on today's slate
+
+    Pitcher splits come from pitcher_splits.parquet (2025 + 2026 pooled),
+    the same source as the Pitcher Matchup page, so the two pages never
+    show different numbers for the same pitcher.
+    """
+    from app.data.props import best_price_at_line
+
+    matchups = data.get("matchups", pd.DataFrame())
+    probable = data.get("probable_starters", pd.DataFrame())
+    splits_df = data.get("pitcher_splits", pd.DataFrame())
+
+    today: Dict[str, Any] = {
+        "status": "no_game", "batting_order": None, "pitcher": None,
+        "throws": None, "vs_side": None, "pitcher_stats": None, "hit_price": None,
+    }
+
+    row = None
+    team_lineup_posted = False
+    if not matchups.empty:
+        if player_id is not None and "batter_id" in matchups.columns:
+            hit = matchups[matchups["batter_id"] == player_id]
+            if not hit.empty:
+                row = hit.iloc[0]
+        if team and "team" in matchups.columns:
+            team_lineup_posted = bool((matchups["team"] == team).any())
+
+    pitcher_id = None
+    if row is not None:
+        today["status"] = "in_lineup"
+        bo = row.get("batting_order")
+        today["batting_order"] = int(bo) if pd.notna(bo) else None
+        today["pitcher"] = row.get("pitcher")
+        pitcher_id = int(row["pitcher_id"]) if pd.notna(row.get("pitcher_id")) else None
+        today["throws"] = row.get("throws") if row.get("throws") in ("L", "R") else None
+        side = row.get("hits_from")
+        today["vs_side"] = side if side in ("L", "R") else None
+    else:
+        plays_today = bool(
+            team and not probable.empty
+            and ((probable["team"] == team) | (probable["opponent"] == team)).any()
+        )
+        if not plays_today:
+            return today
+        today["status"] = "out" if team_lineup_posted else "pending"
+        if today["status"] == "out":
+            return today
+        # The opposing starter is the probable row whose OPPONENT is this
+        # hitter's team. Missing when that club hasn't announced one yet.
+        opp = probable[probable["opponent"] == team]
+        if not opp.empty:
+            o = opp.iloc[0]
+            today["pitcher"] = o.get("pitcher")
+            pitcher_id = int(o["pitcher_id"]) if pd.notna(o.get("pitcher_id")) else None
+            today["throws"] = throws_by_id.get(pitcher_id) if pitcher_id is not None else None
+        bats = bats_by_id.get(player_id) if player_id is not None else None
+        today["vs_side"] = _matchup_edge_resolved_hand(bats, today["throws"])
+
+    if pitcher_id is not None and today["vs_side"] and not splits_df.empty:
+        match = splits_df[(splits_df["player_id"] == pitcher_id) & (splits_df["split"] == f"vs {today['vs_side']}")]
+        if not match.empty:
+            r = match.iloc[0]
+            stats = {}
+            for src, dest in _HOT_HITTER_PITCHER_STATS:
+                v = r.get(src)
+                if v is not None and pd.notna(v):
+                    stats[dest] = round(float(v), 3 if dest in ("avg", "woba") else 1)
+            # Batters faced on that side, so the page can flag a thin sample
+            # (an opener or a reliever-turned-starter can be under 60).
+            tbf = r.get("tbf")
+            if stats and tbf is not None and pd.notna(tbf):
+                stats["tbf"] = int(tbf)
+            today["pitcher_stats"] = stats or None
+
+    today["hit_price"] = best_price_at_line(
+        props_df, player, {"hits", "hits_alternate"}, 0.5, side="over", team=team or None,
+    )
+    return today
+
+
 def get_hot_hitters() -> List[Dict[str, Any]]:
     """Batters hot over the last seven days.
 
@@ -467,7 +585,37 @@ def get_hot_hitters() -> List[Dict[str, Any]]:
 
     # Nullable dtypes hold pd.NA, which is not JSON serializable.
     out = out.astype(object).where(out.notna(), "")
-    return out.to_dict(orient="records")
+    records = out.to_dict(orient="records")
+
+    # Today's context rides along under one nested key rather than as more
+    # flat columns: the page builds its stat columns generically from the
+    # flat keys, and this is a card strip, not something to sort by.
+    data = get_mlb_data()
+    throws_by_id = _pitcher_throws_lookup(data)
+    bats_by_id: Dict[int, str] = {}
+    if not rosters.empty and "bats" in rosters.columns:
+        sub = rosters.dropna(subset=["player_id"])
+        bats_by_id = {int(k): v for k, v in zip(sub["player_id"], sub["bats"]) if v in ("L", "R", "S")}
+    bats_by_id.update(_mlb_batter_bats_index())  # today's lineup card wins
+    try:
+        from app.data.props import bettable_props
+        props_df = bettable_props("mlb")
+    except Exception as e:  # odds are a bonus here, never a reason to fail the page
+        print(f"hot hitters: props unavailable ({e})")
+        props_df = pd.DataFrame()
+
+    ids = hot["player_id"].tolist() if "player_id" in hot.columns else [None] * len(records)
+    for rec, pid in zip(records, ids):
+        pid = int(pid) if pid is not None and pd.notna(pid) else None
+        try:
+            rec["today"] = _hot_hitter_today(
+                pid, str(rec.get("Player", "")), str(rec.get("Team", "")),
+                data, throws_by_id, bats_by_id, props_df,
+            )
+        except Exception as e:
+            print(f"hot hitters: today context failed for {rec.get('Player')} ({e})")
+            rec["today"] = None
+    return records
 
 
 _EXCLUDED_BOOKS = {
@@ -1199,6 +1347,98 @@ def get_pitcher_daily_report() -> Dict[str, Any]:
         })
 
     return {"date": today, "pitchers": out}
+
+
+def _lineup_flag_counts(m: pd.DataFrame) -> Dict[str, int]:
+    """How many hitters in one posted lineup clear each HITTER_FLAG_THRESHOLDS
+    cutoff -- the same counts the Pitcher Daily Report shows."""
+    counts: Dict[str, int] = {}
+    for flag_col, (source_col, op, threshold) in HITTER_FLAG_THRESHOLDS.items():
+        if source_col not in m.columns:
+            counts[flag_col] = 0
+            continue
+        vals = pd.to_numeric(m[source_col], errors="coerce")
+        hit = (vals >= threshold) if op == "ge" else (vals <= threshold)
+        counts[flag_col] = int(hit.fillna(False).sum())
+    return counts
+
+
+def _league_rates_allowed(splits_df: pd.DataFrame) -> Dict[str, Optional[float]]:
+    """League-wide AVG / wOBA / K% / BB% allowed, both sides pooled and
+    weighted by batters faced -- the reference line the Props page colors
+    an opposing lineup's averages against."""
+    out: Dict[str, Optional[float]] = {"avg": None, "woba": None, "k_pct": None, "bb_pct": None}
+    if splits_df is None or splits_df.empty or "tbf" not in splits_df.columns:
+        return out
+    for col in out:
+        if col not in splits_df.columns:
+            continue
+        w = splits_df.dropna(subset=["tbf", col])
+        w = w[w["tbf"] > 0]
+        if not w.empty:
+            v = float((w["tbf"] * w[col]).sum() / w["tbf"].sum())
+            out[col] = round(v, 3 if col in ("avg", "woba") else 1)
+    return out
+
+
+def get_pitcher_lineup_context() -> Dict[str, Any]:
+    """Today's opposing-lineup averages and standout-hitter counts for every
+    probable starter, keyed by the same accent/case/punctuation-insensitive
+    name key the props feed is matched on -- so the Props page can hang an
+    "Opposing lineup" strip under each pitcher prop without a second join.
+
+    Every figure is the lineup's split against THIS pitcher's throwing hand
+    (daily_matchups.parquet already resolves switch hitters), straight-
+    averaged across the nine like the Pitcher Daily Report. `lineup_posted`
+    is False (and the numbers None) until that game's lineup is out.
+    """
+    from app.data.props import _name_key
+
+    data = get_mlb_data()
+    probable = data.get("probable_starters", pd.DataFrame())
+    matchups = data.get("matchups", pd.DataFrame())
+    splits_df = data.get("pitcher_splits", pd.DataFrame())
+    throws_by_id = _pitcher_throws_lookup(data)
+
+    pitchers: Dict[str, Any] = {}
+    if probable.empty:
+        return {"league": _league_rates_allowed(splits_df), "pitchers": pitchers}
+
+    def mean_of(sub: pd.DataFrame, col: str, digits: int) -> Optional[float]:
+        if col not in sub.columns:
+            return None
+        vals = pd.to_numeric(sub[col], errors="coerce").dropna()
+        return round(float(vals.mean()), digits) if len(vals) else None
+
+    for _, r in probable.drop_duplicates(subset=["pitcher"]).iterrows():
+        name = r.get("pitcher")
+        if not isinstance(name, str) or not name:
+            continue
+        pid = int(r["pitcher_id"]) if pd.notna(r.get("pitcher_id")) else None
+        lineup = pd.DataFrame()
+        if not matchups.empty and pid is not None and "pitcher_id" in matchups.columns:
+            lineup = matchups[matchups["pitcher_id"] == pid]
+        entry: Dict[str, Any] = {
+            "pitcher": name,
+            "throws": throws_by_id.get(pid) if pid is not None else None,
+            "opponent": r.get("opponent"),
+            "lineup_posted": not lineup.empty,
+            "batters": int(len(lineup)),
+            "avg": None, "woba": None, "k_pct": None, "bb_pct": None,
+            "counts": None,
+        }
+        if not lineup.empty:
+            if entry["throws"] is None and "throws" in lineup.columns:
+                t = lineup["throws"].dropna()
+                entry["throws"] = t.iloc[0] if len(t) else None
+            entry["avg"] = mean_of(lineup, "split_avg", 3)
+            entry["woba"] = mean_of(lineup, "split_woba", 3)
+            entry["k_pct"] = mean_of(lineup, "split_k_pct", 1)
+            entry["bb_pct"] = mean_of(lineup, "split_bb_pct", 1)
+            entry["counts"] = _lineup_flag_counts(lineup)
+        pitchers[_name_key(name)] = entry
+
+    return {"league": _league_rates_allowed(splits_df), "pitchers": pitchers}
 
 
 # ---------------------------------------------------------------------------
@@ -2417,6 +2657,33 @@ def _matchup_edge_resolved_hand(bats: Optional[str], throws: Optional[str]) -> O
     return None
 
 
+def _attach_strikeout_props(rows: List[Dict[str, Any]], side: str) -> None:
+    """Hang the batter-strikeout prop on each Strikeout Risk / Contact
+    Matchups row: the over for risk (he strikes out), the under for contact
+    (he doesn't). The main line is 0.5 when a book hangs it; every other
+    line on the same side goes in `alternates`. Never raises -- odds are a
+    bonus on this page, not a reason to fail it."""
+    try:
+        from app.data.props import bettable_props, player_ladder
+        props_df = bettable_props("mlb")
+    except Exception as e:
+        print(f"matchup edge: props unavailable ({e})")
+        props_df = pd.DataFrame()
+    for row in rows:
+        ladder = player_ladder(
+            props_df, row["name"], {"strikeouts", "strikeouts_alternate"},
+            side=side, team=row.get("team"),
+        ) if not props_df.empty else []
+        main = next((r for r in ladder if abs(r["line"] - 0.5) < 1e-9), None)
+        if main is None and ladder:
+            main = ladder[0]
+        row["strikeoutProp"] = {
+            "side": side,
+            "main": main,
+            "alternates": [r for r in ladder if r is not main],
+        }
+
+
 def get_mlb_matchup_edge() -> Dict[str, Any]:
     """Toughest/Best Matchups (hits, by wOBA), Platoon Edge Finder, and
     Strikeout Risk/Contact Matchups (by K%) for today's real slate. See the
@@ -2504,6 +2771,13 @@ def get_mlb_matchup_edge() -> Dict[str, Any]:
             "kVsLeague": round(k_vs_league_own, 1),
             "pitcher": r["pitcher"], "throws": r["throws"],
             "splitKPitcher": round(float(r["p_split_k_pct"]), 1),
+            # Spelled out for the card's bars rather than left for the page to
+            # back out of the gaps: the pitcher's rate against everyone, and
+            # the league line this batter's side is measured against.
+            "pitcherAllK": round(float(r["p_all_k_pct"]), 1),
+            "leagueK": round(float(league_k), 1),
+            "resolvedSide": hand,
+            "team": r.get("team") if "team" in rows.columns else None,
             "kLeagueGap": round(k_league_gap, 1),
             "kWithinGap": round(k_within_gap, 1),
         }
@@ -2541,6 +2815,11 @@ def get_mlb_matchup_edge() -> Dict[str, Any]:
     k_risk.sort(key=lambda x: -x["kLeagueGap"])
     k_safe.sort(key=lambda x: x["kLeagueGap"])
 
+    k_risk = k_risk[:_ME_MAX_ROWS]
+    k_safe = k_safe[:_ME_MAX_ROWS]
+    _attach_strikeout_props(k_risk, side="over")
+    _attach_strikeout_props(k_safe, side="under")
+
     return {
         "asOf": as_of,
         "leagueBenchmarks": {kk: (round(v, 3) if v is not None else None) for kk, v in bench["woba"].items()},
@@ -2548,6 +2827,6 @@ def get_mlb_matchup_edge() -> Dict[str, Any]:
         "avoidFlat": avoid[:_ME_MAX_ROWS],
         "targetFlat": target[:_ME_MAX_ROWS],
         "platoonFinder": platoon[:_ME_MAX_ROWS],
-        "kRisk": k_risk[:_ME_MAX_ROWS],
-        "contactMatchups": k_safe[:_ME_MAX_ROWS],
+        "kRisk": k_risk,
+        "contactMatchups": k_safe,
     }
