@@ -4,8 +4,10 @@ Two sections, both assembled from data the other pages already load:
 
 WHAT CHANGED  (grouped by kind on the page, newest first within each)
   injury   status changes in the last CHANGE_HOURS, with who benefits
-           (app/data/injuries.py). "key" marks players with props posted
-           or with volume we can see moving, so the page can hide the rest.
+           (app/data/injuries.py). "key" marks players with props posted,
+           volume we can see moving, a QB, or (NFL) a lineman or defender
+           who starts -- STARTER_SNAP_PCT of snaps -- so the page can hide
+           the rest.
   weather  every slate game outdoors with wind, rain or cold worth knowing,
            with a plain-English line on what it does (weather_note)
   usage    NFL players whose target or carry share over the last couple of
@@ -18,8 +20,10 @@ WHAT CHANGED  (grouped by kind on the page, newest first within each)
 THE SLATE  (one card per game, by start time)
   MLB  both starters' recent form and hand, lineup vs usual, weather, a
        worn-down bullpen, run line and total, lineup-posted status
-  NFL  notable injuries on either side, the biggest statistical mismatches
-       (Mismatches page), weather, spread and total
+  NFL  skill-position injuries; injured starters on the O-line, in the
+       secondary and in the front seven, grouped per unit with the prop
+       each one touches (trench_groups); the biggest statistical
+       mismatches (Mismatches page), weather, usage trends, spread and total
   Each card carries up to PLAYS_PER_GAME plays for that game (EV Finder and
   Alt-Line), using the Today page's price bands and long-shot rules.
 
@@ -45,6 +49,17 @@ BIG_LINEUP_GAP = 0.025
 MISMATCH_MIN_SCORE = 15
 NFL_INJURY_STATUSES = {"Out", "Doubtful", "Questionable", "IR"}
 NFL_SKILL = {"QB", "RB", "WR", "TE"}
+# Non-skill units, grouped on the game card. A player counts as a starter
+# when he's played STARTER_SNAP_PCT of his side's snaps in the games he's
+# played among his team's last STARTER_GAMES.
+UNITS = {
+    "oline": ({"G", "OG", "OT", "T", "C", "OL"}, "O-line"),
+    "secondary": ({"CB", "S", "SS", "FS", "DB"}, "Secondary"),
+    "front": ({"DE", "DT", "NT", "DL", "LB", "ILB", "OLB", "MLB", "EDGE"}, "Front seven"),
+}
+STARTER_SNAP_PCT = 0.60
+STARTER_GAMES = 4
+OUT_STATUSES = {"Out", "Doubtful", "IR"}
 MAX_USAGE = 8
 USAGE_MIN_DIFF = 0.10     # 10 points of team share
 USAGE_MIN_DIFF_ONE = 0.12 # stricter when the recent window is a single game (weeks 2-3)
@@ -118,6 +133,9 @@ def _props_players(sport: str) -> set:
 def _injury_changes() -> List[Dict[str, Any]]:
     from app.data.injuries import get_injury_feed
     out = []
+    starters = _safe("nfl starters", lambda: nfl_starters(), {})
+    from app.data import nfl
+    abbr = nfl.NFL_TEAM_ABBR
     for sport in ("nfl", "nba", "mlb"):
         with_props = _safe(f"{sport} props players", lambda sp=sport: _props_players(sp), set())
         for c in get_injury_feed(sport, hours=CHANGE_HOURS):
@@ -140,9 +158,11 @@ def _injury_changes() -> List[Dict[str, Any]]:
                 "detail": " · ".join(notes) or None,
                 "was": c.get("old_status"),
                 # Worth a bettor's attention: he has lines posted, his volume
-                # is going somewhere, or he's a quarterback.
+                # is going somewhere, he's a quarterback, or he starts on
+                # the line or on defense.
                 "key": bool(c.get("impact")) or _key(c["player"]) in with_props
-                       or (sport == "nfl" and c.get("position") == "QB"),
+                       or (sport == "nfl" and (c.get("position") == "QB"
+                                               or (abbr.get(c.get("team"), c.get("team")), _key(c["player"])) in starters)),
             })
     return out
 
@@ -324,6 +344,135 @@ def _attach_usage(games: List[Dict[str, Any]], usage: List[Dict[str, Any]]) -> N
                        for u in mine]
     for u in usage:
         u.pop("team", None), u.pop("flag", None)
+
+
+# ── NFL units: linemen and defenders ────────────────────────────────────
+
+def starters_from_snaps(snaps: pd.DataFrame) -> Dict[tuple, Dict[str, Any]]:
+    """{(team, name key): {"pct", "position"}} for every player averaging
+    STARTER_SNAP_PCT of his side's snaps (offense for linemen, defense for
+    defenders) in the games he played among his team's last STARTER_GAMES
+    this season. Averaging over games he played, not all games, keeps a
+    starter who got hurt last week a starter. Pure, so it's tested directly."""
+    if snaps.empty:
+        return {}
+    d = snaps[snaps["season"] == snaps["season"].max()]
+    unit_of = {pos: u for u, (poss, _) in UNITS.items() for pos in poss}
+    d = d[d["position"].isin(unit_of)]
+    out = {}
+    for team, grp in d.groupby("team"):
+        weeks = sorted(grp["week"].dropna().unique())[-STARTER_GAMES:]
+        g = grp[grp["week"].isin(weeks)]
+        for name, pg in g.groupby("player"):
+            pos = pg["position"].iloc[-1]
+            col = "offense_pct" if unit_of[pos] == "oline" else "defense_pct"
+            pct = float(pg[col].mean())
+            if pct >= STARTER_SNAP_PCT:
+                out[(team, _key(name))] = {"pct": pct, "position": pos}
+    return out
+
+
+@ttl_cache(300)
+def nfl_starters() -> Dict[tuple, Dict[str, Any]]:
+    from app.data.loader import get_nfl_snap_counts
+    return starters_from_snaps(get_nfl_snap_counts())
+
+
+def trench_groups(inj: pd.DataFrame, team: str, starters: Dict[tuple, Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Injured starters on one team, per unit: [{"unit", "label", "out",
+    "questionable"}], where each list holds "Name (POS)". Only units with a
+    starter out/doubtful/IR, or two questionable, are returned. `team` is the
+    abbreviation; `inj` has the injury file's columns plus `abbr`. Pure."""
+    rows = inj[inj["abbr"] == team] if not inj.empty else inj
+    out = []
+    for unit, (poss, label) in UNITS.items():
+        hurt, q = [], []
+        for r in rows[rows["position"].isin(poss)].to_dict(orient="records"):
+            if (team, _key(r["player"])) not in starters:
+                continue
+            tag = f"{r['player']} ({r['position']})"
+            if r["status"] in OUT_STATUSES:
+                hurt.append(tag)
+            elif r["status"] == "Questionable":
+                q.append(tag)
+        if hurt or len(q) >= 2:
+            out.append({"unit": unit, "label": label, "out": hurt, "questionable": q})
+    return out
+
+
+def _ordinal(n: int) -> str:
+    return f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+@ttl_cache(300)
+def _nfl_roles() -> Dict[str, Any]:
+    """Per team: the QB (most offense snaps lately) and the season leaders in
+    target share at WR and TE and carry share at RB; plus each defense's
+    sacks and rank. What the unit notes point at."""
+    from app.data.loader import get_nfl_player_week_usage, get_nfl_rosters, get_nfl_snap_counts, get_nfl_team_stats
+    roles: Dict[str, Any] = {"qb": {}, "wr": {}, "te": {}, "rb": {}, "sacks": {}}
+    sn = get_nfl_snap_counts()
+    if not sn.empty:
+        sn = sn[(sn["season"] == sn["season"].max()) & (sn["position"] == "QB")]
+        last = sn.sort_values("week").groupby("team").tail(2)
+        for team, g in last.groupby("team"):
+            roles["qb"][team] = g.groupby("player")["offense_pct"].mean().idxmax()
+    u = get_nfl_player_week_usage()
+    ro = get_nfl_rosters()
+    if not u.empty and not ro.empty:
+        u = u[u["season"] == u["season"].max()]
+        names = dict(zip(ro["player_id"], ro["full_name"]))
+        pos = dict(zip(ro["player_id"], ro["position"]))
+        tot = u.groupby("posteam")[["targets", "carries"]].sum()
+        per = u.groupby(["posteam", "player_id"])[["targets", "carries"]].sum().reset_index()
+        per = per.join(tot, on="posteam", rsuffix="_team")
+        for key, stat, want in (("wr", "targets", "WR"), ("te", "targets", "TE"), ("rb", "carries", "RB")):
+            sub = per[per["player_id"].map(pos) == want]
+            sub = sub.assign(share=sub[stat] / sub[f"{stat}_team"].where(sub[f"{stat}_team"] > 0))
+            for team, g in sub.dropna(subset=["share"]).groupby("posteam"):
+                r = g.loc[g["share"].idxmax()]
+                roles[key][team] = (names.get(r["player_id"]) or r["player_id"], float(r["share"]))
+    ts = get_nfl_team_stats()
+    if not ts.empty and "Defensive Sacks" in ts.columns:
+        for r in ts.to_dict(orient="records"):
+            rk = _num(r.get("Rank - Defensive Sacks"))
+            roles["sacks"][r["team"]] = (int(r["Defensive Sacks"]), int(rk) if rk else None)
+    return roles
+
+
+def _if_they_sit(n_out: int, note: Optional[str]) -> Optional[str]:
+    """Only questionable players in the unit: the note is conditional."""
+    if not note or n_out:
+        return note
+    return "If they sit: " + note[0].lower() + note[1:]
+
+
+def _unit_note(unit: str, team: str, opp: str, roles: Dict[str, Any], line: Callable[[str, str], Optional[float]],
+               safeties_only: bool = False) -> Optional[str]:
+    """The prop an injured unit touches, in one sentence."""
+    def with_line(name: str, market: str) -> str:
+        ln = line(name, market)
+        return f"{_market(market)} line {ln:g}" if ln is not None else "no line posted yet"
+    if unit == "oline":
+        qb = roles["qb"].get(team)
+        if not qb:
+            return None
+        sk = roles["sacks"].get(opp)
+        rush = ""
+        if sk and sk[1]:
+            rush = f"; {opp} has {sk[0]} sacks ({_ordinal(sk[1])})" + (
+                ", a top-10 pass rush" if sk[1] <= 10 else ", a weak pass rush, so less risk" if sk[1] >= 23 else "")
+        return f"Watch {qb}: {with_line(qb, 'pass_yds')}{rush}."
+    if unit == "secondary":
+        te = roles["te"].get(opp)
+        pick = te if safeties_only and te and te[1] >= 0.15 else roles["wr"].get(opp)
+        if not pick:
+            return None
+        return f"Helps {pick[0]} ({pick[1] * 100:.0f}% of {opp} targets): {with_line(pick[0], 'reception_yds')}."
+    rb = roles["rb"].get(opp)
+    if not rb:
+        return None
+    return f"Helps {rb[0]} ({rb[1] * 100:.0f}% of {opp} carries): {with_line(rb[0], 'rush_yds')}."
 
 
 def line_moves(sport: str, props: pd.DataFrame, snaps: pd.DataFrame,
@@ -548,9 +697,22 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 mism.append({**g, "cat": cat, "off_label": res.get("offense_label"), "def_label": res.get("defense_label")})
     ev_plays = _safe("nfl plays", lambda: _plays_by_game("nfl"), {})
     alt_plays = _safe("nfl alt", lambda: _alt_by_start("nfl"), {})
+    starters = _safe("nfl starters", nfl_starters, {})
+    roles = _safe("nfl roles", _nfl_roles, {"qb": {}, "wr": {}, "te": {}, "rb": {}, "sacks": {}})
+    if not inj.empty:
+        inj = inj.assign(abbr=inj["team"].map(lambda t: abbr.get(t, t)))
+    from app.data.loader import get_props_data
+    props = _safe("nfl props", lambda: get_props_data("nfl"), pd.DataFrame())
+    if not props.empty:
+        props = props.assign(_k=props["Player"].map(_key))
 
-    def ordinal(n: int) -> str:
-        return f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+    def prop_line(name: str, market: str) -> Optional[float]:
+        if props.empty:
+            return None
+        rows = props[(props["_k"] == _key(name)) & (props["market"] == market)]
+        return None if rows.empty else float(rows["Line"].median())
+
+    ordinal = _ordinal
 
     cards = []
     for e in events:
@@ -565,6 +727,21 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 flags.append({"kind": "injury", "tone": "bad",
                               "text": f"{r['player']} ({abbr.get(r['team'], r['team'])} {r['position']}) {r['status']}"
                                       + (f", {r['detail']}" if isinstance(r.get('detail'), str) and r['detail'] else "")})
+        for team, opp in ((aa, ha), (ha, aa)):
+            if not team or inj.empty:
+                continue
+            for grp in trench_groups(inj, team, starters):
+                n = len(grp["out"])
+                parts = []
+                if grp["out"]:
+                    parts.append(", ".join(grp["out"]) + " out")
+                if grp["questionable"]:
+                    parts.append(", ".join(grp["questionable"]) + " questionable")
+                safeties = all(x.split("(")[-1].rstrip(")") in {"S", "SS", "FS"} for x in grp["out"] + grp["questionable"])
+                flags.append({"kind": grp["label"].lower(), "tone": "bad" if n else "warn",
+                              "text": f"{team}: " + "; ".join(parts),
+                              "why": _if_they_sit(n, _safe("unit note", lambda g=grp, t=team, o=opp, sf=safeties:
+                                                               _unit_note(g["unit"], t, o, roles, prop_line, sf), None))})
         for g in mism:
             if {g.get("offense_team"), g.get("defense_team")} == {ha, aa}:
                 flags.append({"kind": "mismatch", "tone": "good",
