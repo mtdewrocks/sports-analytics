@@ -4,9 +4,10 @@ Two sections, both assembled from data the other pages already load:
 
 WHAT CHANGED  (grouped by kind on the page, newest first within each)
   injury   status changes in the last CHANGE_HOURS, with who benefits
-           (app/data/injuries.py) -- only players with props posted, volume
-           we can see moving, a QB, or (NFL) a lineman or defender who
-           starts (STARTER_SNAP_PCT of snaps). Everyone else is left out.
+           (app/data/injuries.py) -- only players with real prop lines
+           posted (not just TD-scorer odds), volume we can see moving, or
+           (NFL) a regular share of snaps at his position (SNAP_FLOOR).
+           Deep backups are left out.
   weather  every slate game outdoors with wind, gusts, rain or cold worth
            knowing -- the worst of the game window, not just the start --
            with a plain-English line on what it does (weather_note) and the
@@ -59,6 +60,9 @@ UNITS = {
     "front": ({"DE", "DT", "NT", "DL", "LB", "ILB", "OLB", "MLB", "EDGE"}, "Front seven"),
 }
 STARTER_SNAP_PCT = 0.60
+# A "regular" at a skill position plays less than every snap: backs and
+# receivers rotate. QBs don't -- a backup QB's snaps are near zero.
+SNAP_FLOOR = {"QB": 0.60, "RB": 0.35, "WR": 0.40, "TE": 0.40, "FB": 0.40}
 STARTER_GAMES = 4
 OUT_STATUSES = {"Out", "Doubtful", "IR"}
 MAX_USAGE = 8
@@ -127,10 +131,20 @@ def _market(m: str) -> str:
 
 # ── what changed ────────────────────────────────────────────────────────
 
+# Touchdown scorer markets are posted for nearly every rostered skill player,
+# third-string included, so having one says nothing about a role.
+ROLE_BLIND_MARKETS = {"anytime_td", "1st_td", "last_td"}
+
+
 def _props_players(sport: str) -> set:
+    """Players with at least one prop that books only post for real roles:
+    yards, receptions, strikeouts... -- not touchdown-scorer markets."""
     from app.data.loader import get_props_data
     df = get_props_data(sport)
-    return set() if df.empty else {_key(p) for p in df["Player"].dropna().unique()}
+    if df.empty:
+        return set()
+    df = df[~df["market"].isin(ROLE_BLIND_MARKETS)]
+    return {_key(p) for p in df["Player"].dropna().unique()}
 
 
 def _injury_changes() -> List[Dict[str, Any]]:
@@ -152,12 +166,13 @@ def _injury_changes() -> List[Dict[str, Any]]:
             for b in ((c.get("impact") or {}).get("beneficiaries") or [])[:2]:
                 notes.append(f"{b['player']} minutes {b['with']} → {b['without']} without him")
             new = c["new_status"]
-            # Only changes worth a bettor's attention: he has lines posted,
-            # his volume is going somewhere, he's a quarterback, or he
-            # starts on the line or on defense. Everyone else is left out.
+            # Only changes worth a bettor's attention: he has real prop lines
+            # posted (not just TD-scorer odds), his volume is going
+            # somewhere, or (NFL) he plays a regular share of snaps at his
+            # position. Deep backups -- a third-string QB ruled out as a
+            # coach's decision -- are left out.
             key = (bool(c.get("impact")) or _key(c["player"]) in with_props
-                   or (sport == "nfl" and (c.get("position") == "QB"
-                                           or (abbr.get(c.get("team"), c.get("team")), _key(c["player"])) in starters)))
+                   or (sport == "nfl" and (abbr.get(c.get("team"), c.get("team")), _key(c["player"])) in starters))
             if not key:
                 continue
             out.append({
@@ -422,14 +437,15 @@ def _attach_usage(games: List[Dict[str, Any]], usage: List[Dict[str, Any]]) -> N
 
 def starters_from_snaps(snaps: pd.DataFrame) -> Dict[tuple, Dict[str, Any]]:
     """{(team, name key): {"pct", "position"}} for every player averaging
-    STARTER_SNAP_PCT of his side's snaps (offense for linemen, defense for
-    defenders) in the games he played among his team's last STARTER_GAMES
+    STARTER_SNAP_PCT of his side's snaps (SNAP_FLOOR at skill positions;
+    offense for linemen and skill players, defense for defenders) in the games he played among his team's last STARTER_GAMES
     this season. Averaging over games he played, not all games, keeps a
     starter who got hurt last week a starter. Pure, so it's tested directly."""
     if snaps.empty:
         return {}
     d = snaps[snaps["season"] == snaps["season"].max()]
     unit_of = {pos: u for u, (poss, _) in UNITS.items() for pos in poss}
+    unit_of.update({pos: "skill" for pos in SNAP_FLOOR})
     d = d[d["position"].isin(unit_of)]
     out = {}
     for team, grp in d.groupby("team"):
@@ -437,9 +453,9 @@ def starters_from_snaps(snaps: pd.DataFrame) -> Dict[tuple, Dict[str, Any]]:
         g = grp[grp["week"].isin(weeks)]
         for name, pg in g.groupby("player"):
             pos = pg["position"].iloc[-1]
-            col = "offense_pct" if unit_of[pos] == "oline" else "defense_pct"
+            col = "offense_pct" if unit_of[pos] in ("oline", "skill") else "defense_pct"
             pct = float(pg[col].mean())
-            if pct >= STARTER_SNAP_PCT:
+            if pct >= SNAP_FLOOR.get(pos, STARTER_SNAP_PCT):
                 out[(team, _key(name))] = {"pct": pct, "position": pos}
     return out
 

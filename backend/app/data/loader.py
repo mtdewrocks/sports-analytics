@@ -158,6 +158,18 @@ def get_nfl_snap_counts() -> pd.DataFrame:
     return df
 
 
+@ttl_cache(60)
+def get_briefing_snapshot() -> dict:
+    """The Daily Briefing as last built in GitHub Actions (build_briefing.py),
+    or {} when it isn't there yet. Re-read every minute: the file is small."""
+    import json
+    try:
+        return json.loads(_fetch_bytes(f"{settings.NFL_BASE_URL}/briefing.json"))
+    except Exception as e:
+        print(f"Warning: could not load briefing snapshot: {e}")
+        return {}
+
+
 @ttl_cache(OTHER_TTL)
 def get_nfl_snap_counts_history() -> pd.DataFrame:
     """Snap counts for the current season AND the one before it, stacked --

@@ -51,10 +51,13 @@ def test_starters_from_snaps_uses_games_played():
     rows = [(2026, 1, "NYG", "Big Tackle", "T", 1.0, 0), (2026, 2, "NYG", "Big Tackle", "T", 0.95, 0),
             (2026, 1, "NYG", "Backup Guard", "G", 0.10, 0), (2026, 2, "NYG", "Backup Guard", "G", 0.20, 0),
             (2026, 1, "NYG", "Top Corner", "CB", 0, 0.98),                 # hurt, missed week 2
-            (2026, 2, "NYG", "Slot WR", "WR", 0.8, 0)]
+            (2026, 2, "NYG", "Slot WR", "WR", 0.45, 0),                # rotates, still a regular
+            (2026, 1, "NYG", "QB One", "QB", 1.0, 0), (2026, 1, "NYG", "QB Three", "QB", 0.0, 0),
+            (2026, 2, "NYG", "QB One", "QB", 0.97, 0), (2026, 2, "NYG", "QB Two", "QB", 0.03, 0)]
     st = starters_from_snaps(_snaps(rows))
-    assert ("NYG", "big tackle") in st and ("NYG", "top corner") in st
-    assert ("NYG", "backup guard") not in st and ("NYG", "slot wr") not in st
+    assert ("NYG", "big tackle") in st and ("NYG", "top corner") in st and ("NYG", "slot wr") in st
+    assert ("NYG", "backup guard") not in st
+    assert ("NYG", "qb one") in st and ("NYG", "qb two") not in st and ("NYG", "qb three") not in st
 
 
 def test_trench_groups_counts_starters_only():

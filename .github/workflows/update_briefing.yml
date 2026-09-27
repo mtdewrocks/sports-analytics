@@ -1,0 +1,47 @@
+name: Update Daily Briefing
+
+# Builds the Daily Briefing from the latest published data and publishes it
+# as briefing.json, so the page loads a ready file instead of building it on
+# the web server (backend/app/build_briefing.py). Offset from the injuries
+# (:04/:19/:34/:49) and props runs so it picks up their fresh files.
+on:
+  schedule:
+    # Every 15 minutes, 9 AM - 11:59 PM Central (CDT), like injuries.
+    - cron: "10,25,40,55 14-23 * * *"
+    - cron: "10,25,40,55 0-4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-briefing
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update-briefing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "pandas>=2.2,<3" requests pyarrow openpyxl python-dotenv "pydantic[email]" pydantic-settings
+
+      - name: Build briefing
+        run: python -u backend/app/build_briefing.py
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/release_data.sh push data-nfl backend/data/nfl/briefing.json
