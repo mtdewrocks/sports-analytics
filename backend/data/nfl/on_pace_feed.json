@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 3,
   "games_total": 17,
-  "generated_at": "2026-09-26T17:44:08.524524+00:00",
+  "generated_at": "2026-09-27T18:18:59.634427+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -5034,7 +5034,7 @@
     },
     "Dre'Mont Jones": {
       "team": "NE",
-      "position": "DE",
+      "position": "LB",
       "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -5692,7 +5692,7 @@
       "receiving_tds": 0.0,
       "receptions": 4.0
     },
-    "Foye Oluokun": {
+    "Foyesade Oluokun": {
       "team": "JAX",
       "position": "LB",
       "games_played": 2,
@@ -8058,7 +8058,7 @@
     },
     "Joe Tippmann": {
       "team": "NYJ",
-      "position": "C",
+      "position": "G",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -10950,7 +10950,7 @@
     },
     "Matthew Bergeron": {
       "team": "ATL",
-      "position": "OL",
+      "position": "G",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -12846,7 +12846,7 @@
     },
     "Robert Hainsey": {
       "team": "JAX",
-      "position": "OT",
+      "position": "C",
       "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -13338,7 +13338,7 @@
     },
     "Sean Rhyan": {
       "team": "GB",
-      "position": "OT",
+      "position": "C",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
