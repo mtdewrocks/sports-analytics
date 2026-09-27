@@ -3,7 +3,7 @@ import { theme } from '../../theme';
 import {
   type NextGame, type VsHand, type NextStart, type LineupStats, type LineupMetric,
   fmtRate, fmtPct, fmtMetric, fmtPrice, ordinal, gameWhen, handWord,
-  METRIC_LABELS, METRIC_SHORT, lineupOrder, overColor, flagLabel, HITTER_BENCH,
+  METRIC_LABELS, METRIC_SHORT, lineupOrder, overColor, flagLabel, HITTER_BENCH, similarLabel,
 } from './mlbGameLogContextUtils';
 
 // Upcoming-game context for the MLB Game Log. Data comes from
@@ -237,7 +237,7 @@ export function PitcherNextStartCard({
   ];
 
   const similarText = next.similar
-    ? `vs lineups ${next.similar.side} his average ${METRIC_SHORT[next.similar.metric]}`
+    ? similarLabel(next.similar)
     : null;
 
   return (
@@ -308,7 +308,9 @@ export function PitcherNextStartCard({
           <span style={{ fontSize: 20, fontWeight: 700, color: next.similar && next.similar.total ? pctColorOf(next.similar.pct) : theme.textPrimary }}>
             {next.similar ? `${next.similar.over} of ${next.similar.total}` : '—'}
           </span>
-          <span style={{ fontSize: 12, color: theme.textSecondary }}>tonight's lineup is {next.similar?.side ?? '—'} that average</span>
+          <span style={{ fontSize: 12, color: theme.textSecondary }}>{next.similar
+            ? <>tonight's lineup: {fmtMetric(next.similar.metric, next.similar.tonight)}</>
+            : 'not enough similar starts yet'}</span>
         </div>
         <div style={panelStyle}>
           <span style={{ fontSize: 12, color: theme.textSecondary }}>{lastName} walk rate vs lineup walk %</span>

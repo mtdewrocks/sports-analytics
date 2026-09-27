@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { Fragment, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getMLBPitcherDailyReport } from '../../api/mlb';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -7,8 +7,12 @@ import { theme } from '../../theme';
 
 import LineupVsUsual from '../../components/LineupVsUsual';
 import type { VsUsual } from '../../components/LineupVsUsual';
+import PitcherPropsPanel from '../../components/PitcherPropsPanel';
+import type { DailyPitcherProp } from '../../components/PitcherPropsPanel';
 
 interface PitcherRow {
+  /** Best over/under per market + last-10 hit rate at the consensus line. */
+  props?: DailyPitcherProp[];
   /** Today's opposing lineup vs its usual one against this pitcher's hand. */
   vs_usual: VsUsual | null;
   /** Derived for the desktop table: today's lineup wOBA minus usual, in points. */
@@ -166,6 +170,8 @@ function PitcherCard({ r }: { r: PitcherRow }) {
         </>
       )}
 
+      <PitcherPropsPanel props={r.props ?? []} />
+
       {/* An explicit link rather than making the whole card tappable, so a
           scroll that lands on a card can't navigate away by accident. */}
       <div style={{
@@ -190,6 +196,12 @@ export default function MLBPitcherDailyReport() {
   const [error, setError] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('player');
   const [sortDesc, setSortDesc] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (name: string) => setExpanded((prev) => {
+    const next = new Set(prev);
+    if (next.has(name)) next.delete(name); else next.add(name);
+    return next;
+  });
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -291,11 +303,13 @@ export default function MLBPitcherDailyReport() {
                     {col.label}{sortKey === col.key ? (sortDesc ? ' ▼' : ' ▲') : ''}
                   </th>
                 ))}
+                <th style={{ padding: '9px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>Props</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((r, i) => (
-                <tr key={r.player} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage, color: theme.textPrimary }}>
+                <Fragment key={r.player}>
+                <tr style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage, color: theme.textPrimary }}>
                   <td style={{ padding: '7px 10px', fontWeight: 600 }}>
                     <Link
                       to={`/mlb/matchup?pitcher=${encodeURIComponent(r.player)}`}
@@ -323,7 +337,7 @@ export default function MLBPitcherDailyReport() {
                     style={{
                       padding: '7px 10px', textAlign: 'right',
                       color: r.vs_usual_pts == null || Math.abs(r.vs_usual_pts) < 15 ? theme.textSecondary
-                        : r.vs_usual_pts < 0 ? theme.accent : theme.dataRed,
+                        : r.vs_usual_pts < 0 ? theme.dataBlue : theme.dataRed,
                     }}
                   >
                     {r.vs_usual_pts == null ? '—' : `${r.vs_usual_pts > 0 ? '+' : ''}${r.vs_usual_pts}`}
@@ -334,7 +348,30 @@ export default function MLBPitcherDailyReport() {
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.low_avg_hitter ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_iso_hitter ?? '—'}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'right' }}>{r.high_woba_hitter ?? '—'}</td>
+                  <td style={{ padding: '4px 10px', textAlign: 'right' }}>
+                    {r.props && r.props.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => toggle(r.player)}
+                        aria-expanded={expanded.has(r.player)}
+                        style={{
+                          background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: 4,
+                          color: theme.accent, fontSize: 12, fontWeight: 600, padding: '3px 8px', cursor: 'pointer', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {r.props.length} {expanded.has(r.player) ? '▴' : '▾'}
+                      </button>
+                    ) : <span style={{ color: theme.textMuted }}>—</span>}
+                  </td>
                 </tr>
+                {expanded.has(r.player) && r.props && (
+                  <tr style={{ background: theme.bgPage, borderBottom: `1px solid ${theme.border}` }}>
+                    <td colSpan={columns.length + 1} style={{ padding: '10px 14px' }}>
+                      <PitcherPropsPanel props={r.props} bare />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>

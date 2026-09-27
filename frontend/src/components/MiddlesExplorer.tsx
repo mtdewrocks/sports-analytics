@@ -216,7 +216,7 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
                 {r.kind === 'anti_middle' ? (
                   <>Wins on any result except{' '}
                     <strong style={{ color: theme.warningText }}>{r.window}</strong>, paying{' '}
-                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.dataBlue : theme.dataRed }}>
                       {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
                     </strong>. Both legs lose if {r.window} does land — only take this if you think
                     that happens under <strong style={{ color: theme.warningText }}>
@@ -224,12 +224,12 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
                     </strong> of the time. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 ) : r.window ? (
                   <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%.
-                    Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                    Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.dataBlue : theme.dataRed }}>
                       {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
                     </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 ) : (
                   <>No window — one side always wins. Otherwise{' '}
-                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed }}>
+                    <strong style={{ color: r.one_wins_pct >= 0 ? theme.dataBlue : theme.dataRed }}>
                       {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(1)}%
                     </strong>. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
                 )}
@@ -283,7 +283,7 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
                   </td>
                   <td style={{
                     padding: '9px 10px', textAlign: 'right', fontVariantNumeric: 'tabular-nums',
-                    fontWeight: 700, color: r.one_wins_pct >= 0 ? theme.accent : theme.dataRed,
+                    fontWeight: 700, color: r.one_wins_pct >= 0 ? theme.dataBlue : theme.dataRed,
                   }}>
                     {r.one_wins_pct >= 0 ? '+' : ''}{r.one_wins_pct.toFixed(2)}%
                   </td>

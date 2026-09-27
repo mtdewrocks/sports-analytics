@@ -86,5 +86,7 @@ def test_pitcher_log_carries_lineups_and_next_start(data):
     assert ns["faced_avg"]["k_pct"] == 50.0 and ns["league"]["k_pct"] == 25.0
     assert ns["flag"]["key"] == "high_k_hitter" and ns["flag"]["count"] == 9
     # Tonight's lineup (29% K overall) is below his 50% faced average.
-    assert ns["similar"]["side"] == "below" and ns["similar"]["total"] == 0
+    # One past start, 20 pts away from tonight's lineup: nothing within the
+    # window, so the "like tonight's" split is withheld rather than "0 of 0".
+    assert ns["similar"] is None
     assert ns["line"] == 4.5 and ns["walks_per_9"] == 3.0

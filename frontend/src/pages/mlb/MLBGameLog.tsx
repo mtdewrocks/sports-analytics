@@ -14,7 +14,7 @@ import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
 import { BatterNextGameCard, PitcherNextStartCard } from './MLBGameLogContext';
 import {
-  lineupOrder, fmtMetric, METRIC_SHORT,
+  lineupOrder, fmtMetric, METRIC_SHORT, similarLabel,
   type NextGame, type VsHand, type NextStart, type LineupStats,
 } from './mlbGameLogContextUtils';
 
@@ -375,7 +375,7 @@ export default function MLBGameLog() {
     : OVER_COUNTS_PERIODS;
   const pitcherSimilar = pitcherData?.next_start?.similar;
   const pitcherPeriods = pitcherSimilar
-    ? [...OVER_COUNTS_PERIODS, { key: 'similar', label: `vs lineups ${pitcherSimilar.side} his average ${METRIC_SHORT[pitcherSimilar.metric]} — like tonight's` }]
+    ? [...OVER_COUNTS_PERIODS, { key: 'similar', label: `${similarLabel(pitcherSimilar)} — like tonight's (${fmtMetric(pitcherSimilar.metric, pitcherSimilar.tonight)})` }]
     : OVER_COUNTS_PERIODS;
   const recentPitcherGames = pitcherData ? pitcherData.games.slice(-25).reverse() : [];
   const threshold = parseFloat(thresholdStr) || 0;

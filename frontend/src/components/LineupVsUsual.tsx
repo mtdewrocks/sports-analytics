@@ -24,27 +24,31 @@ const w = (v: number) => v.toFixed(3).replace(/^0/, '').replace(/^-0/, '-');
 const pts = (d: number) => `${d > 0 ? '+' : ''}${Math.round(d * 1000)}`;
 const pp = (d: number) => `${d > 0 ? '+' : ''}${d.toFixed(1)}`;
 
-/** Green when the change helps the pitcher, red when it hurts, grey when small. */
+/** Blue when the change helps the pitcher, red when it hurts, grey when small. */
 function tone(d: number, goodIfNegative: boolean, threshold: number): string {
   if (Math.abs(d) < threshold) return theme.textSecondary;
-  return (d < 0) === goodIfNegative ? theme.accent : theme.dataRed;
+  return (d < 0) === goodIfNegative ? theme.dataBlue : theme.dataRed;
 }
 
 export default function LineupVsUsual({ v, compact = false }: { v: VsUsual; compact?: boolean }) {
   const side = v.hand ? `vs ${v.hand}HP` : '';
+  // Only call out a lineup that's actually different; when it's close to
+  // normal the numbers speak for themselves.
   const label = v.diff.woba <= -0.015 ? 'Weaker than their usual lineup'
-    : v.diff.woba >= 0.015 ? 'Stronger than their usual lineup' : 'Close to their usual lineup';
+    : v.diff.woba >= 0.015 ? 'Stronger than their usual lineup' : null;
   const big = v.big || Math.abs(v.diff.k) >= 2 || Math.abs(v.diff.bb) >= 2;
   return (
     <div style={{
       marginTop: compact ? 4 : 6, fontSize: 12, lineHeight: 1.55, color: theme.textSecondary,
       fontVariantNumeric: 'tabular-nums',
     }}>
-      <div>
-        <strong style={{ color: big ? theme.textPrimary : theme.textSecondary }}>{label}</strong>
-        {side && ` ${side}`}
-        {v.basis === 'overall' && <span style={{ color: theme.textMuted }}> (overall regulars; few games vs this hand)</span>}
-      </div>
+      {label && (
+        <div>
+          <strong style={{ color: big ? theme.textPrimary : theme.textSecondary }}>{label}</strong>
+          {side && ` ${side}`}
+          {v.basis === 'overall' && <span style={{ color: theme.textMuted }}> (overall regulars; few games vs this hand)</span>}
+        </div>
+      )}
       <div>
         wOBA {w(v.today.woba)} vs {w(v.usual.woba)}{' '}
         <strong style={{ color: tone(v.diff.woba, true, 0.015) }}>({pts(v.diff.woba)})</strong>

@@ -334,7 +334,7 @@ export default function AltLineExplorer({ fetcher, title, toolbar, sport }: AltL
                       <td style={cell}>{r.model_pct.toFixed(1)}%</td>
                       <td style={{
                         ...cell, fontWeight: 700,
-                        color: r.ev_pct >= 0 ? (muted ? theme.textSecondary : theme.accent) : theme.dataRed,
+                        color: r.ev_pct >= 0 ? (muted ? theme.textSecondary : theme.dataBlue) : theme.dataRed,
                       }}>
                         {r.ev_pct >= 0 ? '+' : ''}{r.ev_pct.toFixed(1)}%
                       </td>

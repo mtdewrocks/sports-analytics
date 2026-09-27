@@ -218,6 +218,8 @@ export interface PitcherLineupContext {
     batters: number;
     avg: number | null; woba: number | null; k_pct: number | null; bb_pct: number | null;
     counts: Record<LineupCountKey, number> | null;
+    /** Last up-to-10 starts per pitcher market, newest first. */
+    last10?: Record<string, number[]>;
   }>;
 }
 
@@ -322,10 +324,61 @@ function LineupStrip({ ctx, player, market }: { ctx: PitcherLineupContext | null
   );
 }
 
+/** Over count for a line across a pitcher's last starts. Yes/No win market
+ *  (no numeric line) grades at 0.5, i.e. counts wins. */
+function lastNHits(ctx: PitcherLineupContext | null, player: string, market: string, lineRaw: unknown)
+  : { hits: number; n: number; line: number; values: number[] } | null {
+  const vals = ctx?.pitchers[nameKey(player)]?.last10?.[market];
+  if (!vals || vals.length === 0) return null;
+  const parsed = parseFloat(String(lineRaw ?? ''));
+  const line = market === 'pitcher_record_a_win' || isNaN(parsed) ? 0.5 : parsed;
+  return { hits: vals.filter((v) => v > line).length, n: vals.length, line, values: vals };
+}
+
+/** Colour only once there's a real sample -- 2 of 3 says very little. */
+function hitColor(hits: number, n: number): string {
+  if (n < 5) return theme.textPrimary;
+  const r = hits / n;
+  return r >= 0.7 ? theme.dataBlue : r <= 0.3 ? theme.dataRed : theme.textPrimary;
+}
+
+/** "Last 10: 6/10 over (60%)" plus each start's number, green when it cleared. */
+function HitRateStrip({ hr, market }: { hr: NonNullable<ReturnType<typeof lastNHits>>; market: string }) {
+  const win = market === 'pitcher_record_a_win';
+  return (
+    <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${theme.border}` }}>
+      <div style={{ fontSize: 9.5, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        Last {hr.n} starts
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: hitColor(hr.hits, hr.n) }}>{hr.hits}/{hr.n}</span>
+        <span style={{ fontSize: 11.5, color: theme.textSecondary }}>
+          {win ? 'wins' : `over ${hr.line}`} · {Math.round((hr.hits / hr.n) * 100)}%
+        </span>
+      </div>
+      {!win && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+          {hr.values.map((v, i) => (
+            <span key={i} style={{
+              minWidth: 22, textAlign: 'center', fontSize: 10.5, fontWeight: 600, padding: '2px 4px', borderRadius: 4,
+              fontVariantNumeric: 'tabular-nums',
+              background: v > hr.line ? 'rgba(107,168,240,0.15)' : theme.bgPage,
+              color: v > hr.line ? theme.dataBlue : theme.textMuted,
+            }}>
+              {Number.isInteger(v) ? v : v.toFixed(1)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Tap-to-open list of the other lines in a group, best price + book each. */
-export function AltLines({ items }: { items: { label: string; price: number; book: string }[] }) {
+export function AltLines({ items }: { items: { label: string; price: number; book: string; hit?: { hits: number; n: number } | null }[] }) {
   const [open, setOpen] = useState(false);
   if (items.length === 0) return null;
+  const showHit = items.some((it) => it.hit);
   return (
     <div style={{ marginTop: 10, paddingTop: 8, borderTop: `1px solid ${theme.border}` }}>
       <button
@@ -339,11 +392,16 @@ export function AltLines({ items }: { items: { label: string; price: number; boo
       </button>
       {open && items.map((it, i) => (
         <div key={i} style={{
-          display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center',
+          display: 'grid', gridTemplateColumns: showHit ? '1fr auto auto auto' : '1fr auto auto', gap: 10, alignItems: 'center',
           padding: '7px 0', fontSize: 12.5, color: theme.textPrimary,
           borderBottom: i < items.length - 1 ? `1px solid ${theme.border}` : undefined,
         }}>
           <span>{it.label}</span>
+          {showHit && (
+            <span style={{ fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: it.hit ? hitColor(it.hit.hits, it.hit.n) : theme.textMuted }}>
+              {it.hit ? `${it.hit.hits}/${it.hit.n}` : '—'}
+            </span>
+          )}
           <span style={{ color: theme.dataBlue, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatOdds(Math.round(it.price))}</span>
           <span style={{ color: theme.textMuted, fontSize: 11, minWidth: 72, textAlign: 'right' }}>{prettyBook(it.book)}</span>
         </div>
@@ -999,6 +1057,10 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                         ? rest.map((p) => <>{shortBook(p.book)} {formatOdds(Math.round(p.odds))}</>)
                         : undefined}
                     >
+                      {card.baseMarket && (() => {
+                        const hr = lastNHits(pitcherCtx, player, card.baseMarket, colRoles.line ? row[colRoles.line] : null);
+                        return hr ? <HitRateStrip hr={hr} market={card.baseMarket} /> : null;
+                      })()}
                       {card.baseMarket && (
                         <LineupStrip ctx={pitcherCtx} player={player} market={card.baseMarket} />
                       )}
@@ -1007,6 +1069,9 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                           label: `Over ${colRoles.line ? String(a.row[colRoles.line] ?? '') : ''}`.trim(),
                           price: a.best!.odds,
                           book: a.best!.book,
+                          hit: card.baseMarket
+                            ? lastNHits(pitcherCtx, player, card.baseMarket, colRoles.line ? a.row[colRoles.line] : null)
+                            : null,
                         }))} />
                       )}
                       {best && draftFor(row, best.book, best.odds) && (

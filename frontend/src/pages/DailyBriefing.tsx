@@ -57,7 +57,7 @@ const TAG_COLOR: Record<Change['kind'], string> = {
   injury: theme.dataRed, lineup: theme.dataBlue, move: theme.warningText,
 };
 const TONE: Record<Flag['tone'], { bg: string; fg: string }> = {
-  good: { bg: 'rgba(29,158,117,0.15)', fg: theme.accent },
+  good: { bg: 'rgba(107,168,240,0.15)', fg: theme.dataBlue },
   bad: { bg: 'rgba(244,87,63,0.15)', fg: theme.dataRed },
   warn: { bg: 'rgba(232,163,61,0.15)', fg: theme.warningText },
   neutral: { bg: theme.bgPage, fg: theme.textSecondary },

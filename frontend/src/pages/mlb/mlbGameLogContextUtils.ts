@@ -55,7 +55,7 @@ export interface NextStart {
   league: LineupStats | null;
   key_metric: LineupMetric;
   flag: { key: string; count: number | null; faced_avg: number | null; op: 'ge' | 'le'; threshold: number } | null;
-  similar: { side: 'above' | 'below'; metric: LineupMetric; over: number; total: number; pct: number } | null;
+  similar: { metric: LineupMetric; over: number; total: number; pct: number; tonight: number; window: number; low: number; high: number } | null;
   walks_per_9: number | null;
   line: number | null;
   prices: { over: PriceRung | null; under: PriceRung | null };
@@ -106,6 +106,16 @@ export const METRIC_LABELS: Record<LineupMetric, string> = {
   iso: 'Isolated power',
   bb_pct: 'Walk %',
 };
+/** Plain-numbers wording for the "lineups like tonight's" split, e.g.
+ *  "vs lineups with a 20.4–24.4% strikeout rate". The range is a fixed
+ *  window around tonight's lineup (SIMILAR_WINDOW in the backend). */
+export function similarLabel(s: { metric: LineupMetric; low: number; high: number }): string {
+  const name = s.metric === 'k_pct' ? 'strikeout rate' : s.metric === 'bb_pct' ? 'walk rate' : METRIC_SHORT[s.metric];
+  const pct = s.metric === 'k_pct' || s.metric === 'bb_pct';
+  const lo = pct ? s.low.toFixed(1) : fmtRate(s.low);
+  return `vs lineups with ${pct ? 'a ' : ''}${lo}–${fmtMetric(s.metric, s.high)} ${name}`;
+}
+
 export const METRIC_SHORT: Record<LineupMetric, string> = {
   k_pct: 'K%', avg: 'avg', woba: 'wOBA', iso: 'ISO', bb_pct: 'BB%',
 };

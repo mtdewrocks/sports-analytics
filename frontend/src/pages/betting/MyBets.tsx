@@ -51,7 +51,7 @@ interface CardRow { label: string; graded: number; avg_clv_pct: number | null; b
 interface ReportCard { overall: CardRow; flagged: number; by: CardRow[] }
 
 const RESULT_COLOR: Record<string, string> = {
-  win: theme.accent, loss: theme.dataRed, push: theme.textSecondary, void: theme.textSecondary, pending: theme.textMuted,
+  win: theme.dataBlue, loss: theme.dataRed, push: theme.textSecondary, void: theme.textSecondary, pending: theme.textMuted,
 };
 
 function pct(v: number | null, signed = false): string {
@@ -128,10 +128,10 @@ export default function MyBets() {
             gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
           }}>
             <Tile label="Average CLV" value={pct(s.avg_clv_pct, true)} sub={`${s.clv_bets} bets graded`}
-              color={s.avg_clv_pct === null ? undefined : s.avg_clv_pct >= 0 ? theme.accent : theme.dataRed} />
+              color={s.avg_clv_pct === null ? undefined : s.avg_clv_pct >= 0 ? theme.dataBlue : theme.dataRed} />
             <Tile label="Beat the close" value={pct(s.beat_close_pct)} />
             <Tile label="ROI" value={pct(s.roi_pct, true)} sub={`${s.units >= 0 ? '+' : ''}${s.units} units`}
-              color={s.roi_pct === null ? undefined : s.roi_pct >= 0 ? theme.accent : theme.dataRed} />
+              color={s.roi_pct === null ? undefined : s.roi_pct >= 0 ? theme.dataBlue : theme.dataRed} />
             <Tile label="Record" value={`${s.record.win}-${s.record.loss}${s.record.push ? `-${s.record.push}` : ''}`}
               sub={`${s.bets} logged · ${s.verified_share_pct ?? 0}% verified`} />
           </div>
@@ -186,7 +186,7 @@ export default function MyBets() {
               <span>Close: {b.close_price !== null ? formatOdds(b.close_price) : '—'}
                 {b.close_fair_pct !== null ? ` (fair ${b.close_fair_pct.toFixed(1)}%)` : ''}</span>
               <span>CLV: <strong style={{
-                color: b.clv_pct === null ? theme.textMuted : b.clv_pct >= 0 ? theme.accent : theme.dataRed,
+                color: b.clv_pct === null ? theme.textMuted : b.clv_pct >= 0 ? theme.dataBlue : theme.dataRed,
               }}>{pct(b.clv_pct, true)}</strong></span>
               {!isStarted && <span style={{ color: theme.textMuted }}>CLV appears after the game starts</span>}
             </div>
@@ -228,7 +228,7 @@ export default function MyBets() {
                   <tr key={r.label} style={{ borderTop: `1px solid ${theme.border}`, color: theme.textPrimary }}>
                     <td style={{ padding: 6 }}>{r.label}</td>
                     <td style={{ padding: 6, textAlign: 'right' }}>{r.graded}</td>
-                    <td style={{ padding: 6, textAlign: 'right', color: (r.avg_clv_pct ?? 0) >= 0 ? theme.accent : theme.dataRed }}>
+                    <td style={{ padding: 6, textAlign: 'right', color: (r.avg_clv_pct ?? 0) >= 0 ? theme.dataBlue : theme.dataRed }}>
                       {pct(r.avg_clv_pct, true)}
                     </td>
                     <td style={{ padding: 6, textAlign: 'right' }}>{pct(r.beat_close_pct)}</td>

@@ -140,7 +140,7 @@ export default function BetSheet({ bet, onClose }: { bet: BetDraft | null; onClo
                     {prettyBook(atBook.book)} now:{' '}
                     <strong style={{ color: theme.textPrimary, fontSize: 16 }}>{formatOdds(atBook.price)}</strong>
                     {moved && (
-                      <span style={{ color: atBook.price > bet.price ? theme.accent : theme.dataRed, marginLeft: 6 }}>
+                      <span style={{ color: atBook.price > bet.price ? theme.dataBlue : theme.dataRed, marginLeft: 6 }}>
                         (was {formatOdds(bet.price)})
                       </span>
                     )}

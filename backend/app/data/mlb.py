@@ -1331,9 +1331,46 @@ def get_pitcher_daily_report() -> Dict[str, Any]:
         for p_name, rows in matchups.groupby("pitcher"):
             vs_usual_by_pitcher[p_name] = for_opposing_lineup(rows)
 
+    # Props (best over/under per market) with a last-10 hit rate against the
+    # consensus line -- same grading as the Pitcher Matchup page's props card,
+    # so the two pages agree. Behind a try: odds are a nice-to-have here and
+    # must never take the report itself down.
+    props_by_pitcher: Dict[str, List[Dict[str, Any]]] = {}
+    try:
+        from app.data.props import get_pitcher_props_many
+        props_by_pitcher = get_pitcher_props_many(combined["pitcher"].tolist())
+    except Exception as e:  # noqa: BLE001
+        print(f"[pitcher-daily-report] props unavailable: {e}")
+
+    # Last-10 values per pitcher per market, newest first.
+    l10_values: Dict[str, Dict[str, List[float]]] = {}
+    if props_by_pitcher and not recent_avg.empty:
+        for p_name, g in recent.groupby("pitcher"):
+            if p_name not in props_by_pitcher:
+                continue
+            l10_values[p_name] = {
+                mkt: [_stat_value(row, spec) for _, row in g.iterrows()]
+                for mkt, spec in MLB_PITCHER_MARKET_STAT.items()
+            }
+
+    def props_for(name: str) -> List[Dict[str, Any]]:
+        markets = props_by_pitcher.get(name) or []
+        vals_by_mkt = l10_values.get(name, {})
+        result = []
+        for m in markets:
+            line = 0.5 if m["market"] in _MLB_YES_NO_MARKETS else m.get("consensus_line")
+            vals = vals_by_mkt.get(m["market"], [])
+            l10 = None
+            if line is not None and vals:
+                l10 = {"hits": int(sum(1 for v in vals if v > line)), "games": len(vals),
+                       "values": [round(float(v), 1) for v in vals]}
+            result.append({**m, "l10": l10})
+        return result
+
     out = []
     for _, r in combined.iterrows():
         out.append({
+            "props": props_for(r["pitcher"]),
             "vs_usual": vs_usual_by_pitcher.get(r["pitcher"]),
             "player": r["pitcher"],
             "team": r["team"],
@@ -1419,6 +1456,24 @@ def get_pitcher_lineup_context() -> Dict[str, Any]:
         vals = pd.to_numeric(sub[col], errors="coerce").dropna()
         return round(float(vals.mean()), digits) if len(vals) else None
 
+    # Each starter's last 10 starts, per pitcher market (newest first), so the
+    # Props page can grade whatever line a card shows -- main or alternate --
+    # without the backend having to know which line that is.
+    last10: Dict[int, Dict[str, List[float]]] = {}
+    logs = data.get("pitcher_logs", pd.DataFrame())
+    if not logs.empty and "pitcher_id" in logs.columns:
+        lg = logs.copy()
+        lg["date"] = pd.to_datetime(lg["date"], errors="coerce")
+        lg = lg[lg["date"].notna()].sort_values(["pitcher_id", "date"], ascending=[True, False])
+        wanted = set(pd.to_numeric(probable.get("pitcher_id"), errors="coerce").dropna().astype(int))
+        lg = lg[lg["pitcher_id"].isin(wanted)]
+        for pid_, g in lg.groupby("pitcher_id"):
+            g = g.head(10)
+            last10[int(pid_)] = {
+                mkt: [round(_stat_value(row, spec), 1) for _, row in g.iterrows()]
+                for mkt, spec in MLB_PITCHER_MARKET_STAT.items()
+            }
+
     for _, r in probable.drop_duplicates(subset=["pitcher"]).iterrows():
         name = r.get("pitcher")
         if not isinstance(name, str) or not name:
@@ -1435,6 +1490,7 @@ def get_pitcher_lineup_context() -> Dict[str, Any]:
             "batters": int(len(lineup)),
             "avg": None, "woba": None, "k_pct": None, "bb_pct": None,
             "counts": None,
+            "last10": last10.get(pid, {}) if pid is not None else {},
         }
         if not lineup.empty:
             if entry["throws"] is None and "throws" in lineup.columns:

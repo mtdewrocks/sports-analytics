@@ -237,6 +237,52 @@ def _best_side(df: pd.DataFrame, price_col: str, prefer_low_line: bool) -> Optio
     }
 
 
+def _pitcher_markets(df: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Best Over/Under per main pitcher market, from rows already narrowed
+    to one pitcher's one game."""
+    markets = []
+    for key, label in PITCHER_MARKETS:
+        m = df[df["market"] == key]
+        if m.empty:
+            continue
+        # The consensus line -- what most books hang -- for context next to
+        # the best-of lines, and as the number the L10 hit rate is graded at.
+        lines = m["Line"].dropna()
+        consensus = float(lines.mode().min()) if not lines.empty else None
+        markets.append({
+            "market": key,
+            "label": label,
+            "consensus_line": consensus,
+            "book_count": int(m["bookmakers"].nunique()),
+            "over": _best_side(m, "Over Price", prefer_low_line=True),
+            "under": _best_side(m, "Under Price", prefer_low_line=False),
+        })
+
+    return markets
+
+
+def get_pitcher_props_many(pitchers: List[str]) -> Dict[str, List[Dict[str, Any]]]:
+    """get_pitcher_props()'s markets for many pitchers in one pass -- the
+    Pitcher Daily Report needs every starter on the slate, and filtering the
+    ~13k-row props frame once beats once per card. Keyed by the name as
+    passed in; pitchers with no lines are left out."""
+    df = bettable_props("mlb")
+    if df.empty or "market" not in df.columns:
+        return {}
+    df = df[df["market"].isin({m for m, _ in PITCHER_MARKETS})]
+    by_key = {k: g for k, g in df.groupby("_key")}
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    for name in pitchers:
+        g = by_key.get(_name_key(name))
+        if g is None:
+            continue
+        g, _ = _pin_next_game(g)
+        markets = _pitcher_markets(g) if not g.empty else []
+        if markets:
+            out[name] = markets
+    return out
+
+
 def get_pitcher_props(pitcher: str) -> Dict[str, Any]:
     """Best Over and Under for each main pitcher market, for the pitcher's
     next (or in-progress) game."""
@@ -273,23 +319,7 @@ def get_pitcher_props(pitcher: str) -> Dict[str, Any]:
     else:
         game_start = None
 
-    markets = []
-    for key, label in PITCHER_MARKETS:
-        m = df[df["market"] == key]
-        if m.empty:
-            continue
-        # The consensus line -- what most books hang -- for context next to
-        # the best-of lines, and as the number the L10 hit rate is graded at.
-        lines = m["Line"].dropna()
-        consensus = float(lines.mode().min()) if not lines.empty else None
-        markets.append({
-            "market": key,
-            "label": label,
-            "consensus_line": consensus,
-            "book_count": int(m["bookmakers"].nunique()),
-            "over": _best_side(m, "Over Price", prefer_low_line=True),
-            "under": _best_side(m, "Under Price", prefer_low_line=False),
-        })
+    markets = _pitcher_markets(df)
 
     fetched = df["fetched_at"].max() if "fetched_at" in df.columns else None
     return {

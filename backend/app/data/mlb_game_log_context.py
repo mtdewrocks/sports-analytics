@@ -40,6 +40,11 @@ from app.data.loader import get_mlb_data, ttl_cache, MLB_TTL
 from app.data.hit_rate import grade_over_under
 
 LINEUP_METRICS = ["k_pct", "avg", "woba", "iso", "bb_pct"]
+
+# +/- window around tonight's lineup for the "vs lineups like tonight's"
+# split, and the fewest starts worth showing.
+SIMILAR_WINDOW = {"k_pct": 2.0, "bb_pct": 1.0, "woba": 0.010, "avg": 0.015, "iso": 0.020}
+SIMILAR_MIN_GAMES = 6
 _DIGITS = {"k_pct": 1, "bb_pct": 1, "avg": 3, "woba": 3, "iso": 3}
 
 # Standard linear weights (FanGraphs scale). No HBP/SF in the logs, so
@@ -312,19 +317,27 @@ def pitcher_next_start(pitcher_id: int, pitcher: str, stat: str, threshold: floa
         col = f"lineup_{m}"
         faced_avg[m] = _mean(graded_games, col, m) if col in graded_games.columns else None
 
-    # "vs lineups like tonight's": the games on the same side of his own
-    # faced-average as tonight's lineup, on the stat's key metric. Uses the
-    # lineup's OVERALL rates for tonight so it's measured on the same scale
-    # as the past games (season rates, not a one-hand split).
+    # "vs lineups like tonight's": his starts against lineups within a fixed
+    # window of tonight's lineup on the stat's key metric. Windows are about
+    # one start-to-start SD of lineup rates (a bit wider for AVG/ISO), which
+    # keeps roughly half his starts. Too few games -> widen by half once,
+    # then give up rather than show "1 of 2". Uses the lineup's OVERALL
+    # rates for tonight so it's on the same scale as past games (season
+    # rates, not a one-hand split).
     key = PITCHER_KEY_METRIC.get(stat, "woba")
     similar = None
     kcol = f"lineup_{key}"
-    if overall.get(key) is not None and faced_avg.get(key) is not None and kcol in graded_games.columns:
-        above = overall[key] >= faced_avg[key]
-        g = graded_games.dropna(subset=[kcol])
-        g = g[g[kcol] >= faced_avg[key]] if above else g[g[kcol] < faced_avg[key]]
-        similar = {"side": "above" if above else "below", "metric": key,
-                   **grade_over_under(g["stat_value"].tolist(), threshold)}
+    if overall.get(key) is not None and kcol in graded_games.columns:
+        g_all = graded_games.dropna(subset=[kcol])
+        center = float(overall[key])
+        for width in (SIMILAR_WINDOW[key], SIMILAR_WINDOW[key] * 1.5):
+            g = g_all[(g_all[kcol] - center).abs() <= width + 1e-9]
+            if len(g) >= SIMILAR_MIN_GAMES:
+                d = _DIGITS.get(key, 3)
+                similar = {"metric": key, "tonight": round(center, d), "window": round(width, d),
+                           "low": round(center - width, d), "high": round(center + width, d),
+                           **grade_over_under(g["stat_value"].tolist(), threshold)}
+                break
 
     # Walk rate, per nine, from his logged innings.
     walks_per_9 = None
