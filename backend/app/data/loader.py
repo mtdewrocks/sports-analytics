@@ -159,6 +159,24 @@ def get_nfl_snap_counts() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_snap_counts_history() -> pd.DataFrame:
+    """Snap counts for the current season AND the one before it, stacked --
+    the In/Out page's "did he play" signal has to cover every game its box
+    scores do (get_nfl_player_box_stats() also spans two seasons). The
+    current-season-only get_nfl_snap_counts() stays as-is for the pages
+    that want just this year."""
+    from datetime import date
+    season = date.today().year if date.today().month >= 9 else date.today().year - 1
+    frames = []
+    for yr in (season - 1, season):
+        url = f"https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{yr}.csv"
+        df = _load(url, lambda buf: pd.read_csv(buf, low_memory=False), f"nfl snap counts {yr}")
+        if not df.empty:
+            frames.append(df)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+@ttl_cache(OTHER_TTL)
 def get_nba_data() -> pd.DataFrame:
     raw = _fetch_bytes(settings.NBA_STATS_URL)
     df = pd.read_parquet(io.BytesIO(raw))

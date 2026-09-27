@@ -7,8 +7,10 @@ WHAT CHANGED  (grouped by kind on the page, newest first within each)
            (app/data/injuries.py) -- only players with props posted, volume
            we can see moving, a QB, or (NFL) a lineman or defender who
            starts (STARTER_SNAP_PCT of snaps). Everyone else is left out.
-  weather  every slate game outdoors with wind, rain or cold worth knowing,
-           with a plain-English line on what it does (weather_note)
+  weather  every slate game outdoors with wind, gusts, rain or cold worth
+           knowing -- the worst of the game window, not just the start --
+           with a plain-English line on what it does (weather_note) and the
+           rain in words: drizzle, light rain, downpours (weather_words.py)
   usage    NFL players whose target or carry share over the last couple of
            games is well above or below their earlier games (usage_trends)
   lineup   MLB lineups well weaker/stronger than usual vs today's starter's
@@ -60,6 +62,7 @@ STARTER_SNAP_PCT = 0.60
 STARTER_GAMES = 4
 OUT_STATUSES = {"Out", "Doubtful", "IR"}
 MAX_USAGE = 8
+GUST_FACTOR = 1.6         # gusts / this ~ an equivalent steady wind (see weather_note)
 USAGE_MIN_DIFF = 0.10     # 10 points of team share
 USAGE_MIN_DIFF_ONE = 0.12 # stricter when the recent window is a single game (weeks 2-3)
 USAGE_MIN_SHARE = 0.15    # the higher of the two windows must be a real role
@@ -190,49 +193,113 @@ def _lineup_changes(report: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def weather_note(sport: str, wind: Optional[float], precip: Optional[float],
-                 temp: Optional[float], wind_effect: Optional[str] = None) -> Optional[Dict[str, Any]]:
+                 temp: Optional[float], wind_effect: Optional[str] = None,
+                 gust: Optional[float] = None, rain: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     """What the weather does, in one line, or None when it's unremarkable.
 
-    NFL: wind under 10 mph does nothing measurable; 10-14 mostly touches
-    long field goals; 15+ is where passing and totals start to suffer.
-    MLB: 10+ mph matters in whichever direction it blows (wind_effect is
-    mlb.py's sentence for that); rain risk matters for pitcher props, since
-    a delay can end a starter's day early. Pure, so it's tested directly."""
-    wind, precip, temp = wind or 0, precip or 0, temp
-    parts: List[str] = []
-    tone, tag = "neutral", None
+    Wind and gusts are the worst hour of the game, not just the start
+    (get_weather_forecast.py). `rain` is weather_words.rain_desc() -- a word
+    and a severity; without it (an older forecast file) the chance of rain
+    alone is used.
+
+    NFL numbers come from nflverse play-by-play, 2015-2025, outdoor games,
+    each team-game compared with that team's own season average:
+      wind 10-14 mph  40-50 yd field goals ~6-8 pts less likely; passing
+                      barely moves; games went under the closing total 59%
+                      of the time (425 games; 59-60% in both 2015-19 and
+                      2020-25)
+      wind 15+        completion rate -1.4 (15-19) to -3.0 pts (20+), about
+                      15 fewer passing yards per team (-0.4 yds/dropback x
+                      ~38 dropbacks); coaches try long field goals less
+                      (4th down at the opp 25-37: FG 74% calm, 56% at 20+);
+                      unders 57% at 15-19, even at 20+ (the market already
+                      drops those totals)
+      rain            run rate +2 pts in neutral situations, completion -2.4
+                      pts, ~17 fewer passing yards per team; unders 67% of
+                      133 games, 4.3 pts below the total on average
+      snow            run rate +6 pts (small sample: 23 games)
+    History has sustained wind only, no gusts. Gusts are folded in as
+    gust / 1.6 (a typical gust factor) once gusts reach 20 mph, so gusts of
+    25 count like a steady 15.
+    MLB: 10+ mph (or gusts 20+) matters in whichever direction it blows
+    (wind_effect is mlb.py's sentence for that); steady rain matters for
+    pitcher props, since a delay can end a starter's day early. Pure, so
+    it's tested directly."""
+    wind, gust, precip = wind or 0, gust or 0, precip or 0
+    parts: List[tuple] = []          # (tone, tag, sentence)
+    label = (rain or {}).get("label")
+    sev = (rain or {}).get("severity", 0)
+    storm = bool(label and label.startswith("Thunder"))
+    # Gusts only move the needle once they're real gusts (20+ mph); a 6 mph
+    # day with gusts to 18 is still a calm day.
+    eff = max(wind, gust / GUST_FACTOR) if gust >= 20 else wind
     if sport == "nfl":
-        if wind >= 20:
-            tone, tag = "warn", "WIND"
-            parts.append("Very windy: deep passing and field goals get much harder; totals often lean under.")
-        elif wind >= 15:
-            tone, tag = "warn", "WIND"
-            parts.append("Strong wind: long passes and 45+ yard kicks get harder; totals often lean under.")
-        elif wind >= 10:
-            tag = "WIND"
-            parts.append("Light wind: little effect on passing; long field goals slightly harder.")
-        if precip >= 40:
-            tag = tag or "RAIN"
-            parts.append("Rain likely: more fumbles and fewer deep shots; a small effect on totals.")
+        gusts = f" (gusts to {gust:.0f})" if gust >= wind + 5 else ""
+        if eff >= 20:
+            parts.append(("warn", "WIND", f"Very windy{gusts}: completion rate ~3 pts lower and about 15 fewer "
+                                          "passing yards per team; long field goals often aren't tried."))
+        elif eff >= 15:
+            parts.append(("warn", "WIND", f"Strong wind{gusts}: completion rate ~1.5 pts lower and about 15 fewer "
+                                          "passing yards per team; 40+ yard kicks less likely. Unders hit 57% "
+                                          "in these games since 2015."))
+        elif eff >= 10:
+            parts.append(("warn", "WIND", f"Moderate wind{gusts}: 40-50 yard field goals ~6-8 pts less likely; "
+                                          "passing barely affected. Unders hit 59% in these games since 2015."))
+        if rain is not None:
+            if label and "now" in label:
+                parts.append(("warn", "SNOW", f"{label}: teams have run ~6 pts more often in snow; "
+                                              "passing yards down."))
+            elif sev >= 2:
+                parts.append(("warn", "STORM" if storm else "RAIN",
+                              f"{label}: teams run ~2 pts more often and throw for about 17 fewer yards; "
+                              "rain games went under 67% of the time since 2015."
+                              + (" Lightning can pause play." if storm else "")))
+            elif sev == 1:
+                parts.append(("neutral", "RAIN", f"{label}: a small drag at most; it's steady rain that has "
+                                                 "pushed totals under."))
+        elif precip >= 40:
+            parts.append(("neutral", "RAIN", "Rain possible: if it rains, teams run a bit more and totals "
+                                             "have tended to go under."))
         if temp is not None and temp <= 32:
-            tag = tag or "COLD"
-            parts.append("Freezing: a small drag on passing and kicking.")
+            parts.append(("neutral", "COLD", "Freezing: a small drag on passing and kicking."))
     else:
-        if wind >= 10:
-            tone, tag = "warn", "WIND"
-            parts.append((wind_effect or "Wind strong enough to move fly balls.").replace(" -- ", ": "))
-        if precip >= 40:
-            tone, tag = "warn", tag or "RAIN"
-            parts.append("Rain risk: a delay could cut the starters' outings short.")
+        if eff >= 10:
+            parts.append(("warn", "WIND", (wind_effect or "Wind strong enough to move fly balls.").replace(" -- ", ": ")))
+        if rain is not None:
+            if storm:
+                parts.append(("warn", "STORM", "Thunderstorms: a delay is likely and could end the starters' day early."))
+            elif sev >= 2:
+                parts.append(("warn", "RAIN", f"{label}: a delay could cut the starters' outings short."))
+            elif sev == 1:
+                parts.append(("neutral", "RAIN", f"{label}: usually played through."))
+        elif precip >= 40:
+            parts.append(("warn", "RAIN", "Rain risk: a delay could cut the starters' outings short."))
         if temp is not None and temp <= 50:
-            tag = tag or "COLD"
-            parts.append("Cold: the ball carries less; a small lean to unders.")
+            parts.append(("neutral", "COLD", "Cold: the ball carries less; a small lean to unders."))
         elif temp is not None and temp >= 88:
-            tag = tag or "HEAT"
-            parts.append("Hot: the ball carries farther; a small lean to overs.")
-    if not tag:
+            parts.append(("neutral", "HEAT", "Hot: the ball carries farther; a small lean to overs."))
+    if not parts:
         return None
-    return {"tone": tone, "tag": tag, "why": " ".join(parts)}
+    warn = [p for p in parts if p[0] == "warn"]
+    return {"tone": "warn" if warn else "neutral", "tag": (warn or parts)[0][1],
+            "why": " ".join(p[2] for p in parts)}
+
+
+def weather_text(wx: Dict[str, Any]) -> str:
+    """"65°F, wind 12 mph NE (gusts 29), Light rain, 0.05 in (31% chance)"."""
+    wind, gust = wx.get("wind_mph"), wx.get("wind_gust_mph")
+    txt = f"{wx.get('temp_f')}°F, wind {wind} mph {wx.get('wind_dir') or ''}".strip()
+    if gust is not None and wind is not None and gust >= wind + 5:
+        txt += f" (gusts {gust})"
+    if wx.get("rain"):
+        txt += f", {wx['rain'][0].lower() + wx['rain'][1:]}"
+    elif "rain" not in wx and (wx.get("precip_pct") or 0) >= 30:
+        txt += f", {wx['precip_pct']}% rain"
+    return txt
+
+
+def _rain(wx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    return {"label": wx.get("rain_label"), "severity": wx.get("rain_severity") or 0} if "rain" in wx else None
 
 
 def _weeks(ws: List[Any]) -> str:
@@ -646,10 +713,9 @@ def _mlb_cards(events: List[Dict[str, Any]], report: Dict[str, Any]) -> List[Dic
                 flags.append({"kind": "weather", "tone": "neutral", "text": "Roof closed"})
             else:
                 eff = (wx.get("wind_effect") or {}).get("label")
-                note = weather_note("mlb", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"), eff)
-                txt = f"{wx.get('temp_f')}°F, wind {wx.get('wind_mph')} mph {wx.get('wind_dir') or ''}".strip()
-                if (wx.get("precip_pct") or 0) >= 30:
-                    txt += f", {wx['precip_pct']}% rain"
+                note = weather_note("mlb", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"), eff,
+                                    wx.get("wind_gust_mph"), _rain(wx))
+                txt = weather_text(wx)
                 flags.append({"kind": "weather", "tone": note["tone"] if note else "neutral", "text": txt,
                               "why": note["why"] if note else None, "alert": note})
         for team in (away, home):
@@ -750,10 +816,9 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                                       f"{g['defense_team']} {g['def_label']} ({ordinal(int(g['defense_rank']))})"})
         wx = next((w for w in weather if w.get("home_team") == ha), None)
         if wx and wx.get("roof") in (None, "outdoor", "open"):
-            txt = f"{wx.get('temp_f')}°F, wind {wx.get('wind_mph')} mph {wx.get('wind_dir') or ''}".strip()
-            if (wx.get("precip_pct") or 0) >= 30:
-                txt += f", {wx['precip_pct']}% rain"
-            note = weather_note("nfl", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"))
+            txt = weather_text(wx)
+            note = weather_note("nfl", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"),
+                                gust=wx.get("wind_gust_mph"), rain=_rain(wx))
             flags.append({"kind": "weather", "tone": note["tone"] if note else "neutral", "text": txt,
                           "why": note["why"] if note else None, "alert": note})
         line_txt = None

@@ -2627,6 +2627,16 @@ def _wind_field_effect(wind_dir_deg: Optional[float], wind_mph: Optional[float])
     }
 
 
+def _rain_fields(r) -> Dict[str, Any]:
+    """Rain amount and a plain-English description (app/data/weather_words.py).
+    Older forecast files lack the new columns, so every field is optional."""
+    from app.data.weather_words import rain_desc
+    d = rain_desc(r.get("weather_code"), r.get("precip_in"), r.get("precip_max_in_hr"), r.get("precip_pct"))
+    total = float(r["precip_in"]) if _is_number(r.get("precip_in")) else None
+    return {"precip_in": round(total, 2) if total is not None else None,
+            "rain": d["text"], "rain_label": d["label"], "rain_severity": d["severity"]}
+
+
 def get_mlb_weather() -> Dict[str, Any]:
     """Live wind/temp/precip FORECAST for today's not-yet-started MLB games,
     from get_weather_forecast.py's Open-Meteo pull (rebuilt every 2 hours --
@@ -2665,6 +2675,7 @@ def get_mlb_weather() -> Dict[str, Any]:
             "precip_pct": round(float(r["precip_pct"])) if _is_number(r.get("precip_pct")) else None,
             "note": _MLB_BALLPARK_NOTES_BY_PARK.get(stadium),
             "wind_effect": wind_effect,
+            **_rain_fields(r),
         })
 
     return {"games": games}

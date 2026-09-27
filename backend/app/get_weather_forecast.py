@@ -64,7 +64,25 @@ FORECAST_DAYS = 10
 # ET" / "4:25 PM ET" / "8:15 PM ET" windows the NFL itself publishes in.
 NFL_SCHEDULE_TZ = ZoneInfo("America/New_York")
 
-HOURLY_FIELDS = "temperature_2m,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m"
+HOURLY_FIELDS = ("temperature_2m,precipitation_probability,precipitation,weather_code,"
+                 "wind_speed_10m,wind_gusts_10m,wind_direction_10m")
+
+# How long a game runs, for the forecast window: wind, gusts and rain chance
+# are the worst hour from first pitch / kickoff to this many hours later, and
+# rain amounts are summed over it. The start hour alone missed weather that
+# arrives mid-game.
+GAME_HOURS = {"mlb": 3.0, "nfl": 3.5}
+
+# Open-Meteo WMO weather codes, ranked by how much they matter to a game --
+# the window's most severe code is the one reported.
+_CODE_RANK = {0: 0, 1: 0, 2: 0, 3: 0, 45: 1, 48: 1,
+              51: 2, 53: 3, 55: 4, 56: 5, 57: 6,
+              61: 3, 63: 5, 65: 7, 66: 6, 67: 8,
+              71: 5, 73: 6, 75: 8, 77: 5,
+              80: 4, 81: 6, 82: 8, 85: 6, 86: 8,
+              95: 9, 96: 10, 99: 10}
+_EMPTY_WX = {"temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_deg": None,
+             "precip_pct": None, "precip_in": None, "precip_max_in_hr": None, "weather_code": None}
 
 # ---------------------------------------------------------------------------
 # Stadium coordinates. Approximate (city-block accuracy) is plenty for an
@@ -188,31 +206,50 @@ def _fetch_forecasts(locations: list[tuple[float, float]]) -> list[dict]:
     return data if isinstance(data, list) else [data]
 
 
-def _nearest_hour(forecast: dict, target_utc: datetime) -> dict | None:
-    """The hourly forecast row closest to target_utc, or None if the target
-    falls outside this call's forecast window (e.g. a game more than
-    FORECAST_DAYS out)."""
+def game_window(forecast: dict, start_utc: datetime, hours: float) -> dict | None:
+    """Weather over a game, from one location's hourly forecast. Pure, so
+    it's tested directly.
+
+    temp and wind direction: the hour nearest the start.
+    wind, gusts, rain chance, weather code: the worst hour from the start
+    hour through `hours` later (the code by _CODE_RANK severity).
+    precip_in: rain summed over the game. Open-Meteo's hourly precipitation
+    is the total for the PRECEDING hour, so the hours after the start through
+    the end are summed. precip_max_in_hr: the wettest of those hours.
+
+    None when the start falls outside the forecast (more than 90 minutes
+    from any hourly point), rather than fabricating a match."""
     hourly = forecast.get("hourly") or {}
-    times = hourly.get("time") or []
+    times = [datetime.fromisoformat(t) for t in (hourly.get("time") or [])]
     if not times:
         return None
-    target = target_utc.replace(tzinfo=None)
-    best_idx, best_diff = None, None
-    for i, t in enumerate(times):
-        ts = datetime.fromisoformat(t)
-        diff = abs((ts - target).total_seconds())
-        if best_diff is None or diff < best_diff:
-            best_idx, best_diff = i, diff
-    # More than 90 minutes from the nearest hourly point isn't a real match
-    # (e.g. past the end of the forecast window) -- don't fabricate one.
-    if best_idx is None or best_diff > 90 * 60:
+    start = start_utc.replace(tzinfo=None)
+    near = min(range(len(times)), key=lambda i: abs((times[i] - start).total_seconds()))
+    if abs((times[near] - start).total_seconds()) > 90 * 60:
         return None
+    end = start + timedelta(hours=hours)
+    first = start.replace(minute=0, second=0, microsecond=0)
+    during = [i for i, t in enumerate(times) if first <= t <= end]
+    rained = [i for i, t in enumerate(times) if start < t <= end + timedelta(minutes=59)]
+
+    def col(name: str) -> list:
+        return hourly.get(name) or [None] * len(times)
+
+    def worst(name: str, idx: list) -> float | None:
+        vals = [v for v in (col(name)[i] for i in idx) if v is not None]
+        return max(vals) if vals else None
+
+    precip = [v for v in (col("precipitation")[i] for i in rained) if v is not None]
+    codes = [c for c in (col("weather_code")[i] for i in during) if c is not None]
     return {
-        "temp_f": hourly["temperature_2m"][best_idx],
-        "wind_mph": hourly["wind_speed_10m"][best_idx],
-        "wind_gust_mph": hourly["wind_gusts_10m"][best_idx],
-        "wind_dir_deg": hourly["wind_direction_10m"][best_idx],
-        "precip_pct": hourly["precipitation_probability"][best_idx],
+        "temp_f": col("temperature_2m")[near],
+        "wind_mph": worst("wind_speed_10m", during),
+        "wind_gust_mph": worst("wind_gusts_10m", during),
+        "wind_dir_deg": col("wind_direction_10m")[near],
+        "precip_pct": worst("precipitation_probability", during),
+        "precip_in": round(sum(precip), 2) if precip else None,
+        "precip_max_in_hr": round(max(precip), 2) if precip else None,
+        "weather_code": max(codes, key=lambda c: _CODE_RANK.get(int(c), 0)) if codes else None,
     }
 
 
@@ -298,12 +335,12 @@ def build_mlb() -> pd.DataFrame:
 
     rows = []
     for (g, info), forecast in zip(to_fetch, forecasts):
-        wx = _nearest_hour(forecast, g["game_time_utc"])
+        wx = game_window(forecast, g["game_time_utc"], GAME_HOURS["mlb"])
         rows.append({
             "game_pk": g["game_pk"], "home_team": g["home_team"], "away_team": g["away_team"],
             "stadium": info["stadium"], "roof": info["roof"],
             "game_time_utc": g["game_time_utc"].isoformat(),
-            **(wx or {"temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_deg": None, "precip_pct": None}),
+            **(wx or _EMPTY_WX),
         })
     # Dome games -- no forecast fetched, but still listed so the page can
     # show "Indoors" instead of the game silently not appearing at all.
@@ -313,7 +350,7 @@ def build_mlb() -> pd.DataFrame:
                 "game_pk": g["game_pk"], "home_team": g["home_team"], "away_team": g["away_team"],
                 "stadium": info["stadium"], "roof": info["roof"],
                 "game_time_utc": g["game_time_utc"].isoformat(),
-                "temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_deg": None, "precip_pct": None,
+                **_EMPTY_WX,
             })
     return pd.DataFrame(rows)
 
@@ -336,18 +373,18 @@ def build_nfl() -> pd.DataFrame:
 
     rows = []
     for (g, info), forecast in zip(to_fetch, forecasts):
-        wx = _nearest_hour(forecast, g["kickoff_utc"])
+        wx = game_window(forecast, g["kickoff_utc"], GAME_HOURS["nfl"])
         rows.append({
             "game_id": g["game_id"], "week": int(g["week"]), "home_team": g["home_team"], "away_team": g["away_team"],
             "stadium": g["stadium"], "roof": info["roof"], "kickoff_utc": g["kickoff_utc"].isoformat(),
-            **(wx or {"temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_deg": None, "precip_pct": None}),
+            **(wx or _EMPTY_WX),
         })
     for g, info in venues:
         if info["roof"] == "dome":
             rows.append({
                 "game_id": g["game_id"], "week": int(g["week"]), "home_team": g["home_team"], "away_team": g["away_team"],
                 "stadium": g["stadium"], "roof": info["roof"], "kickoff_utc": g["kickoff_utc"].isoformat(),
-                "temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_deg": None, "precip_pct": None,
+                **_EMPTY_WX,
             })
     return pd.DataFrame(rows)
 

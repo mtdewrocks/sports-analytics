@@ -1275,13 +1275,16 @@ def get_nfl_season_screener(season: int, position: Optional[str], filters: List[
 
 
 def get_nfl_teammates(player: str) -> List[str]:
-    """Every player who has shared a team with *player* in a game, per
-    get_nfl_snap_counts() -- mirrors get_teammates() in data/nba.py."""
-    snaps = get_nfl_snap_counts()
+    """Every player who has shared a team with *player* in a game over the
+    current and previous season, per snap counts -- mirrors
+    get_teammates() in data/nba.py."""
+    from app.data.loader import get_nfl_snap_counts_history
+    snaps = get_nfl_snap_counts_history()
     if snaps.empty:
         return []
+    snaps = snaps[snaps["player"].notna()]
     player_norm = _normalize_loose(player)
-    player_rows = snaps[snaps["player"].apply(_normalize_loose) == player_norm]
+    player_rows = snaps[snaps["player"].fillna("").astype(str).apply(_normalize_loose) == player_norm]
     if player_rows.empty:
         return []
     team_games = player_rows[["game_id", "team"]].drop_duplicates()
@@ -1290,48 +1293,70 @@ def get_nfl_teammates(player: str) -> List[str]:
     return sorted(t for t in teammates if _normalize_loose(t) != player_norm)
 
 
+def in_out_split(anchor: pd.DataFrame, snaps: pd.DataFrame, exclude: List[str]) -> Dict[str, Any]:
+    """Split the anchor player's games into with / without the excluded
+    teammates. Pure, so it's tested directly.
+
+    anchor: one row per game (season, week, team + IN_OUT_STATS).
+    snaps:  snap counts (season, week, team, player) -- who actually played.
+
+    A game counts only when the anchor himself shows up in that week's snaps.
+    For each excluded teammate, a game is "with" when he played for the same
+    team that week, and "without" when he didn't but was on that team at
+    some point that SEASON. A season he wasn't a teammate at all (before he
+    arrived, or after he left) is neither -- counting it as "without" is how
+    two seasons of box scores against one season of snap data used to put
+    every game on the "without" side.
+    """
+    if anchor.empty or snaps.empty:
+        return {"with": anchor.iloc[0:0], "without": anchor.iloc[0:0], "skipped": len(anchor)}
+    sn = snaps.assign(_p=snaps["player"].fillna("").astype(str).map(_normalize_loose))
+    played = set(zip(sn["_p"], sn["season"], sn["week"], sn["team"]))
+    on_team = set(zip(sn["_p"], sn["season"], sn["team"]))
+    anchor_norm = anchor["_p"].iloc[0]
+    exc = [_normalize_loose(e) for e in exclude]
+    with_rows, without_rows, skipped = [], [], 0
+    for i, r in anchor.iterrows():
+        s_, w, t = r["season"], r["week"], r["team"]
+        if (anchor_norm, s_, w, t) not in played:
+            skipped += 1
+            continue
+        if any((e, s_, t) not in on_team for e in exc):
+            skipped += 1
+            continue
+        in_game = [(e, s_, w, t) in played for e in exc]
+        if all(in_game):
+            with_rows.append(i)
+        elif not any(in_game):
+            without_rows.append(i)
+        else:
+            skipped += 1       # some excluded players in, some out: neither side
+    return {"with": anchor.loc[with_rows], "without": anchor.loc[without_rows], "skipped": skipped}
+
+
 def get_nfl_in_out(player_a: str, exclude: List[str]) -> Dict[str, Any]:
     """Compare player_a's volume stats (carries/targets/receptions/yards)
-    for weeks a specific teammate (or teammates) played versus weeks they
-    didn't -- same with/without logic as data/nba.py's get_in_out(), keyed
-    on (season, week) instead of (date, team) to match NFL's weekly rather
-    than nightly schedule.
+    for games a teammate (or teammates) played versus games they didn't,
+    over the current and previous season. Box scores come from
+    get_nfl_player_box_stats() and "did he play" from snap counts, and both
+    cover the same two seasons -- see in_out_split() for the rules.
     """
+    from app.data.loader import get_nfl_player_box_stats, get_nfl_snap_counts_history
     exclude = [e for e in (exclude or []) if e]
-    stats_df = get_nfl_stats()
-    snaps = get_nfl_snap_counts()
-    col = _player_col(stats_df)
-    season_col = _season_col(stats_df)
-    week_col = _week_col(stats_df)
-
-    if snaps.empty or not season_col or not week_col:
-        return {"player": player_a, "exclude": exclude, "games_with": 0, "games_without": 0, "with": {}, "without": {}}
-
-    player_norm = _normalize(player_a)
-    anchor_df = stats_df[stats_df[col].str.lower().str.strip() == player_norm].copy()
-    if anchor_df.empty:
-        return {"player": player_a, "exclude": exclude, "games_with": 0, "games_without": 0, "with": {}, "without": {}}
-
-    # (season, week) pairs where a given player actually played, from real
-    # snap participation -- not just "recorded a stat."
-    def played_weeks(name: str) -> set:
-        norm = _normalize_loose(name)
-        rows = snaps[snaps["player"].apply(_normalize_loose) == norm]
-        return set(zip(rows["season"], rows["week"]))
-
-    anchor_df["_key"] = list(zip(anchor_df[season_col], anchor_df[week_col]))
-    exc_key_sets = [played_weeks(e) for e in exclude]
-
-    anchor_keys = set(anchor_df["_key"])
-    with_keys = anchor_keys.copy()
-    for eks in exc_key_sets:
-        with_keys = with_keys & eks
-    without_keys = anchor_keys.copy()
-    for eks in exc_key_sets:
-        without_keys = without_keys - eks
-
-    df_with = anchor_df[anchor_df["_key"].isin(with_keys)]
-    df_without = anchor_df[anchor_df["_key"].isin(without_keys)]
+    empty = {"player": player_a, "exclude": exclude, "games_with": 0, "games_without": 0,
+             "games_skipped": 0, "seasons": [], "with": {}, "without": {}}
+    box = get_nfl_player_box_stats()
+    snaps = get_nfl_snap_counts_history()
+    if box.empty or snaps.empty:
+        return empty
+    col = _player_col(box)
+    box = box.assign(_p=box[col].fillna("").astype(str).map(_normalize_loose))
+    anchor = box[box["_p"] == _normalize_loose(player_a)]
+    if "season_type" in anchor.columns:
+        anchor = anchor[anchor["season_type"].isin(["REG", "POST"])]
+    if anchor.empty:
+        return empty
+    split = in_out_split(anchor, snaps, exclude)
 
     def avg_stats(sub_df: pd.DataFrame) -> Dict[str, Optional[float]]:
         result = {}
@@ -1342,13 +1367,16 @@ def get_nfl_in_out(player_a: str, exclude: List[str]) -> Dict[str, Any]:
             result[s] = round(float(vals.mean()), 2) if len(vals) > 0 else None
         return result
 
+    used = pd.concat([split["with"], split["without"]])
     return {
         "player": player_a,
         "exclude": exclude,
-        "games_with": len(with_keys),
-        "games_without": len(without_keys),
-        "with": avg_stats(df_with),
-        "without": avg_stats(df_without),
+        "games_with": len(split["with"]),
+        "games_without": len(split["without"]),
+        "games_skipped": split["skipped"],
+        "seasons": sorted(int(x) for x in used["season"].unique()) if not used.empty else [],
+        "with": avg_stats(split["with"]),
+        "without": avg_stats(split["without"]),
     }
 
 
@@ -2365,6 +2393,16 @@ def _wx_num(v) -> Optional[float]:
     return float(v)
 
 
+def _rain_fields(r) -> Dict[str, Any]:
+    """Rain amount and a plain-English description (app/data/weather_words.py).
+    Older forecast files lack the new columns, so every field is optional."""
+    from app.data.weather_words import rain_desc
+    d = rain_desc(r.get("weather_code"), r.get("precip_in"), r.get("precip_max_in_hr"), r.get("precip_pct"))
+    total = _wx_num(r.get("precip_in"))
+    return {"precip_in": round(total, 2) if total is not None else None,
+            "rain": d["text"], "rain_label": d["label"], "rain_severity": d["severity"]}
+
+
 def get_nfl_weather() -> Dict[str, Any]:
     """Live wind/temp/precip FORECAST for upcoming (not-yet-started) NFL
     games, from get_weather_forecast.py's Open-Meteo pull (rebuilt every 2
@@ -2395,6 +2433,7 @@ def get_nfl_weather() -> Dict[str, Any]:
             "wind_gust_mph": round(_wx_num(r.get("wind_gust_mph"))) if _wx_num(r.get("wind_gust_mph")) is not None else None,
             "wind_dir": _compass(r.get("wind_dir_deg")),
             "precip_pct": round(_wx_num(r.get("precip_pct"))) if _wx_num(r.get("precip_pct")) is not None else None,
+            **_rain_fields(r),
         })
 
     return {"games": games}

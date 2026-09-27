@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getNFLPlayers, getNFLTeammates, getNFLInOut } from '../../api/nfl';
+import { getNFLGameLogPlayers, getNFLTeammates, getNFLInOut } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import BottomSheet, { SheetRow } from '../../components/BottomSheet';
@@ -12,6 +12,9 @@ interface InOutData {
   exclude: string[];
   games_with: number;
   games_without: number;
+  /** Games left out: he didn't play, or a checked player wasn't on his team that season. */
+  games_skipped?: number;
+  seasons?: number[];
   with: Record<string, number | null>;
   without: Record<string, number | null>;
 }
@@ -46,7 +49,9 @@ export default function NFLInOut() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
-    getNFLPlayers()
+    // Same box-score source the backend splits on (current + last season),
+    // so this season's rookies and new arrivals are in the list.
+    getNFLGameLogPlayers()
       .then((res) => setPlayers(res.data))
       .catch(() => setPlayers([]));
   }, []);
@@ -383,12 +388,19 @@ export default function NFLInOut() {
           {/* Promoted from boilerplate to a signal: amber only when one of the
               two samples is actually thin enough to mislead. */}
           {(() => {
-            const thin = Math.min(data.games_with, data.games_without) < 5;
+            const small = Math.min(data.games_with, data.games_without);
+            const thin = small < 5;
+            const seasons = data.seasons?.length ? `Covers ${data.seasons.join(' and ')}.` : '';
+            const skipped = data.games_skipped
+              ? ` ${data.games_skipped} game${data.games_skipped === 1 ? '' : 's'} left out (he didn't play, or a checked teammate wasn't on his team that season).`
+              : '';
             return (
-              <div style={{ fontSize: 11, color: thin ? theme.warningText : theme.textMuted, marginTop: 10 }}>
-                {thin
-                  ? `Only ${Math.min(data.games_with, data.games_without)} games in the smaller sample -- read this gently.`
-                  : 'A 17-game season means these samples are often small -- check the game counts above before reading too much into a small difference.'}
+              <div style={{ fontSize: 11, color: thin ? theme.warningText : theme.textMuted, marginTop: 10, lineHeight: 1.5 }}>
+                {small === 0
+                  ? `No games on one side yet, so there's nothing to compare. ${seasons}${skipped}`
+                  : thin
+                    ? `Only ${small} game${small === 1 ? '' : 's'} in the smaller sample -- read this gently. ${seasons}${skipped}`
+                    : `A 17-game season means these samples are often small -- check the game counts above before reading too much into a small difference. ${seasons}${skipped}`}
               </div>
             );
           })()}

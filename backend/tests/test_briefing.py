@@ -5,8 +5,8 @@ from app.data.briefing import starters_from_snaps, trench_groups, usage_trends, 
 
 def test_weather_note_nfl_tiers():
     assert weather_note("nfl", 6, 10, 60) is None
-    light = weather_note("nfl", 10, 30, 64)
-    assert light["tag"] == "WIND" and light["tone"] == "neutral" and "Light wind" in light["why"]
+    moderate = weather_note("nfl", 10, 30, 64)
+    assert moderate["tag"] == "WIND" and moderate["tone"] == "warn" and "Moderate wind" in moderate["why"]
     strong = weather_note("nfl", 16, 0, 60)
     assert strong["tone"] == "warn" and "Strong wind" in strong["why"]
     assert weather_note("nfl", 3, 50, 60)["tag"] == "RAIN"

@@ -16,6 +16,10 @@ interface WeatherGame {
   wind_gust_mph: number | null;
   wind_dir: string | null;
   precip_pct: number | null;
+  /** Worst hour of the game, plus the rain in words ("Light rain", "Downpours"). */
+  precip_in?: number | null;
+  rain_label?: string | null;
+  rain_severity?: number;
 }
 
 function fmtTime(iso: string): string {
@@ -62,8 +66,9 @@ export default function NFLWeather() {
     <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1000, margin: '0 auto', minHeight: 'calc(100vh - 60px)', background: theme.bgPage }}>
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>Weather</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: isMobile ? 20 : 28 }}>
-        Live forecast for every game still ahead on the schedule -- wind, temperature and rain chance
-        at kickoff, refreshed every couple of hours. Not a backtest of games already played.
+        Live forecast for every game still ahead on the schedule, refreshed every couple of hours.
+        Temperature is at kickoff; wind, gusts and rain are the worst of the game (kickoff through about
+        3½ hours later), with rain in words and the expected amount. Not a backtest of games already played.
       </div>
 
       {loading && <LoadingSpinner />}
@@ -122,6 +127,11 @@ export default function NFLWeather() {
                           <div style={{ fontSize: 18, fontWeight: 700, color: theme.textPrimary }}>
                             {g.precip_pct != null ? `${g.precip_pct}%` : '--'}
                           </div>
+                          {g.rain_label && (
+                            <div style={{ fontSize: 11, fontWeight: 600, color: (g.rain_severity ?? 0) >= 2 ? theme.warningText : theme.textSecondary }}>
+                              {g.rain_label}{g.precip_in ? `, ${g.precip_in.toFixed(2)} in` : ''}
+                            </div>
+                          )}
                         </div>
                         {g.roof === 'retractable' && (
                           <div style={{ fontSize: 11, color: theme.textMuted, alignSelf: 'center' }}>
