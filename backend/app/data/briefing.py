@@ -2,8 +2,14 @@
 
 Two sections, both assembled from data the other pages already load:
 
-WHAT CHANGED  (newest first, last CHANGE_HOURS)
-  injury   status changes, with who benefits (app/data/injuries.py)
+WHAT CHANGED  (grouped by kind on the page, newest first within each)
+  injury   status changes in the last CHANGE_HOURS, with who benefits
+           (app/data/injuries.py). "key" marks players with props posted
+           or with volume we can see moving, so the page can hide the rest.
+  weather  every slate game outdoors with wind, rain or cold worth knowing,
+           with a plain-English line on what it does (weather_note)
+  usage    NFL players whose target or carry share over the last couple of
+           games is well above or below their earlier games (usage_trends)
   lineup   MLB lineups well weaker/stronger than usual vs today's starter's
            hand (app/data/mlb_lineups.py)
   move     main prop lines that moved a meaningful amount since
@@ -39,6 +45,10 @@ BIG_LINEUP_GAP = 0.025
 MISMATCH_MIN_SCORE = 15
 NFL_INJURY_STATUSES = {"Out", "Doubtful", "Questionable", "IR"}
 NFL_SKILL = {"QB", "RB", "WR", "TE"}
+MAX_USAGE = 8
+USAGE_MIN_DIFF = 0.10     # 10 points of team share
+USAGE_MIN_DIFF_ONE = 0.12 # stricter when the recent window is a single game (weeks 2-3)
+USAGE_MIN_SHARE = 0.15    # the higher of the two windows must be a real role
 # Main markets watched for line moves, with the smallest move worth
 # reporting. A backup's receiving yards going 1.5 -> 0.5 isn't news; a
 # starter's rushing yards going 42.5 -> 55.5 is. The line must also have
@@ -73,6 +83,12 @@ def _num(v) -> Optional[float]:
     return None if f != f else f
 
 
+def _nick(team: str) -> str:
+    """"Kansas City Royals" -> "Royals"; the two Sox and the Blue Jays keep both words."""
+    w = str(team or "").split()
+    return " ".join(w[-2:]) if len(w) > 1 and w[-1] in ("Sox", "Jays") else (w[-1] if w else "")
+
+
 def _odds(p: Any) -> str:
     try:
         p = int(p)
@@ -93,10 +109,17 @@ def _market(m: str) -> str:
 
 # ── what changed ────────────────────────────────────────────────────────
 
+def _props_players(sport: str) -> set:
+    from app.data.loader import get_props_data
+    df = get_props_data(sport)
+    return set() if df.empty else {_key(p) for p in df["Player"].dropna().unique()}
+
+
 def _injury_changes() -> List[Dict[str, Any]]:
     from app.data.injuries import get_injury_feed
     out = []
     for sport in ("nfl", "nba", "mlb"):
+        with_props = _safe(f"{sport} props players", lambda sp=sport: _props_players(sp), set())
         for c in get_injury_feed(sport, hours=CHANGE_HOURS):
             notes = []
             for v in ((c.get("impact") or {}).get("volume") or []):
@@ -112,9 +135,14 @@ def _injury_changes() -> List[Dict[str, Any]]:
                 "kind": "injury", "sport": sport, "time": c["detected_at"],
                 "tag": "OUT" if new == "Out" else ("ACTIVE" if new == "Active" else new.upper()),
                 "title": f"{c['player']} ({' '.join(x for x in (c.get('team'), c.get('position')) if x)})"
-                         f" {'cleared to play' if new == 'Active' else new.lower()}"
+                         f" {'cleared to play' if new == 'Active' else (new if new[:2] in ('IR', 'IL', 'PU') else new.lower())}"
                          + (f", {c['detail']}" if c.get("detail") else ""),
                 "detail": " · ".join(notes) or None,
+                "was": c.get("old_status"),
+                # Worth a bettor's attention: he has lines posted, his volume
+                # is going somewhere, or he's a quarterback.
+                "key": bool(c.get("impact")) or _key(c["player"]) in with_props
+                       or (sport == "nfl" and c.get("position") == "QB"),
             })
     return out
 
@@ -138,6 +166,164 @@ def _lineup_changes(report: Dict[str, Any]) -> List[Dict[str, Any]]:
                       f"K rate {v['today']['k']:.1f}% vs {v['usual']['k']:.1f}%",
         })
     return out
+
+
+def weather_note(sport: str, wind: Optional[float], precip: Optional[float],
+                 temp: Optional[float], wind_effect: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """What the weather does, in one line, or None when it's unremarkable.
+
+    NFL: wind under 10 mph does nothing measurable; 10-14 mostly touches
+    long field goals; 15+ is where passing and totals start to suffer.
+    MLB: 10+ mph matters in whichever direction it blows (wind_effect is
+    mlb.py's sentence for that); rain risk matters for pitcher props, since
+    a delay can end a starter's day early. Pure, so it's tested directly."""
+    wind, precip, temp = wind or 0, precip or 0, temp
+    parts: List[str] = []
+    tone, tag = "neutral", None
+    if sport == "nfl":
+        if wind >= 20:
+            tone, tag = "warn", "WIND"
+            parts.append("Very windy: deep passing and field goals get much harder; totals often lean under.")
+        elif wind >= 15:
+            tone, tag = "warn", "WIND"
+            parts.append("Strong wind: long passes and 45+ yard kicks get harder; totals often lean under.")
+        elif wind >= 10:
+            tag = "WIND"
+            parts.append("Light wind: little effect on passing; long field goals slightly harder.")
+        if precip >= 40:
+            tag = tag or "RAIN"
+            parts.append("Rain likely: more fumbles and fewer deep shots; a small effect on totals.")
+        if temp is not None and temp <= 32:
+            tag = tag or "COLD"
+            parts.append("Freezing: a small drag on passing and kicking.")
+    else:
+        if wind >= 10:
+            tone, tag = "warn", "WIND"
+            parts.append((wind_effect or "Wind strong enough to move fly balls.").replace(" -- ", ": "))
+        if precip >= 40:
+            tone, tag = "warn", tag or "RAIN"
+            parts.append("Rain risk: a delay could cut the starters' outings short.")
+        if temp is not None and temp <= 50:
+            tag = tag or "COLD"
+            parts.append("Cold: the ball carries less; a small lean to unders.")
+        elif temp is not None and temp >= 88:
+            tag = tag or "HEAT"
+            parts.append("Hot: the ball carries farther; a small lean to overs.")
+    if not tag:
+        return None
+    return {"tone": tone, "tag": tag, "why": " ".join(parts)}
+
+
+def _weeks(ws: List[Any]) -> str:
+    ws = [int(w) for w in ws]
+    if len(ws) == 1:
+        return f"Week {ws[0]}"
+    if ws == list(range(ws[0], ws[-1] + 1)):
+        return f"Weeks {ws[0]}–{ws[-1]}"
+    return "Weeks " + ", ".join(str(w) for w in ws)
+
+
+def usage_trends(usage: pd.DataFrame, teams: set, names: Dict[str, str],
+                 positions: Dict[str, str]) -> List[Dict[str, Any]]:
+    """NFL players whose share of team targets (or carries, for backs) over
+    the team's last few games differs by USAGE_MIN_DIFF or more from their
+    earlier games this season.
+
+    Recent window: the team's last 3 games once it has played 6, last 2
+    once it has played 4, and early in the season just the last one (with a
+    stricter USAGE_MIN_DIFF_ONE). Every recent game must sit on the same
+    side of the earlier average, so one big game inside a longer window
+    doesn't count as a trend. Shares are recomputed from
+    counts over each window. Pure given its frames, so it's tested directly."""
+    if usage.empty:
+        return []
+    u = usage[usage["season"] == usage["season"].max()]
+    u = u[u["posteam"].isin(teams)] if teams else u
+    out = []
+    for team, grp in u.groupby("posteam"):
+        weeks = sorted(grp["week"].dropna().unique())
+        n = 3 if len(weeks) >= 6 else (2 if len(weeks) >= 4 else 1)
+        if len(weeks) < n + 1:
+            continue
+        min_diff = USAGE_MIN_DIFF if n > 1 else USAGE_MIN_DIFF_ONE
+        recent_w, base_w = weeks[-n:], weeks[:-n]
+        for stat, share_positions, label in (("targets", {"WR", "TE", "RB"}, "target share"),
+                                             ("carries", {"RB"}, "carry share")):
+            wk_tot = grp.groupby("week")[stat].sum()
+            for pid, pg in grp.groupby("player_id"):
+                if positions.get(pid) not in share_positions:
+                    continue
+                by_w = pg.groupby("week")[stat].sum()
+                played_base = [w for w in base_w if w in by_w.index]
+                if not played_base or any(w not in by_w.index for w in recent_w):
+                    continue      # missed a recent game: that's injury news, not usage
+                base_tot = wk_tot.loc[played_base].sum()
+                rec_tot = wk_tot.loc[recent_w].sum()
+                if base_tot <= 0 or rec_tot <= 0:
+                    continue
+                base = by_w.loc[played_base].sum() / base_tot
+                rec = by_w.loc[recent_w].sum() / rec_tot
+                diff = rec - base
+                if abs(diff) < min_diff or max(base, rec) < USAGE_MIN_SHARE:
+                    continue
+                per_game = [by_w[w] / wk_tot[w] for w in recent_w if wk_tot[w] > 0]
+                if not all((g > base) if diff > 0 else (g < base) for g in per_game):
+                    continue
+                name = names.get(pid) or pg["player"].iloc[-1]
+                out.append({
+                    "kind": "usage", "sport": "nfl", "time": None, "tag": "UP" if diff > 0 else "DOWN",
+                    "title": f"{name} ({team} {positions.get(pid)}) {label} "
+                             f"{base * 100:.0f}% → {rec * 100:.0f}%",
+                    "detail": f"{_weeks(recent_w)} vs {_weeks(played_base).lower()}",
+                    "player": name, "stat": stat, "team": team, "_size": abs(diff),
+                    "flag": f"{name} {label} {base * 100:.0f}% → {rec * 100:.0f}% ({_weeks(recent_w)})",
+                })
+    out.sort(key=lambda x: x["_size"], reverse=True)
+    for o in out:
+        o.pop("_size", None)
+    return out[:MAX_USAGE]
+
+
+def _usage(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """usage_trends for teams on the NFL slate, with each player's current
+    main line so it's clear whether the market has caught up."""
+    from app.data import nfl
+    from app.data.loader import get_nfl_player_week_usage, get_nfl_rosters, get_props_data
+    abbr = nfl.NFL_TEAM_ABBR
+    teams = {abbr.get(t) for e in events for t in (e["home_team"], e["away_team"])} - {None}
+    if not teams:
+        return []
+    ro = get_nfl_rosters()
+    names = dict(zip(ro["player_id"], ro["full_name"])) if not ro.empty else {}
+    pos = dict(zip(ro["player_id"], ro["position"])) if not ro.empty else {}
+    items = usage_trends(get_nfl_player_week_usage(), teams, names, pos)
+    props = get_props_data("nfl")
+    if not props.empty:
+        props = props.assign(_k=props["Player"].map(_key))
+    for it in items:
+        mk = "reception_yds" if it["stat"] == "targets" else "rush_yds"
+        if not props.empty:
+            rows = props[(props["_k"] == _key(it["player"])) & (props["market"] == mk)]
+            if not rows.empty:
+                it["detail"] += f" · {_market(mk)} line {rows['Line'].median():g}"
+        it.pop("player"), it.pop("stat")
+    return items
+
+
+def _attach_usage(games: List[Dict[str, Any]], usage: List[Dict[str, Any]]) -> None:
+    """Usage trends onto their NFL game cards (at most 2 per game), then drop
+    the card-only fields from the alert items."""
+    from app.data import nfl
+    abbr = nfl.NFL_TEAM_ABBR
+    for g in games:
+        if g["sport"] != "nfl":
+            continue
+        teams = {abbr.get(g["home_team"]), abbr.get(g["away_team"])}
+        mine = [u for u in usage if u.get("team") in teams][:2]
+        g["flags"] += [{"kind": "usage", "tone": "good" if u["tag"] == "UP" else "bad", "text": u["flag"]}
+                       for u in mine]
+    for u in usage:
+        u.pop("team", None), u.pop("flag", None)
 
 
 def line_moves(sport: str, props: pd.DataFrame, snaps: pd.DataFrame,
@@ -310,10 +496,12 @@ def _mlb_cards(events: List[Dict[str, Any]], report: Dict[str, Any]) -> List[Dic
                 flags.append({"kind": "weather", "tone": "neutral", "text": "Roof closed"})
             else:
                 eff = (wx.get("wind_effect") or {}).get("label")
-                flags.append({"kind": "weather",
-                              "tone": "warn" if (wx.get("wind_mph") or 0) >= 10 or (wx.get("precip_pct") or 0) >= 40 else "neutral",
-                              "text": f"{wx.get('temp_f')}°F, wind {wx.get('wind_mph')} mph {wx.get('wind_dir') or ''}".strip()
-                                      + (f": {eff}" if eff and (wx.get('wind_mph') or 0) >= 10 else "")})
+                note = weather_note("mlb", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"), eff)
+                txt = f"{wx.get('temp_f')}°F, wind {wx.get('wind_mph')} mph {wx.get('wind_dir') or ''}".strip()
+                if (wx.get("precip_pct") or 0) >= 30:
+                    txt += f", {wx['precip_pct']}% rain"
+                flags.append({"kind": "weather", "tone": note["tone"] if note else "neutral", "text": txt,
+                              "why": note["why"] if note else None, "alert": note})
         for team in (away, home):
             if team in tired:
                 flags.append({"kind": "bullpen", "tone": "bad",
@@ -387,8 +575,9 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             txt = f"{wx.get('temp_f')}°F, wind {wx.get('wind_mph')} mph {wx.get('wind_dir') or ''}".strip()
             if (wx.get("precip_pct") or 0) >= 30:
                 txt += f", {wx['precip_pct']}% rain"
-            flags.append({"kind": "weather", "tone": "warn" if (wx.get("wind_mph") or 0) >= 15 else "neutral",
-                          "text": txt})
+            note = weather_note("nfl", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"))
+            flags.append({"kind": "weather", "tone": note["tone"] if note else "neutral", "text": txt,
+                          "why": note["why"] if note else None, "alert": note})
         line_txt = None
         if not gl.empty:
             row = gl[(gl["home_team"] == home) & (gl["away_team"] == away)]
@@ -416,15 +605,36 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return cards
 
 
+def _weather_changes(games: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """One alert per slate game whose weather flag has something to say:
+    the ones strong enough to matter first, then by start time (games arrive
+    sorted, and the sort is stable)."""
+    out = []
+    for g in games:
+        for f in g["flags"]:
+            if f.get("kind") == "weather" and f.get("alert"):
+                out.append({"kind": "weather", "sport": g["sport"], "time": None,
+                            "tag": f["alert"]["tag"], "tone": f["alert"]["tone"],
+                            "title": f"{_nick(g['away_team'])} @ {_nick(g['home_team'])} · {f['text']}",
+                            "detail": f["alert"]["why"]})
+    return sorted(out, key=lambda c: c["tone"] != "warn")
+
+
 @ttl_cache(300)
 def get_briefing() -> Dict[str, Any]:
     from app.data import mlb
     report = _safe("pitcher report", mlb.get_pitcher_daily_report, {"pitchers": []})
-    changes = (_safe("injuries", _injury_changes, []) + _safe("lineups", lambda: _lineup_changes(report), [])
-               + _safe("moves", _moves, []))
-    changes.sort(key=lambda c: c.get("time") or "", reverse=True)
+    nfl_events = _safe("nfl events", lambda: _events("nfl"), [])
     games = (_safe("mlb slate", lambda: _mlb_cards(_events("mlb"), report), [])
-             + _safe("nfl slate", lambda: _nfl_cards(_events("nfl")), []))
+             + _safe("nfl slate", lambda: _nfl_cards(nfl_events), []))
     games.sort(key=lambda g: g["commence_time"])
+    usage = _safe("usage", lambda: _usage(nfl_events), [])
+    _safe("usage flags", lambda: _attach_usage(games, usage), None)
+    changes = (_safe("injuries", _injury_changes, []) + _weather_changes(games) + usage
+               + _safe("lineups", lambda: _lineup_changes(report), []) + _safe("moves", _moves, []))
+    changes.sort(key=lambda c: c.get("time") or "", reverse=True)
+    for g in games:
+        for f in g["flags"]:
+            f.pop("alert", None)
     return {"generated_at": pd.Timestamp.now(tz="UTC").isoformat(),
             "changes": changes, "games": games}

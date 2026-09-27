@@ -135,7 +135,8 @@ export default function App() {
           <Route path="/betting/middles" element={<PrivateRoute><BettingMiddles /></PrivateRoute>} />
           <Route path="/betting/edge-board" element={<PrivateRoute><BettingToday /></PrivateRoute>} />
           <Route path="/betting/today" element={<Navigate to="/betting/edge-board" replace />} />
-          <Route path="/briefing" element={<PrivateRoute><DailyBriefing /></PrivateRoute>} />
+          <Route path="/betting/briefing" element={<PrivateRoute><DailyBriefing /></PrivateRoute>} />
+          <Route path="/briefing" element={<Navigate to="/betting/briefing" replace />} />
           <Route path="/betting/my-bets" element={<PrivateRoute><BettingMyBets /></PrivateRoute>} />
           <Route path="/betting/hit-rate-sheet" element={<PrivateRoute><HitRateSheet /></PrivateRoute>} />
           {/* Old addresses, kept working for bookmarks. */}
