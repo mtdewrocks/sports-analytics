@@ -63,6 +63,7 @@ STARTER_GAMES = 4
 OUT_STATUSES = {"Out", "Doubtful", "IR"}
 MAX_USAGE = 8
 GUST_FACTOR = 1.6         # gusts / this ~ an equivalent steady wind (see weather_note)
+GUST_MAX_BUMP = 5         # ...but gusts lift the steady wind by at most this many mph
 USAGE_MIN_DIFF = 0.10     # 10 points of team share
 USAGE_MIN_DIFF_ONE = 0.12 # stricter when the recent window is a single game (weeks 2-3)
 USAGE_MIN_SHARE = 0.15    # the higher of the two windows must be a real role
@@ -219,8 +220,9 @@ def weather_note(sport: str, wind: Optional[float], precip: Optional[float],
                       133 games, 4.3 pts below the total on average
       snow            run rate +6 pts (small sample: 23 games)
     History has sustained wind only, no gusts. Gusts are folded in as
-    gust / 1.6 (a typical gust factor) once gusts reach 20 mph, so gusts of
-    25 count like a steady 15.
+    gust / 1.6 (a typical gust factor) once gusts reach 20 mph, capped at
+    5 mph above the steady wind -- so 12 mph with gusts of 25+ counts as a
+    strong-wind (15+) day, but never as a 20+ day.
     MLB: 10+ mph (or gusts 20+) matters in whichever direction it blows
     (wind_effect is mlb.py's sentence for that); steady rain matters for
     pitcher props, since a delay can end a starter's day early. Pure, so
@@ -232,7 +234,9 @@ def weather_note(sport: str, wind: Optional[float], precip: Optional[float],
     storm = bool(label and label.startswith("Thunder"))
     # Gusts only move the needle once they're real gusts (20+ mph); a 6 mph
     # day with gusts to 18 is still a calm day.
-    eff = max(wind, gust / GUST_FACTOR) if gust >= 20 else wind
+    # They also add at most GUST_MAX_BUMP mph to the steady wind: a 12 mph day
+    # with gusts to 32 plays like a strong-wind day, not a 20 mph gale.
+    eff = max(wind, min(gust / GUST_FACTOR, wind + GUST_MAX_BUMP)) if gust >= 20 else wind
     if sport == "nfl":
         gusts = f" (gusts to {gust:.0f})" if gust >= wind + 5 else ""
         if eff >= 20:
