@@ -4,10 +4,9 @@ Two sections, both assembled from data the other pages already load:
 
 WHAT CHANGED  (grouped by kind on the page, newest first within each)
   injury   status changes in the last CHANGE_HOURS, with who benefits
-           (app/data/injuries.py). "key" marks players with props posted,
-           volume we can see moving, a QB, or (NFL) a lineman or defender
-           who starts -- STARTER_SNAP_PCT of snaps -- so the page can hide
-           the rest.
+           (app/data/injuries.py) -- only players with props posted, volume
+           we can see moving, a QB, or (NFL) a lineman or defender who
+           starts (STARTER_SNAP_PCT of snaps). Everyone else is left out.
   weather  every slate game outdoors with wind, rain or cold worth knowing,
            with a plain-English line on what it does (weather_note)
   usage    NFL players whose target or carry share over the last couple of
@@ -149,6 +148,14 @@ def _injury_changes() -> List[Dict[str, Any]]:
             for b in ((c.get("impact") or {}).get("beneficiaries") or [])[:2]:
                 notes.append(f"{b['player']} minutes {b['with']} → {b['without']} without him")
             new = c["new_status"]
+            # Only changes worth a bettor's attention: he has lines posted,
+            # his volume is going somewhere, he's a quarterback, or he
+            # starts on the line or on defense. Everyone else is left out.
+            key = (bool(c.get("impact")) or _key(c["player"]) in with_props
+                   or (sport == "nfl" and (c.get("position") == "QB"
+                                           or (abbr.get(c.get("team"), c.get("team")), _key(c["player"])) in starters)))
+            if not key:
+                continue
             out.append({
                 "kind": "injury", "sport": sport, "time": c["detected_at"],
                 "tag": "OUT" if new == "Out" else ("ACTIVE" if new == "Active" else new.upper()),
@@ -157,12 +164,6 @@ def _injury_changes() -> List[Dict[str, Any]]:
                          + (f", {c['detail']}" if c.get("detail") else ""),
                 "detail": " · ".join(notes) or None,
                 "was": c.get("old_status"),
-                # Worth a bettor's attention: he has lines posted, his volume
-                # is going somewhere, he's a quarterback, or he starts on
-                # the line or on defense.
-                "key": bool(c.get("impact")) or _key(c["player"]) in with_props
-                       or (sport == "nfl" and (c.get("position") == "QB"
-                                               or (abbr.get(c.get("team"), c.get("team")), _key(c["player"])) in starters)),
             })
     return out
 

@@ -23,8 +23,6 @@ interface Change {
   tag: string;
   title: string;
   detail: string | null;
-  /** Injuries: has props posted, volume we can see moving, or a QB. */
-  key?: boolean;
   /** Injuries: the status before this change. */
   was?: string | null;
   /** Weather: warn when it's strong enough to matter. */
@@ -77,7 +75,6 @@ const GROUPS: { kind: Change['kind']; label: string }[] = [
   { kind: 'move', label: 'Line moves' },
 ];
 const OPEN_IF_AT_MOST = 5;
-const KEY_SHOWN = 6;
 
 /** Tag colour for one alert row. */
 function tone(c: Change): Flag['tone'] {
@@ -137,8 +134,6 @@ export default function DailyBriefing() {
   const [betting, setBetting] = useState<BetDraft | null>(null);
   /** Sections the user opened or closed; unset ones use the size rule. */
   const [open, setOpen] = useState<Partial<Record<Change['kind'], boolean>>>({});
-  const [allInjuries, setAllInjuries] = useState(false);
-  const [moreKey, setMoreKey] = useState(false);
 
   useEffect(() => {
     getBriefing()
@@ -197,9 +192,6 @@ export default function DailyBriefing() {
             const rows = shownChanges.filter((c) => c.kind === grp.kind);
             if (rows.length === 0) return null;
             const isOpen = open[grp.kind] ?? (grp.kind !== 'injury' || rows.length <= OPEN_IF_AT_MOST);
-            const keyRows = grp.kind === 'injury' ? rows.filter((c) => c.key) : rows;
-            const pool = grp.kind === 'injury' && !allInjuries ? keyRows : rows;
-            const list = grp.kind === 'injury' && !allInjuries && !moreKey ? pool.slice(0, KEY_SHOWN) : pool;
             return (
               <div key={grp.kind} style={{
                 background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 10, marginBottom: 8,
@@ -224,32 +216,13 @@ export default function DailyBriefing() {
                     <span style={{
                       marginLeft: 'auto', fontSize: 12, color: theme.textMuted, minWidth: 0,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '55%',
-                    }}>{(keyRows[0] ?? rows[0]).title}</span>
+                    }}>{rows[0].title}</span>
                   )}
                 </button>
 
                 {isOpen && (
                   <div style={{ padding: '0 14px 8px' }}>
-                    {grp.kind === 'injury' && (
-                      <div style={{ display: 'flex', gap: 6, margin: '0 0 6px' }}>
-                        {[
-                          { on: !allInjuries, label: `Key players (${keyRows.length})`, v: false },
-                          { on: allInjuries, label: `All ${rows.length}`, v: true },
-                        ].map((t) => (
-                          <button key={t.label} onClick={() => setAllInjuries(t.v)} style={{
-                            fontSize: 11.5, padding: '2px 10px', borderRadius: 999, cursor: 'pointer', background: 'transparent',
-                            border: `1px solid ${t.on ? theme.accent : theme.border}`,
-                            color: t.on ? theme.accent : theme.textSecondary,
-                          }}>{t.label}</button>
-                        ))}
-                      </div>
-                    )}
-                    {grp.kind === 'injury' && list.length === 0 && (
-                      <div style={{ fontSize: 12.5, color: theme.textMuted, padding: '6px 0' }}>
-                        No key players changed status. Tap "All" for everyone else.
-                      </div>
-                    )}
-                    {list.map((c) => {
+                    {rows.map((c) => {
                       const t = TONE[tone(c)];
                       return (
                         <div key={`${c.kind}-${c.title}`} style={{
@@ -273,12 +246,6 @@ export default function DailyBriefing() {
                         </div>
                       );
                     })}
-                    {grp.kind === 'injury' && !allInjuries && !moreKey && pool.length > KEY_SHOWN && (
-                      <button onClick={() => setMoreKey(true)} style={{
-                        background: 'transparent', border: 'none', padding: '6px 0 2px', cursor: 'pointer',
-                        fontSize: 12.5, color: theme.accent,
-                      }}>Show {pool.length - KEY_SHOWN} more key player{pool.length - KEY_SHOWN === 1 ? '' : 's'}</button>
-                    )}
                   </div>
                 )}
               </div>
