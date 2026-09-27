@@ -3,7 +3,7 @@ import { theme } from '../../theme';
 import {
   type NextGame, type VsHand, type NextStart, type LineupStats, type LineupMetric,
   fmtRate, fmtPct, fmtMetric, fmtPrice, ordinal, gameWhen, handWord,
-  METRIC_LABELS, METRIC_SHORT, lineupOrder, overColor, flagLabel, HITTER_BENCH, similarLabel,
+  METRIC_LABELS, lineupOrder, overColor, flagLabel, HITTER_BENCH, similarLabel,
 } from './mlbGameLogContextUtils';
 
 // Upcoming-game context for the MLB Game Log. Data comes from
