@@ -1,4 +1,6 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from datetime import datetime
 from typing import Optional
 
 class Settings(BaseSettings):
@@ -14,6 +16,15 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     FRONTEND_URL: str = "http://localhost:5173"
     TRIAL_DAYS: int = 30
+    # Open beta: every account has full access until this moment (UTC),
+    # whatever its own trial says -- e.g. 2027-06-30T23:59:59 to run the beta
+    # through the NBA Finals. Blank turns the beta off. See access_ends_at().
+    BETA_ENDS_AT: Optional[datetime] = None
+
+    @field_validator("BETA_ENDS_AT", mode="before")
+    @classmethod
+    def _blank_beta_is_off(cls, v):
+        return None if isinstance(v, str) and not v.strip() else v
     # Admin API (app/routers/admin.py) -- a single shared secret rather than
     # an is_admin column, since there's one admin (whoever runs this app) and
     # a header key checked before touching the DB is simpler than a whole

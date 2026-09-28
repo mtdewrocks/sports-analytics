@@ -125,3 +125,19 @@ def test_met_norway_to_hourly():
     assert round(wx["wind_mph"]) == 20 and round(wx["wind_gust_mph"]) == 41
     assert wx["precip_pct"] == 90 and wx["weather_code"] == 95
     assert wx["precip_in"] == 0.5                        # 0.1 in (17-18z) + 0.4 in (18-19z)
+
+
+def test_carry_forward_keeps_kicked_off_games_for_the_week():
+    import pandas as pd
+    from app.get_weather_forecast import carry_forward
+    now = datetime(2026, 9, 28, 18, tzinfo=timezone.utc)
+    new = pd.DataFrame([{"game_id": "wk4_a", "kickoff_utc": "2026-10-04T17:00:00+00:00", "wind_mph": 5}])
+    prev = pd.DataFrame([
+        {"game_id": "wk3_sun", "kickoff_utc": "2026-09-27T17:00:00+00:00", "wind_mph": 18},   # kept
+        {"game_id": "wk2_old", "kickoff_utc": "2026-09-20T17:00:00+00:00", "wind_mph": 9},    # too old
+        {"game_id": "wk4_a", "kickoff_utc": "2026-10-04T17:00:00+00:00", "wind_mph": 3},      # replaced by new
+    ])
+    out = carry_forward(new, prev, now).set_index("game_id")
+    assert set(out.index) == {"wk4_a", "wk3_sun"}
+    assert out.loc["wk3_sun", "final"] and not out.loc["wk4_a", "final"]
+    assert out.loc["wk4_a", "wind_mph"] == 5

@@ -862,6 +862,19 @@ def nfl_game_context(away: str, home: str) -> Dict[str, Any]:
     wflag = nfl_weather_flag(wx)
     if wflag:
         wflag.pop("alert", None)
+        if wx and wx.get("final"):
+            wflag["why"] = ((wflag.get("why") or "") + " Last forecast before kickoff.").strip()
+    else:
+        # Say why there's no forecast rather than leaving a blank.
+        from app.data.loader import get_nfl_schedule
+        sched = _safe("nfl schedule", get_nfl_schedule, pd.DataFrame())
+        played = False
+        if not sched.empty:
+            g = sched[(sched["away_team"] == away) & (sched["home_team"] == home)]
+            played = bool(len(g)) and g["home_score"].notna().all()
+        wflag = {"kind": "weather", "tone": "neutral", "tag": "weather",
+                 "text": "Game already played" if played else "No forecast yet",
+                 "why": None if played else "Forecasts appear about 10 days before kickoff and drop off once the game starts."}
     teams = {}
     for team, opp in ((away, home), (home, away)):
         players = [{"kind": "injury", "tone": "warn" if r["status"] == "Questionable" else "bad",
@@ -914,7 +927,10 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 flags.append({"kind": "mismatch", "tone": "good",
                               "text": f"{g['offense_team']} {g['off_label']} ({ordinal(int(g['offense_rank']))}) vs "
                                       f"{g['defense_team']} {g['def_label']} ({ordinal(int(g['defense_rank']))})"})
-        wx = next((w for w in weather if w.get("home_team") == ha), None)
+        # This exact pairing, and never a kept pre-kickoff forecast of an
+        # earlier home game at the same stadium.
+        wx = next((w for w in weather if w.get("home_team") == ha and w.get("away_team") == aa
+                   and not w.get("final")), None)
         wflag = nfl_weather_flag(wx)
         if wflag and wflag.get("text") != "Indoors":
             flags.append(wflag)

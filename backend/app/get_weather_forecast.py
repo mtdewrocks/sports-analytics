@@ -599,6 +599,38 @@ def build_nfl() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+NFL_FORECAST_URL = NFL_SCHEDULE_URL.replace("nfl_schedule.parquet", "nfl_weather_forecast.parquet")
+# A game's last forecast before kickoff is kept this long after kickoff, so
+# the Matchup page still shows it while the rest of that week is played.
+KEEP_AFTER_KICKOFF = timedelta(days=5)
+
+
+def carry_forward(new: pd.DataFrame, previous: pd.DataFrame, now: datetime) -> pd.DataFrame:
+    """Add back games from the previous run that have kicked off since (so
+    aren't in `new`), within KEEP_AFTER_KICKOFF, marked final=True -- the
+    forecast as it stood before kickoff. Pure, so it's tested directly."""
+    new = new.assign(final=False) if not new.empty else new
+    if previous.empty or "game_id" not in previous.columns:
+        return new
+    kick = pd.to_datetime(previous["kickoff_utc"], utc=True, errors="coerce")
+    keep = previous[(kick <= now) & (kick > now - KEEP_AFTER_KICKOFF)]
+    if not new.empty:
+        keep = keep[~keep["game_id"].isin(new["game_id"])]
+    if keep.empty:
+        return new
+    return pd.concat([new, keep.assign(final=True)], ignore_index=True)
+
+
+def _previous_nfl() -> pd.DataFrame:
+    try:
+        r = requests.get(NFL_FORECAST_URL, timeout=TIMEOUT)
+        if r.status_code == 200:
+            return pd.read_parquet(io.BytesIO(r.content))
+    except (requests.RequestException, ValueError) as e:
+        print(f"warning: previous NFL forecast not loaded: {e}")
+    return pd.DataFrame()
+
+
 def main() -> None:
     mlb = build_mlb()
     MLB_OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -608,7 +640,7 @@ def main() -> None:
     else:
         print("No upcoming (not-yet-started) MLB games right now -- leaving any existing file untouched")
 
-    nfl = build_nfl()
+    nfl = carry_forward(build_nfl(), _previous_nfl(), datetime.now(timezone.utc))
     NFL_OUT.parent.mkdir(parents=True, exist_ok=True)
     if not nfl.empty:
         nfl.to_parquet(NFL_OUT, index=False)

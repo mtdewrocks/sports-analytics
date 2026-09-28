@@ -644,6 +644,11 @@ def _current_nfl_season() -> int:
     return today.year if today.month >= 9 else today.year - 1
 
 
+# get_matchups adds next week's games once this many or fewer of the
+# current week's games are left to play.
+NEXT_WEEK_WHEN_LEFT = 3
+
+
 def get_matchups() -> List[str]:
     """Upcoming week's matchups -- a pregame preview, not a recap of the
     week that just finished. Stats in get_matchup_detail are accumulated
@@ -671,13 +676,29 @@ def get_matchups() -> List[str]:
     # season's regular season, so there's still something real to compare
     # against rather than nothing.
     upcoming_week = int(max(fully_completed_weeks)) + 1 if fully_completed_weeks else 1
-    upcoming = schedule[schedule["week"] == upcoming_week]
+    week = schedule[schedule["week"] == upcoming_week]
+    # The whole week stays listed until its last game is played (its
+    # forecast is kept too -- get_weather_forecast.py carries it forward).
+    remaining = week[week["home_score"].isna()]
+    played = week[week["home_score"].notna()]
+    # Order: this week's games still to play first (the page opens on the
+    # first one), then next week's once it's added, then this week's
+    # finished games at the end.
+    games = [remaining]
+    # Once only the prime-time leftovers remain (Sunday/Monday night), the
+    # next week's slate is what people are researching -- list it too.
+    if len(remaining) <= NEXT_WEEK_WHEN_LEFT:
+        games.append(schedule[schedule["week"] == upcoming_week + 1])
+    games.append(played)
 
-    return sorted(
-        f"{row.away_team} @ {row.home_team}"
-        for row in upcoming.itertuples()
-        if pd.notna(row.away_team) and pd.notna(row.home_team)
-    )
+    out: List[str] = []
+    for g in games:
+        out += sorted(
+            f"{row.away_team} @ {row.home_team}"
+            for row in g.itertuples()
+            if pd.notna(row.away_team) and pd.notna(row.home_team)
+        )
+    return list(dict.fromkeys(out))
 
 
 # Empirically derived from league-wide 2025 play-by-play: the spread in
@@ -2463,6 +2484,8 @@ def get_nfl_weather() -> Dict[str, Any]:
             "wind_dir": _compass(r.get("wind_dir_deg")),
             "precip_pct": round(_wx_num(r.get("precip_pct"))) if _wx_num(r.get("precip_pct")) is not None else None,
             **_rain_fields(r),
+            # The last forecast before kickoff, kept while the week plays out.
+            "final": bool(r.get("final")) if pd.notna(r.get("final")) else False,
         })
 
     return {"games": games}

@@ -4,7 +4,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models import User, Subscription
 from app.schemas import BillingStatus
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import access_ends_at, get_current_user
 from app.billing.stripe_service import create_checkout_session, create_portal_session, handle_webhook
 from app.config import settings
 
@@ -13,7 +13,8 @@ router = APIRouter()
 @router.get("/status", response_model=BillingStatus)
 def billing_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     now = datetime.utcnow()
-    days_remaining = max(0, (user.trial_ends_at - now).days)
+    ends = access_ends_at(user)
+    days_remaining = max(0, (ends - now).days)
     sub = db.query(Subscription).filter(Subscription.user_id == user.id).first()
     if days_remaining > 0:
         status_str = "trialing"
@@ -23,7 +24,7 @@ def billing_status(user: User = Depends(get_current_user), db: Session = Depends
         status_str = "expired"
     return BillingStatus(
         status=status_str,
-        trial_ends_at=user.trial_ends_at,
+        trial_ends_at=ends,
         days_remaining=days_remaining,
         subscription_status=sub.status if sub else None,
         current_period_end=sub.current_period_end if sub else None,

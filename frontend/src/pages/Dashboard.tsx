@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../theme';
 import useIsMobile from '../hooks/useIsMobile';
 import { BETTING, isInSeason, sportsBySeason } from '../siteMap';
 import type { SitePage } from '../siteMap';
+import { getBillingStatus } from '../api/billing';
 
 // Every page comes from siteMap.ts, the same list the Navbar reads, so a new
 // page can't be added to the menu and forgotten here again. Sport colors are
@@ -42,6 +44,34 @@ const sectionLabel: CSSProperties = {
   margin: '16px 0 8px',
 };
 
+/** Open-beta note: shown while free access runs well past a normal trial
+ *  (the backend's BETA_ENDS_AT), with where to send feedback. */
+function BetaBanner() {
+  const [ends, setEnds] = useState<string | null>(null);
+  useEffect(() => {
+    getBillingStatus()
+      .then((res) => {
+        const s = res.data;
+        if (s?.status === 'trialing' && (s.days_remaining ?? 0) > 45 && s.trial_ends_at) setEnds(s.trial_ends_at);
+      })
+      .catch(() => {});
+  }, []);
+  if (!ends) return null;
+  const date = new Date(ends).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+  return (
+    <div style={{
+      background: 'rgba(29,158,117,0.1)', border: `1px solid ${theme.accent}`, borderRadius: 8,
+      padding: '10px 14px', marginBottom: 20, fontSize: 13.5, color: theme.textPrimary, lineHeight: 1.5,
+    }}>
+      <strong style={{ color: theme.accent }}>Free beta:</strong> full access through {date}, no card needed.
+      Something broken, confusing or missing? Tell us at{' '}
+      <a href="mailto:sportsanalytics2026@gmail.com?subject=Beta%20feedback" style={{ color: theme.accent }}>
+        sportsanalytics2026@gmail.com
+      </a>.
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const isMobile = useIsMobile();
   const sports = sportsBySeason();
@@ -53,6 +83,7 @@ export default function Dashboard() {
     }}>
       <h1 style={{ color: theme.textPrimary, fontSize: isMobile ? 26 : 32, lineHeight: 1.2, margin: '0 0 6px' }}>Sports Analytics</h1>
       <p style={{ color: theme.textSecondary, marginBottom: 24 }}>Pick a sport and a page to get started.</p>
+      <BetaBanner />
 
       {sports.map((sport) => (
         <section key={sport.key} style={{ marginBottom: 36 }}>
