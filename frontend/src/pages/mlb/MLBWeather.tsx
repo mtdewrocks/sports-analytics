@@ -75,7 +75,8 @@ export default function MLBWeather() {
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: isMobile ? 20 : 28 }}>
         Live forecast for today's not-yet-started games, refreshed every couple of hours as game time
         approaches.
-        Source: the National Weather Service for US venues, Open-Meteo elsewhere. Temperature is at first pitch; wind, gusts and rain are the worst of the game (first
+        Source: the National Weather Service for US venues; elsewhere, data from{' '}
+        <a href="https://api.met.no/" target="_blank" rel="noreferrer" style={{ color: theme.accent }}>MET Norway</a>. Temperature is at first pitch; wind, gusts and rain are the worst of the game (first
         pitch through about 3 hours later), with rain in words and the expected amount. Not a forecast for
         games that have already started or finished.
         <div style={{ marginTop: 6 }}>

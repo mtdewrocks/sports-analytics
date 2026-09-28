@@ -548,7 +548,7 @@ def _unit_note(unit: str, team: str, opp: str, roles: Dict[str, Any], line: Call
         sk = roles["sacks"].get(opp)
         rush = ""
         if sk and sk[1]:
-            rush = f"; {opp} has {sk[0]} sacks ({_ordinal(sk[1])})" + (
+            rush = f"; {opp} has {sk[0]} sack{'' if sk[0] == 1 else 's'} ({_ordinal(sk[1])})" + (
                 ", a top-10 pass rush" if sk[1] <= 10 else ", a weak pass rush, so less risk" if sk[1] >= 23 else "")
         return f"Watch {qb}: {with_line(qb, 'pass_yds')}{rush}."
     if unit == "secondary":
@@ -769,6 +769,114 @@ def _mlb_cards(events: List[Dict[str, Any]], report: Dict[str, Any]) -> List[Dic
     return cards
 
 
+def _nfl_injury_inputs(inj: pd.DataFrame):
+    """What the NFL injury pieces need: the injury file with team
+    abbreviations, snap-share starters, team roles, the players with real
+    prop lines, and a prop-line lookup."""
+    from app.data import nfl
+    from app.data.loader import get_props_data
+    abbr = nfl.NFL_TEAM_ABBR
+    starters = _safe("nfl starters", nfl_starters, {})
+    roles = _safe("nfl roles", _nfl_roles, {"qb": {}, "wr": {}, "te": {}, "rb": {}, "sacks": {}})
+    if not inj.empty:
+        inj = inj.assign(abbr=inj["team"].map(lambda t: abbr.get(t, t)))
+    props = _safe("nfl props", lambda: get_props_data("nfl"), pd.DataFrame())
+    real_props = set()
+    if not props.empty:
+        props = props.assign(_k=props["Player"].map(_key))
+        real_props = set(props.loc[~props["market"].isin(ROLE_BLIND_MARKETS), "_k"])
+
+    def prop_line(name: str, market: str) -> Optional[float]:
+        if props.empty:
+            return None
+        rows = props[(props["_k"] == _key(name)) & (props["market"] == market)]
+        return None if rows.empty else float(rows["Line"].median())
+
+    return inj, starters, roles, real_props, prop_line
+
+
+def key_skill_injuries(inj: pd.DataFrame, teams: List[str], starters: Dict[tuple, Any],
+                       real_props: set) -> List[Dict[str, Any]]:
+    """Injured QBs, backs and receivers on `teams` (abbreviations) who matter:
+    a regular share of snaps (SNAP_FLOOR) or real prop lines. Worst status
+    first. Pure given its inputs."""
+    if inj.empty:
+        return []
+    sub = inj[inj["abbr"].isin(teams) & inj["status"].isin(NFL_INJURY_STATUSES) & inj["position"].isin(NFL_SKILL)]
+    order = {"Out": 0, "IR": 0, "Doubtful": 1, "Questionable": 2}
+    out = []
+    for r in sorted(sub.to_dict(orient="records"), key=lambda r: order.get(r["status"], 3)):
+        k = _key(r["player"])
+        if (r["abbr"], k) in starters or k in real_props:
+            out.append({"player": r["player"], "abbr": r["abbr"], "position": r["position"], "status": r["status"],
+                        "detail": r["detail"] if isinstance(r.get("detail"), str) and r["detail"] else None})
+    return out
+
+
+def unit_flags(inj: pd.DataFrame, team: str, opp: str, starters: Dict[tuple, Any], roles: Dict[str, Any],
+               prop_line: Callable[[str, str], Optional[float]]) -> List[Dict[str, Any]]:
+    """O-line / secondary / front-seven groups for one team, as flags."""
+    flags = []
+    for grp in trench_groups(inj, team, starters):
+        n = len(grp["out"])
+        parts = []
+        if grp["out"]:
+            parts.append(", ".join(grp["out"]) + " out")
+        if grp["questionable"]:
+            parts.append(", ".join(grp["questionable"]) + " questionable")
+        safeties = all(x.split("(")[-1].rstrip(")") in {"S", "SS", "FS"} for x in grp["out"] + grp["questionable"])
+        flags.append({"kind": grp["label"].lower(), "tone": "bad" if n else "warn",
+                      "text": f"{team}: " + "; ".join(parts),
+                      "why": _if_they_sit(n, _safe("unit note", lambda g=grp, sf=safeties:
+                                                   _unit_note(g["unit"], team, opp, roles, prop_line, sf), None))})
+    return flags
+
+
+def nfl_weather_flag(wx: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """A game's weather as a flag: indoors, or the text and impact note."""
+    if not wx:
+        return None
+    if wx.get("roof") == "dome":
+        return {"kind": "weather", "tone": "neutral", "text": "Indoors", "why": None, "alert": None}
+    if wx.get("roof") not in (None, "outdoor", "open"):
+        return {"kind": "weather", "tone": "neutral", "text": "Retractable roof: likely closed", "why": None,
+                "alert": None}
+    note = weather_note("nfl", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"),
+                        gust=wx.get("wind_gust_mph"), rain=_rain(wx))
+    return {"kind": "weather", "tone": note["tone"] if note else "neutral", "text": weather_text(wx),
+            "why": note["why"] if note else None, "alert": note}
+
+
+@ttl_cache(300)
+def nfl_game_context(away: str, home: str) -> Dict[str, Any]:
+    """Weather and key injuries for one NFL game (team abbreviations), for
+    the Matchup page -- the same rules and wording as the briefing's cards."""
+    from app.data import nfl
+    from app.data.loader import get_injuries_data
+    raw = _safe("nfl injuries", lambda: get_injuries_data("nfl"), pd.DataFrame())
+    inj, starters, roles, real_props, prop_line = _nfl_injury_inputs(raw)
+    weather = _safe("nfl weather", lambda: nfl.get_nfl_weather().get("games", []), [])
+    # This exact pairing only: matching on the home team alone picked up a
+    # later home game at a different stadium.
+    wx = next((w for w in weather if w.get("home_team") == home and w.get("away_team") == away), None)
+    wflag = nfl_weather_flag(wx)
+    if wflag:
+        wflag.pop("alert", None)
+    teams = {}
+    for team, opp in ((away, home), (home, away)):
+        players = [{"kind": "injury", "tone": "warn" if r["status"] == "Questionable" else "bad",
+                    "tag": {"Questionable": "Q", "Doubtful": "D"}.get(r["status"], r["status"]),
+                    "text": f"{r['player']} ({r['position']})" + (f" · {r['detail']}" if r.get("detail") else ""),
+                    "why": None}
+                   for r in key_skill_injuries(inj, [team], starters, real_props)]
+        units = unit_flags(inj, team, opp, starters, roles, prop_line) if not inj.empty else []
+        for u in units:
+            u["tag"] = u["kind"]
+            u["text"] = u["text"].split(": ", 1)[-1]
+        teams[team] = players + units
+    return {"away": away, "home": home, "weather": wflag, "injuries": teams}
+
+
 def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     from app.data import nfl
     from app.data.loader import get_injuries_data, get_nfl_game_lines
@@ -784,20 +892,7 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 mism.append({**g, "cat": cat, "off_label": res.get("offense_label"), "def_label": res.get("defense_label")})
     ev_plays = _safe("nfl plays", lambda: _plays_by_game("nfl"), {})
     alt_plays = _safe("nfl alt", lambda: _alt_by_start("nfl"), {})
-    starters = _safe("nfl starters", nfl_starters, {})
-    roles = _safe("nfl roles", _nfl_roles, {"qb": {}, "wr": {}, "te": {}, "rb": {}, "sacks": {}})
-    if not inj.empty:
-        inj = inj.assign(abbr=inj["team"].map(lambda t: abbr.get(t, t)))
-    from app.data.loader import get_props_data
-    props = _safe("nfl props", lambda: get_props_data("nfl"), pd.DataFrame())
-    if not props.empty:
-        props = props.assign(_k=props["Player"].map(_key))
-
-    def prop_line(name: str, market: str) -> Optional[float]:
-        if props.empty:
-            return None
-        rows = props[(props["_k"] == _key(name)) & (props["market"] == market)]
-        return None if rows.empty else float(rows["Line"].median())
+    inj, starters, roles, real_props, prop_line = _nfl_injury_inputs(inj)
 
     ordinal = _ordinal
 
@@ -807,40 +902,22 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         ha, aa = abbr.get(home), abbr.get(away)
         flags = []
         if not inj.empty:
-            sub = inj[inj["team"].isin([home, away]) & inj["status"].isin(NFL_INJURY_STATUSES)
-                      & inj["position"].isin(NFL_SKILL)]
-            order = {"Out": 0, "IR": 0, "Doubtful": 1, "Questionable": 2}
-            for r in sorted(sub.to_dict(orient="records"), key=lambda r: order.get(r["status"], 3))[:4]:
+            for r in key_skill_injuries(inj, [aa, ha], starters, real_props)[:4]:
                 flags.append({"kind": "injury", "tone": "bad",
-                              "text": f"{r['player']} ({abbr.get(r['team'], r['team'])} {r['position']}) {r['status']}"
-                                      + (f", {r['detail']}" if isinstance(r.get('detail'), str) and r['detail'] else "")})
+                              "text": f"{r['player']} ({r['abbr']} {r['position']}) {r['status']}"
+                                      + (f", {r['detail']}" if r.get("detail") else "")})
         for team, opp in ((aa, ha), (ha, aa)):
-            if not team or inj.empty:
-                continue
-            for grp in trench_groups(inj, team, starters):
-                n = len(grp["out"])
-                parts = []
-                if grp["out"]:
-                    parts.append(", ".join(grp["out"]) + " out")
-                if grp["questionable"]:
-                    parts.append(", ".join(grp["questionable"]) + " questionable")
-                safeties = all(x.split("(")[-1].rstrip(")") in {"S", "SS", "FS"} for x in grp["out"] + grp["questionable"])
-                flags.append({"kind": grp["label"].lower(), "tone": "bad" if n else "warn",
-                              "text": f"{team}: " + "; ".join(parts),
-                              "why": _if_they_sit(n, _safe("unit note", lambda g=grp, t=team, o=opp, sf=safeties:
-                                                               _unit_note(g["unit"], t, o, roles, prop_line, sf), None))})
+            if team and not inj.empty:
+                flags += unit_flags(inj, team, opp, starters, roles, prop_line)
         for g in mism:
             if {g.get("offense_team"), g.get("defense_team")} == {ha, aa}:
                 flags.append({"kind": "mismatch", "tone": "good",
                               "text": f"{g['offense_team']} {g['off_label']} ({ordinal(int(g['offense_rank']))}) vs "
                                       f"{g['defense_team']} {g['def_label']} ({ordinal(int(g['defense_rank']))})"})
         wx = next((w for w in weather if w.get("home_team") == ha), None)
-        if wx and wx.get("roof") in (None, "outdoor", "open"):
-            txt = weather_text(wx)
-            note = weather_note("nfl", wx.get("wind_mph"), wx.get("precip_pct"), wx.get("temp_f"),
-                                gust=wx.get("wind_gust_mph"), rain=_rain(wx))
-            flags.append({"kind": "weather", "tone": note["tone"] if note else "neutral", "text": txt,
-                          "why": note["why"] if note else None, "alert": note})
+        wflag = nfl_weather_flag(wx)
+        if wflag and wflag.get("text") != "Indoors":
+            flags.append(wflag)
         line_txt = None
         if not gl.empty:
             row = gl[(gl["home_team"] == home) & (gl["away_team"] == away)]

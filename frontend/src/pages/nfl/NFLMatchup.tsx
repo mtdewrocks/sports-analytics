@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { getNFLMatchups, getNFLMatchup, getNFLGameScript } from '../../api/nfl';
+import { useState, useEffect, Fragment } from 'react';
+import { Link } from 'react-router-dom';
+import { getNFLMatchups, getNFLMatchup, getNFLGameScript, getNFLMatchupContext } from '../../api/nfl';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { NAV_HEIGHT, CHIPBAR_HEIGHT } from '../../components/Navbar';
 import useIsMobile from '../../hooks/useIsMobile';
@@ -9,6 +10,86 @@ interface StatRow {
   stat: string;
   value: number | null;
   rank: number | null;
+  /** Efficiency / Scoring / Offense / Defense -- the table's section headings. */
+  section?: string;
+  /** Pre-formatted value ("43%", "-0.07") for the play-by-play rows. */
+  display?: string;
+}
+
+interface ContextFlag { kind: string; tone: 'good' | 'bad' | 'warn' | 'neutral'; tag?: string; text: string; why: string | null }
+interface MatchupContext {
+  away: string; home: string;
+  weather: ContextFlag | null;
+  injuries: Record<string, ContextFlag[]>;
+}
+
+const TONE: Record<ContextFlag['tone'], { bg: string; fg: string }> = {
+  good: { bg: 'rgba(107,168,240,0.15)', fg: theme.dataBlue },
+  bad: { bg: 'rgba(244,87,63,0.15)', fg: theme.dataRed },
+  warn: { bg: 'rgba(232,163,61,0.15)', fg: theme.warningText },
+  neutral: { bg: theme.bgPage, fg: theme.textSecondary },
+};
+
+const shown = (r: { value: number | string | null; display?: string }) => r.display ?? r.value ?? '—';
+
+function Tag({ flag }: { flag: ContextFlag }) {
+  const t = TONE[flag.tone];
+  return (
+    <span style={{
+      display: 'inline-block', fontSize: 9.5, fontWeight: 700, borderRadius: 4, padding: '1px 6px',
+      marginRight: 6, textTransform: 'uppercase', letterSpacing: '0.03em', background: t.bg, color: t.fg,
+    }}>{flag.tag ?? flag.kind}</span>
+  );
+}
+
+function FlagLine({ flag }: { flag: ContextFlag }) {
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ fontSize: 13.5, color: theme.textPrimary }}><Tag flag={flag} />{flag.text}</div>
+      {flag.why && <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 1 }}>{flag.why}</div>}
+    </div>
+  );
+}
+
+/** Weather strip under the matchup header. */
+function Conditions({ ctx }: { ctx: MatchupContext | null }) {
+  if (!ctx?.weather) return null;
+  return (
+    <div style={{
+      background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8, padding: '10px 14px',
+      marginBottom: 16, maxWidth: 1300,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+        Conditions
+      </div>
+      <FlagLine flag={ctx.weather} />
+    </div>
+  );
+}
+
+/** One team's key injuries (starters, real prop lines) and injured units. */
+function TeamInjuries({ team, flags, compact }: { team: string; flags: ContextFlag[]; compact?: boolean }) {
+  return (
+    <div style={{ padding: compact ? '8px 0 2px' : '12px 16px', borderTop: compact ? 'none' : `1px solid ${theme.border}` }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+        {compact ? team : 'Injuries'}
+      </div>
+      {flags.length === 0
+        ? <div style={{ fontSize: 12.5, color: theme.textMuted }}>No key injuries.</div>
+        : flags.map((f, i) => <FlagLine key={i} flag={f} />)}
+    </div>
+  );
+}
+
+function SectionRow({ title, cols }: { title: string; cols: number }) {
+  return (
+    <tr style={{ background: theme.bgCardHover }}>
+      <td colSpan={cols} style={{
+        padding: '7px 16px', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: theme.textSecondary,
+      }}>{title}</td>
+    </tr>
+  );
 }
 
 interface MatchupData {
@@ -85,9 +166,9 @@ function TeamLogo({ teamAbbr }: { teamAbbr: string }) {
   );
 }
 
-function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable }: {
+function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable, injuries }: {
   teamAbbr: string; stats: StatRow[]; impliedTotal?: number | null;
-  weeklyRank?: number | null; weeklyFavorable?: boolean | null;
+  weeklyRank?: number | null; weeklyFavorable?: boolean | null; injuries?: ContextFlag[];
 }) {
   const badgeColor = weeklyFavorable === true ? theme.dataBlue : weeklyFavorable === false ? theme.dataRed : theme.textSecondary;
   return (
@@ -120,16 +201,21 @@ function TeamCard({ teamAbbr, stats, impliedTotal, weeklyRank, weeklyFavorable }
           )}
           {stats.map((row, i) => {
             const color = rankColor(row.rank);
+            const heading = row.section && row.section !== stats[i - 1]?.section;
             return (
-              <tr key={row.stat} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
-                <td style={{ padding: '10px 16px', fontWeight: 600, color: theme.textPrimary }}>{row.stat}</td>
-                <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color }}>{row.value ?? '—'}</td>
-                <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 600, color }}>{row.rank != null ? ordinal(row.rank) : '—'}</td>
-              </tr>
+              <Fragment key={row.stat}>
+                {heading && <SectionRow title={row.section!} cols={3} />}
+                <tr style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgCard : theme.bgPage }}>
+                  <td style={{ padding: '10px 16px', fontWeight: 600, color: theme.textPrimary }}>{row.stat}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color }}>{shown(row)}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 600, color }}>{row.rank != null ? ordinal(row.rank) : '—'}</td>
+                </tr>
+              </Fragment>
             );
           })}
         </tbody>
       </table>
+      {injuries && <TeamInjuries team={teamAbbr} flags={injuries} />}
     </div>
   );
 }
@@ -153,8 +239,8 @@ const EVEN_THRESHOLD = 2;
 
 function HeadToHeadRow({ label, away, home, awayTeam, homeTeam }: {
   label: string;
-  away: { value: number | null; rank: number | null };
-  home: { value: number | null; rank: number | null };
+  away: { value: number | string | null; rank: number | null; display?: string };
+  home: { value: number | string | null; rank: number | null; display?: string };
   awayTeam: string;
   homeTeam: string;
 }) {
@@ -176,7 +262,7 @@ function HeadToHeadRow({ label, away, home, awayTeam, homeTeam }: {
           fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
           color: rankColor(away.rank), flex: `0 0 ${H2H_COL}px`, width: H2H_COL,
         }}>
-          {away.value ?? '—'}
+          {shown(away)}
         </span>
         <span style={{
           fontSize: 10, color: theme.textMuted, textTransform: 'uppercase',
@@ -188,7 +274,7 @@ function HeadToHeadRow({ label, away, home, awayTeam, homeTeam }: {
           fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
           color: rankColor(home.rank), flex: `0 0 ${H2H_COL}px`, width: H2H_COL, textAlign: 'right',
         }}>
-          {home.value ?? '—'}
+          {shown(home)}
         </span>
       </div>
 
@@ -311,15 +397,22 @@ function HeadToHead({ data, gameScript }: { data: MatchupData; gameScript: GameS
         />
       )}
 
-      {rows.map((r) => (
-        <HeadToHeadRow
-          key={r.stat}
-          label={r.stat}
-          away={r.away}
-          home={r.home}
-          awayTeam={data.away_team}
-          homeTeam={data.home_team}
-        />
+      {rows.map((r, i) => (
+        <Fragment key={r.stat}>
+          {r.away.section && r.away.section !== rows[i - 1]?.away.section && (
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+              color: theme.textSecondary, textAlign: 'center', margin: '14px 0 6px',
+            }}>{r.away.section}</div>
+          )}
+          <HeadToHeadRow
+            label={r.stat}
+            away={r.away}
+            home={r.home}
+            awayTeam={data.away_team}
+            homeTeam={data.home_team}
+          />
+        </Fragment>
       ))}
     </div>
   );
@@ -357,6 +450,7 @@ export default function NFLMatchup() {
   const [error, setError] = useState('');
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null);
   const [gameScript, setGameScript] = useState<GameScriptData | null>(null);
+  const [context, setContext] = useState<MatchupContext | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const isMobile = useIsMobile();
 
@@ -376,13 +470,16 @@ export default function NFLMatchup() {
     setError('');
     setMatchupData(null);
     setGameScript(null);
+    setContext(null);
     try {
-      const [matchupRes, scriptRes] = await Promise.all([
+      const [matchupRes, scriptRes, ctxRes] = await Promise.all([
         getNFLMatchup(selectedMatchup),
         getNFLGameScript(selectedMatchup).catch(() => ({ data: null })),
+        getNFLMatchupContext(selectedMatchup).catch(() => ({ data: null })),
       ]);
       setMatchupData(matchupRes.data);
       setGameScript(scriptRes.data);
+      setContext(ctxRes.data && !ctxRes.data.error ? ctxRes.data : null);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch matchup data.');
     } finally {
@@ -518,8 +615,20 @@ export default function NFLMatchup() {
               {matchupData.stats_season} regular season (through week {matchupData.stats_through_week}).
             </div>
           )}
+          {isMobile && <Conditions ctx={context} />}
           {isMobile ? (
-            <HeadToHead data={matchupData} gameScript={gameScript} />
+            <>
+              <HeadToHead data={matchupData} gameScript={gameScript} />
+              {context && (
+                <div style={{ background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Injuries
+                  </div>
+                  <TeamInjuries team={matchupData.away_team} flags={context.injuries[matchupData.away_team] ?? []} compact />
+                  <TeamInjuries team={matchupData.home_team} flags={context.injuries[matchupData.home_team] ?? []} compact />
+                </div>
+              )}
+            </>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
@@ -533,8 +642,10 @@ export default function NFLMatchup() {
                 </div>
               </div>
 
+              <Conditions ctx={context} />
               <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
                 <TeamCard
+                  injuries={context ? context.injuries[matchupData.away_team] ?? [] : undefined}
                   teamAbbr={matchupData.away_team}
                   stats={matchupData.away_stats}
                   impliedTotal={gameScript?.away?.implied_total}
@@ -542,6 +653,7 @@ export default function NFLMatchup() {
                   weeklyFavorable={gameScript?.away?.weekly_scoring_favorable}
                 />
                 <TeamCard
+                  injuries={context ? context.injuries[matchupData.home_team] ?? [] : undefined}
                   teamAbbr={matchupData.home_team}
                   stats={matchupData.home_stats}
                   impliedTotal={gameScript?.home?.implied_total}
@@ -569,6 +681,19 @@ export default function NFLMatchup() {
               </div>
             </div>
           )}
+          <Link
+            to={`/nfl/matchup/deep-dive?m=${encodeURIComponent(matchupData.matchup)}`}
+            style={{
+              display: 'block', textAlign: 'center', margin: '24px auto 8px', maxWidth: 380, padding: '11px 16px',
+              border: `1px solid ${theme.accent}`, borderRadius: 8, color: theme.accent, fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            Deeper dive: {matchupData.away_team} @ {matchupData.home_team} →
+          </Link>
+          <div style={{ fontSize: 11, color: theme.textMuted, textAlign: 'center' }}>
+            Efficiency stats from nflverse play-by-play.
+          </div>
         </div>
       )}
     </div>

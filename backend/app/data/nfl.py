@@ -606,6 +606,34 @@ MATCHUP_STAT_ROWS = [
     ("Defensive Sacks + QB Hits (Per Game)", "Defensive Sacks + QB Hits Per Game", "Rank - Defensive Sacks + QB Hits"),
 ]
 
+# Section headings on the Matchup page, for the rows above.
+MATCHUP_SECTION = {
+    "Scoring Offense (PPG)": "Scoring", "Scoring Defense (PPG Allowed)": "Scoring",
+    "Sacks + QB Hits Allowed (Per Game)": "Offense",
+    "Defensive Sacks + QB Hits (Per Game)": "Defense",
+    **{label: "Defense" for label, _, _ in MATCHUP_STAT_ROWS if label.startswith("Defense ")},
+}
+MATCHUP_SECTION_ORDER = ["Efficiency", "Scoring", "Offense", "Defense"]
+
+
+def _with_efficiency(rows: List[Dict[str, Any]], team_abbr: str) -> List[Dict[str, Any]]:
+    """The team_stats rows plus the play-by-play efficiency rows
+    (app/data/nfl_efficiency.py), ordered by section: Efficiency, Scoring,
+    Offense, Defense -- with EPA and points per drive allowed leading the
+    Defense section. Missing efficiency data just leaves the old rows."""
+    try:
+        from app.data.nfl_efficiency import matchup_rows
+        extra = matchup_rows(team_abbr)
+    except Exception as e:
+        print(f"Warning: efficiency rows for {team_abbr} failed: {e}")
+        extra = []
+    out = []
+    for sec in MATCHUP_SECTION_ORDER:
+        out += [r for r in extra if r["section"] == sec]
+        out += [r for r in rows if r["section"] == sec]
+    return out
+
+
 
 def _current_nfl_season() -> int:
     """Same rule as get_nfl_pbp.py / get_nfl_weekly_stats.py -- an NFL
@@ -1556,8 +1584,9 @@ def get_matchup_detail(matchup: str) -> Dict[str, Any]:
                 "stat": label,
                 "value": round(float(value), 1) if pd.notna(value) else None,
                 "rank": int(rank) if pd.notna(rank) else None,
+                "section": MATCHUP_SECTION.get(label, "Offense"),
             })
-        return rows
+        return _with_efficiency(rows, team_abbr)
 
     # Player stats for player summaries -- unchanged from before, still
     # reads the weekly player-stats file, a separate concern from team

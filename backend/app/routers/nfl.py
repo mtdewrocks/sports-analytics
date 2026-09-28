@@ -48,6 +48,33 @@ def matchups(_=Depends(require_access)):
 def matchup(matchup: str = Query(...), _=Depends(require_access)):
     return nfl_data.get_matchup_detail(matchup)
 
+
+def _split_matchup(matchup: str):
+    parts = [p.strip().upper() for p in matchup.split("@")]
+    return (parts[0], parts[1]) if len(parts) == 2 else (None, None)
+
+
+@router.get("/matchup/context")
+def matchup_context(matchup: str = Query(...), _=Depends(require_access)):
+    """Weather and key injuries for one game -- app/data/briefing.py's
+    nfl_game_context, the same rules as the Daily Briefing."""
+    from app.data.briefing import nfl_game_context
+    away, home = _split_matchup(matchup)
+    if not away:
+        return {"error": f"Could not parse matchup: {matchup}"}
+    return nfl_game_context(away, home)
+
+
+@router.get("/matchup/deep-dive")
+def matchup_deep_dive(matchup: str = Query(...), window: str = Query("season"), _=Depends(require_access)):
+    """Both offense-vs-defense matchups for every efficiency stat --
+    app/data/nfl_efficiency.py."""
+    from app.data.nfl_efficiency import deep_dive
+    away, home = _split_matchup(matchup)
+    if not away:
+        return {"error": f"Could not parse matchup: {matchup}"}
+    return deep_dive(away, home, "last4" if window == "last4" else "season")
+
 @router.get("/game-script")
 def game_script(matchup: str = Query(...), _=Depends(require_access)):
     return nfl_data.get_game_script_projection(matchup)

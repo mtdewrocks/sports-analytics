@@ -61,6 +61,7 @@ const NBATeamMatchup = lazy(() => import('./pages/nba/NBATeamMatchup'));
 
 const NFLGameLog = lazy(() => import('./pages/nfl/NFLGameLog'));
 const NFLMatchup = lazy(() => import('./pages/nfl/NFLMatchup'));
+const NFLMatchupDeepDive = lazy(() => import('./pages/nfl/NFLMatchupDeepDive'));
 const NFLFantasyMatchup = lazy(() => import('./pages/nfl/NFLFantasyMatchup'));
 const NFLInOut = lazy(() => import('./pages/nfl/NFLInOut'));
 const NFLSeasonScreener = lazy(() => import('./pages/nfl/NFLSeasonScreener'));
@@ -110,6 +111,7 @@ export default function App() {
 
           <Route path="/nfl/game-log" element={<PrivateRoute><NFLGameLog /></PrivateRoute>} />
           <Route path="/nfl/matchup" element={<PrivateRoute><NFLMatchup /></PrivateRoute>} />
+          <Route path="/nfl/matchup/deep-dive" element={<PrivateRoute><NFLMatchupDeepDive /></PrivateRoute>} />
           <Route path="/nfl/fantasy-matchup" element={<PrivateRoute><NFLFantasyMatchup /></PrivateRoute>} />
           <Route path="/nfl/in-out" element={<PrivateRoute><NFLInOut /></PrivateRoute>} />
           <Route path="/nfl/season-screener" element={<PrivateRoute><NFLSeasonScreener /></PrivateRoute>} />

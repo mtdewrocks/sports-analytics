@@ -8,16 +8,21 @@ Runs every 15 minutes from update_injuries.yml. Free: no paid APIs.
 
 SOURCES
 -------
-ESPN's public injuries feed (site.api.espn.com/.../injuries) for all three
-sports. It is unofficial and undocumented, so the parser below is defensive:
+NFL: nflverse's weekly injury report only (CC BY 4.0) -- the official
+Wed-Fri practice report. ESPN was merged in until Sept 2026 for game-day
+inactives, but its feed is unofficial and its terms don't clearly allow
+commercial reuse, so NFL no longer uses it.
+
+MLB / NBA: ESPN's public injuries feed (site.api.espn.com/.../injuries),
+still, until a commercial-safe source replaces it (ESPN_SPORTS). It is
+unofficial and undocumented, so the parser below is defensive:
 anything it can't read is skipped, never fatal, and an empty or failed pull
 leaves the previous file alone rather than wiping it (which would otherwise
 log every player as "cleared").
 
-NFL also merges nflverse's weekly injury report (the official Wed-Fri
-practice report, with practice participation). ESPN is fresher on game day;
-nflverse is the official record and carries the gsis_id that joins to the
-usage data. When both have a player, ESPN's status wins if it's newer.
+nflverse carries the gsis_id that joins to the usage data. merge_sources()
+still accepts ESPN rows (ESPN's status wins when both list a player) should
+NFL ever take a second source again.
 
 OUTPUTS (backend/data/<slug>/)
 -------
@@ -140,6 +145,10 @@ def parse_espn(payload: Dict[str, Any], sport: str) -> List[Dict[str, Any]]:
     return rows
 
 
+# Sports that still read ESPN's feed (see SOURCES).
+ESPN_SPORTS = {"mlb", "nba"}
+
+
 def fetch_espn(sport: str) -> List[Dict[str, Any]]:
     url = f"https://site.api.espn.com/apis/site/v2/sports/{ESPN_PATHS[sport]}/injuries"
     try:
@@ -241,7 +250,10 @@ def main() -> int:
     log_path = folder / f"{sport}_injury_changes.parquet"
     now = pd.Timestamp.now(tz="UTC")
 
-    espn = fetch_espn(sport)
+    # NFL comes from nflverse only: ESPN's feed is unofficial and its terms
+    # don't clearly allow commercial reuse. MLB and NBA still use it until a
+    # commercial-safe source replaces it (see SOURCES above).
+    espn = fetch_espn(sport) if sport in ESPN_SPORTS else []
     nflv = fetch_nflverse(now.year if now.month >= 3 else now.year - 1) if sport == "nfl" else []
     print(f"[{sport}] espn {len(espn)} rows, nflverse {len(nflv)} rows")
     if not espn and not nflv:
@@ -251,6 +263,10 @@ def main() -> int:
     current = merge_sources(espn, nflv) if sport == "nfl" else pd.DataFrame(espn, columns=COLS)
     current = current.drop_duplicates(subset=["player_key", "team"], keep="last")
     previous = pd.read_parquet(cur_path) if cur_path.exists() else pd.DataFrame(columns=COLS)
+    if sport not in ESPN_SPORTS and not previous.empty and "source" in previous.columns:
+        # Rows only ESPN ever listed (game-day inactives) would otherwise all
+        # read as "cleared to play" on the first run without ESPN.
+        previous = previous[previous["source"] != "espn"]
     log = pd.read_parquet(log_path) if log_path.exists() else pd.DataFrame(columns=CHANGE_COLS)
 
     # First run ever: record the baseline without logging hundreds of

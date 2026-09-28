@@ -3,16 +3,20 @@ haven't started yet).
 
 Source, per venue:
   US venues  the National Weather Service's gridpoint forecast
-             (api.weather.gov) -- the forecast most weather apps and TV
-             stations show. Open-Meteo's default blend ran well under it
-             on the days that mattered (Titans @ Giants, Sept 27 2026:
-             Open-Meteo 50% rain, 12 mph, gusts 25; NWS 83-88%, 18 mph,
-             gusts to 41, with a wind advisory).
-  elsewhere  Open-Meteo (https://open-meteo.com) -- free, no key, global,
-             for games abroad (London, Madrid, Rio, ...) and Toronto.
-  Any field NWS leaves empty is filled from Open-Meteo, and a venue NWS
-  can't answer for falls back to Open-Meteo entirely. `wx_source` says
-  which one a row came from.
+             (api.weather.gov) -- US government data, free to use
+             commercially, and the forecast most weather apps and TV
+             stations show.
+  elsewhere  MET Norway's Locationforecast (api.met.no) -- free for
+             commercial use under CC BY 4.0 with credit ("Data from MET
+             Norway", shown on the weather pages). Covers games abroad
+             (London, Madrid, Rio, ...) and Toronto.
+  Any field NWS leaves empty is filled from MET Norway, and a venue NWS
+  can't answer for uses MET Norway entirely. `wx_source` says which one a
+  row came from.
+
+  Open-Meteo was the source until Sept 2026; its free API is
+  non-commercial only (its terms name subscription websites), so it's no
+  longer used.
 
 This is a genuine forecast, unlike the two pages this replaces:
   - the old MLB Weather page was static ballpark trivia, no live data at all
@@ -47,7 +51,7 @@ import pandas as pd
 import requests
 
 MLB_API = "https://statsapi.mlb.com/api/v1"
-OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
+MET_API = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 # Same value as Settings.NFL_BASE_URL in app/config.py, duplicated here on
 # purpose: this script runs as a bare `python backend/app/get_weather_
 # forecast.py` from the repo root in CI (see .github/workflows/
@@ -63,19 +67,10 @@ TIMEOUT = 30
 MLB_OUT = Path(__file__).resolve().parent.parent / "data" / "mlb" / "mlb_weather_forecast.parquet"
 NFL_OUT = Path(__file__).resolve().parent.parent / "data" / "nfl" / "nfl_weather_forecast.parquet"
 
-# How many days out to ask Open-Meteo to forecast. MLB only ever needs
-# today (the day-of-game slate this script keys off), but NFL games get
-# announced up to a full week ahead, so this covers both in one shared call
-# -- Open-Meteo's own max is 16.
-FORECAST_DAYS = 10
-
 # nflverse's schedule times (`gametime`) are published in US/Eastern
 # regardless of the stadium's actual local zone -- the standard "1:00 PM
 # ET" / "4:25 PM ET" / "8:15 PM ET" windows the NFL itself publishes in.
 NFL_SCHEDULE_TZ = ZoneInfo("America/New_York")
-
-HOURLY_FIELDS = ("temperature_2m,precipitation_probability,precipitation,weather_code,"
-                 "wind_speed_10m,wind_gusts_10m,wind_direction_10m")
 
 NWS_API = "https://api.weather.gov"
 # NWS asks every client to identify itself with a contact.
@@ -100,7 +95,7 @@ _NWS_LEVEL = {"very_light": 0, "light": 0, "moderate": 1, "heavy": 2}
 # arrives mid-game.
 GAME_HOURS = {"mlb": 3.0, "nfl": 3.5}
 
-# Open-Meteo WMO weather codes, ranked by how much they matter to a game --
+# WMO weather codes, ranked by how much they matter to a game --
 # the window's most severe code is the one reported.
 _CODE_RANK = {0: 0, 1: 0, 2: 0, 3: 0, 45: 1, 48: 1,
               51: 2, 53: 3, 55: 4, 56: 5, 57: 6,
@@ -121,7 +116,7 @@ _EMPTY_WX = {"temp_f": None, "wind_mph": None, "wind_gust_mph": None, "wind_dir_
 # most NFL ones -- included anyway with the tag so the page can label it
 # rather than silently guess), or "dome" (fixed roof, no plausible weather
 # exposure -- included in the output so the page can show "indoors", not
-# fetched from Open-Meteo at all since there's nothing to forecast).
+# fetched at all since there's nothing to forecast).
 # ---------------------------------------------------------------------------
 
 MLB_STADIUMS: dict[str, dict] = {
@@ -210,28 +205,111 @@ NFL_STADIUMS: dict[str, dict] = {
 }
 
 
-def _fetch_forecasts(locations: list[tuple[float, float]]) -> list[dict]:
-    """One batched Open-Meteo call for every distinct venue this run needs
-    -- Open-Meteo accepts comma-joined lat/lon lists and returns one
-    forecast object per location, in the same order, so this is a single
-    request regardless of how many games are on the slate."""
-    if not locations:
-        return []
-    params = {
-        "latitude": ",".join(str(lat) for lat, _ in locations),
-        "longitude": ",".join(str(lon) for _, lon in locations),
-        "hourly": HOURLY_FIELDS,
-        "temperature_unit": "fahrenheit",
-        "wind_speed_unit": "mph",
-        "precipitation_unit": "inch",
-        "forecast_days": FORECAST_DAYS,
-        "timezone": "UTC",
-    }
-    r = requests.get(OPEN_METEO, params=params, timeout=TIMEOUT)
-    r.raise_for_status()
-    data = r.json()
-    # A single-location request returns one object, not a one-element list.
-    return data if isinstance(data, list) else [data]
+def _met_code(symbol: str | None) -> int | None:
+    """MET Norway symbol_code ("lightrainshowers_day", "heavyrainandthunder")
+    -> the WMO code the rest of this file speaks."""
+    if not symbol:
+        return None
+    s = symbol.split("_")[0]
+    if "thunder" in s:
+        return 95
+    heavy, light = s.startswith("heavy"), s.startswith("light")
+    level = 2 if heavy else (0 if light else 1)
+    if "sleet" in s:
+        return 66
+    if "snowshowers" in s:
+        return (85, 85, 86)[level]
+    if "snow" in s:
+        return (71, 73, 75)[level]
+    if "rainshowers" in s:
+        return (80, 81, 82)[level]
+    if "rain" in s:
+        return (61, 63, 65)[level]
+    if s == "fog":
+        return 45
+    return {"clearsky": 0, "fair": 1, "partlycloudy": 2, "cloudy": 3}.get(s)
+
+
+def met_to_hourly(payload: dict) -> dict:
+    """MET Norway Locationforecast JSON -> a standard hourly
+    {"hourly": {...}} for game_window(). Pure, so it's tested directly.
+
+    Each timeseries step carries instant values (temperature, wind, gusts,
+    direction) and the next 1 (or, further out, 6) hours' precipitation,
+    chance and symbol. Amounts are keyed to the END of their period, like
+    the other sources; a 6-hour amount is spread evenly. Units: degC -> F,
+    m/s -> mph, mm -> in."""
+    times, temp, wind, gust, wdir, pop, precip, code = [], [], [], [], [], [], [], []
+    extra: dict = {}
+    for step in (payload.get("properties") or {}).get("timeseries") or []:
+        try:
+            t = datetime.fromisoformat(step["time"].replace("Z", "+00:00")).astimezone(timezone.utc).replace(tzinfo=None)
+        except (KeyError, ValueError):
+            continue
+        data = step.get("data") or {}
+        inst = (data.get("instant") or {}).get("details") or {}
+        nxt, n = data.get("next_1_hours"), 1
+        if not nxt:
+            nxt, n = data.get("next_6_hours"), 6
+        nd = (nxt or {}).get("details") or {}
+        times.append(t)
+        temp.append(None if inst.get("air_temperature") is None else round(inst["air_temperature"] * 9 / 5 + 32, 1))
+        wind.append(None if inst.get("wind_speed") is None else round(inst["wind_speed"] * 2.23694, 1))
+        gust.append(None if inst.get("wind_speed_of_gust") is None else round(inst["wind_speed_of_gust"] * 2.23694, 1))
+        wdir.append(inst.get("wind_from_direction"))
+        pop.append(nd.get("probability_of_precipitation"))
+        code.append(_met_code(((nxt or {}).get("summary") or {}).get("symbol_code")))
+        amt = nd.get("precipitation_amount")
+        if amt is not None:
+            per = amt / 25.4 / n
+            for h in range(1, n + 1):
+                extra[t + timedelta(hours=h)] = extra.get(t + timedelta(hours=h), 0) + round(per, 3)
+    for t in extra:
+        if t not in times:
+            times.append(t)
+            for col in (temp, wind, gust, wdir, pop, code):
+                col.append(None)
+    order = sorted(range(len(times)), key=lambda i: times[i])
+    pick = lambda col: [col[i] for i in order]  # noqa: E731
+    ts = [times[i] for i in order]
+    return {"hourly": {
+        "time": [t.isoformat(timespec="minutes") for t in ts],
+        "temperature_2m": pick(temp), "wind_speed_10m": pick(wind), "wind_gusts_10m": pick(gust),
+        "wind_direction_10m": pick(wdir), "precipitation_probability": pick(pop),
+        "precipitation": [extra.get(t) for t in ts], "weather_code": pick(code),
+    }}
+
+
+_MET_CACHE: dict = {}
+
+
+def _fetch_met(lat: float, lon: float) -> dict | None:
+    """MET Norway's forecast for one venue, or None if it can't answer."""
+    key = (round(lat, 4), round(lon, 4))
+    if key in _MET_CACHE:
+        return _MET_CACHE[key]
+    out = None
+    try:
+        r = requests.get(MET_API, params={"lat": f"{lat:.4f}", "lon": f"{lon:.4f}"},
+                         headers={"User-Agent": NWS_HEADERS["User-Agent"]}, timeout=TIMEOUT)
+        if r.status_code == 200:
+            out = met_to_hourly(r.json())
+        else:
+            print(f"warning: MET Norway {lat},{lon}: HTTP {r.status_code}")
+    except (requests.RequestException, ValueError) as e:
+        print(f"warning: MET Norway forecast for {lat},{lon} failed: {e}")
+    _MET_CACHE[key] = out
+    return out
+
+
+def venue_window(lat: float, lon: float, start_utc: datetime, hours: float) -> dict | None:
+    """The game window for one venue: NWS first; MET Norway only when NWS
+    has nothing or leaves a field empty (so US games cost one call)."""
+    nws = _fetch_nws(lat, lon)
+    first = game_window(nws, start_utc, hours) if nws else None
+    if first is not None and all(v is not None for v in first.values()):
+        return {**first, "wx_source": "nws"}
+    return best_window(nws, _fetch_met(lat, lon), start_utc, hours)
 
 
 def _iso_duration_hours(d: str) -> int:
@@ -245,7 +323,7 @@ def _iso_duration_hours(d: str) -> int:
 
 
 def nws_to_hourly(props: dict) -> dict:
-    """NWS gridpoint properties -> an Open-Meteo-shaped {"hourly": {...}}
+    """NWS gridpoint properties -> a standard hourly {"hourly": {...}}
     so game_window() reads both sources the same way. Pure, so it's tested
     directly.
 
@@ -266,7 +344,8 @@ def nws_to_hourly(props: dict) -> dict:
             val = item.get("value")
             for h in range(n):
                 # Amounts are keyed to the END of their hour, matching
-                # Open-Meteo's "total for the preceding hour".
+                # MET Norway's and the old source's "total for the
+                # preceding hour".
                 t = start + timedelta(hours=h + (1 if split else 0))
                 if name == "weather":
                     out[t] = val
@@ -309,7 +388,7 @@ _NWS_GRID_CACHE: dict = {}
 
 
 def _fetch_nws(lat: float, lon: float) -> dict | None:
-    """The NWS gridpoint forecast for one venue, Open-Meteo-shaped, or None
+    """The NWS gridpoint forecast for one venue, standard hourly, or None
     when NWS can't answer (outside the US, or the service is down)."""
     key = (round(lat, 4), round(lon, 4))
     if key in _NWS_GRID_CACHE:
@@ -328,15 +407,15 @@ def _fetch_nws(lat: float, lon: float) -> dict | None:
     return out
 
 
-def best_window(nws: dict | None, open_meteo: dict | None, start_utc: datetime, hours: float) -> dict | None:
-    """NWS's game window, with any field it lacks filled from Open-Meteo's;
-    Open-Meteo alone when NWS has nothing. Adds `wx_source`."""
+def best_window(nws: dict | None, fallback: dict | None, start_utc: datetime, hours: float) -> dict | None:
+    """NWS's game window, with any field it lacks filled from the fallback
+    (MET Norway); the fallback alone when NWS has nothing. Adds `wx_source`."""
     a = game_window(nws, start_utc, hours) if nws else None
-    b = game_window(open_meteo, start_utc, hours) if open_meteo else None
+    b = game_window(fallback, start_utc, hours) if fallback else None
     if a is None and b is None:
         return None
     if a is None:
-        return {**b, "wx_source": "open-meteo"}
+        return {**b, "wx_source": "met-norway"}
     filled = {k: (v if v is not None else (b or {}).get(k)) for k, v in a.items()}
     return {**filled, "wx_source": "nws"}
 
@@ -348,7 +427,7 @@ def game_window(forecast: dict, start_utc: datetime, hours: float) -> dict | Non
     temp and wind direction: the hour nearest the start.
     wind, gusts, rain chance, weather code: the worst hour from the start
     hour through `hours` later (the code by _CODE_RANK severity).
-    precip_in: rain summed over the game. Open-Meteo's hourly precipitation
+    precip_in: rain summed over the game. Each hourly precipitation value
     is the total for the PRECEDING hour, so the hours after the start through
     the end are summed. precip_max_in_hr: the wettest of those hours.
 
@@ -466,11 +545,9 @@ def build_mlb() -> pd.DataFrame:
         venues.append((g, info))
 
     to_fetch = [(g, info) for g, info in venues if info["roof"] != "dome"]
-    forecasts = _fetch_forecasts([(info["lat"], info["lon"]) for _, info in to_fetch])
-
     rows = []
-    for (g, info), forecast in zip(to_fetch, forecasts):
-        wx = best_window(_fetch_nws(info["lat"], info["lon"]), forecast, g["game_time_utc"], GAME_HOURS["mlb"])
+    for g, info in to_fetch:
+        wx = venue_window(info["lat"], info["lon"], g["game_time_utc"], GAME_HOURS["mlb"])
         rows.append({
             "game_pk": g["game_pk"], "home_team": g["home_team"], "away_team": g["away_team"],
             "stadium": info["stadium"], "roof": info["roof"],
@@ -504,11 +581,9 @@ def build_nfl() -> pd.DataFrame:
         venues.append((g, info))
 
     to_fetch = [(g, info) for g, info in venues if info["roof"] != "dome"]
-    forecasts = _fetch_forecasts([(info["lat"], info["lon"]) for _, info in to_fetch])
-
     rows = []
-    for (g, info), forecast in zip(to_fetch, forecasts):
-        wx = best_window(_fetch_nws(info["lat"], info["lon"]), forecast, g["kickoff_utc"], GAME_HOURS["nfl"])
+    for g, info in to_fetch:
+        wx = venue_window(info["lat"], info["lon"], g["kickoff_utc"], GAME_HOURS["nfl"])
         rows.append({
             "game_id": g["game_id"], "week": int(g["week"]), "home_team": g["home_team"], "away_team": g["away_team"],
             "stadium": g["stadium"], "roof": info["roof"], "kickoff_utc": g["kickoff_utc"].isoformat(),

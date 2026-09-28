@@ -79,6 +79,14 @@ jobs:
         continue-on-error: true
         run: python -u backend/app/get_nfl_weekly_stats.py
 
+      # Team efficiency (EPA, success, drives, situations, pace) for the
+      # Matchup page's Efficiency rows and the Matchup Deep Dive page.
+      - name: Update NFL team efficiency
+        id: team_efficiency
+        if: env.FULL_RUN == 'true'
+        continue-on-error: true
+        run: python -u backend/app/get_nfl_team_efficiency.py
+
       # Per-player season totals across multiple seasons, for the Season
       # Stat Screener page.
       - name: Update NFL season totals
@@ -184,6 +192,7 @@ jobs:
           bash scripts/release_data.sh push data-nfl \
             $D/player_week_usage.parquet \
             $D/team_stats.parquet \
+            $D/team_efficiency.parquet \
             $D/nfl_schedule.parquet \
             $D/player_season_totals.parquet \
             $D/weekly_defense_ranks.parquet \

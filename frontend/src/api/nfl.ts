@@ -21,6 +21,11 @@ export const getNFLPositionVsDefense = (opponent: string, position: string, excl
 export const getNFLMatchups = () => client.get('/api/nfl/matchups');
 export const getNFLMatchup = (matchup: string) => client.get('/api/nfl/matchup', { params: { matchup } });
 export const getNFLGameScript = (matchup: string) => client.get('/api/nfl/game-script', { params: { matchup } });
+// Weather + key injuries for one game (same rules as the Daily Briefing).
+export const getNFLMatchupContext = (matchup: string) => client.get('/api/nfl/matchup/context', { params: { matchup } });
+// Matchup Deep Dive: both offense-vs-defense pairings for every efficiency stat.
+export const getNFLMatchupDeepDive = (matchup: string, window: 'season' | 'last4') =>
+  client.get('/api/nfl/matchup/deep-dive', { params: { matchup, window } });
 export const getNFLMismatchCategories = () => client.get('/api/nfl/mismatches/categories');
 export const getNFLMismatches = (category: string, week?: number) =>
   client.get('/api/nfl/mismatches', { params: week ? { category, week } : { category } });

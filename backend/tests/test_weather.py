@@ -102,5 +102,26 @@ def test_best_window_prefers_nws_and_fills_gaps():
     start = datetime(2026, 9, 27, 17, 0, tzinfo=timezone.utc)
     wx = best_window(nws_to_hourly(props), _forecast(), start, 3.5)
     assert wx["wx_source"] == "nws" and wx["precip_pct"] == 88
-    assert wx["wind_gust_mph"] == 34                     # from Open-Meteo
-    assert best_window(None, _forecast(), start, 3.5)["wx_source"] == "open-meteo"
+    assert wx["wind_gust_mph"] == 34                     # from the fallback
+    assert best_window(None, _forecast(), start, 3.5)["wx_source"] == "met-norway"
+
+
+def test_met_norway_to_hourly():
+    from app.get_weather_forecast import met_to_hourly
+    payload = {"properties": {"timeseries": [
+        {"time": "2026-09-27T17:00:00Z", "data": {
+            "instant": {"details": {"air_temperature": 16.7, "wind_speed": 8.0, "wind_speed_of_gust": 18.3,
+                                    "wind_from_direction": 10}},
+            "next_1_hours": {"summary": {"symbol_code": "rainshowers_day"},
+                             "details": {"precipitation_amount": 2.54, "probability_of_precipitation": 88}}}},
+        {"time": "2026-09-27T18:00:00Z", "data": {
+            "instant": {"details": {"air_temperature": 16.0, "wind_speed": 9.0, "wind_speed_of_gust": 17.0,
+                                    "wind_from_direction": 20}},
+            "next_1_hours": {"summary": {"symbol_code": "heavyrainandthunder"},
+                             "details": {"precipitation_amount": 10.16, "probability_of_precipitation": 90}}}},
+    ]}}
+    wx = game_window(met_to_hourly(payload), datetime(2026, 9, 27, 17, 0, tzinfo=timezone.utc), 2)
+    assert wx["temp_f"] == 62.1
+    assert round(wx["wind_mph"]) == 20 and round(wx["wind_gust_mph"]) == 41
+    assert wx["precip_pct"] == 90 and wx["weather_code"] == 95
+    assert wx["precip_in"] == 0.5                        # 0.1 in (17-18z) + 0.4 in (18-19z)

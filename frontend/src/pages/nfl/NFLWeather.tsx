@@ -67,7 +67,8 @@ export default function NFLWeather() {
       <h2 style={{ marginTop: 0, marginBottom: 6, color: theme.textPrimary }}>Weather</h2>
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: isMobile ? 20 : 28 }}>
         Live forecast for every game still ahead on the schedule, refreshed every couple of hours.
-        Source: the National Weather Service for US venues, Open-Meteo elsewhere.
+        Source: the National Weather Service for US venues; elsewhere, data from{' '}
+        <a href="https://api.met.no/" target="_blank" rel="noreferrer" style={{ color: theme.accent }}>MET Norway</a>.
         Temperature is at kickoff; wind, gusts and rain are the worst of the game (kickoff through about
         3½ hours later), with rain in words and the expected amount. Not a backtest of games already played.
       </div>

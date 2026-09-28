@@ -1,6 +1,6 @@
 """Plain-English rain descriptions for the weather forecast.
 
-get_weather_forecast.py stores, per game, the most severe Open-Meteo WMO
+get_weather_forecast.py stores, per game, the most severe WMO
 weather code over the game window, the rain summed over the game
 (precip_in), the wettest single hour (precip_max_in_hr) and the highest
 chance of rain (precip_pct). rain_desc() turns those into a word people

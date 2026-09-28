@@ -205,6 +205,14 @@ def get_nfl_stats() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nfl_team_efficiency() -> pd.DataFrame:
+    """Team efficiency (EPA, success, drives, situations, pace), season and
+    last 4 games, offense and defense -- get_nfl_team_efficiency.py."""
+    base = settings.NFL_BASE_URL
+    return _load(f"{base}/team_efficiency.parquet", pd.read_parquet, "nfl team efficiency")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nfl_team_stats() -> pd.DataFrame:
     """Team offense/defense stats + ranks, from get_nfl_weekly_stats.py.
 
