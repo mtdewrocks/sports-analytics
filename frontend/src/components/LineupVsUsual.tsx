@@ -2,8 +2,7 @@ import { theme } from '../theme';
 
 /**
  * Today's lineup vs the team's usual lineup against the same pitcher hand
- * (backend/app/data/mlb_lineups.py). Shared by the Alt-Line pitcher cards and
- * the Pitcher Daily Report. Numbers are from the pitcher's point of view: a
+ * (backend/app/data/mlb_lineups.py). Used on the Pitcher Daily Report. Numbers are from the pitcher's point of view: a
  * lower wOBA, higher K% or lower BB% than usual helps him.
  */
 

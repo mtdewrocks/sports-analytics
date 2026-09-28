@@ -73,10 +73,6 @@ class Settings(BaseSettings):
     NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl"
     # NBA injuries (get_injuries.py) -- the first NBA file published to a release.
     NBA_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nba"
-    # The Odds API key, for the "Bet this" live price check (app/odds_live.py).
-    # Same key the props workflow uses; set it on Render. Blank = the bet sheet
-    # falls back to the last scheduled pull's price.
-    ODDS_API_KEY: str = ""
 
 settings = Settings()
 

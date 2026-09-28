@@ -261,8 +261,9 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
             "markets": ",".join(event["_markets"]),
             "oddsFormat": "american",
             "dateFormat": "iso",
-            # Bet-slip deep links for the "Bet this" button. Free: cost is
-            # markets returned x regions, and links add neither.
+            # Bet-slip deep links (were used by the removed "Bet this"
+            # sheet -- docs/removed-features.md). Free: cost is markets
+            # returned x regions, and links add neither.
             "includeLinks": "true",
         },
     )

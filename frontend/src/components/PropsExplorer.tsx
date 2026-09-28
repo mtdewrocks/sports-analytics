@@ -7,8 +7,6 @@ import BottomSheet from './BottomSheet';
 import ScrollTable from './ScrollTable';
 import { stickyColStyle } from './tableStyles';
 import OddsDisclaimer, { latestFetchedAt } from './OddsDisclaimer';
-import BetSheet from './BetSheet';
-import type { BetDraft } from '../api/betting';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
@@ -542,8 +540,8 @@ export interface PropsExplorerProps {
    *  pitcher per market (main line + tap-open alternates) with an
    *  "Opposing lineup" strip. */
   pitcherContextFetcher?: () => Promise<{ data: PitcherLineupContext }>;
-  /** Enables the "Bet" buttons (opens the shared Bet sheet). */
-  sport?: BetDraft['sport'];
+  /** Which sport's page this is (kept for callers; no longer changes the UI). */
+  sport?: 'mlb' | 'nfl' | 'nba';
 }
 
 /** Line-shopping grid, shared by the MLB and NFL props pages.
@@ -552,8 +550,7 @@ export interface PropsExplorerProps {
  *  are pivoted by the same backend helper, so the only thing that differs is
  *  which endpoint to call. Forking this into two 600-line files would mean
  *  every future fix landing once and being forgotten the other time. */
-export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, sport }: PropsExplorerProps) {
-  const [betting, setBetting] = useState<BetDraft | null>(null);
+export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }: PropsExplorerProps) {
   const [pitcherCtx, setPitcherCtx] = useState<PitcherLineupContext | null>(null);
   useEffect(() => {
     if (!pitcherContextFetcher) return;
@@ -618,23 +615,6 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
       books:  cols.filter(c => !META_COLS.has(c.toLowerCase())),
     };
   }, [allProps]);
-
-  /** A row's Over at its best book -- the sheet can flip to the Under. */
-  const draftFor = (row: Record<string, unknown>, book: string, odds: number): BetDraft | null => {
-    if (!sport || row['is_live']) return null;
-    const player = colRoles.player ? String(row[colRoles.player] ?? '') : '';
-    const market = colRoles.market ? String(row[colRoles.market] ?? '') : '';
-    const lineRaw = colRoles.line ? parseFloat(String(row[colRoles.line] ?? '')) : NaN;
-    if (!player || !market) return null;
-    return {
-      sport, player, market, line: isNaN(lineRaw) ? null : lineRaw, side: 'over',
-      book, price: Math.round(odds), tool: 'props',
-    };
-  };
-  const betBtn = {
-    padding: '5px 11px', borderRadius: 6, border: `1px solid ${theme.accent}`,
-    background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12, cursor: 'pointer',
-  } as const;
 
   // Initialize all books as selected when first loaded
   useEffect(() => {
@@ -1074,11 +1054,6 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                             : null,
                         }))} />
                       )}
-                      {best && draftFor(row, best.book, best.odds) && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-                          <button onClick={() => setBetting(draftFor(row, best.book, best.odds))} style={betBtn}>Bet</button>
-                        </div>
-                      )}
                     </StatCard>
                   );
                 })}
@@ -1174,7 +1149,6 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                         {book.replace(/_/g, ' ')}
                       </th>
                     ))}
-                    {sport && <th style={{ padding: '10px 14px' }} />}
                   </tr>
                 </thead>
                 <tbody>
@@ -1203,34 +1177,18 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
                           const odds = parseOdds(row[book]);
                           const passes = odds !== null && (minOdds === null || odds >= minOdds);
                           const isBest = passes && odds !== null && odds === bestOdds;
-                          // Any priced cell opens the Bet sheet at THAT book, so you
-                          // can bet the book you want rather than only the best one.
-                          const cellDraft = passes && odds !== null ? draftFor(row, book, odds) : null;
                           return (
                             <td key={book}
-                              onClick={cellDraft ? () => setBetting(cellDraft) : undefined}
-                              title={cellDraft ? `Bet at ${prettyBook(book)}` : undefined}
                               style={{
                               padding: '8px 14px', textAlign: 'center', whiteSpace: 'nowrap',
                               background: isBest ? '#d4edda' : 'transparent',
                               color: isBest ? '#155724' : passes ? theme.textPrimary : theme.textMuted,
                               fontWeight: isBest ? 700 : 400,
-                              cursor: cellDraft ? 'pointer' : undefined,
                             }}>
                               {passes && odds !== null ? formatOdds(Math.round(odds)) : '—'}
                             </td>
                           );
                         })}
-                        {sport && (() => {
-                          const bestBook = bestOdds === null ? null
-                            : activeCols.find((b) => parseOdds(row[b]) === bestOdds) ?? null;
-                          const d = bestBook && bestOdds !== null ? draftFor(row, bestBook, bestOdds) : null;
-                          return (
-                            <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                              {d && <button onClick={() => setBetting(d)} style={betBtn}>Bet</button>}
-                            </td>
-                          );
-                        })()}
                       </tr>
                     );
                   })}
@@ -1260,7 +1218,6 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, s
           </div>
         )}
       </div>
-      <BetSheet key={betting ? JSON.stringify(betting) : 'none'} bet={betting} onClose={() => setBetting(null)} />
     </div>
   );
 }

@@ -40,6 +40,5 @@ export const getMLBWeather = () => client.get('/api/mlb/weather');
 // docstring in backend/app/data/mlb.py.
 export const getMLBMatchupEdge = () => client.get('/api/mlb/matchup-edge');
 
-// EV Finder and Alt-Line Value -- see backend/app/data/ev.py and alt_value.py.
+// EV Finder -- see backend/app/data/ev.py.
 export const getMLBEV = (params: Record<string, any>) => client.get('/api/mlb/ev', { params });
-export const getMLBAltValue = (params: Record<string, any>) => client.get('/api/mlb/alt-value', { params });

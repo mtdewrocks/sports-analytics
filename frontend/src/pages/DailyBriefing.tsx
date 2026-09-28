@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ChipRow from '../components/ChipRow';
-import BetSheet from '../components/BetSheet';
 import { getBriefing } from '../api/betting';
-import type { BetDraft } from '../api/betting';
 import useIsMobile from '../hooks/useIsMobile';
 import { theme } from '../theme';
 
@@ -40,7 +38,7 @@ interface Starter {
 }
 
 interface Flag { kind: string; tone: 'good' | 'bad' | 'warn' | 'neutral'; text: string; why?: string | null }
-interface Play { label: string; note: string; longshot: boolean; bet: BetDraft }
+interface Play { label: string; note: string; longshot: boolean }
 
 interface Game {
   sport: 'nfl' | 'mlb' | 'nba';
@@ -131,7 +129,6 @@ export default function DailyBriefing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sport, setSport] = useState('all');
-  const [betting, setBetting] = useState<BetDraft | null>(null);
   /** Sections the user opened or closed; unset ones use the size rule. */
   const [open, setOpen] = useState<Partial<Record<Change['kind'], boolean>>>({});
 
@@ -327,13 +324,6 @@ export default function DailyBriefing() {
                           {p.longshot && <span style={{ color: theme.warningText, fontSize: 10, fontWeight: 700, marginLeft: 6 }}>LONG SHOT</span>}
                           <div style={{ fontSize: 11, color: theme.textMuted }}>{p.note}</div>
                         </div>
-                        <button
-                          onClick={() => setBetting(p.bet)}
-                          style={{
-                            padding: '5px 11px', borderRadius: 6, border: `1px solid ${theme.accent}`,
-                            background: 'transparent', color: theme.accent, fontWeight: 700, fontSize: 12, cursor: 'pointer',
-                          }}
-                        >Bet</button>
                       </div>
                     ))}
                   </div>
@@ -350,7 +340,6 @@ export default function DailyBriefing() {
         </>
       )}
 
-      <BetSheet key={betting ? JSON.stringify(betting) : 'none'} bet={betting} onClose={() => setBetting(null)} />
     </div>
   );
 }

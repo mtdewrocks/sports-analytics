@@ -2416,8 +2416,8 @@ def get_nfl_hit_rate_sheet(
                 # See get_mlb_hit_rate_sheet()'s identical field for why this
                 # is carried through.
                 "fetched_at": row.get("fetched_at"),
-                # For Alt-Line Value (app/data/alt_value.py), which groups these
-                # rows into ladders and must drop games already under way.
+                # Lets consumers drop games already under way (was used by the
+                # removed Alt-Line Value page -- docs/removed-features.md).
                 "commence_time": row.get("commence_time"),
                 "is_live": bool(row.get("is_live")),
                 # See get_mlb_hit_rate_sheet()'s identical fields.

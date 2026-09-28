@@ -20,17 +20,13 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
-      # Admin API (app/routers/admin.py). generateValue -- same treatment as
-      # SECRET_KEY above -- so there's a real secret from the first deploy
-      # instead of the routes sitting open until someone remembers to set one.
-      # Same Odds API key the props workflow uses (GitHub secret ODDS_API_KEY).
-      # Powers the "Bet this" live price check; ~1 credit per tap, cached 3 min.
-      - key: ODDS_API_KEY
-        sync: false
       # Open beta: everyone has full access until this moment (UTC) -- through
       # the NBA Finals. Clear it to end the beta (see app/auth/dependencies.py).
       - key: BETA_ENDS_AT
         value: "2027-06-30T23:59:59"
+      # Admin API (app/routers/admin.py). generateValue -- same treatment as
+      # SECRET_KEY above -- so there's a real secret from the first deploy
+      # instead of the routes sitting open until someone remembers to set one.
       - key: ADMIN_API_KEY
         generateValue: true
       # Outbound email (app/notifications.py) -- new-user ping + the admin

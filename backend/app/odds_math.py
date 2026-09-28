@@ -1,4 +1,4 @@
-"""Odds arithmetic shared by the EV Finder, Alt-Line Value and the snapshot
+"""Odds arithmetic shared by the EV Finder and the snapshot
 builder. Pure functions, no pandas, no I/O -- so they can be unit tested on
 their own and imported both from the app (`app.odds_math`) and from the
 plain scripts in this folder that put backend/app/ on sys.path.

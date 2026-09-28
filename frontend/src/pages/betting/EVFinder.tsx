@@ -1,4 +1,5 @@
 import EVExplorer from '../../components/EVExplorer';
+import ReportCard from '../../components/ReportCard';
 import BettingSportToggle from '../../components/BettingSportToggle';
 import useBettingSport from '../../hooks/useBettingSport';
 import { getMLBEV } from '../../api/mlb';
@@ -17,6 +18,7 @@ export default function BettingEVFinder() {
       sport={sport}
       title="EV Finder"
       toolbar={<BettingSportToggle sport={sport} options={options} onChange={setSport} />}
+      footer={<ReportCard />}
     />
   );
 }

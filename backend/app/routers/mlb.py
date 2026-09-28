@@ -139,19 +139,6 @@ def mlb_ev(
     return get_ev("mlb", source, min_edge, min_books, market, player)
 
 
-@router.get("/alt-value")
-def mlb_alt_value(
-    market: Optional[str] = Query(None), player: Optional[str] = Query(None),
-    min_ev: float = Query(3.0, ge=0, le=100), flagged_only: bool = Query(True),
-    rungs: str = Query("core", pattern="^(core|all)$"), favorable_only: bool = Query(False),
-    _=Depends(require_access),
-):
-    """Alt-Line Value -- see app/data/alt_value.py."""
-    from app.data.alt_value import get_alt_value
-    return get_alt_value("mlb", mlb_data.get_mlb_hit_rate_sheet, market, player, min_ev, flagged_only,
-                         rungs, favorable_only)
-
-
 @router.post("/refresh")
 def refresh_cache(_=Depends(require_access)):
     """Clear all MLB data caches so fresh files are fetched from GitHub on next request."""

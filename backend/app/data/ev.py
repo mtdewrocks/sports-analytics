@@ -41,6 +41,10 @@ def _price_since(sport: str) -> Dict[tuple, str]:
     snaps = get_odds_snapshots_data(sport)
     if snaps.empty or "observed_at" not in snaps.columns:
         return {}
+    # Only games on the board right now -- the rest can't be on the page.
+    props = get_props_data(sport)
+    if not props.empty and "event_id" in props.columns:
+        snaps = snaps[snaps["event_id"].isin(set(props["event_id"].astype(str)))]
     s = snaps.sort_values("observed_at").drop_duplicates(
         subset=["event_id", "Player", "market", "Line", "bookmakers"], keep="last")
     line = pd.to_numeric(s["Line"], errors="coerce")

@@ -402,6 +402,10 @@ _CLOSING_URLS = {
 }
 
 
+SNAPSHOT_COLUMNS = ["event_id", "Player", "market", "Line", "bookmakers", "observed_at"]
+SNAPSHOT_DAYS = 14
+
+
 @ttl_cache(MLB_TTL)
 def get_odds_snapshots_data(sport: str) -> pd.DataFrame:
     """Price history from build_odds_snapshots.py -- one row per prop per
@@ -410,7 +414,19 @@ def get_odds_snapshots_data(sport: str) -> pd.DataFrame:
     url = _SNAPSHOT_URLS.get(sport)
     if url is None:
         return pd.DataFrame()
-    return _load(url(), pd.read_parquet, f"{sport} odds snapshots")
+
+    # The web server only ever looks at current games (EV "posted X ago",
+    # briefing line moves, injury line moves), so it keeps the columns those
+    # need and the last SNAPSHOT_DAYS -- not the whole season's history,
+    # which grows every day and was the single biggest memory cost (150k+
+    # rows for MLB by September). The full file stays in the release for the
+    # GitHub Actions jobs that need it.
+    def read_recent(buf) -> pd.DataFrame:
+        df = pd.read_parquet(buf, columns=SNAPSHOT_COLUMNS)
+        t = pd.to_datetime(df["observed_at"], utc=True, errors="coerce", format="mixed")
+        return df[t >= pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=SNAPSHOT_DAYS)].reset_index(drop=True)
+
+    return _load(url(), read_recent, f"{sport} odds snapshots")
 
 
 @ttl_cache(MLB_TTL)

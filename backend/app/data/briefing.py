@@ -26,8 +26,8 @@ THE SLATE  (one card per game, by start time)
        secondary and in the front seven, grouped per unit with the prop
        each one touches (trench_groups); the biggest statistical
        mismatches (Mismatches page), weather, usage trends, spread and total
-  Each card carries up to PLAYS_PER_GAME plays for that game (EV Finder and
-  Alt-Line), using the Today page's price bands and long-shot rules.
+  Each card carries up to PLAYS_PER_GAME EV Finder plays for that game,
+  within _play_ok's price bands and long-shot rules.
 
 Every block is independent and wrapped: a missing file drops that piece of
 context, never the page.
@@ -634,15 +634,33 @@ def _events(sport: str) -> List[Dict[str, Any]]:
             for r in sel.sort_values("_t").to_dict(orient="records")]
 
 
+# Plays on game cards: EV Finder plays priced -250..+250, plus long shots up
+# to +600 only when the fair price is solid (Pinnacle, or 3+ books) and the
+# edge is 6%+. (These were the Edge Board's rules; see docs/removed-features.md.)
+PLAY_MIN_PRICE, PLAY_MAX_PRICE, LONGSHOT_MAX_PRICE = -250, 250, 600
+LONGSHOT_MIN_EV, LONGSHOT_MIN_BOOKS = 6.0, 3
+
+
+def _play_ok(r: Dict[str, Any]) -> Optional[str]:
+    """"standard", "longshot", or None if the play shouldn't be shown."""
+    price = r["price"]
+    if r.get("suspicious"):
+        return None
+    if PLAY_MIN_PRICE <= price <= PLAY_MAX_PRICE:
+        return "standard"
+    if PLAY_MAX_PRICE < price <= LONGSHOT_MAX_PRICE and r["ev_pct"] >= LONGSHOT_MIN_EV \
+            and (r.get("source") == "sharp" or (r.get("consensus_books") or 0) >= LONGSHOT_MIN_BOOKS):
+        return "longshot"
+    return None
+
+
 def _plays_by_game(sport: str) -> Dict[str, List[Dict[str, Any]]]:
-    """Best plays per event: EV Finder by event_id, Alt-Line by start time
-    and team, both limited to Today's price bands and long-shot checks."""
+    """Best EV Finder plays per event, within _play_ok's price rules."""
     from app.data.ev import get_ev
-    from app.data.today import alt_longshot_ok, ev_longshot_ok, tier
     by: Dict[str, List[Dict[str, Any]]] = {}
     for r in get_ev(sport):
-        kind = tier(r["price"])
-        if r.get("suspicious") or kind is None or (kind == "longshot" and not ev_longshot_ok(r)):
+        kind = _play_ok(r)
+        if kind is None:
             continue
         side = ("Over" if r["side"] == "over" else "Under") if r["line"] is not None else \
             ("Yes" if r["side"] == "over" else "No")
@@ -651,35 +669,6 @@ def _plays_by_game(sport: str) -> Dict[str, List[Dict[str, Any]]]:
             "label": f"{r['player']} {side}{line} {_market(r['market'])} {_odds(r['price'])}",
             "note": f"EV +{r['ev_pct']:.1f}% at {r['book']}", "rank": r["ev_pct"],
             "longshot": kind == "longshot",
-            "bet": {"sport": sport, "event_id": r["event_id"], "player": r["player"], "market": r["market"],
-                    "line": r["line"], "side": r["side"], "book": r["book"], "price": r["price"], "tool": "briefing"},
-        })
-    return by
-
-
-def _alt_by_start(sport: str) -> Dict[tuple, List[Dict[str, Any]]]:
-    from app.data import mlb, nfl
-    from app.data.alt_value import get_alt_value
-    from app.data.today import alt_longshot_ok, tier
-    fn = mlb.get_mlb_hit_rate_sheet if sport == "mlb" else nfl.get_nfl_hit_rate_sheet
-    by: Dict[tuple, List[Dict[str, Any]]] = {}
-    for lad in get_alt_value(sport, fn):
-        cands = [r for r in lad["rungs"] if r.get("flagged")
-                 and (tier(r["best_price"]) == "standard"
-                      or (tier(r["best_price"]) == "longshot" and alt_longshot_ok(r)))]
-        if not cands:
-            continue
-        best = max(cands, key=lambda r: r["ev_pct"])
-        verdict = (lad.get("matchup") or {}).get("verdict")
-        by.setdefault((str(lad.get("commence_time")), str(lad.get("team"))), []).append({
-            "label": f"{lad['player']} Over {best['line']:g} {_market(lad['market'])} {_odds(best['best_price'])}",
-            "note": f"hit {best['season_sample']} this season · last 10 {best['recent_sample']}"
-                    + (f" · matchup {verdict}" if verdict else ""),
-            "rank": min(best["ev_pct"], 12) / 2,        # below EV plays of the same size
-            "longshot": tier(best["best_price"]) == "longshot",
-            "bet": {"sport": sport, "event_id": None, "player": lad["player"], "market": lad["market"],
-                    "line": best["line"], "side": "over", "book": best["best_book"],
-                    "price": best["best_price"], "tool": "briefing"},
         })
     return by
 
@@ -702,7 +691,6 @@ def _mlb_cards(events: List[Dict[str, Any]], report: Dict[str, Any]) -> List[Dic
     matchups = data.get("matchups", pd.DataFrame())
     posted = set(matchups["team"]) if not matchups.empty else set()
     ev_plays = _safe("mlb plays", lambda: _plays_by_game("mlb"), {})
-    alt_plays = _safe("mlb alt", lambda: _alt_by_start("mlb"), {})
 
     cards = []
     for e in events:
@@ -754,8 +742,6 @@ def _mlb_cards(events: List[Dict[str, Any]], report: Dict[str, Any]) -> List[Dic
                 parts.append(f"O/U {tot:g}")
             line_txt = " · ".join(parts) or None
         plays = list(ev_plays.get(e["event_id"], []))
-        for team in (home, away):
-            plays += alt_plays.get((e["commence_time"], team), [])
         plays.sort(key=lambda p: p["rank"], reverse=True)
         cards.append({
             "sport": "mlb", **e, "line": line_txt, "starters": sps, "flags": flags,
@@ -904,7 +890,6 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             if (g.get("score") or 0) >= MISMATCH_MIN_SCORE:
                 mism.append({**g, "cat": cat, "off_label": res.get("offense_label"), "def_label": res.get("defense_label")})
     ev_plays = _safe("nfl plays", lambda: _plays_by_game("nfl"), {})
-    alt_plays = _safe("nfl alt", lambda: _alt_by_start("nfl"), {})
     inj, starters, roles, real_props, prop_line = _nfl_injury_inputs(inj)
 
     ordinal = _ordinal
@@ -948,8 +933,6 @@ def _nfl_cards(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     parts.append(f"O/U {tot:g}")
                 line_txt = " · ".join(parts) or None
         plays = list(ev_plays.get(e["event_id"], []))
-        for team in (home, away):
-            plays += alt_plays.get((e["commence_time"], team), [])
         plays.sort(key=lambda p: p["rank"], reverse=True)
         cards.append({
             "sport": "nfl", **e, "line": line_txt, "starters": [], "flags": flags, "lineups_posted": None,
