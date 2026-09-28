@@ -377,18 +377,103 @@ def usage_trends(usage: pd.DataFrame, teams: set, names: Dict[str, str],
                 if not all((g > base) if diff > 0 else (g < base) for g in per_game):
                     continue
                 name = names.get(pid) or pg["player"].iloc[-1]
+                mates = sorted({(names.get(q) or g2["player"].iloc[-1], positions.get(q))
+                                for q, g2 in grp.groupby("player_id")
+                                if q != pid and positions.get(q) in share_positions})
                 out.append({
                     "kind": "usage", "sport": "nfl", "time": None, "tag": "UP" if diff > 0 else "DOWN",
                     "title": f"{name} ({team} {positions.get(pid)}) {label} "
                              f"{base * 100:.0f}% → {rec * 100:.0f}%",
                     "detail": f"{_weeks(recent_w)} vs {_weeks(played_base).lower()}",
                     "player": name, "stat": stat, "team": team, "_size": abs(diff),
+                    "_ctx": {"base_w": [int(w) for w in played_base], "recent_w": [int(w) for w in recent_w],
+                             "teammates": mates, "position": positions.get(pid)},
                     "flag": f"{name} {label} {base * 100:.0f}% → {rec * 100:.0f}% ({_weeks(recent_w)})",
                 })
     out.sort(key=lambda x: x["_size"], reverse=True)
     for o in out:
         o.pop("_size", None)
-    return out[:MAX_USAGE]
+    return out
+
+
+# A player is "limited" in a window when his snap share there is under this
+# fraction of his share in the other window (hurt mid-game, eased back in),
+# and a teammate counts as a regular at 50%+ of snaps.
+LIMITED_RATIO = 0.6
+REGULAR_SNAPS = 0.5
+OUT_STATUSES_NOW = {"Out", "IR", "Doubtful", "PUP", "Suspended"}
+
+
+def _avg_snaps(snaps: Dict[tuple, float], team: str, name: str, weeks: List[int]) -> Optional[float]:
+    """Mean offensive snap share over `weeks`; a week with no snaps counts as
+    0 (didn't play). None when there's no snap data for the team at all."""
+    k = _key(name)
+    vals = [snaps.get((team, k, w)) for w in weeks]
+    have_team = any((team, "*", w) in snaps for w in weeks)
+    if not have_team:
+        return None
+    return sum(v or 0.0 for v in vals) / len(weeks) if weeks else None
+
+
+def adjust_for_injuries(items: List[Dict[str, Any]], snaps: Dict[tuple, float],
+                        status: Dict[tuple, str]) -> List[Dict[str, Any]]:
+    """Drop or explain usage trends that injuries account for. Pure, so it's
+    tested directly.
+
+    snaps   {(team, name key, week): offense snap share}, plus a marker
+            (team, "*", week) for every week that team has snap data
+    status  {(team, name key): current injury status}
+
+      - The player is out now (Out / IR / Doubtful): dropped -- the Injuries
+        section covers him, and his usage doesn't matter this week.
+      - DOWN because HE was limited (snap share in the recent games under
+        LIMITED_RATIO of before -- hurt mid-game): dropped if he's healthy
+        now (he'll be back to his usual role); kept with a note if he's
+        still questionable.
+      - UP because a regular teammate was limited or missed the recent
+        games: dropped if that teammate is back; kept with a note if he's
+        still out, since then the bigger role likely continues.
+      - DOWN because a teammate at the same position is back from being
+        limited earlier: kept, with the reason -- a real, lasting change.
+    """
+    out = []
+    for it in items:
+        ctx = it.get("_ctx") or {}
+        team, name = it["team"], it["player"]
+        base_w, recent_w = ctx.get("base_w", []), ctx.get("recent_w", [])
+        st = status.get((team, _key(name)))
+        if st in OUT_STATUSES_NOW:
+            continue
+        notes = []
+        me_base, me_rec = _avg_snaps(snaps, team, name, base_w), _avg_snaps(snaps, team, name, recent_w)
+        if it["tag"] == "DOWN" and me_base and me_rec is not None and me_rec < LIMITED_RATIO * me_base:
+            if not st:
+                continue                      # hurt, now healthy: role comes back
+            notes.append(f"played {me_rec * 100:.0f}% of snaps (usually {me_base * 100:.0f}%), {st.lower()} now")
+        explained = False
+        for mate, m_pos in ctx.get("teammates", []):
+            m_base, m_rec = _avg_snaps(snaps, team, mate, base_w), _avg_snaps(snaps, team, mate, recent_w)
+            if m_base is None or m_rec is None:
+                continue
+            m_st = status.get((team, _key(mate)))
+            if it["tag"] == "UP" and m_base >= REGULAR_SNAPS and m_rec < LIMITED_RATIO * m_base:
+                if m_st in OUT_STATUSES_NOW:
+                    notes.append(f"{mate} {m_st.lower()}, so the bigger role likely continues")
+                else:
+                    explained = True          # filled in; the starter is back
+                    break
+            # Only a teammate at the SAME position explains a drop: a TE or
+            # back stepping in for an injured starter doesn't take a
+            # receiver's targets the way a returning receiver does.
+            if it["tag"] == "DOWN" and m_pos == ctx.get("position") and m_rec >= REGULAR_SNAPS \
+                    and m_base < LIMITED_RATIO * m_rec:
+                notes.append(f"{mate} back to full snaps ({m_base * 100:.0f}% → {m_rec * 100:.0f}%)")
+        if explained:
+            continue
+        if notes:
+            it["detail"] = it["detail"] + " · " + "; ".join(notes)
+        out.append(it)
+    return out
 
 
 def _usage(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -404,6 +489,7 @@ def _usage(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     names = dict(zip(ro["player_id"], ro["full_name"])) if not ro.empty else {}
     pos = dict(zip(ro["player_id"], ro["position"])) if not ro.empty else {}
     items = usage_trends(get_nfl_player_week_usage(), teams, names, pos)
+    items = adjust_for_injuries(items, *_snap_and_status(teams))[:MAX_USAGE]
     props = get_props_data("nfl")
     if not props.empty:
         props = props.assign(_k=props["Player"].map(_key))
@@ -413,8 +499,28 @@ def _usage(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             rows = props[(props["_k"] == _key(it["player"])) & (props["market"] == mk)]
             if not rows.empty:
                 it["detail"] += f" · {_market(mk)} line {rows['Line'].median():g}"
-        it.pop("player"), it.pop("stat")
+        it.pop("player"), it.pop("stat"), it.pop("_ctx", None)
     return items
+
+
+def _snap_and_status(teams: set):
+    """Inputs for adjust_for_injuries from snap counts and the injury report."""
+    from app.data import nfl
+    from app.data.loader import get_injuries_data, get_nfl_snap_counts
+    snaps: Dict[tuple, float] = {}
+    sc = _safe("nfl snaps", get_nfl_snap_counts, pd.DataFrame())
+    if not sc.empty:
+        sc = sc[(sc["season"] == sc["season"].max()) & sc["team"].isin(teams)]
+        for r in sc[["team", "player", "week", "offense_pct"]].itertuples(index=False):
+            snaps[(r.team, _key(r.player), int(r.week))] = float(r.offense_pct or 0)
+            snaps[(r.team, "*", int(r.week))] = 1.0
+    status: Dict[tuple, str] = {}
+    inj = _safe("nfl injuries", lambda: get_injuries_data("nfl"), pd.DataFrame())
+    if not inj.empty:
+        abbr = nfl.NFL_TEAM_ABBR
+        for r in inj[["team", "player", "status"]].itertuples(index=False):
+            status[(abbr.get(r.team, r.team), _key(r.player))] = r.status
+    return snaps, status
 
 
 def _attach_usage(games: List[Dict[str, Any]], usage: List[Dict[str, Any]]) -> None:

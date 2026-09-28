@@ -71,3 +71,42 @@ def test_trench_groups_counts_starters_only():
     assert groups[0]["out"] == ["Big Tackle (OT)"]
     inj.loc[len(inj)] = ("Nickel Back", "CB", "Questionable", "NYG")
     assert [g["unit"] for g in trench_groups(inj, "NYG", starters)] == ["oline", "secondary"]
+
+
+def _trend(player, tag, pos, mates):
+    return {"kind": "usage", "tag": tag, "team": "PHI", "player": player, "title": player, "detail": "Week 2 vs week 1",
+            "_ctx": {"base_w": [1], "recent_w": [2], "teammates": mates, "position": pos}}
+
+
+def _snap_map(rows):
+    out = {}
+    for name, w, pct in rows:
+        out[("PHI", name.lower(), w)] = pct
+        out[("PHI", "*", w)] = 1.0
+    return out
+
+
+def test_usage_trends_explained_by_injury_are_dropped_or_noted():
+    from app.data.briefing import adjust_for_injuries
+    snaps = _snap_map([("saquon barkley", 1, .71), ("saquon barkley", 2, .16),
+                    ("tank bigsby", 1, .11), ("tank bigsby", 2, .34),
+                    ("dallas goedert", 1, .95), ("dallas goedert", 2, .25),
+                    ("wr one", 1, .48), ("wr one", 2, .84), ("wr two", 1, .60), ("wr two", 2, .62)])
+    items = [
+        _trend("Saquon Barkley", "DOWN", "RB", [("Tank Bigsby", "RB")]),        # hurt, healthy now -> dropped
+        _trend("Tank Bigsby", "UP", "RB", [("Saquon Barkley", "RB")]),          # filled in; Barkley back -> dropped
+        _trend("Dallas Goedert", "DOWN", "TE", []),                              # Out now -> dropped
+        _trend("WR Two", "DOWN", "WR", [("WR One", "WR")]),                     # teammate back -> kept with note
+    ]
+    out = adjust_for_injuries(items, snaps, {("PHI", "dallas goedert"): "Out"})
+    assert [o["player"] for o in out] == ["WR Two"]
+    assert "WR One back to full snaps (48% → 84%)" in out[0]["detail"]
+
+
+def test_filled_in_role_kept_while_starter_still_out():
+    from app.data.briefing import adjust_for_injuries
+    snaps = _snap_map([("saquon barkley", 1, .71), ("saquon barkley", 2, 0.0),
+                    ("tank bigsby", 1, .11), ("tank bigsby", 2, .60)])
+    out = adjust_for_injuries([_trend("Tank Bigsby", "UP", "RB", [("Saquon Barkley", "RB")])], snaps,
+                              {("PHI", "saquon barkley"): "Out"})
+    assert out and "Saquon Barkley out, so the bigger role likely continues" in out[0]["detail"]
