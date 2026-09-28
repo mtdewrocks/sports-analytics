@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 3,
   "games_total": 17,
-  "generated_at": "2026-09-28T11:56:08.037813+00:00",
+  "generated_at": "2026-09-28T20:31:45.415323+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -7110,7 +7110,7 @@
     },
     "Jacob Monk": {
       "team": "GB",
-      "position": "C",
+      "position": "G",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -7266,7 +7266,7 @@
     },
     "Jager Burton": {
       "team": "GB",
-      "position": "C",
+      "position": "G",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
