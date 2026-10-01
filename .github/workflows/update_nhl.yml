@@ -1,0 +1,80 @@
+name: Update NHL
+
+on:
+  schedule:
+    # 8:43 AM Central during daylight saving time (UTC-5) = 13:43 UTC. Late
+    # West Coast games finish around 1 AM Central and their shift charts are
+    # usually posted by morning, so one run a day covers everything. Offset
+    # off the top of the hour on purpose -- :00 schedules are the most likely
+    # to be delayed (see update_statcast.yml).
+    - cron: "43 13 * * *"
+  workflow_dispatch:
+    inputs:
+      max_games:
+        description: "Most games to fetch this run (the first run backfills last season, ~1,300)"
+        required: false
+        default: "2000"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-nhl
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # The first run backfills a full season (three requests per game, ~20-30
+    # minutes); later runs take a minute or two. get_nhl_data.py stops
+    # itself at 150 minutes so the publish step always gets to run.
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install "pandas>=2.2,<3" numpy pyarrow requests
+
+      # The pipeline is INCREMENTAL -- it only fetches games it hasn't
+      # processed -- so it must start from the previous run's tables, which
+      # live in the data-nhl release. First run: nothing to restore, and the
+      # script backfills.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-nhl backend/data/nhl 'nhl_*.parquet'
+          bash scripts/release_data.sh pull data-nhl backend/data/nhl 'nhl_*.json'
+
+      - name: Update NHL data
+        id: nhl
+        run: python -u backend/app/get_nhl_data.py --max-games "${{ github.event.inputs.max_games || '2000' }}"
+
+      # `if: always()` so a run that processed most games but then failed
+      # still publishes what it did (the next run picks up the rest).
+      - name: Publish data to release
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          D=backend/data/nhl
+          bash scripts/release_data.sh push data-nhl \
+            $D/nhl_games.parquet \
+            $D/nhl_team_games.parquet \
+            $D/nhl_skater_games.parquet \
+            $D/nhl_goalie_games.parquet \
+            $D/nhl_units.parquet \
+            $D/nhl_unit_matchups.parquet \
+            $D/nhl_zones.parquet \
+            $D/nhl_shots.parquet \
+            $D/nhl_rosters.parquet \
+            $D/nhl_xg_model.json \
+            $D/nhl_meta.json

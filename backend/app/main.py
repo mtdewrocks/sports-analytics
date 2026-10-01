@@ -9,6 +9,7 @@ from app.billing.billing_router import router as billing_router
 from app.routers.nba import router as nba_router
 from app.routers.nfl import router as nfl_router
 from app.routers.mlb import router as mlb_router
+from app.routers.nhl import router as nhl_router
 from app.routers.admin import router as admin_router
 from app.routers.betting import router as betting_router
 from app.config import settings
@@ -59,6 +60,7 @@ app.include_router(billing_router, prefix="/billing", tags=["billing"])
 app.include_router(nba_router)
 app.include_router(nfl_router)
 app.include_router(mlb_router)
+app.include_router(nhl_router)
 app.include_router(admin_router)
 app.include_router(betting_router)
 
@@ -82,6 +84,12 @@ def clear_cache():
     get_mlb_data.cache_clear()
     get_mlb_props_data.cache_clear()
     get_pitcher_names.cache_clear()
+    from app.data import loader as _loader
+    from app.data import nhl as _nhl
+    for name in dir(_loader):
+        if name.startswith("get_nhl_"):
+            getattr(_loader, name).cache_clear()
+    _nhl.clear_cache()
     return {"status": "cache cleared"}
 
 @app.get("/api/db-test")

@@ -25,7 +25,7 @@ export interface PageSection {
 }
 
 export interface Sport {
-  key: 'nfl' | 'mlb' | 'nba';
+  key: 'nfl' | 'mlb' | 'nba' | 'nhl';
   label: string;
   icon: string;
   /** Legible on the dark card background -- see Dashboard.tsx. */
@@ -149,6 +149,34 @@ const SPORTS: Sport[] = [
       },
     ],
   },
+  {
+    key: 'nhl', label: 'NHL', icon: '🏒', color: '#9db4cc',
+    season: { start: 10, end: 6 },
+    pitch: 'Starting-goalie projections, game logs with time on ice and power-play role, lines and power-play units built from shift charts, rest and travel spots, and shot maps for every matchup.',
+    sections: [
+      {
+        label: 'Today',
+        pages: [
+          { label: 'Goalie Report', to: '/nhl/goalie-report', description: 'Every starting goalie with form, opponent shot volume and recent saves' },
+          { label: 'Schedule Spots', to: '/nhl/schedule-spots', description: 'Rest, travel and back-to-backs for every team on the slate' },
+        ],
+      },
+      {
+        label: 'Matchups',
+        pages: [
+          { label: 'Team Matchup', to: '/nhl/team-matchup', description: 'Team comparison, special teams, totals and head-to-head for a game' },
+          { label: 'Lines & Power Play', to: '/nhl/lines', description: 'Line combinations and power-play units from actual shifts' },
+          { label: 'Deep Dive', to: '/nhl/deep-dive', description: 'Shot maps plus period and score splits' },
+        ],
+      },
+      {
+        label: 'Players',
+        pages: [
+          { label: 'Game Log', to: '/nhl/game-log', description: 'Skater and goalie stats by game, with role and opponent context' },
+        ],
+      },
+    ],
+  },
 ];
 
 /**
@@ -209,7 +237,7 @@ export function isInSeason(sport: Sport, date: Date = new Date()): boolean {
 }
 
 /** Sports in season first, then the rest. Within each half the order above
- *  (NFL, MLB, NBA) is the tiebreak, so the result is stable. */
+ *  (NFL, MLB, NBA, NHL) is the tiebreak, so the result is stable. */
 export function sportsBySeason(date: Date = new Date()): Sport[] {
   return [
     ...SPORTS.filter((s) => isInSeason(s, date)),

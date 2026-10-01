@@ -1,8 +1,9 @@
-"""Current injury statuses for NFL, NBA and MLB, plus a log of every change.
+"""Current injury statuses for NFL, NBA, MLB and NHL, plus a log of every change.
 
     python backend/app/get_injuries.py --sport nfl
     python backend/app/get_injuries.py --sport nba
     python backend/app/get_injuries.py --sport mlb
+    python backend/app/get_injuries.py --sport nhl
 
 Runs every 15 minutes from update_injuries.yml. Free: no paid APIs.
 
@@ -13,7 +14,7 @@ Wed-Fri practice report. ESPN was merged in until Sept 2026 for game-day
 inactives, but its feed is unofficial and its terms don't clearly allow
 commercial reuse, so NFL no longer uses it.
 
-MLB / NBA: ESPN's public injuries feed (site.api.espn.com/.../injuries),
+MLB / NBA / NHL: ESPN's public injuries feed (site.api.espn.com/.../injuries),
 still, until a commercial-safe source replaces it (ESPN_SPORTS). It is
 unofficial and undocumented, so the parser below is defensive:
 anything it can't read is skipped, never fatal, and an empty or failed pull
@@ -55,6 +56,7 @@ ESPN_PATHS = {
     "nfl": "football/nfl",
     "nba": "basketball/nba",
     "mlb": "baseball/mlb",
+    "nhl": "hockey/nhl",
 }
 NFLVERSE_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
 TIMEOUT = 30
@@ -146,7 +148,7 @@ def parse_espn(payload: Dict[str, Any], sport: str) -> List[Dict[str, Any]]:
 
 
 # Sports that still read ESPN's feed (see SOURCES).
-ESPN_SPORTS = {"mlb", "nba"}
+ESPN_SPORTS = {"mlb", "nba", "nhl"}
 
 
 def fetch_espn(sport: str) -> List[Dict[str, Any]]:

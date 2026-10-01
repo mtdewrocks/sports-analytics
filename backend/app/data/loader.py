@@ -442,6 +442,7 @@ _SPORT_BASE = {
     "mlb": lambda: settings.MLB_BASE_URL,
     "nfl": lambda: settings.NFL_BASE_URL,
     "nba": lambda: settings.NBA_BASE_URL,
+    "nhl": lambda: settings.NHL_BASE_URL,
 }
 
 
@@ -533,3 +534,60 @@ def get_mlb_data() -> dict:
     ]
 
     return {key: _load(f"{base}/{name}", reader, key) for key, name, reader in files}
+
+
+# ── NHL (get_nhl_data.py, published to the data-nhl release once a day) ──
+# One loader per file, each cached for an hour like the other daily sports.
+# The shot-level file (nhl_shots.parquet) is deliberately NOT loaded here:
+# only the pipeline needs it, and it's the biggest one.
+
+def _nhl(name: str, key: str, columns=None) -> pd.DataFrame:
+    reader = (lambda b: pd.read_parquet(b, columns=columns)) if columns else pd.read_parquet
+    return _load(f"{settings.NHL_BASE_URL}/{name}", reader, key)
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_games() -> pd.DataFrame:
+    return _nhl("nhl_games.parquet", "nhl games")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_team_games() -> pd.DataFrame:
+    return _nhl("nhl_team_games.parquet", "nhl team games")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_skater_games() -> pd.DataFrame:
+    return _nhl("nhl_skater_games.parquet", "nhl skater games")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_goalie_games() -> pd.DataFrame:
+    return _nhl("nhl_goalie_games.parquet", "nhl goalie games")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_units() -> pd.DataFrame:
+    return _nhl("nhl_units.parquet", "nhl units")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_unit_matchups() -> pd.DataFrame:
+    return _nhl("nhl_unit_matchups.parquet", "nhl unit matchups")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_zones() -> pd.DataFrame:
+    return _nhl("nhl_zones.parquet", "nhl zones")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_rosters() -> pd.DataFrame:
+    return _nhl("nhl_rosters.parquet", "nhl rosters")
+
+
+@ttl_cache(OTHER_TTL)
+def get_nhl_meta() -> dict:
+    import json
+    out = _load(f"{settings.NHL_BASE_URL}/nhl_meta.json", lambda b: json.load(b), "nhl meta")
+    return out if isinstance(out, dict) else {}

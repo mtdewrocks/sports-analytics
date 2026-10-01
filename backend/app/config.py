@@ -73,6 +73,8 @@ class Settings(BaseSettings):
     NFL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nfl"
     # NBA injuries (get_injuries.py) -- the first NBA file published to a release.
     NBA_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nba"
+    # NHL pages (get_nhl_data.py via update_nhl.yml, plus NHL injuries).
+    NHL_BASE_URL: str = "https://github.com/mtdewrocks/sports-analytics/releases/download/data-nhl"
 
 settings = Settings()
 

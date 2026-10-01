@@ -45,12 +45,14 @@ jobs:
           bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_injur*.parquet'
           bash scripts/release_data.sh pull data-mlb backend/data/mlb 'mlb_injur*.parquet'
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_injur*.parquet'
+          bash scripts/release_data.sh pull data-nhl backend/data/nhl 'nhl_injur*.parquet'
 
       - name: Pull injuries
         run: |
           python -u backend/app/get_injuries.py --sport nfl
           python -u backend/app/get_injuries.py --sport nba
           python -u backend/app/get_injuries.py --sport mlb
+          python -u backend/app/get_injuries.py --sport nhl
 
       - name: Publish
         env:
@@ -59,3 +61,4 @@ jobs:
           bash scripts/release_data.sh push data-nfl backend/data/nfl/nfl_injuries.parquet backend/data/nfl/nfl_injury_changes.parquet
           bash scripts/release_data.sh push data-mlb backend/data/mlb/mlb_injuries.parquet backend/data/mlb/mlb_injury_changes.parquet
           bash scripts/release_data.sh push data-nba backend/data/nba/nba_injuries.parquet backend/data/nba/nba_injury_changes.parquet
+          bash scripts/release_data.sh push data-nhl backend/data/nhl/nhl_injuries.parquet backend/data/nhl/nhl_injury_changes.parquet

@@ -80,6 +80,12 @@ const MLBHotHitters = lazy(() => import('./pages/mlb/MLBHotHitters'));
 const MLBProps = lazy(() => import('./pages/mlb/MLBProps'));
 const MLBWeather = lazy(() => import('./pages/mlb/MLBWeather'));
 const MLBMatchupEdge = lazy(() => import('./pages/mlb/MLBMatchupEdge'));
+const NHLGameLog = lazy(() => import('./pages/nhl/NHLGameLog'));
+const NHLTeamMatchup = lazy(() => import('./pages/nhl/NHLTeamMatchup'));
+const NHLGoalieReport = lazy(() => import('./pages/nhl/NHLGoalieReport'));
+const NHLScheduleSpots = lazy(() => import('./pages/nhl/NHLScheduleSpots'));
+const NHLLines = lazy(() => import('./pages/nhl/NHLLines'));
+const NHLDeepDive = lazy(() => import('./pages/nhl/NHLDeepDive'));
 const HitRateSheet = lazy(() => import('./pages/HitRateSheet'));
 const BettingEVFinder = lazy(() => import('./pages/betting/EVFinder'));
 const BettingMiddles = lazy(() => import('./pages/betting/Middles'));
@@ -127,6 +133,13 @@ export default function App() {
           <Route path="/mlb/props" element={<PrivateRoute><MLBProps /></PrivateRoute>} />
           <Route path="/mlb/weather" element={<PrivateRoute><MLBWeather /></PrivateRoute>} />
           <Route path="/mlb/matchup-edge" element={<PrivateRoute><MLBMatchupEdge /></PrivateRoute>} />
+
+          <Route path="/nhl/game-log" element={<PrivateRoute><NHLGameLog /></PrivateRoute>} />
+          <Route path="/nhl/team-matchup" element={<PrivateRoute><NHLTeamMatchup /></PrivateRoute>} />
+          <Route path="/nhl/goalie-report" element={<PrivateRoute><NHLGoalieReport /></PrivateRoute>} />
+          <Route path="/nhl/schedule-spots" element={<PrivateRoute><NHLScheduleSpots /></PrivateRoute>} />
+          <Route path="/nhl/lines" element={<PrivateRoute><NHLLines /></PrivateRoute>} />
+          <Route path="/nhl/deep-dive" element={<PrivateRoute><NHLDeepDive /></PrivateRoute>} />
 
           {/* Betting tools: cross-sport, listed after the sports (see siteMap.ts). */}
           <Route path="/betting/ev" element={<PrivateRoute><BettingEVFinder /></PrivateRoute>} />
