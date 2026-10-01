@@ -13,7 +13,7 @@ on:
       max_games:
         description: "Most games to fetch this run (the first run backfills last season, ~1,300)"
         required: false
-        default: "25"
+        default: "2000"
 
 permissions:
   contents: write
