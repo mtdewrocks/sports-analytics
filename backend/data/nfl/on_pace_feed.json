@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 4,
   "games_total": 17,
-  "generated_at": "2026-10-03T17:54:20.707911+00:00",
+  "generated_at": "2026-10-04T18:07:07.284653+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -14622,7 +14622,7 @@
     },
     "Sebastian Valdez": {
       "team": "SF",
-      "position": "DL",
+      "position": "DT",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
@@ -17251,8 +17251,8 @@
       "losses": 0
     },
     "IND": {
-      "games_played": 3,
-      "wins": 1,
+      "games_played": 4,
+      "wins": 2,
       "losses": 2
     },
     "BAL": {
@@ -17326,9 +17326,9 @@
       "losses": 1
     },
     "WAS": {
-      "games_played": 3,
+      "games_played": 4,
       "wins": 1,
-      "losses": 2
+      "losses": 3
     },
     "NYG": {
       "games_played": 3,
