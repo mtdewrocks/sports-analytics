@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 5,
   "games_total": 17,
-  "generated_at": "2026-10-13T12:54:35.888700+00:00",
+  "generated_at": "2026-10-13T20:13:31.876563+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -2190,7 +2190,7 @@
     },
     "Brock Hoffman": {
       "team": "PIT",
-      "position": "C",
+      "position": "G",
       "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
