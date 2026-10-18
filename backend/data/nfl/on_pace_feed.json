@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 6,
   "games_total": 17,
-  "generated_at": "2026-10-17T17:04:58.185694+00:00",
+  "generated_at": "2026-10-18T17:17:42.116387+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -19257,8 +19257,8 @@
       "losses": 4
     },
     "HOU": {
-      "games_played": 5,
-      "wins": 1,
+      "games_played": 6,
+      "wins": 2,
       "losses": 4
     },
     "BUF": {
@@ -19277,9 +19277,9 @@
       "losses": 1
     },
     "JAX": {
-      "games_played": 5,
+      "games_played": 6,
       "wins": 4,
-      "losses": 1
+      "losses": 2
     },
     "CLE": {
       "games_played": 5,
