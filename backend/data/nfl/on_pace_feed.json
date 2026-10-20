@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 6,
   "games_total": 17,
-  "generated_at": "2026-10-19T19:50:23.865183+00:00",
+  "generated_at": "2026-10-20T10:21:34.734199+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -643,7 +643,7 @@
     "Amik Robertson": {
       "team": "WAS",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -991,14 +991,14 @@
     "Antonio Williams": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 155.0,
+      "receiving_yards": 205.0,
       "receiving_tds": 1.0,
-      "receptions": 15.0
+      "receptions": 18.0
     },
     "Ar'Darius Washington": {
       "team": "NYG",
@@ -1159,7 +1159,7 @@
     "Ashtyn Davis": {
       "team": "SF",
       "position": "SAF",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -1243,14 +1243,14 @@
     "Austin Ekeler": {
       "team": "WAS",
       "position": "RB",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 28.0,
+      "rushing_yards": 31.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 26.0,
+      "receiving_yards": 30.0,
       "receiving_tds": 0.0,
-      "receptions": 2.0
+      "receptions": 4.0
     },
     "Austin Hooper": {
       "team": "ATL",
@@ -1915,14 +1915,14 @@
     "Brandin Cooks": {
       "team": "SF",
       "position": "WR",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 7.0,
+      "receiving_yards": 20.0,
       "receiving_tds": 1.0,
-      "receptions": 1.0
+      "receptions": 2.0
     },
     "Brandin Echols": {
       "team": "PIT",
@@ -1963,7 +1963,7 @@
     "Brandon Coleman": {
       "team": "WAS",
       "position": "G",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -2287,10 +2287,10 @@
     "Brock Purdy": {
       "team": "SF",
       "position": "QB",
-      "games_played": 5,
-      "passing_yards": 1196.0,
-      "passing_tds": 13.0,
-      "rushing_yards": 128.0,
+      "games_played": 6,
+      "passing_yards": 1460.0,
+      "passing_tds": 14.0,
+      "rushing_yards": 156.0,
       "rushing_tds": 1.0,
       "receiving_yards": 0.0,
       "receiving_tds": 0.0,
@@ -3439,14 +3439,14 @@
     "Chig Okonkwo": {
       "team": "WAS",
       "position": "TE",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 81.0,
+      "receiving_yards": 150.0,
       "receiving_tds": 0.0,
-      "receptions": 8.0
+      "receptions": 15.0
     },
     "Chimere Dike": {
       "team": "TEN",
@@ -3619,7 +3619,7 @@
     "Chris Paul": {
       "team": "WAS",
       "position": "G",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -3751,14 +3751,14 @@
     "Christian McCaffrey": {
       "team": "SF",
       "position": "RB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 286.0,
-      "rushing_tds": 5.0,
-      "receiving_yards": 137.0,
+      "rushing_yards": 350.0,
+      "rushing_tds": 7.0,
+      "receiving_yards": 190.0,
       "receiving_tds": 0.0,
-      "receptions": 19.0
+      "receptions": 28.0
     },
     "Christian Roland-Wallace": {
       "team": "KC",
@@ -4075,7 +4075,7 @@
     "Colson Yankoff": {
       "team": "WAS",
       "position": "TE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -4123,7 +4123,7 @@
     "Connor Colby": {
       "team": "SF",
       "position": "G",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -4267,7 +4267,7 @@
     "Corliss Waitman": {
       "team": "SF",
       "position": "P",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5011,7 +5011,7 @@
     "Daron Payne": {
       "team": "WAS",
       "position": "NT",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5383,7 +5383,7 @@
     "Deatrich Wise": {
       "team": "WAS",
       "position": "DE",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5587,7 +5587,7 @@
     "Deommodore Lenoir": {
       "team": "SF",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6103,7 +6103,7 @@
     "Dorance Armstrong": {
       "team": "WAS",
       "position": "DE",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6223,7 +6223,7 @@
     "Drew Stevens": {
       "team": "WAS",
       "position": "K",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6259,14 +6259,14 @@
     "Dyami Brown": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 88.0,
+      "receiving_yards": 94.0,
       "receiving_tds": 0.0,
-      "receptions": 8.0
+      "receptions": 9.0
     },
     "Dylan Cook": {
       "team": "PIT",
@@ -6379,7 +6379,7 @@
     "Eddy Pineiro": {
       "team": "SF",
       "position": "K",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -7063,7 +7063,7 @@
     "Frankie Luvu": {
       "team": "WAS",
       "position": "LB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -7075,7 +7075,7 @@
     "Fred Warner": {
       "team": "SF",
       "position": "MLB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -7243,14 +7243,14 @@
     "George Kittle": {
       "team": "SF",
       "position": "TE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 268.0,
-      "receiving_tds": 4.0,
-      "receptions": 21.0
+      "receiving_yards": 337.0,
+      "receiving_tds": 5.0,
+      "receptions": 26.0
     },
     "George Odum": {
       "team": "HOU",
@@ -7303,7 +7303,7 @@
     "Gracen Halton": {
       "team": "SF",
       "position": "DT",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -8191,7 +8191,7 @@
     "Jacob Cowing": {
       "team": "SF",
       "position": "WR",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 2.0,
@@ -8323,7 +8323,7 @@
     "Jaden Dugger": {
       "team": "SF",
       "position": "LB",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -8692,6 +8692,18 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "Jalen Graham": {
+      "team": "SF",
+      "position": "LB",
+      "games_played": 1,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 0.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
     "Jalen Hurts": {
       "team": "PHI",
       "position": "QB",
@@ -8983,7 +8995,7 @@
     "James Thompson Jr.": {
       "team": "SF",
       "position": "DT",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9247,7 +9259,7 @@
     "Javon Kinlaw": {
       "team": "WAS",
       "position": "DT",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9379,10 +9391,10 @@
     "Jayden Daniels": {
       "team": "WAS",
       "position": "QB",
-      "games_played": 3,
-      "passing_yards": 459.0,
-      "passing_tds": 3.0,
-      "rushing_yards": 203.0,
+      "games_played": 4,
+      "passing_yards": 759.0,
+      "passing_tds": 5.0,
+      "rushing_yards": 213.0,
       "rushing_tds": 2.0,
       "receiving_yards": 0.0,
       "receiving_tds": 0.0,
@@ -9724,10 +9736,22 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "Jeremy McNichols": {
+      "team": "WAS",
+      "position": "RB",
+      "games_played": 1,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 13.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
     "Jeremy Reaves": {
       "team": "WAS",
       "position": "DB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9847,7 +9871,7 @@
     "Ji'Ayir Brown": {
       "team": "SF",
       "position": "SAF",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -10027,14 +10051,14 @@
     "John Bates": {
       "team": "WAS",
       "position": "TE",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 23.0,
+      "receiving_yards": 27.0,
       "receiving_tds": 0.0,
-      "receptions": 4.0
+      "receptions": 5.0
     },
     "John Franklin-Myers": {
       "team": "TEN",
@@ -10447,7 +10471,7 @@
     "Jordan James": {
       "team": "SF",
       "position": "RB",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 15.0,
@@ -10567,14 +10591,14 @@
     "Jordan Watkins": {
       "team": "SF",
       "position": "WR",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 60.0,
+      "receiving_yards": 82.0,
       "receiving_tds": 0.0,
-      "receptions": 2.0
+      "receptions": 3.0
     },
     "Jordan Whittington": {
       "team": "LA",
@@ -10687,7 +10711,7 @@
     "Josh Conerly Jr.": {
       "team": "WAS",
       "position": "OT",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11167,7 +11191,7 @@
     "K'Lavon Chaisson": {
       "team": "WAS",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11275,14 +11299,14 @@
     "Kaelon Black": {
       "team": "SF",
       "position": "RB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 136.0,
+      "rushing_yards": 170.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 5.0,
+      "receiving_yards": 8.0,
       "receiving_tds": 0.0,
-      "receptions": 1.0
+      "receptions": 2.0
     },
     "Kaevon Merriweather": {
       "team": "JAX",
@@ -11323,7 +11347,7 @@
     "Kain Medrano": {
       "team": "WAS",
       "position": "LB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11671,7 +11695,7 @@
     "Keion White": {
       "team": "SF",
       "position": "DE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -12115,7 +12139,7 @@
     "Khalid Kareem": {
       "team": "SF",
       "position": "DE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -12415,14 +12439,14 @@
     "Kyle Juszczyk": {
       "team": "SF",
       "position": "FB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 55.0,
+      "receiving_yards": 65.0,
       "receiving_tds": 1.0,
-      "receptions": 4.0
+      "receptions": 5.0
     },
     "Kyle Monangai": {
       "team": "CHI",
@@ -12892,6 +12916,18 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "Lucas Patrick": {
+      "team": "WAS",
+      "position": "C",
+      "games_played": 1,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 0.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
     "Lukas Van Ness": {
       "team": "GB",
       "position": "LB",
@@ -12907,7 +12943,7 @@
     "Luke Farrell": {
       "team": "SF",
       "position": "TE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -12931,7 +12967,7 @@
     "Luke Gifford": {
       "team": "SF",
       "position": "LB",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -12955,7 +12991,7 @@
     "Luke McCaffrey": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -13303,7 +13339,7 @@
     "Malik Mustapha": {
       "team": "SF",
       "position": "SAF",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -14035,14 +14071,14 @@
     "Mike Evans": {
       "team": "SF",
       "position": "WR",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 326.0,
+      "receiving_yards": 420.0,
       "receiving_tds": 3.0,
-      "receptions": 24.0
+      "receptions": 27.0
     },
     "Mike Ford": {
       "team": "ATL",
@@ -14143,7 +14179,7 @@
     "Mike Sainristil": {
       "team": "WAS",
       "position": "CB",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -14347,7 +14383,7 @@
     "Mykel Williams": {
       "team": "SF",
       "position": "DE",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -14623,7 +14659,7 @@
     "Nick Cross": {
       "team": "WAS",
       "position": "SAF",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -14899,7 +14935,7 @@
     "Odafe Oweh": {
       "team": "WAS",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15067,7 +15103,7 @@
     "Osa Odighizuwa": {
       "team": "SF",
       "position": "DT",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15439,7 +15475,7 @@
     "Quan Martin": {
       "team": "WAS",
       "position": "SAF",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15655,14 +15691,14 @@
     "Rachaad White": {
       "team": "WAS",
       "position": "RB",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 118.0,
+      "rushing_yards": 145.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 53.0,
-      "receiving_tds": 1.0,
-      "receptions": 10.0
+      "receiving_yards": 83.0,
+      "receiving_tds": 2.0,
+      "receptions": 14.0
     },
     "Raheim Sanders": {
       "team": "CLE",
@@ -15775,7 +15811,7 @@
     "Rasul Douglas": {
       "team": "WAS",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15883,7 +15919,7 @@
     "Renardo Green": {
       "team": "SF",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16183,7 +16219,7 @@
     "Romello Height": {
       "team": "SF",
       "position": "DE",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16651,7 +16687,7 @@
     "Sebastian Valdez": {
       "team": "SF",
       "position": "DT",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16807,7 +16843,7 @@
     "Shy Tuttle": {
       "team": "WAS",
       "position": "DT",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16855,7 +16891,7 @@
     "Siran Neal": {
       "team": "SF",
       "position": "DB",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16939,7 +16975,7 @@
     "Sonny Styles": {
       "team": "WAS",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -17011,14 +17047,14 @@
     "Stefon Diggs": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 170.0,
-      "receiving_tds": 3.0,
-      "receptions": 18.0
+      "receiving_yards": 214.0,
+      "receiving_tds": 4.0,
+      "receptions": 24.0
     },
     "Sterling Shepard": {
       "team": "NYJ",
@@ -17563,14 +17599,14 @@
     "Terry McLaurin": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 203.0,
+      "receiving_yards": 230.0,
       "receiving_tds": 1.0,
-      "receptions": 14.0
+      "receptions": 15.0
     },
     "Tershawn Wharton": {
       "team": "CAR",
@@ -18151,7 +18187,7 @@
     "Trent Williams": {
       "team": "SF",
       "position": "OT",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -18175,7 +18211,7 @@
     "Tress Way": {
       "team": "WAS",
       "position": "P",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -18268,6 +18304,18 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "Trey Amos": {
+      "team": "WAS",
+      "position": "CB",
+      "games_played": 1,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 0.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
     "Trey Hendrickson": {
       "team": "BAL",
       "position": "LB",
@@ -18331,14 +18379,14 @@
     "Treylon Burks": {
       "team": "WAS",
       "position": "WR",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 86.0,
+      "receiving_yards": 152.0,
       "receiving_tds": 2.0,
-      "receptions": 5.0
+      "receptions": 9.0
     },
     "Treyton Welch": {
       "team": "NO",
@@ -18775,7 +18823,7 @@
     "Tyler Owens": {
       "team": "WAS",
       "position": "DB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -18979,7 +19027,7 @@
     "Upton Stout": {
       "team": "SF",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -19738,8 +19786,8 @@
       "losses": 4
     },
     "SF": {
-      "games_played": 5,
-      "wins": 5,
+      "games_played": 6,
+      "wins": 6,
       "losses": 0
     },
     "CAR": {
@@ -19858,9 +19906,9 @@
       "losses": 4
     },
     "WAS": {
-      "games_played": 5,
+      "games_played": 6,
       "wins": 1,
-      "losses": 3
+      "losses": 4
     },
     "NYG": {
       "games_played": 6,
