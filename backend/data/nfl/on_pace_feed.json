@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 7,
   "games_total": 17,
-  "generated_at": "2026-10-26T11:28:04.305590+00:00",
+  "generated_at": "2026-10-26T19:52:59.864126+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -1074,7 +1074,7 @@
     },
     "Arron Mosby": {
       "team": "GB",
-      "position": "DE",
+      "position": "LB",
       "games_played": 1,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
