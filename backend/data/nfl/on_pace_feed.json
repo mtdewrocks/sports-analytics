@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 7,
   "games_total": 17,
-  "generated_at": "2026-10-28T19:30:16.610734+00:00",
+  "generated_at": "2026-10-29T19:34:25.008809+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -4540,18 +4540,6 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
-    "D.J. Wonnum": {
-      "team": "DET",
-      "position": "DE",
-      "games_played": 6,
-      "passing_yards": 0.0,
-      "passing_tds": 0.0,
-      "rushing_yards": 0.0,
-      "rushing_tds": 0.0,
-      "receiving_yards": 0.0,
-      "receiving_tds": 0.0,
-      "receptions": 0.0
-    },
     "DJ Glaze": {
       "team": "LV",
       "position": "OT",
@@ -4603,6 +4591,18 @@
     "DJ Turner II": {
       "team": "CIN",
       "position": "CB",
+      "games_played": 6,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 0.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 0.0,
+      "receiving_tds": 0.0,
+      "receptions": 0.0
+    },
+    "DJ Wonnum": {
+      "team": "DET",
+      "position": "DE",
       "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
