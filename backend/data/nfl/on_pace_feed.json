@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 8,
   "games_total": 17,
-  "generated_at": "2026-11-01T18:53:13.289509+00:00",
+  "generated_at": "2026-11-02T01:00:40.147735+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -20304,13 +20304,13 @@
       "losses": 3
     },
     "NE": {
-      "games_played": 7,
-      "wins": 4,
+      "games_played": 8,
+      "wins": 5,
       "losses": 3
     },
     "LA": {
-      "games_played": 7,
-      "wins": 3,
+      "games_played": 8,
+      "wins": 4,
       "losses": 4
     },
     "SF": {
@@ -20329,18 +20329,18 @@
       "losses": 2
     },
     "CIN": {
-      "games_played": 6,
-      "wins": 4,
+      "games_played": 7,
+      "wins": 5,
       "losses": 2
     },
     "TB": {
-      "games_played": 7,
-      "wins": 2,
+      "games_played": 8,
+      "wins": 3,
       "losses": 5
     },
     "DET": {
-      "games_played": 6,
-      "wins": 4,
+      "games_played": 7,
+      "wins": 5,
       "losses": 2
     },
     "NO": {
@@ -20354,74 +20354,74 @@
       "losses": 5
     },
     "BUF": {
-      "games_played": 6,
-      "wins": 5,
+      "games_played": 7,
+      "wins": 6,
       "losses": 1
     },
     "IND": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 2,
-      "losses": 5
+      "losses": 6
     },
     "BAL": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 4,
-      "losses": 3
+      "losses": 4
     },
     "JAX": {
-      "games_played": 6,
-      "wins": 4,
+      "games_played": 7,
+      "wins": 5,
       "losses": 2
     },
     "CLE": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 5,
-      "losses": 2
+      "losses": 3
     },
     "PIT": {
-      "games_played": 7,
-      "wins": 5,
+      "games_played": 8,
+      "wins": 6,
       "losses": 2
     },
     "ATL": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 3,
-      "losses": 4
-    },
-    "TEN": {
-      "games_played": 7,
-      "wins": 1,
-      "losses": 6
-    },
-    "NYJ": {
-      "games_played": 7,
-      "wins": 2,
       "losses": 5
     },
-    "LAC": {
-      "games_played": 6,
-      "wins": 0,
+    "TEN": {
+      "games_played": 8,
+      "wins": 1,
+      "losses": 7
+    },
+    "NYJ": {
+      "games_played": 8,
+      "wins": 2,
       "losses": 6
     },
-    "ARI": {
+    "LAC": {
       "games_played": 7,
-      "wins": 2,
+      "wins": 0,
+      "losses": 7
+    },
+    "ARI": {
+      "games_played": 8,
+      "wins": 3,
       "losses": 5
     },
     "LV": {
-      "games_played": 7,
-      "wins": 3,
+      "games_played": 8,
+      "wins": 4,
       "losses": 4
     },
     "MIA": {
-      "games_played": 6,
+      "games_played": 7,
       "wins": 1,
-      "losses": 5
+      "losses": 6
     },
     "MIN": {
-      "games_played": 6,
+      "games_played": 7,
       "wins": 6,
-      "losses": 0
+      "losses": 1
     },
     "GB": {
       "games_played": 8,
@@ -20444,18 +20444,18 @@
       "losses": 2
     },
     "DAL": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 3,
-      "losses": 4
+      "losses": 5
     },
     "KC": {
-      "games_played": 6,
-      "wins": 5,
-      "losses": 1
-    },
-    "DEN": {
       "games_played": 7,
       "wins": 5,
+      "losses": 2
+    },
+    "DEN": {
+      "games_played": 8,
+      "wins": 6,
       "losses": 2
     }
   }
