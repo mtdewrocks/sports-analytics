@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 8,
   "games_total": 17,
-  "generated_at": "2026-11-02T22:44:47.205526+00:00",
+  "generated_at": "2026-11-03T12:58:08.229723+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -67,14 +67,14 @@
     "AJ Barner": {
       "team": "SEA",
       "position": "TE",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 5.0,
       "rushing_tds": 1.0,
-      "receiving_yards": 180.0,
+      "receiving_yards": 203.0,
       "receiving_tds": 0.0,
-      "receptions": 19.0
+      "receptions": 21.0
     },
     "AJ Cole": {
       "team": "LV",
@@ -199,7 +199,7 @@
     "Abraham Lucas": {
       "team": "SEA",
       "position": "OT",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -1267,7 +1267,7 @@
     "Austin Booker": {
       "team": "CHI",
       "position": "DE",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -1951,7 +1951,7 @@
     "Brady Russell": {
       "team": "SEA",
       "position": "RB",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -2623,7 +2623,7 @@
     "Byron Murphy II": {
       "team": "SEA",
       "position": "DT",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -2767,7 +2767,7 @@
     "Cairo Santos": {
       "team": "CHI",
       "position": "K",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -2887,10 +2887,10 @@
     "Caleb Williams": {
       "team": "CHI",
       "position": "QB",
-      "games_played": 4,
-      "passing_yards": 1020.0,
-      "passing_tds": 5.0,
-      "rushing_yards": 128.0,
+      "games_played": 5,
+      "passing_yards": 1267.0,
+      "passing_tds": 6.0,
+      "rushing_yards": 129.0,
       "rushing_tds": 2.0,
       "receiving_yards": 0.0,
       "receiving_tds": 0.0,
@@ -2971,7 +2971,7 @@
     "Cam Lewis": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -4027,7 +4027,7 @@
     "Clark Phillips III": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -4303,14 +4303,14 @@
     "Colston Loveland": {
       "team": "CHI",
       "position": "TE",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 244.0,
+      "receiving_yards": 309.0,
       "receiving_tds": 2.0,
-      "receptions": 26.0
+      "receptions": 33.0
     },
     "Colton Hood": {
       "team": "NYG",
@@ -4411,14 +4411,14 @@
     "Cooper Kupp": {
       "team": "SEA",
       "position": "WR",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 199.0,
-      "receiving_tds": 1.0,
-      "receptions": 18.0
+      "receiving_yards": 206.0,
+      "receiving_tds": 2.0,
+      "receptions": 19.0
     },
     "Cooper McDonald": {
       "team": "KC",
@@ -4579,14 +4579,14 @@
     "D'Andre Swift": {
       "team": "CHI",
       "position": "RB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 476.0,
-      "rushing_tds": 7.0,
-      "receiving_yards": 152.0,
+      "rushing_yards": 545.0,
+      "rushing_tds": 10.0,
+      "receiving_yards": 162.0,
       "receiving_tds": 0.0,
-      "receptions": 22.0
+      "receptions": 24.0
     },
     "D'Angelo Ponds": {
       "team": "NYJ",
@@ -4603,7 +4603,7 @@
     "D'Marco Jackson": {
       "team": "CHI",
       "position": "LB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5011,7 +5011,7 @@
     "Daniel Hardy": {
       "team": "CHI",
       "position": "DE",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5587,7 +5587,7 @@
     "DeMarcus Lawrence": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -5947,7 +5947,7 @@
     "Derick Hall": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6091,7 +6091,7 @@
     "Devin Bush": {
       "team": "CHI",
       "position": "LB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6163,7 +6163,7 @@
     "Devon Witherspoon": {
       "team": "SEA",
       "position": "CB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6211,7 +6211,7 @@
     "Dillon Thieneman": {
       "team": "CHI",
       "position": "SAF",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -6451,7 +6451,7 @@
     "Drake Thomas": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -7159,7 +7159,7 @@
     "Ernest Jones": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -7567,10 +7567,10 @@
     "George Holani": {
       "team": "SEA",
       "position": "RB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 108.0,
+      "rushing_yards": 117.0,
       "rushing_tds": 1.0,
       "receiving_yards": 88.0,
       "receiving_tds": 0.0,
@@ -7675,7 +7675,7 @@
     "Grady Jarrett": {
       "team": "CHI",
       "position": "DT",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -8023,7 +8023,7 @@
     "Irvin Charles": {
       "team": "SEA",
       "position": "WR",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -8491,7 +8491,7 @@
     "Jack Sanborn": {
       "team": "CHI",
       "position": "LB",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -8695,14 +8695,14 @@
     "Jadarian Price": {
       "team": "SEA",
       "position": "RB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 119.0,
+      "rushing_yards": 148.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 21.0,
+      "receiving_yards": 29.0,
       "receiving_tds": 0.0,
-      "receptions": 4.0
+      "receptions": 6.0
     },
     "Jaden Crumedy": {
       "team": "HOU",
@@ -8827,7 +8827,7 @@
     "Jahdae Walker": {
       "team": "CHI",
       "position": "WR",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9391,7 +9391,7 @@
     "James Lynch": {
       "team": "CHI",
       "position": "DT",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9595,7 +9595,7 @@
     "Jarran Reed": {
       "team": "SEA",
       "position": "DT",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9655,7 +9655,7 @@
     "Jason Myers": {
       "team": "SEA",
       "position": "K",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -9799,14 +9799,14 @@
     "Jaxon Smith-Njigba": {
       "team": "SEA",
       "position": "WR",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 14.0,
       "passing_tds": 0.0,
       "rushing_yards": 29.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 867.0,
-      "receiving_tds": 8.0,
-      "receptions": 58.0
+      "receiving_yards": 985.0,
+      "receiving_tds": 9.0,
+      "receptions": 64.0
     },
     "Jaxson Dart": {
       "team": "NYG",
@@ -10099,7 +10099,7 @@
     "Jaylon Johnson": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -10759,7 +10759,7 @@
     "Jonah Jackson": {
       "team": "CHI",
       "position": "G",
-      "games_played": 1,
+      "games_played": 2,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11263,7 +11263,7 @@
     "Josh Blackwell": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11359,7 +11359,7 @@
     "Josh Jobe": {
       "team": "SEA",
       "position": "CB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -11647,7 +11647,7 @@
     "Julian Love": {
       "team": "SEA",
       "position": "SAF",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -12055,14 +12055,14 @@
     "Kalif Raymond": {
       "team": "CHI",
       "position": "WR",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": -2.0,
+      "rushing_yards": 37.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 244.0,
+      "receiving_yards": 258.0,
       "receiving_tds": 1.0,
-      "receptions": 26.0
+      "receptions": 28.0
     },
     "Kam Curl": {
       "team": "LA",
@@ -13219,7 +13219,7 @@
     "Kyler Gordon": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -13507,7 +13507,7 @@
     "Leonard Williams": {
       "team": "SEA",
       "position": "DE",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -13759,14 +13759,14 @@
     "Luther Burden III": {
       "team": "CHI",
       "position": "WR",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 29.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 491.0,
-      "receiving_tds": 2.0,
-      "receptions": 35.0
+      "receiving_yards": 547.0,
+      "receiving_tds": 3.0,
+      "receptions": 42.0
     },
     "M.J. Stewart": {
       "team": "HOU",
@@ -14719,7 +14719,7 @@
     "Michael Dickson": {
       "team": "SEA",
       "position": "P",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -14935,7 +14935,7 @@
     "Mike Morris": {
       "team": "SEA",
       "position": "DE",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15103,7 +15103,7 @@
     "Montez Sweat": {
       "team": "CHI",
       "position": "DE",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15355,7 +15355,7 @@
     "Nehemiah Pritchett": {
       "team": "SEA",
       "position": "CB",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15451,7 +15451,7 @@
     "Nick Emmanwori": {
       "team": "SEA",
       "position": "SAF",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -15679,7 +15679,7 @@
     "Noah Sewell": {
       "team": "CHI",
       "position": "LB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16075,7 +16075,7 @@
     "Patrick O'Connell": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -16325,7 +16325,7 @@
       "receptions": 0.0
     },
     "Quenton Nelson": {
-      "team": "IND",
+      "team": "SEA",
       "position": "G",
       "games_played": 1,
       "passing_yards": 0.0,
@@ -16999,7 +16999,7 @@
     "Rodney Thomas": {
       "team": "SEA",
       "position": "SAF",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -17047,14 +17047,14 @@
     "Rome Odunze": {
       "team": "CHI",
       "position": "WR",
-      "games_played": 7,
+      "games_played": 8,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 381.0,
+      "receiving_yards": 468.0,
       "receiving_tds": 0.0,
-      "receptions": 24.0
+      "receptions": 28.0
     },
     "Romello Height": {
       "team": "SF",
@@ -17131,14 +17131,14 @@
     "Roschon Johnson": {
       "team": "CHI",
       "position": "RB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
-      "rushing_yards": 86.0,
+      "rushing_yards": 103.0,
       "rushing_tds": 1.0,
-      "receiving_yards": 75.0,
+      "receiving_yards": 86.0,
       "receiving_tds": 0.0,
-      "receptions": 8.0
+      "receptions": 9.0
     },
     "Ross Matiscik": {
       "team": "JAX",
@@ -17299,7 +17299,7 @@
     "Rylie Mills": {
       "team": "SEA",
       "position": "DT",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -17347,10 +17347,10 @@
     "Sam Darnold": {
       "team": "SEA",
       "position": "QB",
-      "games_played": 6,
-      "passing_yards": 1290.0,
-      "passing_tds": 8.0,
-      "rushing_yards": 52.0,
+      "games_played": 7,
+      "passing_yards": 1478.0,
+      "passing_tds": 10.0,
+      "rushing_yards": 72.0,
       "rushing_tds": 0.0,
       "receiving_yards": 0.0,
       "receiving_tds": 0.0,
@@ -17707,7 +17707,7 @@
     "Shemar Turner": {
       "team": "CHI",
       "position": "DT",
-      "games_played": 2,
+      "games_played": 3,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -17803,7 +17803,7 @@
     "Skyler Thomas": {
       "team": "CHI",
       "position": "SAF",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -18019,7 +18019,7 @@
     "T.J. Edwards": {
       "team": "CHI",
       "position": "LB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -18883,19 +18883,19 @@
     "Tory Horton": {
       "team": "SEA",
       "position": "WR",
-      "games_played": 4,
+      "games_played": 5,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 67.0,
+      "receiving_yards": 93.0,
       "receiving_tds": 1.0,
-      "receptions": 5.0
+      "receptions": 8.0
     },
     "Tory Taylor": {
       "team": "CHI",
       "position": "P",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -19495,7 +19495,7 @@
     "Ty Okada": {
       "team": "SEA",
       "position": "SAF",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -19855,7 +19855,7 @@
     "Tyrice Knight": {
       "team": "SEA",
       "position": "LB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -19879,7 +19879,7 @@
     "Tyrique Stevenson": {
       "team": "CHI",
       "position": "CB",
-      "games_played": 5,
+      "games_played": 6,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -20524,6 +20524,18 @@
       "receiving_tds": 0.0,
       "receptions": 0.0
     },
+    "Zach Charbonnet": {
+      "team": "SEA",
+      "position": "RB",
+      "games_played": 1,
+      "passing_yards": 0.0,
+      "passing_tds": 0.0,
+      "rushing_yards": 23.0,
+      "rushing_tds": 0.0,
+      "receiving_yards": 6.0,
+      "receiving_tds": 0.0,
+      "receptions": 3.0
+    },
     "Zach Ertz": {
       "team": "PHI",
       "position": "TE",
@@ -20659,7 +20671,7 @@
     "Zavier Scott": {
       "team": "CHI",
       "position": "RB",
-      "games_played": 3,
+      "games_played": 4,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
@@ -20671,14 +20683,14 @@
     "Zavion Thomas": {
       "team": "CHI",
       "position": "WR",
-      "games_played": 6,
+      "games_played": 7,
       "passing_yards": 0.0,
       "passing_tds": 0.0,
       "rushing_yards": 11.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 37.0,
+      "receiving_yards": 41.0,
       "receiving_tds": 0.0,
-      "receptions": 5.0
+      "receptions": 6.0
     },
     "Zay Flowers": {
       "team": "BAL",
@@ -20767,9 +20779,9 @@
   },
   "teams": {
     "SEA": {
-      "games_played": 7,
+      "games_played": 8,
       "wins": 4,
-      "losses": 3
+      "losses": 4
     },
     "NE": {
       "games_played": 8,
@@ -20792,8 +20804,8 @@
       "losses": 4
     },
     "CHI": {
-      "games_played": 7,
-      "wins": 5,
+      "games_played": 8,
+      "wins": 6,
       "losses": 2
     },
     "CIN": {
