@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 9,
   "games_total": 17,
-  "generated_at": "2026-11-07T18:42:26.209835+00:00",
+  "generated_at": "2026-11-08T18:48:03.762986+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -20821,8 +20821,8 @@
       "losses": 2
     },
     "CIN": {
-      "games_played": 7,
-      "wins": 5,
+      "games_played": 8,
+      "wins": 6,
       "losses": 2
     },
     "TB": {
@@ -20876,9 +20876,9 @@
       "losses": 2
     },
     "ATL": {
-      "games_played": 8,
+      "games_played": 9,
       "wins": 3,
-      "losses": 5
+      "losses": 6
     },
     "TEN": {
       "games_played": 8,
