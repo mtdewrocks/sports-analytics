@@ -54,6 +54,17 @@ def startup():
         get_pitcher_names()
     except Exception:
         pass
+    # NHL player picker list is tiny -- warm it in the background so the
+    # Game Log search box is ready without delaying startup.
+    import threading
+
+    def _warm_nhl():
+        try:
+            from app.data import nhl as _nhl_pages
+            _nhl_pages.players()
+        except Exception:
+            pass
+    threading.Thread(target=_warm_nhl, daemon=True).start()
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(billing_router, prefix="/billing", tags=["billing"])

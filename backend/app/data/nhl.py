@@ -24,8 +24,9 @@ import numpy as np
 import pandas as pd
 
 from app import nhl_teams
+from app.nhl_players import build_player_list
 from app.data.loader import (
-    get_injuries_data, get_nhl_games, get_nhl_goalie_games, get_nhl_meta, get_nhl_rosters,
+    get_injuries_data, get_nhl_games, get_nhl_goalie_games, get_nhl_meta, get_nhl_players, get_nhl_rosters,
     get_nhl_skater_games, get_nhl_team_games, get_nhl_unit_matchups, get_nhl_units, get_nhl_zones,
     ttl_cache,
 )
@@ -100,22 +101,37 @@ def _plain(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+_LOADERS = {
+    "games": get_nhl_games,
+    "teams": get_nhl_team_games,
+    "skaters": get_nhl_skater_games,
+    "goalies": get_nhl_goalie_games,
+    "units": get_nhl_units,
+    "matchups": get_nhl_unit_matchups,
+    "zones": get_nhl_zones,
+    "rosters": get_nhl_rosters,
+}
+
+
+class _LazyTables(dict):
+    """Downloads each table the first time a page asks for it, not all eight
+    up front -- the Game Log never touches units/matchups/zones, so it no
+    longer waits on them."""
+
+    def __missing__(self, key: str) -> pd.DataFrame:
+        df = _plain(_LOADERS[key]())
+        self[key] = df
+        return df
+
+
 @ttl_cache(1800)
 def _data() -> Dict[str, pd.DataFrame]:
-    return {
-        "games": _plain(get_nhl_games()),
-        "teams": _plain(get_nhl_team_games()),
-        "skaters": _plain(get_nhl_skater_games()),
-        "goalies": _plain(get_nhl_goalie_games()),
-        "units": _plain(get_nhl_units()),
-        "matchups": _plain(get_nhl_unit_matchups()),
-        "zones": _plain(get_nhl_zones()),
-        "rosters": _plain(get_nhl_rosters()),
-    }
+    return _LazyTables()
 
 
 def clear_cache() -> None:
     _data.cache_clear()
+    _player_list.cache_clear()
     _schedule_context.cache_clear()
 
 
@@ -507,28 +523,21 @@ GOALIE_STATS = {"saves": "Saves", "shots_against": "Shots faced", "goals_against
                 "save_pct": "Save %"}
 
 
+@ttl_cache(1800)
+def _player_list() -> pd.DataFrame:
+    pl = get_nhl_players()
+    if pl is not None and not pl.empty and {"id", "player", "team", "pos", "is_goalie"} <= set(pl.columns):
+        return pl
+    # not published yet (pipeline hasn't run since this change) -> build it
+    D = _data()
+    return build_player_list(D["skaters"], D["goalies"], D["rosters"])
+
+
 @_public
 def players() -> List[dict]:
-    D = _data()
-    frames = []
-    for key, is_g in (("skaters", False), ("goalies", True)):
-        df = D[key]
-        if not df.empty:
-            last = df.sort_values("d").groupby("player_id").tail(1)
-            frames.append(pd.DataFrame({"id": last["player_id"].astype(int), "player": last["player"],
-                                        "team": last["team"],
-                                        "pos": last["pos"] if "pos" in last else "G", "is_goalie": is_g}))
-    ro = D["rosters"]
-    if not ro.empty:
-        frames.append(pd.DataFrame({"id": ro["player_id"].astype(int), "player": ro["player"], "team": ro["team"],
-                                    "pos": ro["pos"], "is_goalie": ro["pos"] == "G"}))
-    if not frames:
-        return []
-    allp = pd.concat(frames, ignore_index=True)
-    # roster (listed last) wins for the current team
-    allp = allp.drop_duplicates("id", keep="last")
+    pl = _player_list()
     return [{"id": int(r.id), "label": f"{r.player} · {r.team}", "player": r.player, "team": r.team,
-             "pos": r.pos, "is_goalie": bool(r.is_goalie)} for r in allp.sort_values("player").itertuples()]
+             "pos": r.pos, "is_goalie": bool(r.is_goalie)} for r in pl.itertuples()]
 
 
 def _opp_rank_maps(season: int) -> Tuple[Dict[str, int], Dict[str, int]]:

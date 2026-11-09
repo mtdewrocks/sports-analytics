@@ -642,6 +642,12 @@ def get_nhl_rosters() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nhl_players() -> pd.DataFrame:
+    """Small prebuilt picker list (see nhl_players.py); empty if not published yet."""
+    return _nhl("nhl_players.parquet", "nhl players")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nhl_meta() -> dict:
     import json
     out = _load(f"{settings.NHL_BASE_URL}/nhl_meta.json", lambda b: json.load(b), "nhl meta")

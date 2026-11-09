@@ -30,6 +30,7 @@ nhl_zones.parquet          Unblocked shot attempts by rink zone, per team-game.
 nhl_shots.parquet          Every unblocked attempt with xG (training data; the
                            web app doesn't load this one).
 nhl_rosters.parquet        Current rosters.
+nhl_players.parquet        Player picker list (id, name, team, pos, goalie flag).
 nhl_xg_model.json          Coefficients of the xG model (nhl_xg.py).
 nhl_meta.json              When it ran and what it did.
 """
@@ -53,6 +54,7 @@ import nhl_api  # noqa: E402
 from nhl_processing import process_game  # noqa: E402
 from nhl_teams import TEAMS  # noqa: E402
 import nhl_xg  # noqa: E402
+from nhl_players import build_player_list  # noqa: E402
 
 OUT = HERE.parent / "data" / "nhl"
 TABLES = {
@@ -318,6 +320,14 @@ def main() -> int:
             print(f"  roster {team}: {e}")
     if rosters:
         pd.DataFrame(rosters).to_parquet(OUT / "nhl_rosters.parquet", index=False)
+
+    # Small picker list so the Game Log search box loads without the API
+    # pulling every game table first.
+    ro_path = OUT / "nhl_rosters.parquet"
+    ro_df = pd.DataFrame(rosters) if rosters else (pd.read_parquet(ro_path) if ro_path.exists() else pd.DataFrame())
+    plist = build_player_list(tables["skaters"], tables["goalies"], ro_df)
+    if not plist.empty:
+        plist.to_parquet(OUT / "nhl_players.parquet", index=False)
 
     (OUT / "nhl_xg_model.json").write_text(json.dumps(model, indent=1))
     (OUT / "nhl_meta.json").write_text(json.dumps({

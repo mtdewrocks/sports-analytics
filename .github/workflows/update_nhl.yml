@@ -76,5 +76,6 @@ jobs:
             $D/nhl_zones.parquet \
             $D/nhl_shots.parquet \
             $D/nhl_rosters.parquet \
+            $D/nhl_players.parquet \
             $D/nhl_xg_model.json \
             $D/nhl_meta.json
