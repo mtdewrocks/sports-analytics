@@ -27,3 +27,8 @@ export const getNBAEV = (params: Record<string, any>) => client.get('/api/nba/ev
 export const getNBAGapBets = (params: Record<string, any> = {}) => client.get('/api/nba/gap-bets', { params });
 export const getNBAGapRecord = () => client.get('/api/nba/gap-bets/record');
 export const getNBAInjuryImpact = (params: Record<string, any> = {}) => client.get('/api/nba/injury-impact', { params });
+export const getNBAProjections = (gameId?: number) =>
+  client.get('/api/nba/projections', { params: gameId ? { game_id: gameId } : {} });
+export const postNBAProjections = (body: { game_id: number; minutes: Record<string, number> }) =>
+  client.post('/api/nba/projections', body);
+export const getNBAProjectionRecord = () => client.get('/api/nba/projections/record');

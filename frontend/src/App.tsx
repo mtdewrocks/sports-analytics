@@ -60,6 +60,7 @@ const NBATeamUsage = lazy(() => import('./pages/nba/NBATeamUsage'));
 const NBATeamMatchup = lazy(() => import('./pages/nba/NBATeamMatchup'));
 const NBAGapBets = lazy(() => import('./pages/nba/NBAGapBets'));
 const NBAInjuryImpact = lazy(() => import('./pages/nba/NBAInjuryImpact'));
+const NBAProjections = lazy(() => import('./pages/nba/NBAProjections'));
 
 const NFLGameLog = lazy(() => import('./pages/nfl/NFLGameLog'));
 const NFLMatchup = lazy(() => import('./pages/nfl/NFLMatchup'));
@@ -115,6 +116,7 @@ export default function App() {
           <Route path="/nba/props" element={<PrivateRoute><NBAProps /></PrivateRoute>} />
           <Route path="/nba/gap-bets" element={<PrivateRoute><NBAGapBets /></PrivateRoute>} />
           <Route path="/nba/injury-impact" element={<PrivateRoute><NBAInjuryImpact /></PrivateRoute>} />
+          <Route path="/nba/projections" element={<PrivateRoute><NBAProjections /></PrivateRoute>} />
 
           <Route path="/nfl/game-log" element={<PrivateRoute><NFLGameLog /></PrivateRoute>} />
           <Route path="/nfl/matchup" element={<PrivateRoute><NFLMatchup /></PrivateRoute>} />

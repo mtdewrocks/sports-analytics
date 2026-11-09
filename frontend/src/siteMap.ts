@@ -125,12 +125,13 @@ const SPORTS: Sport[] = [
   {
     key: 'nba', label: 'NBA', icon: '🏀', color: '#c674db',
     season: { start: 10, end: 6 },
-    pitch: 'Game logs with opponent and back-to-back context, injury impact and in/out teammate analysis, team usage and team matchups, player props and gap bets.',
+    pitch: 'Game logs with opponent and back-to-back context, stat projections with editable minutes, injury impact and in/out teammate analysis, team usage and team matchups, player props and gap bets.',
     sections: [
       {
         label: 'Players',
         pages: [
           { label: 'Game Log', to: '/nba/game-log', description: 'Player stats by game, with opponent and back-to-back context' },
+          { label: 'Projections', to: '/nba/projections', description: "Tonight's projected stats with minutes you can edit, against the lines" },
           { label: 'Injury Impact', to: '/nba/injury-impact', description: "Who's ruled out tonight and which teammates gain minutes and points" },
           { label: 'In/Out', to: '/nba/in-out', description: 'How players produce with teammates in or out of the lineup' },
           { label: 'Team Usage', to: '/nba/team-usage', description: 'How a team splits its usage across players' },

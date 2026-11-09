@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
+from pydantic import BaseModel
 from typing import Optional, List
 from app.auth.dependencies import require_access
 from app.data import nba as nba_data
@@ -78,6 +79,27 @@ def injury_impact(team: Optional[str] = Query(None), include_day_to_day: bool = 
     """Injured players and the teammates their absence helps -- see app/data/nba_injury_impact.py."""
     from app.data.nba_injury_impact import get_injury_impact
     return get_injury_impact(team, include_day_to_day)
+
+class ProjectionRequest(BaseModel):
+    game_id: Optional[int] = None
+    minutes: dict = {}
+
+@router.get("/projections")
+def projections(game_id: Optional[int] = Query(None), _=Depends(require_access)):
+    """Tonight's projections at default minutes -- see app/data/nba_projections.py."""
+    from app.data.nba_projections import get_projections
+    return get_projections(game_id)
+
+@router.post("/projections")
+def projections_custom(req: ProjectionRequest = Body(...), _=Depends(require_access)):
+    """Rerun the model with user-edited minutes ({player name: minutes})."""
+    from app.data.nba_projections import get_projections
+    return get_projections(req.game_id, req.minutes)
+
+@router.get("/projections/record")
+def projections_record(_=Depends(require_access)):
+    from app.data.nba_projections import get_projection_record
+    return get_projection_record()
 
 @router.get("/ev")
 def nba_ev(

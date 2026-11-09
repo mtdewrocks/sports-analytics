@@ -16,3 +16,5 @@ pydantic[email]
 pydantic-settings
 python-multipart
 aiofiles
+# NBA Projections: runs the 2.6 MB stat models live when users edit minutes
+lightgbm>=4.5,<5

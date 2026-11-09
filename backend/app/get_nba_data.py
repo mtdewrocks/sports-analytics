@@ -24,6 +24,8 @@ OUTPUTS (backend/data/nba/, published to the data-nba release)
   nba_schedule.parquet       Games from yesterday through the next 14 days:
                              date, tip time, status, teams, scores.
   nba_box_raw_<year>.parquet Cached raw season files (see above).
+  nba_game_odds.parquet      Pregame total + spread per game (ESPN), kept
+                             forever -- the Vegas inputs for the projection model.
   nba_meta.json              When it ran and what it did.
 """
 from __future__ import annotations
@@ -31,6 +33,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import sys
 import time
 from datetime import date, datetime, timedelta, timezone
@@ -212,6 +215,7 @@ def parse_scoreboard(doc: dict) -> List[dict]:
             s = pd.to_numeric(c.get("score"), errors="coerce")
             return None if pd.isna(s) or status.get("state") == "pre" else int(s)
 
+        total, home_spread = parse_odds(comp, h, a)
         rows.append({
             "espn_game_id": int(ev["id"]),
             "date": start.tz_convert(ET).date().isoformat() if pd.notna(start) else None,
@@ -224,8 +228,59 @@ def parse_scoreboard(doc: dict) -> List[dict]:
             "home_score": score(h), "away_score": score(a),
             "venue": (comp.get("venue") or {}).get("fullName"),
             "broadcast": ", ".join(broadcasts) or None,
+            # ESPN's pregame line (provider varies): game total, and the HOME
+            # team's spread (negative = home favored)
+            "total": total, "home_spread": home_spread,
         })
     return rows
+
+
+def parse_odds(comp: dict, home: dict, away: dict) -> tuple:
+    """(total, home_spread) from a scoreboard competition's odds block, or
+    (None, None). ESPN gives `overUnder` and a `details` string like
+    "NYK -4.5" (or "EVEN"); the favourite is named, so the sign is read from
+    which team that is rather than trusting a bare `spread` field whose sign
+    convention has varied."""
+    odds = (comp.get("odds") or [None])[0] or {}
+    total = pd.to_numeric(odds.get("overUnder"), errors="coerce")
+    total = float(total) if pd.notna(total) and total > 150 else None
+    details = str(odds.get("details") or "").strip()
+    home_spread = None
+    if details.upper() in ("EVEN", "PK", "PICK"):
+        home_spread = 0.0
+    else:
+        m = re.match(r"^([A-Za-z]+)\s*([-+]?\d+(?:\.\d+)?)$", details)
+        if m:
+            fav = TEAM_CODES.get(m.group(1).upper(), m.group(1).upper())
+            pts = abs(float(m.group(2)))
+            hc = TEAM_CODES.get((home.get("team") or {}).get("abbreviation"))
+            ac = TEAM_CODES.get((away.get("team") or {}).get("abbreviation"))
+            if fav == hc:
+                home_spread = -pts
+            elif fav == ac:
+                home_spread = pts
+    return total, home_spread
+
+
+def update_odds_history(sched: pd.DataFrame, path: Path) -> pd.DataFrame:
+    """Keep every game's pregame line: ESPN shows it until tip, so the last
+    capture while state == 'pre' wins; games already final keep whatever was
+    stored (or what ESPN still shows, for a backfill)."""
+    cols = ["espn_game_id", "date", "home", "away", "total", "home_spread", "captured_at", "state"]
+    new = sched.dropna(subset=["total"]).copy() if "total" in sched.columns else pd.DataFrame(columns=cols)
+    if new.empty and path.exists():
+        return pd.read_parquet(path)
+    new["captured_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    new = new[[c for c in cols if c in new.columns]]
+    if path.exists():
+        old = pd.read_parquet(path)
+        # a pre-game capture replaces anything older; a post-game one only fills gaps
+        pre = new[new["state"] == "pre"]
+        post = new[(new["state"] != "pre") & ~new["espn_game_id"].isin(old["espn_game_id"])]
+        new = pd.concat([old[~old["espn_game_id"].isin(pre["espn_game_id"])], pre, post], ignore_index=True)
+    new = new.drop_duplicates("espn_game_id", keep="last").sort_values("date").reset_index(drop=True)
+    new.to_parquet(path, index=False)
+    return new
 
 
 def fetch_schedule(start: date, days: int) -> pd.DataFrame:
@@ -247,6 +302,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--refresh-prior", action="store_true",
                     help="re-download last season even if it's already cached")
+    ap.add_argument("--backfill-odds", action="store_true",
+                    help="also fetch ESPN's pregame lines for every past game day (one-off)")
     args = ap.parse_args()
 
     started = time.time()
@@ -279,7 +336,16 @@ def main() -> int:
     print(f"  stats: {len(stats):,} player-games, latest {latest}")
 
     sched = fetch_schedule(today - timedelta(days=1), SCHEDULE_DAYS_AHEAD + 1)
+    if args.backfill_odds:
+        # one-off: every game day since last season's opener, for the model's
+        # Vegas features. ~260 small requests.
+        first = date(cur - 2, 10, 1)
+        hist = fetch_schedule(first, (today - first).days)
+        o = update_odds_history(hist, OUT / "nba_game_odds.parquet")
+        print(f"  odds backfill: {int(hist['total'].notna().sum()) if 'total' in hist else 0} of {len(hist)} past games had a line")
     if not sched.empty:
+        odds = update_odds_history(sched, OUT / "nba_game_odds.parquet")
+        print(f"  odds history: {len(odds)} games with a pregame line")
         sched.to_parquet(OUT / "nba_schedule.parquet", index=False)
         print(f"  schedule: {len(sched)} games, {sched['date'].min()} to {sched['date'].max()}")
     else:

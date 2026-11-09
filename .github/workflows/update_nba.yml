@@ -15,6 +15,10 @@ on:
         description: "Re-download last season too (normally cached after the first run)"
         type: boolean
         default: false
+      backfill_odds:
+        description: "Also fetch ESPN's pregame lines for every past game (one-off, for the model's Vegas features)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -39,7 +43,7 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        run: pip install "pandas>=2.2,<3" numpy pyarrow requests
+        run: pip install "pandas>=2.2,<3" numpy pyarrow requests "lightgbm>=4.5,<5"
 
       # Restore last season's cached raw file (nba_box_raw_<year>.parquet) so
       # it's only downloaded once, plus the previous schedule in case today's
@@ -50,12 +54,29 @@ jobs:
         run: |
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_box_raw_*.parquet'
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_schedule.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_game_odds.parquet'
+          # For projections: the injury report (written every 15 min by
+          # update_injuries.yml) and the running projection log
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_injuries.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_projection_log.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_projection_plays.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'NBA_Props.parquet'
 
       - name: Update NBA data
         run: |
           ARGS=""
           if [ "${{ github.event.inputs.refresh_prior }}" = "true" ]; then ARGS="--refresh-prior"; fi
+          if [ "${{ github.event.inputs.backfill_odds }}" = "true" ]; then ARGS="$ARGS --backfill-odds"; fi
           python -u backend/app/get_nba_data.py $ARGS
+
+      # Shawn's stat model, automated: retrain on last night's box scores,
+      # build tonight's slate with default minutes and the injury report,
+      # publish features so the site can rerun it with edited minutes.
+      # ~20 s. See get_nba_projections.py.
+      - name: Project player stats
+        # A projection failure shouldn't stop last night's box scores from publishing
+        continue-on-error: true
+        run: python -u backend/app/get_nba_projections.py
 
       - name: Publish data to release
         env:
@@ -65,5 +86,10 @@ jobs:
           bash scripts/release_data.sh push data-nba \
             $D/nba_player_stats.parquet \
             $D/nba_schedule.parquet \
+            $D/nba_game_odds.parquet \
             $D/nba_meta.json \
-            $D/nba_box_raw_*.parquet
+            $D/nba_box_raw_*.parquet \
+            $D/nba_projection_model.json \
+            $D/nba_projection_slate.parquet \
+            $D/nba_projection_log.parquet \
+            $D/nba_projection_plays.parquet
