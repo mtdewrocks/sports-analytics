@@ -197,6 +197,25 @@ def get_nba_data() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
+def get_nba_player_stats() -> pd.DataFrame:
+    """New NBA box scores (last season + this season), from get_nba_data.py /
+    update_nba.yml. Same columns as get_nba_data() plus SEASON TYPE, STARTER,
+    PLAYER ID, with a correct Season column (year the season ends). Not wired
+    into the pages yet -- they still read get_nba_data()."""
+    df = _load(f"{settings.NBA_BASE_URL}/nba_player_stats.parquet", pd.read_parquet, "nba player stats")
+    df.columns = [c.lower().replace(" ", "_") for c in df.columns]
+    return df
+
+
+@ttl_cache(OTHER_TTL)
+def get_nba_schedule() -> pd.DataFrame:
+    """NBA games from yesterday through the next two weeks (ESPN scoreboard),
+    refreshed twice a day by update_nba.yml. Team codes match the rest of the
+    app (GSW, NYK, SAS, ...). Filter date == today (Eastern) for tonight's slate."""
+    return _load(f"{settings.NBA_BASE_URL}/nba_schedule.parquet", pd.read_parquet, "nba schedule")
+
+
+@ttl_cache(OTHER_TTL)
 def get_nfl_stats() -> pd.DataFrame:
     raw = _fetch_bytes(settings.NFL_STATS_URL)
     df = pd.read_parquet(io.BytesIO(raw))

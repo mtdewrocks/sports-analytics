@@ -1,0 +1,69 @@
+name: Update NBA
+
+on:
+  schedule:
+    # 10:47 AM Central (CDT, UTC-5) = 15:47 UTC. hoopR republishes the
+    # current season's box scores overnight, so last night's games are in by
+    # mid-morning. The 4:47 PM run picks up anything late and refreshes
+    # tonight's schedule/tip times before games start. Off the top of the
+    # hour on purpose (see update_statcast.yml).
+    - cron: "47 15 * * *"
+    - cron: "47 21 * * *"
+  workflow_dispatch:
+    inputs:
+      refresh_prior:
+        description: "Re-download last season too (normally cached after the first run)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-nba
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install "pandas>=2.2,<3" numpy pyarrow requests
+
+      # Restore last season's cached raw file (nba_box_raw_<year>.parquet) so
+      # it's only downloaded once, plus the previous schedule in case today's
+      # ESPN calls fail. Injury files in this release are left alone.
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_box_raw_*.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_schedule.parquet'
+
+      - name: Update NBA data
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.refresh_prior }}" = "true" ]; then ARGS="--refresh-prior"; fi
+          python -u backend/app/get_nba_data.py $ARGS
+
+      - name: Publish data to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          D=backend/data/nba
+          bash scripts/release_data.sh push data-nba \
+            $D/nba_player_stats.parquet \
+            $D/nba_schedule.parquet \
+            $D/nba_meta.json \
+            $D/nba_box_raw_*.parquet
