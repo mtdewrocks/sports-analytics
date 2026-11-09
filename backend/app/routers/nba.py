@@ -46,14 +46,49 @@ def in_out_beneficiary(excluded_player: str = Query(...), stat: str = Query("min
     return nba_data.get_biggest_beneficiary(excluded_player, stat)
 
 @router.get("/props")
-def props(
-    player: Optional[str] = Query(None),
-    market: Optional[str] = Query(None),
-    side: Optional[str] = Query(None),
-    bookmaker: Optional[str] = Query(None),
+def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None),
+          market: Optional[str] = Query(None), _=Depends(require_access)):
+    """Line-shopping grid from NBA_Props.parquet (get_props.py --sport nba),
+    the same shared pivot the MLB and NFL Props pages use."""
+    from app.data.props import get_props as shared_props
+    return shared_props("nba", team, player, market)
+
+@router.get("/middles")
+def nba_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query(None),
+                market: Optional[str] = Query(None), _=Depends(require_access)):
+    from app.data.props import get_middles
+    return get_middles("nba", kind, player, market)
+
+@router.get("/gap-bets")
+def gap_bets(include_negative: bool = Query(False), market: Optional[str] = Query(None),
+             _=Depends(require_access)):
+    """Anti-middles with each player's historical landing rate -- see app/data/nba_gaps.py."""
+    from app.data.nba_gaps import get_gap_bets
+    return get_gap_bets(include_negative, market)
+
+@router.get("/gap-bets/record")
+def gap_bets_record(_=Depends(require_access)):
+    """Graded history of every gap bet the page has shown."""
+    from app.data.nba_gaps import get_gap_record
+    return get_gap_record()
+
+@router.get("/injury-impact")
+def injury_impact(team: Optional[str] = Query(None), include_day_to_day: bool = Query(True),
+                  _=Depends(require_access)):
+    """Injured players and the teammates their absence helps -- see app/data/nba_injury_impact.py."""
+    from app.data.nba_injury_impact import get_injury_impact
+    return get_injury_impact(team, include_day_to_day)
+
+@router.get("/ev")
+def nba_ev(
+    source: str = Query("auto", pattern="^(auto|sharp|consensus)$"),
+    min_edge: float = Query(2.0, ge=0, le=100), min_books: int = Query(2, ge=1, le=10),
+    market: Optional[str] = Query(None), player: Optional[str] = Query(None),
     _=Depends(require_access),
 ):
-    return nba_data.get_props(player, market, side, bookmaker)
+    """EV Finder -- see app/data/ev.py."""
+    from app.data.ev import get_ev
+    return get_ev("nba", source, min_edge, min_books, market, player)
 
 @router.get("/teams")
 def teams(_=Depends(require_access)):

@@ -3,8 +3,9 @@ import BettingSportToggle from '../../components/BettingSportToggle';
 import useBettingSport from '../../hooks/useBettingSport';
 import { getMLBMiddles } from '../../api/mlb';
 import { getNFLMiddles } from '../../api/nfl';
+import { getNBAMiddles } from '../../api/nba';
 
-const FETCHERS = { mlb: getMLBMiddles, nfl: getNFLMiddles };
+const FETCHERS = { mlb: getMLBMiddles, nfl: getNFLMiddles, nba: getNBAMiddles };
 
 export default function BettingMiddles() {
   const [sport, setSport, options] = useBettingSport();

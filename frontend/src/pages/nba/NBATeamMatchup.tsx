@@ -55,6 +55,8 @@ interface ScheduleGame {
   broadcast: string | null;
   home_rest: Rest;
   away_rest: Rest;
+  spread?: string | null;
+  total?: number | null;
 }
 
 interface ScheduleResponse {
@@ -101,6 +103,11 @@ function GameChip({ g, selected, onClick }: { g: ScheduleGame; selected: boolean
     >
       <div style={{ fontSize: 14, fontWeight: 700 }}>{g.away} @ {g.home}</div>
       <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 3 }}><GameStatus g={g} /></div>
+      {(g.spread || g.total != null) && g.state === 'pre' && (
+        <div style={{ fontSize: 11, color: theme.textPrimary, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>
+          {[g.spread, g.total != null ? `O/U ${g.total}` : null].filter(Boolean).join(' · ')}
+        </div>
+      )}
       {rests.length > 0 && (
         <div style={{ fontSize: 10, color: theme.warningText, marginTop: 4, fontWeight: 600 }}>
           {rests.map((x) => `${x.team} on back-to-back`).join(' · ')}

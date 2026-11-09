@@ -29,6 +29,14 @@ function agoLabel(iso: string | null): { text: string; stale: boolean } {
   return { text: `${days} day${days === 1 ? '' : 's'} ago`, stale: true };
 }
 
+/** "Tue 12:55 PM" in the viewer's own time zone, or null. */
+export function clockLabel(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+}
+
 export default function OddsDisclaimer({
   fetchedAt,
   compact = false,
@@ -58,6 +66,9 @@ export default function OddsDisclaimer({
       <div style={{ color: theme.textPrimary, fontWeight: 600, marginBottom: 3 }}>
         Odds last checked{' '}
         <span style={{ color: stale ? '#c08422' : theme.accent }}>{text}</span>
+        {clockLabel(fetchedAt) && (
+          <span style={{ color: theme.textSecondary, fontWeight: 400 }}> (as of {clockLabel(fetchedAt)})</span>
+        )}
       </div>
       <div>
         Lines move constantly and books pull them without notice. These prices are a

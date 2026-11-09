@@ -20,8 +20,10 @@ BUDGET, AT ONE REGION-EQUIVALENT
 --------------------------------
     MLB  52,650/month  (13 fast markets x ~7 pulls/day, 13 slow x ~2)
     NFL  32,198/month  (24 fast x ~18 pulls/week, 18 slow x ~2)
+    NBA ~27,000/month  (14 fast, 13 slow, ~7.5 games/day -- costed below)
     ---
-         84,848 of 100,000 -- about 15% spare.
+    MLB and NBA overlap Mar-Jun (~75k); NFL and NBA overlap Nov-Feb (~54k).
+    MLB + NFL in Sept/Oct is still the busiest stretch (84,848 of 100,000).
 
 Both seasons overlap in Sept/Oct, so that margin is the real one. If you want
 more slack, in order of least pain:
@@ -261,4 +263,59 @@ UNBETTABLE_BOOKS = frozenset({
 # disagree later.
 NO_SINGLE_BET_BOOKS = DFS_BOOKS
 
-SPORTS = {"mlb": MLB, "nfl": NFL}
+NBA = SportConfig(
+    key="basketball_nba",
+    slug="nba",
+    output="NBA_Props.parquet",
+    # Shawn's original Basketball_Props.py market list, split into tiers.
+    # Every main market is game-day cadence; every ladder is slow tier.
+    core_markets=(
+        "player_points", "player_rebounds", "player_assists", "player_threes",
+        "player_points_rebounds_assists", "player_points_rebounds",
+        "player_rebounds_assists", "player_points_assists",
+        "player_blocks", "player_steals", "player_blocks_steals",
+        "player_turnovers",
+        # Game and team totals, for Gap Bets: a game total lands on any one
+        # number only ~2.3% of the time, so a one-point gap at +105 each way
+        # is already about break-even -- far better odds than player props.
+        # Spreads are next; they need their own pairing (two teams, not
+        # Over/Under).
+        "totals", "team_totals",
+    ),
+    alt_markets=(
+        # The ladders are where anti-middles live: one book's alternate rung
+        # sitting a point off another book's main line.
+        "player_points_alternate", "player_rebounds_alternate",
+        "player_assists_alternate", "player_threes_alternate",
+        "player_points_rebounds_assists_alternate",
+        "player_points_rebounds_alternate", "player_rebounds_assists_alternate",
+        "player_points_assists_alternate",
+        "player_blocks_alternate", "player_steals_alternate",
+        "player_turnovers_alternate",
+        "alternate_totals", "alternate_team_totals",
+    ),
+    # An NBA slate is a one-day thing like MLB, so hours again, but props
+    # mostly post the morning of (sometimes the night before) and tips are
+    # bunched 6-9:30 PM CT, so the far tier can be lazy.
+    #
+    # COSTED by simulating the 20-minute workflow slots against a typical
+    # slate (tips 6-9:30 PM CT, ~11 core + ~8 alt markets actually returned):
+    # ~90-100 credits a game, ~7.5 games a day -> roughly 20-24k/month,
+    # plus ~4-5k for the four totals markets -> ~25-28k/month.
+    #
+    #   Nov-Feb   NFL ~32k + NBA ~22k  = ~54k
+    #   Mar-Jun   MLB ~53k + NBA ~22k  = ~75k
+    #   late Oct  MLB postseason + NFL + NBA opening weeks is the tight spot;
+    #             MLB's playoff slate is 1-4 games, so it stays under 100k,
+    #             but that's the window to watch x-requests-remaining.
+    core_tiers=(
+        (0.75, 0.3),           # closing-line pull just before tip (CLV)
+        (3.0, 1.5),
+        (8.0, 3.0),
+        (float("inf"), 8.0),
+    ),
+    alt_tiers=((4.0, 3.0), (float("inf"), 12.0)),
+    strip_prefixes=("player_",),
+)
+
+SPORTS = {"mlb": MLB, "nfl": NFL, "nba": NBA}

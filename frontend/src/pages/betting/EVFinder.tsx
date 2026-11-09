@@ -4,8 +4,9 @@ import BettingSportToggle from '../../components/BettingSportToggle';
 import useBettingSport from '../../hooks/useBettingSport';
 import { getMLBEV } from '../../api/mlb';
 import { getNFLEV } from '../../api/nfl';
+import { getNBAEV } from '../../api/nba';
 
-const FETCHERS = { mlb: getMLBEV, nfl: getNFLEV };
+const FETCHERS = { mlb: getMLBEV, nfl: getNFLEV, nba: getNBAEV };
 
 export default function BettingEVFinder() {
   const [sport, setSport, options] = useBettingSport();

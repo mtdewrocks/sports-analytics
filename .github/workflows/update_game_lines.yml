@@ -9,6 +9,12 @@ on:
     # enough to refresh daily but don't need props' frequent cadence.
     # 14:00 UTC = 9:00 AM CDT / 8:00 AM CST.
     - cron: "0 12 * * *"
+    # NBA only, hourly from 9:17 AM to 10:17 PM CST. Spreads/totals for the
+    # whole slate are ONE bulk call (2 markets x 1 region-equivalent = 2
+    # credits), so hourly is ~30 credits a day, ~1k a month -- cheap enough
+    # that the Team Matchup cards can show a line that's an hour old rather
+    # than a morning's. MLB/NFL stay on the daily run above.
+    - cron: "17 15-23,0-4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -51,27 +57,45 @@ jobs:
       - name: Restore data from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DAILY: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '0 12 * * *' }}
         run: |
-          bash scripts/release_data.sh pull data-mlb backend/data/mlb
-          bash scripts/release_data.sh pull data-nfl backend/data/nfl
+          # Only game_lines.parquet is read here, so only that is restored --
+          # and MLB/NFL only on the daily run, not every NBA hour.
+          if [ "$DAILY" = "true" ]; then
+            bash scripts/release_data.sh pull data-mlb backend/data/mlb 'game_lines.parquet'
+            bash scripts/release_data.sh pull data-nfl backend/data/nfl 'game_lines.parquet'
+          fi
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'game_lines.parquet'
 
       - name: Pull MLB game lines
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 12 * * *'
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python -u backend/app/get_game_lines.py --sport mlb
 
       - name: Pull NFL game lines
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 12 * * *'
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python -u backend/app/get_game_lines.py --sport nfl
+
+      - name: Pull NBA game lines
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -u backend/app/get_game_lines.py --sport nba
 
       # MLB's game lines go to the data-mlb tag, NFL's to data-nfl -- same
       # per-sport split update_props.yml uses.
       - name: Publish data to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DAILY: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '0 12 * * *' }}
         run: |
-          bash scripts/release_data.sh push data-mlb \
-            backend/data/mlb/game_lines.parquet
-          bash scripts/release_data.sh push data-nfl \
-            backend/data/nfl/game_lines.parquet
+          if [ "$DAILY" = "true" ]; then
+            bash scripts/release_data.sh push data-mlb \
+              backend/data/mlb/game_lines.parquet
+            bash scripts/release_data.sh push data-nfl \
+              backend/data/nfl/game_lines.parquet
+          fi
+          bash scripts/release_data.sh push data-nba \
+            backend/data/nba/game_lines.parquet

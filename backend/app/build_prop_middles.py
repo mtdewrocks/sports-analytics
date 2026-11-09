@@ -150,6 +150,28 @@ EXCLUDED_BOOKS = UNBETTABLE_BOOKS | NO_SINGLE_BET_BOOKS | SHARP_BOOKS
 MIN_PRICE = 100          # "plus money" required on BOTH legs
 
 
+def merge_alternate_ladders(df: pd.DataFrame) -> pd.DataFrame:
+    """Fold each `*_alternate` ladder into its base market before pairing.
+
+    find_pairs() groups by (Player, market), and get_props.py keeps the
+    ladder under its own key ("points_alternate"), so without this a main
+    line at one book and an alternate rung at another sat in different
+    groups and were never compared -- which is the single most common shape
+    a gap takes. Same line + book + price appearing in both is one bet, so
+    those duplicates go.
+    """
+    if df.empty or "market" not in df.columns:
+        return df
+    out = df.copy()
+    # "points_alternate" (player props) and "alternate_totals" (game lines)
+    out["market"] = (out["market"].astype(str)
+                     .str.replace(r"_alternate$", "", regex=True)
+                     .str.replace(r"^alternate_", "", regex=True))
+    keys = [c for c in ("Player", "market", "Line", "bookmakers", "Over Price", "Under Price",
+                        "event_id") if c in out.columns]
+    return out.drop_duplicates(subset=keys).reset_index(drop=True)
+
+
 def american_to_decimal(odds: float) -> float:
     """+150 -> 2.5, -120 -> 1.833..."""
     if odds is None or (isinstance(odds, float) and math.isnan(odds)):
@@ -343,6 +365,7 @@ def main() -> int:
     df = df[~df["bookmakers"].str.lower().isin(EXCLUDED_BOOKS)]
     df = df.dropna(subset=["Line"])
     print(f"{before} rows -> {len(df)} after book exclusions")
+    df = merge_alternate_ladders(df)
 
     pairs = find_pairs(df, args.min_price)
     if pairs.empty:

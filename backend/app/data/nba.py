@@ -6,8 +6,54 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from app.data.loader import (
-    get_nba_all_seasons, get_nba_data, get_nba_props, get_nba_schedule, nba_current_season,
+    get_nba_all_seasons, get_nba_data, get_nba_game_lines, get_nba_props, get_nba_schedule,
+    nba_current_season,
 )
+
+# The Odds API's full team names -> the codes used everywhere else in the app.
+NBA_TEAM_CODES = {
+    "Atlanta Hawks": "ATL", "Boston Celtics": "BOS", "Brooklyn Nets": "BKN", "Charlotte Hornets": "CHA",
+    "Chicago Bulls": "CHI", "Cleveland Cavaliers": "CLE", "Dallas Mavericks": "DAL", "Denver Nuggets": "DEN",
+    "Detroit Pistons": "DET", "Golden State Warriors": "GSW", "Houston Rockets": "HOU", "Indiana Pacers": "IND",
+    "Los Angeles Clippers": "LAC", "LA Clippers": "LAC", "Los Angeles Lakers": "LAL", "Memphis Grizzlies": "MEM",
+    "Miami Heat": "MIA", "Milwaukee Bucks": "MIL", "Minnesota Timberwolves": "MIN", "New Orleans Pelicans": "NOP",
+    "New York Knicks": "NYK", "Oklahoma City Thunder": "OKC", "Orlando Magic": "ORL", "Philadelphia 76ers": "PHI",
+    "Phoenix Suns": "PHX", "Portland Trail Blazers": "POR", "Sacramento Kings": "SAC", "San Antonio Spurs": "SAS",
+    "Toronto Raptors": "TOR", "Utah Jazz": "UTA", "Washington Wizards": "WAS",
+}
+
+
+def _game_lines_lookup() -> dict:
+    """(date ET, home code, away code) -> {spread_line, total_line, fetched_at}."""
+    try:
+        gl = get_nba_game_lines()
+    except Exception:
+        return {}
+    if gl is None or gl.empty:
+        return {}
+    out = {}
+    for r in gl.itertuples():
+        h, a = NBA_TEAM_CODES.get(r.home_team), NBA_TEAM_CODES.get(r.away_team)
+        ts = pd.to_datetime(r.commence_time, utc=True, errors="coerce")
+        if not h or not a or pd.isna(ts):
+            continue
+        out[(ts.tz_convert(ET).date().isoformat(), h, a)] = {
+            "spread_line": None if pd.isna(r.spread_line) else float(r.spread_line),
+            "total_line": None if pd.isna(r.total_line) else float(r.total_line),
+            "fetched_at": getattr(r, "fetched_at", None),
+        }
+    return out
+
+
+def _spread_label(home: str, away: str, spread: Optional[float]) -> Optional[str]:
+    """spread_line > 0 = home favored -> 'NYK -4.5'."""
+    if spread is None:
+        return None
+    if spread == 0:
+        return "Pick'em"
+    fav = home if spread > 0 else away
+    return f"{fav} -{abs(spread):g}"
+
 
 ET = ZoneInfo("America/New_York")
 SEASON_SCOPES = ("current", "last", "both")
@@ -989,6 +1035,14 @@ def get_schedule(day: Optional[str] = None) -> dict:
                 "days_rest": (days - 1) if days is not None else None,
                 "back_to_back": days == 1}
 
+    lines = _game_lines_lookup()
+
+    def _line_fields(gl: Optional[dict], home: str, away: str) -> dict:
+        if not gl:
+            return {"spread": None, "total": None, "lines_as_of": None}
+        return {"spread": _spread_label(home, away, gl["spread_line"]),
+                "total": gl["total_line"], "lines_as_of": gl["fetched_at"]}
+
     games = []
     for r in sched[sched["_d"] == target].sort_values("start_utc").itertuples():
         start = pd.to_datetime(r.start_utc, utc=True, errors="coerce")
@@ -1003,6 +1057,7 @@ def get_schedule(day: Optional[str] = None) -> dict:
             "broadcast": r.broadcast if isinstance(r.broadcast, str) else None,
             "venue": r.venue if isinstance(r.venue, str) else None,
             "home_rest": rest(r.home), "away_rest": rest(r.away),
+            **_line_fields(lines.get((target.isoformat(), r.home, r.away)), r.home, r.away),
         })
     return {
         "date": target.isoformat(),

@@ -125,12 +125,13 @@ const SPORTS: Sport[] = [
   {
     key: 'nba', label: 'NBA', icon: '🏀', color: '#c674db',
     season: { start: 10, end: 6 },
-    pitch: 'Game logs with opponent and back-to-back context, in/out teammate analysis, team usage and team matchups, plus player props.',
+    pitch: 'Game logs with opponent and back-to-back context, injury impact and in/out teammate analysis, team usage and team matchups, player props and gap bets.',
     sections: [
       {
         label: 'Players',
         pages: [
           { label: 'Game Log', to: '/nba/game-log', description: 'Player stats by game, with opponent and back-to-back context' },
+          { label: 'Injury Impact', to: '/nba/injury-impact', description: "Who's ruled out tonight and which teammates gain minutes and points" },
           { label: 'In/Out', to: '/nba/in-out', description: 'How players produce with teammates in or out of the lineup' },
           { label: 'Team Usage', to: '/nba/team-usage', description: 'How a team splits its usage across players' },
         ],
@@ -145,6 +146,7 @@ const SPORTS: Sport[] = [
         label: 'Lines',
         pages: [
           { label: 'Props', to: '/nba/props', description: 'Player prop lines with the best price across books' },
+          { label: 'Gap Bets', to: '/nba/gap-bets', description: 'Plus-money pairs that win unless the player lands on one number, priced by how often he does' },
         ],
       },
     ],
@@ -222,12 +224,12 @@ export function bettingPages(): SitePage[] {
 }
 
 /** Sports the betting tools cover, in-season first -- the default for their
- *  sport toggle. NBA joins once its props come from the same pipeline. */
-export type BettingSport = 'mlb' | 'nfl';
+ *  sport toggle. */
+export type BettingSport = 'mlb' | 'nfl' | 'nba';
 export function bettingSports(date: Date = new Date()): BettingSport[] {
   return sportsBySeason(date)
     .map((s) => s.key)
-    .filter((k): k is BettingSport => k === 'mlb' || k === 'nfl');
+    .filter((k): k is BettingSport => k === 'mlb' || k === 'nfl' || k === 'nba');
 }
 
 export function isInSeason(sport: Sport, date: Date = new Date()): boolean {

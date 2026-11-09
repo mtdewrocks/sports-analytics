@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getNBAPlayers, getNBATeammates, getNBAInOut, getNBABeneficiary } from '../../api/nba';
+import { getNBAPlayers, getNBATeammates, getNBAInOut, getNBABeneficiary, getNBASeasons } from '../../api/nba';
+import { Link } from 'react-router-dom';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SearchDropdown from '../../components/SearchDropdown';
 import { theme } from '../../theme';
@@ -64,6 +65,16 @@ export default function NBAInOut() {
   const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
   const [beneficiaryLoading, setBeneficiaryLoading] = useState(false);
   const [beneficiaryError, setBeneficiaryError] = useState('');
+  const [seasonLabel, setSeasonLabel] = useState('');
+
+  useEffect(() => {
+    getNBASeasons()
+      .then((res) => {
+        const cur = res.data?.current;
+        if (cur) setSeasonLabel(`${cur - 1}-${String(cur).slice(-2)}`);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!outPlayer) { setBeneficiaryData(null); return; }
@@ -124,6 +135,16 @@ export default function NBAInOut() {
       <p style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 20, marginTop: 0 }}>
         See how a player being out shifts the rest of the roster's numbers.
       </p>
+      <div style={{
+        display: 'inline-block', fontSize: 12, color: theme.textPrimary, background: theme.bgCard,
+        border: `1px solid ${theme.border}`, borderRadius: 4, padding: '4px 10px', marginBottom: 18,
+      }}>
+        {seasonLabel ? `${seasonLabel} season games only` : 'This season\'s games only'}
+        <span style={{ color: theme.textSecondary }}>
+          {' '}· early in the season the "without" side is often just a game or two, so check the game counts.
+          For tonight's injury report, see <Link to="/nba/injury-impact" style={{ color: theme.dataBlue }}>Injury Impact</Link>.
+        </span>
+      </div>
 
       <div style={{ display: 'flex', gap: 4, background: theme.bgCard, borderRadius: 6, padding: 3, marginBottom: 24, width: 'fit-content' }}>
         <button

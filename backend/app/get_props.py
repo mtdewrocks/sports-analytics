@@ -308,6 +308,13 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
         return pd.DataFrame()
 
     df = pd.DataFrame(rows)
+    # Game-level totals carry no player: label the game total by matchup so
+    # it gets a row of its own on the Props grid and its own (Player, market)
+    # group in the middles builder. Team totals already name the team in
+    # `description`.
+    game_label = f"{payload.get('away_team')} @ {payload.get('home_team')}"
+    is_game_total = df["market"].isin(GAME_TOTAL_MARKETS) & df["description"].isna()
+    df.loc[is_game_total, "description"] = game_label
     df["event_id"] = payload.get("id")
     df["commence_time"] = payload.get("commence_time")
     df["home_team"] = payload.get("home_team")
@@ -322,6 +329,9 @@ def fetch_event_odds(api_key: str, event: dict, cfg: SportConfig,
         print(f"     no data for: {', '.join(missing[:6])}"
               + (f" (+{len(missing) - 6} more)" if len(missing) > 6 else ""))
     return df
+
+
+GAME_TOTAL_MARKETS = ("totals", "alternate_totals")
 
 
 def to_over_under(df: pd.DataFrame, cfg: SportConfig) -> pd.DataFrame:

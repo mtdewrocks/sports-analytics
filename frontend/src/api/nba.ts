@@ -22,3 +22,8 @@ export const getNBATeamMatchup = (teamA: string, teamB: string) =>
 export const getNBASeasons = () => client.get('/api/nba/seasons');
 export const getNBASchedule = (date?: string) =>
   client.get('/api/nba/schedule', { params: date ? { date } : {} });
+export const getNBAMiddles = (params: Record<string, any>) => client.get('/api/nba/middles', { params });
+export const getNBAEV = (params: Record<string, any>) => client.get('/api/nba/ev', { params });
+export const getNBAGapBets = (params: Record<string, any> = {}) => client.get('/api/nba/gap-bets', { params });
+export const getNBAGapRecord = () => client.get('/api/nba/gap-bets/record');
+export const getNBAInjuryImpact = (params: Record<string, any> = {}) => client.get('/api/nba/injury-impact', { params });

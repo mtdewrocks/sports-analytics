@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getNBAGapBets } from '../../api/nba';
+import { getNBAGapBets, getNBAGapRecord } from '../../api/nba';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SegmentedToggle from '../../components/SegmentedToggle';
 import OddsDisclaimer, { clockLabel } from '../../components/OddsDisclaimer';
@@ -35,6 +35,8 @@ interface GapRow {
   ev_pct: number | null;
   dfs_leg: string;
   fetched_at: string | null;
+  landing_basis?: 'history' | 'model';
+  is_game_line?: boolean;
 }
 
 interface GapResponse {
@@ -107,19 +109,28 @@ function GapCard({ r, lookback }: { r: GapRow; lookback: number }) {
       </div>
 
       <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.55 }}>
-        Loses only if he finishes on <b style={{ color: theme.warningText }}>exactly {r.gap}</b>.
+        Loses only if {r.is_game_line ? (r.market === 'team_totals' ? 'they score' : 'the game total is') : 'he finishes on'}{' '}
+        <b style={{ color: theme.warningText }}>exactly {r.gap}</b>.
         {' '}Per $100: ${underStake.toFixed(0)} on the Under, ${r.stake_over_pct.toFixed(0)} on the Over
         → <b style={{ color: theme.textPrimary }}>+${r.win_pct.toFixed(2)}</b> on any other result,
         −$100 on {r.gap}.
       </div>
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 10, fontSize: 12 }}>
-        <span style={{ color: theme.textSecondary }}>
-          Landed on {r.gap}:{' '}
-          <b style={{ color: theme.textPrimary }}>{r.landing_pct != null ? `${r.landing_pct}%` : '—'}</b>
-          {r.games > 0 && <span style={{ color: theme.textMuted }}> of last {Math.min(r.games, lookback)} games</span>}
-          {r.landing_pct == null && <span style={{ color: theme.textMuted }}> (not enough games)</span>}
-        </span>
+        {r.landing_basis === 'model' ? (
+          <span style={{ color: theme.textSecondary }}>
+            Chance of exactly {r.gap}:{' '}
+            <b style={{ color: theme.textPrimary }}>{r.landing_pct != null ? `${r.landing_pct}%` : '—'}</b>
+            <span style={{ color: theme.textMuted }}> (modelled from how far finals land from the line)</span>
+          </span>
+        ) : (
+          <span style={{ color: theme.textSecondary }}>
+            Landed on {r.gap}:{' '}
+            <b style={{ color: theme.textPrimary }}>{r.landing_pct != null ? `${r.landing_pct}%` : '—'}</b>
+            {r.games > 0 && <span style={{ color: theme.textMuted }}> of last {Math.min(r.games, lookback)} games</span>}
+            {r.landing_pct == null && <span style={{ color: theme.textMuted }}> (not enough games)</span>}
+          </span>
+        )}
         <span style={{ color: theme.textSecondary }}>
           Break-even: <b style={{ color: theme.textPrimary }}>under {r.breakeven_pct}%</b>
         </span>
@@ -134,6 +145,88 @@ function GapCard({ r, lookback }: { r: GapRow; lookback: number }) {
         Lines as of {clockLabel(r.fetched_at) || 'unknown'}
         {r.dfs_leg && <span style={{ color: theme.warningText }}> · includes a pick'em app leg ({r.dfs_leg}) — may not be placeable alone</span>}
       </div>
+    </div>
+  );
+}
+
+interface RecordSummary { bets: number; one_leg_won: number; gap_hits: number; return_pct: number | null; net_per_100: number | null }
+interface RecordResponse {
+  overall: RecordSummary;
+  positive: RecordSummary;
+  by_market: (RecordSummary & { market: string; market_label: string })[];
+  recent: { date: string; player: string; market_label: string; gap: string; result: number; landed_in_gap: boolean; return_pct: number; under: string; over: string }[];
+  since: string | null;
+  pending: number;
+}
+
+function pct(n: number | null): string {
+  return n == null ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+}
+
+function SummaryTile({ label, s }: { label: string; s: RecordSummary }) {
+  const color = s.return_pct == null ? theme.textSecondary : s.return_pct > 0 ? theme.dataBlue : theme.warningText;
+  return (
+    <div style={{ flex: '1 1 220px', background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12 }}>
+      <div style={{ fontSize: 12, color: theme.textMuted }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>{pct(s.return_pct)}</div>
+      <div style={{ fontSize: 12, color: theme.textSecondary }}>
+        {s.bets} graded · {s.one_leg_won} cashed · {s.gap_hits} landed in the gap
+      </div>
+    </div>
+  );
+}
+
+function TrackRecord() {
+  const [rec, setRec] = useState<RecordResponse | null>(null);
+  useEffect(() => { getNBAGapRecord().then((r) => setRec(r.data)).catch(() => setRec(null)); }, []);
+  if (!rec) return null;
+  const cell = { padding: '6px 8px', borderBottom: `1px solid ${theme.border}`, fontSize: 12 } as const;
+  return (
+    <div style={{ marginTop: 28 }}>
+      <h3 style={{ color: theme.textPrimary, marginBottom: 4 }}>Track record</h3>
+      <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.5 }}>
+        Every gap bet this page has listed, at the prices first seen, graded against the final box
+        score. Return is per dollar staked across both legs; props where the player didn't play are left out
+        (books void those).{rec.pending > 0 ? ` ${rec.pending} still waiting on games to finish.` : ''}
+      </div>
+      {rec.overall.bets === 0 ? (
+        <div style={{ fontSize: 13, color: theme.textSecondary }}>Nothing graded yet — results show up once the first listed games are final.</div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+            <SummaryTile label={`All gap bets${rec.since ? ` since ${rec.since}` : ''}`} s={rec.overall} />
+            <SummaryTile label="Ones rated a positive return" s={rec.positive} />
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.textPrimary, marginBottom: 14 }}>
+              <thead><tr style={{ color: theme.textSecondary, textAlign: 'left' }}>
+                <th style={cell}>Market</th><th style={cell}>Graded</th><th style={cell}>Landed in gap</th><th style={cell}>Return</th>
+              </tr></thead>
+              <tbody>
+                {rec.by_market.map((m) => (
+                  <tr key={m.market}>
+                    <td style={cell}>{m.market_label}</td>
+                    <td style={cell}>{m.bets}</td>
+                    <td style={cell}>{m.gap_hits} ({m.bets ? Math.round((100 * m.gap_hits) / m.bets) : 0}%)</td>
+                    <td style={{ ...cell, color: (m.return_pct ?? 0) > 0 ? theme.dataBlue : theme.warningText, fontWeight: 700 }}>{pct(m.return_pct)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 6 }}>Most recent</div>
+          {rec.recent.map((r, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12, padding: '6px 0', borderBottom: `1px solid ${theme.border}`, color: theme.textSecondary }}>
+              <span>
+                <span style={{ color: theme.textMuted }}>{r.date}</span> · <b style={{ color: theme.textPrimary }}>{r.player}</b> {r.market_label} — gap {r.gap}, finished {r.result}
+              </span>
+              <b style={{ color: r.landed_in_gap ? theme.warningText : theme.dataBlue, whiteSpace: 'nowrap' }}>
+                {r.landed_in_gap ? 'Gap hit' : 'Cashed'} {pct(r.return_pct)}
+              </b>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }
@@ -174,7 +267,8 @@ export default function NBAGapBets() {
         Under at the lower number and an Over at the higher one. One of them wins on every result
         except the number in between, where both lose. That makes it a small, steady win — so
         it only pays if the player rarely lands on that exact number. Each pair is priced
-        against the player's own last {data?.lookback ?? 30} games.
+        against the player's own last {data?.lookback ?? 30} games; game and team totals use a
+        model of how far final scores land from the line (about 2% for any one number).
       </div>
 
       <OddsDisclaimer fetchedAt={data?.lines_as_of ?? null} compact={isMobile} />
@@ -226,6 +320,8 @@ export default function NBAGapBets() {
           {rows.map((r, i) => <GapCard key={`${r.player}-${r.market}-${r.under_book}-${r.over_book}-${i}`} r={r} lookback={data?.lookback ?? 30} />)}
         </div>
       )}
+
+      <TrackRecord />
 
       <div style={{ marginTop: 22, fontSize: 12, color: theme.textMuted, lineHeight: 1.6 }}>
         The landing rate is how often it happened, not a prediction — 30 games is a small sample,

@@ -57,6 +57,11 @@ jobs:
         run: |
           bash scripts/release_data.sh pull data-mlb backend/data/mlb
           bash scripts/release_data.sh pull data-nfl backend/data/nfl
+          # Props files only -- data-nba also holds box scores and injuries,
+          # which this workflow never touches.
+          bash scripts/release_data.sh pull data-nba backend/data/nba \
+            'NBA_Props.parquet' 'nba_prop_middles.parquet' 'nba_odds_snapshots.parquet' \
+            'nba_closing_lines.parquet' 'nba_flagged_plays.parquet' 'nba_gap_log.parquet'
 
       # Both sports on ONE schedule. NFL's tiers (2x a day, 4x inside three
       # days) mean it no-ops on most of these runs and spends nothing -- the
@@ -89,11 +94,27 @@ jobs:
           ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
         run: python -u backend/app/get_props.py --sport nfl
 
+      # Same budget logic: plan() only pays for games whose tier is due, so
+      # most 20-minute slots spend nothing. ~22k credits/month -- see the NBA
+      # block in props_config.py for how that was costed.
+      - name: Pull NBA props
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          ODDS_BOOKMAKERS: ${{ vars.ODDS_BOOKMAKERS }}
+          ODDS_REGIONS: ${{ vars.ODDS_REGIONS || 'us' }}
+          ODDS_MIN_REMAINING: ${{ vars.ODDS_MIN_REMAINING || '5000' }}
+          ODDS_MAX_SPEND_PER_RUN: ${{ vars.ODDS_MAX_SPEND_PER_RUN || '400' }}
+        run: python -u backend/app/get_props.py --sport nba
+
       # Free -- pure analysis of the file above, no API calls.
       - name: Find middles and arbs
         run: |
           python -u backend/app/build_prop_middles.py --sport mlb
           python -u backend/app/build_prop_middles.py --sport nfl
+          python -u backend/app/build_prop_middles.py --sport nba
+          # Free -- first sighting of every NBA gap bet, graded on the site
+          # once box scores land (the Gap Bets page's track record).
+          python -u backend/app/build_gap_log.py --sport nba
 
       # Free -- price history (only rows whose price changed) and each
       # started game's closing line, for line movement and CLV. See the
@@ -102,6 +123,7 @@ jobs:
         run: |
           python -u backend/app/build_odds_snapshots.py --sport mlb
           python -u backend/app/build_odds_snapshots.py --sport nfl
+          python -u backend/app/build_odds_snapshots.py --sport nba
 
       # Free -- logs every play the EV Finder flags (first sighting, at that
       # price) and grades it against the closing line once the game starts.
@@ -110,6 +132,7 @@ jobs:
         run: |
           python -u backend/app/build_flagged_plays.py --sport mlb
           python -u backend/app/build_flagged_plays.py --sport nfl
+          python -u backend/app/build_flagged_plays.py --sport nba
 
       # NFL props go to the data-nfl tag, MLB to data-mlb -- assets are a flat
       # namespace per tag, and both sports would otherwise be fighting over
@@ -130,3 +153,10 @@ jobs:
             backend/data/nfl/nfl_odds_snapshots.parquet \
             backend/data/nfl/nfl_closing_lines.parquet \
             backend/data/nfl/nfl_flagged_plays.parquet
+          bash scripts/release_data.sh push data-nba \
+            backend/data/nba/NBA_Props.parquet \
+            backend/data/nba/nba_prop_middles.parquet \
+            backend/data/nba/nba_odds_snapshots.parquet \
+            backend/data/nba/nba_closing_lines.parquet \
+            backend/data/nba/nba_flagged_plays.parquet \
+            backend/data/nba/nba_gap_log.parquet

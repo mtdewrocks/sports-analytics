@@ -1,7 +1,7 @@
 import SegmentedToggle from './SegmentedToggle';
 import type { BettingSport } from '../siteMap';
 
-const LABEL: Record<BettingSport, string> = { mlb: 'MLB', nfl: 'NFL' };
+const LABEL: Record<BettingSport, string> = { mlb: 'MLB', nfl: 'NFL', nba: 'NBA' };
 
 /** Sport switch at the top of every cross-sport Betting page. */
 export default function BettingSportToggle({

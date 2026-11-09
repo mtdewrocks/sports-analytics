@@ -286,6 +286,22 @@ def get_nfl_weather_forecast() -> pd.DataFrame:
     return _load(f"{base}/nfl_weather_forecast.parquet", pd.read_parquet, "nfl weather forecast")
 
 
+@ttl_cache(MLB_TTL)
+def get_nba_gap_log() -> pd.DataFrame:
+    """Every NBA gap bet at first sighting, from build_gap_log.py -- graded
+    against box scores at serve time by nba_gaps.get_gap_record()."""
+    return _load(f"{settings.NBA_BASE_URL}/nba_gap_log.parquet", pd.read_parquet, "nba gap log")
+
+
+@ttl_cache(MLB_TTL)
+def get_nba_game_lines() -> pd.DataFrame:
+    """Consensus (median) spread and total per NBA game, from
+    get_game_lines.py --sport nba, refreshed hourly by update_game_lines.yml.
+    spread_line > 0 means the HOME team is favored. Team names are The Odds
+    API's full names ("New York Knicks")."""
+    return _load(f"{settings.NBA_BASE_URL}/game_lines.parquet", pd.read_parquet, "nba game lines")
+
+
 @ttl_cache(OTHER_TTL)
 def get_nfl_game_lines() -> pd.DataFrame:
     """Daily game-level spreads/totals, from get_game_lines.py -- pulled
@@ -420,20 +436,24 @@ def get_pitcher_names() -> list:
 _PROPS_URLS = {
     "mlb": lambda: settings.MLB_PROPS_URL,
     "nfl": lambda: settings.NFL_PROPS_URL,
+    "nba": lambda: f"{settings.NBA_BASE_URL}/NBA_Props.parquet",
 }
 _MIDDLES_URLS = {
     "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_prop_middles.parquet",
     "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_prop_middles.parquet",
+    "nba": lambda: f"{settings.NBA_BASE_URL}/nba_prop_middles.parquet",
 }
 
 
 _SNAPSHOT_URLS = {
     "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_odds_snapshots.parquet",
     "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_odds_snapshots.parquet",
+    "nba": lambda: f"{settings.NBA_BASE_URL}/nba_odds_snapshots.parquet",
 }
 _CLOSING_URLS = {
     "mlb": lambda: f"{settings.MLB_BASE_URL}/mlb_closing_lines.parquet",
     "nfl": lambda: f"{settings.NFL_BASE_URL}/nfl_closing_lines.parquet",
+    "nba": lambda: f"{settings.NBA_BASE_URL}/nba_closing_lines.parquet",
 }
 
 
