@@ -2,7 +2,44 @@
 import re
 from typing import Optional, List
 import pandas as pd
-from app.data.loader import get_nba_data, get_nba_props
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+from app.data.loader import (
+    get_nba_all_seasons, get_nba_data, get_nba_props, get_nba_schedule, nba_current_season,
+)
+
+ET = ZoneInfo("America/New_York")
+SEASON_SCOPES = ("current", "last", "both")
+
+
+def _season_label(season: int) -> str:
+    """2027 -> '2026-27'."""
+    return f"{season - 1}-{str(season)[-2:]}"
+
+
+def _season_frame(scope: str = "current") -> pd.DataFrame:
+    """'current' = this season (what every page used to assume), 'last' =
+    the season before, 'both' = everything loaded."""
+    if scope == "current":
+        return get_nba_data()
+    df = get_nba_all_seasons()
+    cur = nba_current_season(df)
+    if scope == "last" and cur:
+        return df[df["season"] == cur - 1].reset_index(drop=True)
+    return df
+
+
+def get_seasons() -> dict:
+    """Labels for the Game Log season picker."""
+    df = get_nba_all_seasons()
+    cur = nba_current_season(df)
+    have = set(int(x) for x in df["season"].dropna().unique()) if "season" in df.columns else set()
+    out = [{"scope": "current", "label": f"This season ({_season_label(cur)})" if cur else "This season"}]
+    if cur and cur - 1 in have:
+        out.append({"scope": "last", "label": f"Last season ({_season_label(cur - 1)})"})
+        out.append({"scope": "both", "label": "Both seasons"})
+    return {"current": cur, "options": out}
 
 STAT_COMBOS = {
     "pra": ["pts", "reb", "ast"],
@@ -26,7 +63,9 @@ def _player_col(df: pd.DataFrame) -> str:
 
 
 def get_players() -> List[str]:
-    df = get_nba_data()
+    # both seasons, so a player who hasn't played yet this season (injured,
+    # traded, unsigned) can still be looked up with the Last season picker
+    df = get_nba_all_seasons()
     col = _player_col(df)
     return sorted(df[col].dropna().unique().tolist())
 
@@ -61,7 +100,7 @@ def _opponent_col(df: pd.DataFrame) -> Optional[str]:
 
 def get_teammates(player: str) -> List[str]:
     """Return all players who shared at least one game with *player* on the same team."""
-    df = get_nba_data()
+    df = get_nba_all_seasons()
     col = _player_col(df)
 
     # Identify the team column
@@ -122,8 +161,9 @@ def get_game_log(
     b2b: bool = False,
     three_in_four: bool = False,
     min_minutes: int = 0,
+    season: str = "current",
 ) -> dict:
-    df = get_nba_data()
+    df = _season_frame(season if season in SEASON_SCOPES else "current")
     col = _player_col(df)
 
     player_norm = _normalize(player)
@@ -131,7 +171,8 @@ def get_game_log(
     player_df = df[mask].copy()
 
     if player_df.empty:
-        return {"rows": [], "hit_rate": None, "average": None, "games": 0}
+        z = {"over": 0, "total": 0, "pct": 0}
+        return {"games": [], "over_counts": {"last5": z, "last10": z, "season": z}}
 
     # Detect date/game columns
     date_col = None
@@ -245,7 +286,7 @@ def get_game_log(
             keep_cols.append(c)
     if min_col:
         keep_cols.append(min_col)
-    for c in ["fgm", "fga"]:
+    for c in ["fgm", "fga", "season", "location"]:
         if c in player_df.columns:
             keep_cols.append(c)
 
@@ -274,6 +315,8 @@ def get_game_log(
             "min": minutes,
             "fgm": int(fgm) if fgm not in (None, "") else None,
             "fga": int(fga) if fga not in (None, "") else None,
+            "season": _season_label(int(row_dict["season"])) if row_dict.get("season") not in (None, "") else None,
+            "home": (row_dict.get("location") == "Home") if row_dict.get("location") else None,
         })
 
     # Sort ascending so chart displays oldest (left) → newest (right)
@@ -680,7 +723,7 @@ def _team_game_totals(df: pd.DataFrame) -> pd.DataFrame:
         sub[c] = pd.to_numeric(sub[c], errors="coerce").fillna(0)
 
     opp_col = _opponent_col(sub)
-    result_col = next((c for c in ["wl", "result"] if c in sub.columns), None)
+    result_col = next((c for c in ["wl", "w/l", "result"] if c in sub.columns), None)
 
     rows = []
     for (gdate, team), g in sub.groupby(["_date", team_col]):
@@ -878,5 +921,92 @@ def get_team_matchup(team_a: str, team_b: str) -> dict:
         "record_b": _team_record(tgt, b),
         "stats_a": stat_rows(a),
         "stats_b": stat_rows(b),
-        "head_to_head": _head_to_head(tgt, a, b) if a != b else None,
+        "head_to_head": _h2h_since_last_season(a, b) if a != b else None,
+        "season": _season_label(int(df["season"].max())) if "season" in df.columns and df["season"].notna().any() else None,
+    }
+
+
+def _h2h_since_last_season(a: str, b: str) -> Optional[dict]:
+    """Head-to-head over last season + this one -- teams only meet 3-4
+    times a year, so this season alone is usually 0 or 1 games."""
+    try:
+        tgt_all = _team_game_totals(get_nba_all_seasons())
+        return _head_to_head(tgt_all, a, b) if not tgt_all.empty else None
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Schedule -- "tonight's games" for the Team Matchup page. nba_schedule.parquet
+# is refreshed twice a day by update_nba.yml (yesterday through +14 days).
+# ---------------------------------------------------------------------------
+
+def _today_et() -> date:
+    return datetime.now(ET).date()
+
+
+def _last_played(team: str, before: date, stats_dates: dict, sched: pd.DataFrame) -> Optional[date]:
+    """Most recent game for a team before `before`, from box scores and from
+    the schedule (covers last night's game if box scores haven't landed yet)."""
+    cands = [d for d in stats_dates.get(team, []) if d < before]
+    if not sched.empty:
+        played = sched[((sched["home"] == team) | (sched["away"] == team)) & (sched["_d"] < before)]
+        cands += list(played["_d"])
+    return max(cands) if cands else None
+
+
+def get_schedule(day: Optional[str] = None) -> dict:
+    """Games for one day (Eastern). With no day given: today if there are
+    games, otherwise the next day that has some."""
+    sched = get_nba_schedule()
+    if sched is None or sched.empty:
+        return {"date": day, "dates": [], "games": []}
+    sched = sched.copy()
+    sched["_d"] = pd.to_datetime(sched["date"], errors="coerce").dt.date
+    sched = sched.dropna(subset=["_d"])
+    today = _today_et()
+    upcoming = sorted(d for d in sched["_d"].unique() if d >= today)
+
+    if day:
+        try:
+            target = date.fromisoformat(day)
+        except ValueError:
+            target = today
+    else:
+        target = today if today in upcoming else (upcoming[0] if upcoming else today)
+
+    stats = get_nba_all_seasons()
+    stats_dates: dict = {}
+    if not stats.empty and "team" in stats.columns:
+        d = pd.to_datetime(stats["date"] if "date" in stats.columns else stats["game_date"], errors="coerce").dt.date
+        for team, ds in pd.DataFrame({"team": stats["team"], "d": d}).dropna().groupby("team")["d"]:
+            stats_dates[team] = sorted(set(ds))
+
+    def rest(team: str) -> dict:
+        last = _last_played(team, target, stats_dates, sched)
+        days = (target - last).days if last else None
+        return {"last_game": last.isoformat() if last else None,
+                "days_rest": (days - 1) if days is not None else None,
+                "back_to_back": days == 1}
+
+    games = []
+    for r in sched[sched["_d"] == target].sort_values("start_utc").itertuples():
+        start = pd.to_datetime(r.start_utc, utc=True, errors="coerce")
+        games.append({
+            "game_id": int(r.espn_game_id),
+            "start_utc": r.start_utc,
+            "tip": start.tz_convert(ET).strftime("%I:%M %p ET").lstrip("0") if pd.notna(start) else None,
+            "state": r.state, "status": r.status,
+            "home": r.home, "away": r.away,
+            "home_score": None if pd.isna(r.home_score) else int(r.home_score),
+            "away_score": None if pd.isna(r.away_score) else int(r.away_score),
+            "broadcast": r.broadcast if isinstance(r.broadcast, str) else None,
+            "venue": r.venue if isinstance(r.venue, str) else None,
+            "home_rest": rest(r.home), "away_rest": rest(r.away),
+        })
+    return {
+        "date": target.isoformat(),
+        "is_today": target == today,
+        "dates": [d.isoformat() for d in upcoming[:8]],
+        "games": games,
     }

@@ -19,3 +19,6 @@ export const getNBATeamUsage = (team: string, metric: string = 'fga', scope: str
   client.get('/api/nba/team-usage', { params: { team, metric, scope } });
 export const getNBATeamMatchup = (teamA: string, teamB: string) =>
   client.get('/api/nba/team-matchup', { params: { team_a: teamA, team_b: teamB } });
+export const getNBASeasons = () => client.get('/api/nba/seasons');
+export const getNBASchedule = (date?: string) =>
+  client.get('/api/nba/schedule', { params: date ? { date } : {} });

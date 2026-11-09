@@ -23,9 +23,19 @@ def game_log(
     b2b: bool = Query(False),
     three_in_four: bool = Query(False),
     min_minutes: int = Query(0),
+    season: str = Query("current", description="current | last | both"),
     _=Depends(require_access),
 ):
-    return nba_data.get_game_log(player, stat, threshold, with_player, without_player, b2b, three_in_four, min_minutes)
+    return nba_data.get_game_log(player, stat, threshold, with_player, without_player, b2b, three_in_four, min_minutes, season)
+
+@router.get("/seasons")
+def seasons(_=Depends(require_access)):
+    return nba_data.get_seasons()
+
+@router.get("/schedule")
+def schedule(date: Optional[str] = Query(None, description="YYYY-MM-DD (Eastern); default today or next game day"),
+             _=Depends(require_access)):
+    return nba_data.get_schedule(date)
 
 @router.get("/in-out")
 def in_out(player: str = Query(...), exclude: List[str] = Query(default=[]), _=Depends(require_access)):

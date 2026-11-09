@@ -189,22 +189,38 @@ def get_nfl_snap_counts_history() -> pd.DataFrame:
 
 
 @ttl_cache(OTHER_TTL)
-def get_nba_data() -> pd.DataFrame:
-    raw = _fetch_bytes(settings.NBA_STATS_URL)
-    df = pd.read_parquet(io.BytesIO(raw))
+def get_nba_all_seasons() -> pd.DataFrame:
+    """Every NBA player-game we have: last season + this season, from
+    nba_player_stats.parquet (get_nba_data.py / update_nba.yml). `season` is
+    the year the season ends (2027 = 2026-27).
+
+    Until that file is published, falls back to the old NBA_Player_Stats file
+    from the legacy repo. Its Season column is mislabeled (all of it is
+    2025-26), so it's relabeled as one season."""
+    df = _load(f"{settings.NBA_BASE_URL}/nba_player_stats.parquet", pd.read_parquet, "nba player stats")
+    if df.empty:
+        print("Note: nba_player_stats.parquet not published yet; serving the legacy NBA file")
+        df = pd.read_parquet(io.BytesIO(_fetch_bytes(settings.NBA_STATS_URL)))
+        df["Season"] = 2026
     df.columns = [c.lower().replace(" ", "_") for c in df.columns]
+    df["season"] = pd.to_numeric(df["season"], errors="coerce").astype("Int64")
     return df
+
+
+def nba_current_season(df: pd.DataFrame) -> int | None:
+    """The latest season with games in it -- this season once it has tipped
+    off, last season before opening night."""
+    return int(df["season"].max()) if "season" in df.columns and df["season"].notna().any() else None
 
 
 @ttl_cache(OTHER_TTL)
-def get_nba_player_stats() -> pd.DataFrame:
-    """New NBA box scores (last season + this season), from get_nba_data.py /
-    update_nba.yml. Same columns as get_nba_data() plus SEASON TYPE, STARTER,
-    PLAYER ID, with a correct Season column (year the season ends). Not wired
-    into the pages yet -- they still read get_nba_data()."""
-    df = _load(f"{settings.NBA_BASE_URL}/nba_player_stats.parquet", pd.read_parquet, "nba player stats")
-    df.columns = [c.lower().replace(" ", "_") for c in df.columns]
-    return df
+def get_nba_data() -> pd.DataFrame:
+    """Current season only. Every NBA page treats "all rows" as the season
+    (season averages, ranks, records), so they read this; anything that wants
+    last season too uses get_nba_all_seasons()."""
+    df = get_nba_all_seasons()
+    cur = nba_current_season(df)
+    return df[df["season"] == cur].reset_index(drop=True) if cur else df
 
 
 @ttl_cache(OTHER_TTL)

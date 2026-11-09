@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getNBAPlayers, getNBATeammates, getNBAGameLog } from '../../api/nba';
+import { getNBAPlayers, getNBATeammates, getNBAGameLog, getNBASeasons } from '../../api/nba';
 import StatChart from '../../components/StatChart';
 import OverCountsTable from '../../components/OverCountsTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -27,6 +27,18 @@ interface Game {
   min?: number | string;
   fgm?: number | null;
   fga?: number | null;
+  season?: string | null;
+  home?: boolean | null;
+}
+
+interface SeasonOption {
+  scope: string;
+  label: string;
+}
+
+function opponentLabel(g: Game): string {
+  if (g.home == null) return g.opponent;
+  return `${g.home ? 'vs' : '@'} ${g.opponent}`;
 }
 
 interface OverCount {
@@ -67,6 +79,8 @@ export default function NBAGameLog() {
   const [withoutPlayer, setWithoutPlayer] = useState('');
   const [b2b, setB2b] = useState(false);
   const [threeInFour, setThreeInFour] = useState(false);
+  const [seasonScope, setSeasonScope] = useState('current');
+  const [seasonOptions, setSeasonOptions] = useState<SeasonOption[]>([{ scope: 'current', label: 'This season' }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState<GameData | null>(null);
@@ -77,6 +91,12 @@ export default function NBAGameLog() {
     getNBAPlayers()
       .then((res) => setPlayers(res.data))
       .catch(() => setPlayers([]));
+  }, []);
+
+  useEffect(() => {
+    getNBASeasons()
+      .then((res) => { if (res.data?.options?.length) setSeasonOptions(res.data.options); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -103,6 +123,7 @@ export default function NBAGameLog() {
         threshold,
         b2b,
         three_in_four: threeInFour,
+        season: seasonScope,
       };
       if (minMinutes > 0) params.min_minutes = minMinutes;
       if (withPlayer) params.with_player = withPlayer;
@@ -200,6 +221,11 @@ export default function NBAGameLog() {
           {STAT_OPTIONS.map((s) => <option key={s} value={s}>{formatStatLabel(s)}</option>)}
         </select>
 
+        <label style={labelStyle}>Season</label>
+        <select style={inputStyle} value={seasonScope} onChange={(e) => setSeasonScope(e.target.value)}>
+          {seasonOptions.map((o) => <option key={o.scope} value={o.scope}>{o.label}</option>)}
+        </select>
+
         <label style={labelStyle}>Threshold</label>
         <input
           type="number"
@@ -222,7 +248,12 @@ export default function NBAGameLog() {
             {error}
           </div>
         )}
-        {!loading && !error && gameData && (
+        {!loading && !error && gameData && gameData.games.length === 0 && (
+          <div style={{ color: theme.textSecondary, marginTop: 60, textAlign: 'center', fontSize: 16 }}>
+            No games for {selectedPlayer} in {seasonOptions.find((o) => o.scope === seasonScope)?.label.toLowerCase() || 'this season'} with these filters.
+          </div>
+        )}
+        {!loading && !error && gameData && gameData.games.length > 0 && (
           <>
             <h2 style={{ marginTop: 0, color: theme.textPrimary }}>
               {selectedPlayer} — {formatStatLabel(selectedStat)} (Line: {threshold})
@@ -237,7 +268,7 @@ export default function NBAGameLog() {
                   <StatCard
                     key={i}
                     title={g.game_date}
-                    titleAside={g.opponent}
+                    titleAside={opponentLabel(g)}
                     value={g.stat_value}
                     valueColor={g.stat_value > threshold ? theme.dataBlue : theme.dataRed}
                     footer={formatStatLabel(selectedStat)}
@@ -266,8 +297,13 @@ export default function NBAGameLog() {
                 <tbody>
                   {recentGames.map((g, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${theme.border}`, background: i % 2 === 0 ? theme.bgPage : theme.bgCard, color: theme.textPrimary }}>
-                      <td style={{ padding: '8px 14px' }}>{g.game_date}</td>
-                      <td style={{ padding: '8px 14px' }}>{g.opponent}</td>
+                      <td style={{ padding: '8px 14px' }}>
+                        {g.game_date}
+                        {seasonScope === 'both' && g.season && (
+                          <span style={{ marginLeft: 6, fontSize: 11, color: theme.textMuted }}>{g.season}</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '8px 14px' }}>{opponentLabel(g)}</td>
                       <td style={{ padding: '8px 14px', textAlign: 'center', color: theme.textSecondary }}>
                         {g.min ?? '—'}
                       </td>
