@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -15,6 +16,8 @@ from app.routers.betting import router as betting_router
 from app.config import settings
 
 app = FastAPI(title="Sports Analytics API", version="1.0.0")
+# The projections pages send a few hundred KB of JSON; compressed it's ~10x smaller on a phone.
+app.add_middleware(GZipMiddleware, minimum_size=2000)
 
 app.add_middleware(
     CORSMiddleware,

@@ -70,6 +70,7 @@ const NFLInOut = lazy(() => import('./pages/nfl/NFLInOut'));
 const NFLSeasonScreener = lazy(() => import('./pages/nfl/NFLSeasonScreener'));
 const NFLMismatches = lazy(() => import('./pages/nfl/NFLMismatches'));
 const NFLProps = lazy(() => import('./pages/nfl/NFLProps'));
+const NFLProjections = lazy(() => import('./pages/nfl/NFLProjections'));
 const NFLTeamUsage = lazy(() => import('./pages/nfl/NFLTeamUsage'));
 const NFLPlayerUsageTrend = lazy(() => import('./pages/nfl/NFLPlayerUsageTrend'));
 const NFLWeather = lazy(() => import('./pages/nfl/NFLWeather'));
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/nfl/team-usage" element={<PrivateRoute><NFLTeamUsage /></PrivateRoute>} />
           <Route path="/nfl/usage-trend" element={<PrivateRoute><NFLPlayerUsageTrend /></PrivateRoute>} />
           <Route path="/nfl/props" element={<PrivateRoute><NFLProps /></PrivateRoute>} />
+          <Route path="/nfl/projections" element={<PrivateRoute><NFLProjections /></PrivateRoute>} />
           <Route path="/nfl/weather" element={<PrivateRoute><NFLWeather /></PrivateRoute>} />
 
           <Route path="/mlb/game-log" element={<PrivateRoute><MLBGameLog /></PrivateRoute>} />

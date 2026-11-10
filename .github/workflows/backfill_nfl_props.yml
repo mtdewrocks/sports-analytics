@@ -1,0 +1,77 @@
+name: Backfill NFL Props History
+
+# Manual only. Buys one pre-kickoff snapshot of player-prop lines per game
+# for a past season from The Odds API's historical endpoint, for tuning how
+# much the NFL projections lean on the line. See
+# backend/app/get_nfl_props_history.py.
+#
+# Cost: ~50 credits a game for the "core" markets (~14,400 a season), double
+# for "all". max_credits is a hard stop, and the run is resumable -- run it
+# again with the same season to finish where it stopped. Tick dry_run to see
+# the estimate without spending anything.
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Season (2023 or later)"
+        required: true
+        default: "2025"
+      markets:
+        description: "core = receiving + rushing; qb; td; all"
+        type: choice
+        options: [core, qb, td, all]
+        default: core
+      max_credits:
+        description: "Stop before spending more than this"
+        required: true
+        default: "14000"
+      dry_run:
+        description: "Only print the estimate"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backfill-nfl-props
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install "pandas>=2.2,<3" pyarrow requests
+
+      - name: Restore history from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_props_history.parquet'
+
+      - name: Backfill
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          ODDS_BOOKMAKERS: ${{ vars.ODDS_BOOKMAKERS }}
+        run: |
+          ARGS="--season ${{ github.event.inputs.season }} --markets ${{ github.event.inputs.markets }} --max-credits ${{ github.event.inputs.max_credits }}"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python -u backend/app/get_nfl_props_history.py $ARGS
+
+      - name: Publish to release
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/release_data.sh push data-nfl backend/data/nfl/nfl_props_history.parquet

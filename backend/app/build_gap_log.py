@@ -18,6 +18,7 @@ Output: backend/data/<slug>/<slug>_gap_log.parquet, kept RETAIN_DAYS.
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -45,8 +46,17 @@ def update_log(pairs: pd.DataFrame, logged: pd.DataFrame, now: pd.Timestamp) -> 
         return logged
     start = pd.to_datetime(gaps["commence_time"], utc=True, errors="coerce")
     gaps = gaps[start > now]                          # only bets you could still place
+    # Even-money legs are left off the page, so they're not logged either; and
+    # of the hundreds of alt-line pairs a player can have, keep the best payout
+    # at each gap width -- the page picks its one pair per game from these.
+    gaps = gaps[(pd.to_numeric(gaps["over_price"], errors="coerce") != 100)
+                & (pd.to_numeric(gaps["under_price"], errors="coerce") != 100)]
     if gaps.empty:
         return logged
+    width = (gaps["over_line"].astype(float).apply(math.floor) - gaps["under_line"].astype(float).apply(math.ceil))
+    gaps = (gaps.assign(_w=width, _p=-gaps["one_wins_pct"].astype(float))
+                .sort_values("_p").drop_duplicates(subset=["Player", "market", "commence_time", "_w"])
+                .drop(columns=["_w", "_p"]))
     gaps["commence_time"] = gaps["commence_time"].astype(str)
     for c in COLS:
         if c not in gaps.columns:

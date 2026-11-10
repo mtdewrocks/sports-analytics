@@ -112,14 +112,25 @@ const MARKET_LABELS: Record<string, string> = {
   assists: 'assisted tackles',
 };
 
-export function prettyMarket(market: string): string {
+/** Same stripped key, different stat by sport: NFL's `player_assists` is
+ *  assisted TACKLES, NBA's is assists. Checked before MARKET_LABELS. */
+const SPORT_LABELS: Record<string, Record<string, string>> = {
+  nba: {
+    points: 'points', rebounds: 'rebounds', assists: 'assists', threes: 'threes made',
+    points_rebounds_assists: 'points + rebounds + assists', points_rebounds: 'points + rebounds',
+    rebounds_assists: 'rebounds + assists', points_assists: 'points + assists',
+    blocks: 'blocks', steals: 'steals', blocks_steals: 'blocks + steals', turnovers: 'turnovers',
+  },
+};
+
+export function prettyMarket(market: string, sport?: string): string {
   const key = String(market || '');
   const alt = key.endsWith('_alternate');
   const base = alt ? key.slice(0, -'_alternate'.length) : key;
   // Unmapped keys degrade to underscores-as-spaces rather than breaking, so a
   // market added to props_config before this map reads acceptably in the mean
   // time.
-  const label = MARKET_LABELS[base] ?? base.replace(/_/g, ' ');
+  const label = (sport && SPORT_LABELS[sport]?.[base]) ?? MARKET_LABELS[base] ?? base.replace(/_/g, ' ');
   return alt ? `alternate ${label}` : label;
 }
 
@@ -164,8 +175,8 @@ export function prettyBook(book: string): string {
 /** Market label for a card that already carries the player's name: the
  *  batter/pitcher qualifier is redundant there ("Strikeouts 3.5" under a
  *  pitcher's name), so it's dropped and the first letter capitalised. */
-function cardMarketLabel(market: string): string {
-  const label = prettyMarket(market).replace(/\b(pitcher|batter) /g, '');
+function cardMarketLabel(market: string, sport?: string): string {
+  const label = prettyMarket(market, sport).replace(/\b(pitcher|batter) /g, '');
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
@@ -540,7 +551,7 @@ export interface PropsExplorerProps {
    *  pitcher per market (main line + tap-open alternates) with an
    *  "Opposing lineup" strip. */
   pitcherContextFetcher?: () => Promise<{ data: PitcherLineupContext }>;
-  /** Which sport's page this is (kept for callers; no longer changes the UI). */
+  /** Which sport's page this is -- picks the right label where a market key means different stats by sport. */
   sport?: 'mlb' | 'nfl' | 'nba';
 }
 
@@ -550,7 +561,7 @@ export interface PropsExplorerProps {
  *  are pivoted by the same backend helper, so the only thing that differs is
  *  which endpoint to call. Forking this into two 600-line files would mean
  *  every future fix landing once and being forgotten the other time. */
-export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }: PropsExplorerProps) {
+export default function PropsExplorer({ fetcher, title, pitcherContextFetcher, sport }: PropsExplorerProps) {
   const [pitcherCtx, setPitcherCtx] = useState<PitcherLineupContext | null>(null);
   useEffect(() => {
     if (!pitcherContextFetcher) return;
@@ -854,7 +865,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }:
           <span style={labelStyle}>Market</span>
           <select style={selectStyle} value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
             <option value="">All Markets</option>
-            {marketOptions.map(m => <option key={m} value={m}>{prettyMarket(m)}</option>)}
+            {marketOptions.map(m => <option key={m} value={m}>{prettyMarket(m, sport)}</option>)}
           </select>
         </div>
 
@@ -1022,7 +1033,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }:
                   const player = colRoles.player ? String(row[colRoles.player] ?? '') : '';
                   const market = colRoles.market ? String(row[colRoles.market] ?? '') : '';
                   const line = colRoles.line ? String(row[colRoles.line] ?? '') : '';
-                  const descriptor = [market ? cardMarketLabel(market) : '', line].filter(Boolean).join(' ');
+                  const descriptor = [market ? cardMarketLabel(market, sport) : '', line].filter(Boolean).join(' ');
 
                   return (
                     <StatCard
@@ -1104,7 +1115,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }:
                             <div style={{ fontWeight: 700 }}>{player || String(row['line_id'] ?? '—')}{row['alt_only'] ? <AltTag /> : null}{row['is_live'] ? <LiveBadge /> : null}</div>
                             {(market || line) && (
                               <div style={{ fontSize: 10, color: theme.textMuted }}>
-                                {[market ? cardMarketLabel(market) : '', line].filter(Boolean).join(' ')}
+                                {[market ? cardMarketLabel(market, sport) : '', line].filter(Boolean).join(' ')}
                               </div>
                             )}
                           </td>
@@ -1168,7 +1179,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }:
                           borderRight: `1px solid ${theme.border}`,
                         }}>
                           {colRoles.player && colRoles.market
-                            ? `${String(row[colRoles.player] ?? '')} · ${cardMarketLabel(String(row[colRoles.market] ?? ''))} ${colRoles.line ? String(row[colRoles.line] ?? '') : ''}`.trim()
+                            ? `${String(row[colRoles.player] ?? '')} · ${cardMarketLabel(String(row[colRoles.market] ?? ''), sport)} ${colRoles.line ? String(row[colRoles.line] ?? '') : ''}`.trim()
                             : String(row['line_id'] ?? '—')}
                           {row['alt_only'] ? <AltTag /> : null}
                           {row['is_live'] ? <LiveBadge /> : null}
@@ -1203,7 +1214,7 @@ export default function PropsExplorer({ fetcher, title, pitcherContextFetcher }:
           <div style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 15, marginTop: 80 }}>
             {marketMissingForPlayer ? (
               <>
-                There are no {prettyMarket(selectedMarket)} lines for {selectedPlayer}.
+                There are no {prettyMarket(selectedMarket, sport)} lines for {selectedPlayer}.
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 8 }}>
                   Please choose another market.
                 </div>

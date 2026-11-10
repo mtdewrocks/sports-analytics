@@ -80,11 +80,12 @@ def match_key(name: str) -> str:
     return " ".join(s.split())
 
 
-def main_lines(props: pd.DataFrame, exclude_books: set) -> Dict[tuple, dict]:
-    """(player key, market) -> {line, over_price, over_book, under_price, under_book, books}."""
+def main_lines(props: pd.DataFrame, exclude_books: set, markets=None) -> Dict[tuple, dict]:
+    """(player key, market) -> {line, over_price, over_book, under_price, under_book, books}.
+    `markets`: which props markets to read (default: the NBA ones above)."""
     if props is None or props.empty:
         return {}
-    df = props[props["market"].isin(MARKETS)].copy()            # main markets only, not *_alternate
+    df = props[props["market"].isin(MARKETS if markets is None else markets)].copy()   # main lines, not *_alternate
     df = df[~df["bookmakers"].str.lower().isin(exclude_books)]
     df = df.dropna(subset=["Line"])
     if df.empty:

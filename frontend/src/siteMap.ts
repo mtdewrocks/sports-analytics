@@ -70,6 +70,7 @@ const SPORTS: Sport[] = [
       {
         label: 'Lines',
         pages: [
+          { label: 'Projections', to: '/nfl/projections', description: "Every game simulated snap by snap: projected stats, win chances and the best bets against the lines" },
           { label: 'Props', to: '/nfl/props', description: 'Player prop lines with the best price across books' },
         ],
       },

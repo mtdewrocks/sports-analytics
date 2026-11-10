@@ -93,3 +93,9 @@ export const getNFLWeather = () => client.get('/api/nfl/weather');
 
 // EV Finder -- see backend/app/data/ev.py.
 export const getNFLEV = (params: Record<string, any>) => client.get('/api/nfl/ev', { params });
+
+// NFL Projections -- simulated games and player projections, priced against
+// the live props board (backend app/data/nfl_projections.py).
+export const getNFLProjections = (gameId?: string) =>
+  client.get('/api/nfl/projections', { params: gameId ? { game_id: gameId } : {} });
+export const getNFLProjectionRecord = () => client.get('/api/nfl/projections/record');

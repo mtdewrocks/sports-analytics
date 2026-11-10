@@ -50,3 +50,6 @@ backend/data/mlb/fg_woba_weights.json
 backend/data/nfl/*.parquet
 backend/data/nfl/on_pace_feed.json
 backend/data/nfl/briefing.json
+
+# nflverse season files cached by get_nfl_projections.py
+backend/data/nflverse_cache/

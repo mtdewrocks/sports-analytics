@@ -28,6 +28,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
+import numpy as np
+
 from app.data.loader import get_middles_data, get_nba_all_seasons, get_nba_gap_log
 
 LOOKBACK = 30
@@ -129,45 +131,114 @@ def _is_started(commence: Any) -> bool:
     return bool(pd.notna(ts) and ts <= pd.Timestamp.now(tz="UTC"))
 
 
+EVEN_MONEY = 100.0
+GROUP = ["Player", "market", "commence_time"]
+
+
+def _drop_even_money(df: pd.DataFrame) -> pd.DataFrame:
+    """A leg at exactly +100 isn't a real two-sided price for this page's
+    purposes (Shawn: it only pays on one side), so those pairs are left out."""
+    return df[(pd.to_numeric(df["over_price"], errors="coerce") != EVEN_MONEY)
+              & (pd.to_numeric(df["under_price"], errors="coerce") != EVEN_MONEY)]
+
+
+def _rates(df: pd.DataFrame, lo: "np.ndarray", hi: "np.ndarray", vals_for) -> "np.ndarray":
+    """Landing rate per row, one numpy pass per player-market group instead
+    of one Python loop per pair (a player can have hundreds of alt-line
+    pairs). vals_for(group key) -> array of past results or None."""
+    import numpy as np
+    out = np.full(len(df), np.nan)
+    pos = np.arange(len(df))
+    for gk, idx in df.groupby(GROUP, sort=False).indices.items():
+        vals = vals_for(gk)
+        if vals is None:
+            continue
+        v = np.asarray(vals, float)[None, :]
+        i = pos[idx]
+        out[i] = ((v >= lo[i, None]) & (v <= hi[i, None])).mean(axis=1)
+    return out
+
+
+def _with_ev(df: pd.DataFrame, rate: "np.ndarray") -> pd.DataFrame:
+    df = df.copy()
+    df["_rate"] = rate
+    one = df["one_wins_pct"].astype(float) / 100.0
+    df["_ev"] = (1 - df["_rate"]) * one - df["_rate"]
+    return df
+
+
+def _top_per_game(df: pd.DataFrame) -> pd.DataFrame:
+    """The single best pair per player, market and game: highest estimated
+    return, then best payout. One player's alt ladders across five books can
+    make hundreds of pairs -- they're the same bet at different prices."""
+    return (df.assign(_noev=df["_ev"].isna(), _neg_ev=-df["_ev"].fillna(0), _neg_win=-df["one_wins_pct"].astype(float))
+              .sort_values(["_noev", "_neg_ev", "_neg_win"])
+              .drop_duplicates(subset=GROUP, keep="first"))
+
+
+_hist_cache: Dict[str, Any] = {"key": None, "val": None}
+
+
+def _history_cached():
+    """Built once per stats frame (the loader hands back the same object until
+    it refreshes), not on every page load."""
+    stats = get_nba_all_seasons()
+    k = (id(stats), len(stats))
+    if _hist_cache["key"] != k:
+        _hist_cache["val"] = (_recent_values(stats), _team_by_player(stats))
+        _hist_cache["key"] = k
+    return _hist_cache["val"]
+
+
 def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -> Dict[str, Any]:
+    import numpy as np
     pairs = get_middles_data("nba")
     empty = {"lines_as_of": None, "oldest_line": None, "lookback": LOOKBACK, "rows": []}
     if pairs is None or pairs.empty or "kind" not in pairs.columns:
         return empty
-    pairs = pairs[pairs["kind"] == "anti_middle"].copy()
+    pairs = pairs[pairs["kind"] == "anti_middle"]
     if "commence_time" in pairs.columns:
-        pairs = pairs[~pairs["commence_time"].map(_is_started)]
+        start = pd.to_datetime(pairs["commence_time"], utc=True, errors="coerce")
+        pairs = pairs[~(start <= pd.Timestamp.now(tz="UTC"))]
     if market:
         pairs = pairs[pairs["market"] == market]
+    pairs = _drop_even_money(pairs)
+    lo = np.ceil(pairs["under_line"].astype(float).values)
+    hi = np.floor(pairs["over_line"].astype(float).values)
+    keep = hi >= lo
+    pairs, lo, hi = pairs[keep].reset_index(drop=True), lo[keep], hi[keep]
     if pairs.empty:
         return empty
 
-    stats = get_nba_all_seasons()
-    history = _recent_values(stats)
-    teams = _team_by_player(stats)
+    history, teams = _history_cached()
+
+    def vals_for(gk):
+        player, mkt, _ = gk
+        if mkt in MODELED_SD:
+            return None
+        v = history.get((name_key(player), mkt), [])
+        return v if len(v) >= MIN_GAMES else None
+
+    rate = _rates(pairs, lo, hi, vals_for)
+    modeled = pairs["market"].isin(list(MODELED_SD)).values
+    if modeled.any():
+        mid = (pairs["over_line"].astype(float) + pairs["under_line"].astype(float)).values / 2
+        sd = pairs["market"].map(MODELED_SD).values
+        rate[modeled] = [_normal_window(int(a), int(b), m, s) for a, b, m, s in
+                         zip(lo[modeled], hi[modeled], mid[modeled], sd[modeled])]
+    pairs = _top_per_game(_with_ev(pairs, rate).assign(_lo=lo, _hi=hi))
 
     rows = []
     for r in pairs.to_dict("records"):
-        bounds = gap_bounds(float(r["over_line"]), float(r["under_line"]))
-        if not bounds:
-            continue
-        lo, hi = bounds
-        key = name_key(r["Player"])
-        modeled = r["market"] in MODELED_SD
-        if modeled:
-            vals, n = [], 0
-            rate = _normal_window(lo, hi, (float(r["over_line"]) + float(r["under_line"])) / 2,
-                                  MODELED_SD[r["market"]])
-        else:
-            vals = history.get((key, r["market"]), [])
-            n = len(vals)
-            rate = (sum(1 for v in vals if lo <= v <= hi) / n) if n >= MIN_GAMES else None
-        one_wins = float(r["one_wins_pct"]) / 100.0          # return when exactly one leg wins
-        ev = ((1 - rate) * one_wins - rate) if rate is not None else None
-        avg = (sum(vals) / n) if n else None
+        lo_, hi_ = int(r["_lo"]), int(r["_hi"])
+        is_model = r["market"] in MODELED_SD
+        vals = [] if is_model else history.get((name_key(r["Player"]), r["market"]), [])
+        n = len(vals)
+        rt = None if pd.isna(r["_rate"]) else float(r["_rate"])
+        one_wins = float(r["one_wins_pct"]) / 100.0
         rows.append({
             "player": r["Player"],
-            "team": None if modeled else teams.get(key),
+            "team": None if is_model else teams.get(name_key(r["Player"])),
             "market": r["market"],
             "market_label": MARKET_LABELS.get(r["market"], r["market"].replace("_", " ").title()),
             "game": f"{r.get('away_team') or ''} @ {r.get('home_team') or ''}".strip(" @"),
@@ -176,17 +247,17 @@ def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -
             "under_price": float(r["under_price"]),
             "over_book": r["over_book"], "over_line": float(r["over_line"]),
             "over_price": float(r["over_price"]),
-            "gap": str(lo) if lo == hi else f"{lo}-{hi}",
-            "gap_width": hi - lo + 1,
+            "gap": str(lo_) if lo_ == hi_ else f"{lo_}-{hi_}",
+            "gap_width": hi_ - lo_ + 1,
             "stake_over_pct": float(r["stake_over_pct"]),
             "win_pct": round(100 * one_wins, 2),               # profit on total stake when one leg wins
             "breakeven_pct": float(r["breakeven_window_rate_pct"]),
             "games": n,
-            "avg": round(avg, 1) if avg is not None else None,
-            "landing_pct": round(100 * rate, 1) if rate is not None else None,
-            "landing_basis": "model" if modeled else "history",
-            "is_game_line": modeled,
-            "ev_pct": round(100 * ev, 2) if ev is not None else None,
+            "avg": round(sum(vals) / n, 1) if n else None,
+            "landing_pct": round(100 * rt, 1) if rt is not None else None,
+            "landing_basis": "model" if is_model else "history",
+            "is_game_line": is_model,
+            "ev_pct": round(100 * float(r["_ev"]), 2) if rt is not None else None,
             "dfs_leg": r.get("dfs_leg") or "",
             "fetched_at": r.get("fetched_at"),
         })
@@ -303,32 +374,58 @@ def get_gap_record(recent: int = 25) -> Dict[str, Any]:
              "since": None, "pending": 0}
     if log is None or log.empty:
         return empty
+    log = _drop_even_money(log)
     now = pd.Timestamp.now(tz="UTC")
     start = pd.to_datetime(log["commence_time"], utc=True, errors="coerce")
-    done = log[start <= now - pd.Timedelta(hours=GRADE_AFTER_HOURS)]
-    pending = int((start > now - pd.Timedelta(hours=GRADE_AFTER_HOURS)).sum())
+    done = log[start <= now - pd.Timedelta(hours=GRADE_AFTER_HOURS)].copy()
+    waiting = log[start > now - pd.Timedelta(hours=GRADE_AFTER_HOURS)]
+    pending = int(waiting.groupby(GROUP).ngroups) if len(waiting) else 0     # bets, not alt-line pairs
     if done.empty:
         return {**empty, "pending": pending}
 
     by_player, team_pts, hist = _results_index(get_nba_all_seasons())
+    lo = np.ceil(done["under_line"].astype(float).values)
+    hi = np.floor(done["over_line"].astype(float).values)
+    ok = hi >= lo
+    done, lo, hi = done[ok].reset_index(drop=True), lo[ok], hi[ok]
+
+    def vals_for(gk):
+        player, mkt, commence = gk
+        cols = MARKET_STATS.get(mkt)
+        g = hist.get(name_key(player))
+        d = _game_date_et(commence)
+        if not cols or g is None or d is None:
+            return None
+        prior = g[g["_d"] < d].tail(LOOKBACK)           # what the page knew when it was flagged
+        if len(prior) < MIN_GAMES:
+            return None
+        return prior[cols].apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1).values
+
+    rate = _rates(done, lo, hi, vals_for)
+    mod = done["market"].isin(list(MODELED_SD)).values
+    for i in np.where(mod)[0]:
+        r = done.iloc[i]
+        rate[i] = _normal_window(int(lo[i]), int(hi[i]), (float(r["over_line"]) + float(r["under_line"])) / 2,
+                                 MODELED_SD[r["market"]])
+    # grade the one pair per game the page would have shown, not every alt-line combination
+    done = _top_per_game(_with_ev(done, rate).assign(_lo=lo, _hi=hi))
+
     graded = []
     for r in done.to_dict("records"):
-        b = gap_bounds(float(r["over_line"]), float(r["under_line"]))
         d = _game_date_et(r["commence_time"])
-        if not b or d is None:
+        if d is None:
             continue
-        lo, hi = b
+        lo_, hi_ = int(r["_lo"]), int(r["_hi"])
         v = _value_for(r, d, by_player, team_pts)
         if v is None:
             continue
-        in_gap = lo <= v <= hi
+        in_gap = lo_ <= v <= hi_
         one_wins = float(r["one_wins_pct"]) / 100.0
-        rate = _flag_time_rate(r, lo, hi, d, hist)
-        est = ((1 - rate) * one_wins - rate) if rate is not None else None
+        est = None if pd.isna(r["_ev"]) else float(r["_ev"])
         graded.append({
             "date": d.isoformat(), "player": r["Player"], "market": r["market"],
             "market_label": MARKET_LABELS.get(r["market"], r["market"]),
-            "gap": str(lo) if lo == hi else f"{lo}-{hi}",
+            "gap": str(lo_) if lo_ == hi_ else f"{lo_}-{hi_}",
             "under": f"U {r['under_line']:g} {int(r['under_price']):+d} {r['under_book']}",
             "over": f"O {r['over_line']:g} {int(r['over_price']):+d} {r['over_book']}",
             "result": v, "landed_in_gap": in_gap,

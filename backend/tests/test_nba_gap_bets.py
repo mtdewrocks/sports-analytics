@@ -126,3 +126,25 @@ def test_injury_impact_finds_beneficiary(monkeypatch):
     assert b["player"] == "Wing Two" and b["delta"]["pts"] == 7.0 and "pts" in b["flags"] and "min" in b["flags"]
     assert (b["games_with"], b["games_without"]) == (7, 3)
     assert nii.match_key("Mikel Brown Jr.") == nii.match_key("Mikel Brown")
+
+
+def test_gap_bets_one_pair_per_game_and_no_even_money(monkeypatch):
+    from app.data import nba_gaps
+    tip = (pd.Timestamp.now(tz="UTC") + pd.Timedelta(hours=5)).isoformat()
+    base = {"kind": "anti_middle", "Player": "Pat Guard", "market": "points", "commence_time": tip,
+            "stake_over_pct": 50.0, "breakeven_window_rate_pct": 8.0, "home_team": "A", "away_team": "B"}
+    pairs = pd.DataFrame([
+        {**base, "under_book": "fanduel", "under_line": 20.5, "under_price": 115, "over_book": "draftkings",
+         "over_line": 21.5, "over_price": 110, "one_wins_pct": 6.0},
+        {**base, "under_book": "betmgm", "under_line": 20.5, "under_price": 120, "over_book": "draftkings",
+         "over_line": 21.5, "over_price": 112, "one_wins_pct": 8.0},
+        {**base, "under_book": "espnbet", "under_line": 20.5, "under_price": 100, "over_book": "draftkings",
+         "over_line": 21.5, "over_price": 150, "one_wins_pct": 20.0},          # even-money leg: dropped
+    ])
+    stats = pd.DataFrame({"player": "Pat Guard", "team": "AAA", "pts": [15, 18, 25, 30, 12, 24, 27, 16, 19, 23, 26, 17],
+                          "date": pd.date_range("2026-10-01", periods=12, freq="2D")})
+    monkeypatch.setattr(nba_gaps, "get_middles_data", lambda sport: pairs)
+    monkeypatch.setattr(nba_gaps, "get_nba_all_seasons", lambda: stats)
+    rows = nba_gaps.get_gap_bets(include_negative=True)["rows"]
+    assert len(rows) == 1
+    assert rows[0]["under_book"] == "betmgm" and rows[0]["under_price"] == 120

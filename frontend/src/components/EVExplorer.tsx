@@ -93,7 +93,7 @@ const selectStyle = (isMobile: boolean) => ({
   boxSizing: 'border-box' as const, width: isMobile ? '100%' : undefined,
 });
 
-export default function EVExplorer({ fetcher, title, toolbar, footer }: EVExplorerProps) {
+export default function EVExplorer({ fetcher, title, toolbar, footer, sport }: EVExplorerProps) {
   const isMobile = useIsMobile();
   const [mode, setMode] = useState<Mode>('auto');
   const [minEdge, setMinEdge] = useState(2);
@@ -166,7 +166,7 @@ export default function EVExplorer({ fetcher, title, toolbar, footer }: EVExplor
         {markets.length > 0 && (
           <select value={market} onChange={(e) => setMarket(e.target.value)} style={selectStyle(isMobile)}>
             <option value="">All markets</option>
-            {markets.map((m) => <option key={m} value={m}>{prettyMarket(m)}</option>)}
+            {markets.map((m) => <option key={m} value={m}>{prettyMarket(m, sport)}</option>)}
           </select>
         )}
       </div>
@@ -208,7 +208,7 @@ export default function EVExplorer({ fetcher, title, toolbar, footer }: EVExplor
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: theme.textPrimary }}>{r.player}</div>
                     <div style={{ fontSize: 12, color: theme.textSecondary }}>
-                      {prettyMarket(r.market)} · <strong style={{ color: theme.textPrimary }}>{sideLabel(r)}</strong>
+                      {prettyMarket(r.market, sport)} · <strong style={{ color: theme.textPrimary }}>{sideLabel(r)}</strong>
                     </div>
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: theme.accent, fontVariantNumeric: 'tabular-nums' }}>

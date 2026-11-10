@@ -1,0 +1,73 @@
+name: Update NFL Projections
+
+# Refits the NFL simulation and player models from nflverse (2021+) and
+# projects the coming week -- see backend/app/get_nfl_projections.py.
+# Separate from Update NFL so a slow or failed model run never holds up the
+# pages that workflow feeds. Takes ~2-4 minutes.
+
+on:
+  schedule:
+    # Daily, 9:23 AM Central (14:23 UTC during daylight saving time) -- after
+    # Update NFL's 9:07 run, so the injury report and props it pulls are fresh.
+    - cron: "23 14 * * *"
+    # Sunday 11:43 AM Central: inactives for the 1 PM ET games are out by
+    # then; this run drops anyone ruled out and re-prices the board.
+    - cron: "43 16 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-nfl-projections
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install "pandas>=2.2,<3" numpy pyarrow "scikit-learn>=1.4" "lightgbm>=4.5,<5"
+
+      # Past nflverse seasons barely change, so they're cached between runs;
+      # the current season is re-downloaded every time.
+      - name: Cache nflverse seasons
+        uses: actions/cache@v4
+        with:
+          path: backend/data/nflverse_cache
+          key: nflverse-${{ github.run_id }}
+          restore-keys: nflverse-
+
+      - name: Restore data from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_injuries.parquet'
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'NFL_Props.parquet'
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_projection_log.parquet'
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_projection_plays.parquet'
+
+      - name: Project this week
+        run: python -u backend/app/get_nfl_projections.py
+
+      - name: Publish to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          D=backend/data/nfl
+          FILES=""
+          for f in nfl_projections.json nfl_projection_record.json nfl_projection_log.parquet nfl_projection_plays.parquet; do
+            [ -f "$D/$f" ] && FILES="$FILES $D/$f"
+          done
+          if [ -n "$FILES" ]; then bash scripts/release_data.sh push data-nfl $FILES; fi

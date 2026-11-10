@@ -175,3 +175,15 @@ def nfl_ev(
     return get_ev("nfl", source, min_edge, min_books, market, player)
 
 
+
+@router.get("/projections")
+def projections(game_id: Optional[str] = Query(None), _=Depends(require_access)):
+    """This week's simulated games and player projections, priced against the
+    current props board -- see app/data/nfl_projections.py."""
+    from app.data.nfl_projections import get_projections
+    return get_projections(game_id)
+
+@router.get("/projections/record")
+def projections_record(_=Depends(require_access)):
+    from app.data.nfl_projections import get_projection_record
+    return get_projection_record()

@@ -185,8 +185,8 @@ function TrackRecord() {
     <div style={{ marginTop: 28 }}>
       <h3 style={{ color: theme.textPrimary, marginBottom: 4 }}>Track record</h3>
       <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.5 }}>
-        Every gap bet this page has listed, at the prices first seen, graded against the final box
-        score. Return is per dollar staked across both legs; props where the player didn't play are left out
+        The best pair this page listed for each player, stat and game, at the prices first seen,
+        graded against the final box score. Return is per dollar staked across both legs; props where the player didn't play are left out
         (books void those).{rec.pending > 0 ? ` ${rec.pending} still waiting on games to finish.` : ''}
       </div>
       {rec.overall.bets === 0 ? (
@@ -269,6 +269,8 @@ export default function NBAGapBets() {
         it only pays if the player rarely lands on that exact number. Each pair is priced
         against the player's own last {data?.lookback ?? 30} games; game and team totals use a
         model of how far final scores land from the line (about 2% for any one number).
+        Only the best pair for each player, stat and game is shown, and pairs with a leg at exactly
+        +100 are left out.
       </div>
 
       <OddsDisclaimer fetchedAt={data?.lines_as_of ?? null} compact={isMobile} />
@@ -285,7 +287,7 @@ export default function NBAGapBets() {
           onChange={setShowAll}
           options={[
             { value: 'positive', label: 'Positive return' },
-            { value: 'all', label: 'All pairs' },
+            { value: 'all', label: 'All players' },
           ]}
         />
         {markets.length > 1 && (
@@ -310,7 +312,7 @@ export default function NBAGapBets() {
       {!loading && !error && rows.length === 0 && (
         <div style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 40, fontSize: 15, lineHeight: 1.6 }}>
           {showAll === 'positive'
-            ? <>No gap bets with a positive estimated return right now. Switch to <b>All pairs</b> to see the rest, or check back as lines move.</>
+            ? <>No gap bets with a positive estimated return right now. Switch to <b>All players</b> to see the rest, or check back as lines move.</>
             : <>No gap bets on the board right now. They show up when two books are a point apart on a player — usually when one hasn't updated yet.</>}
         </div>
       )}
