@@ -50,7 +50,8 @@ def update_log(pairs: pd.DataFrame, logged: pd.DataFrame, now: pd.Timestamp) -> 
     # of the hundreds of alt-line pairs a player can have, keep the best payout
     # at each gap width -- the page picks its one pair per game from these.
     gaps = gaps[(pd.to_numeric(gaps["over_price"], errors="coerce") != 100)
-                & (pd.to_numeric(gaps["under_price"], errors="coerce") != 100)]
+                & (pd.to_numeric(gaps["under_price"], errors="coerce") != 100)
+                & (gaps["over_line"].astype(float) - gaps["under_line"].astype(float) <= 2.0)]   # page's max gap
     if gaps.empty:
         return logged
     width = (gaps["over_line"].astype(float).apply(math.floor) - gaps["under_line"].astype(float).apply(math.ceil))

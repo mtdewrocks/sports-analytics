@@ -140,6 +140,8 @@ def test_gap_bets_one_pair_per_game_and_no_even_money(monkeypatch):
          "over_line": 21.5, "over_price": 112, "one_wins_pct": 8.0},
         {**base, "under_book": "espnbet", "under_line": 20.5, "under_price": 100, "over_book": "draftkings",
          "over_line": 21.5, "over_price": 150, "one_wins_pct": 20.0},          # even-money leg: dropped
+        {**base, "under_book": "fanatics", "under_line": 9.5, "under_price": 101, "over_book": "espnbet",
+         "over_line": 19.5, "over_price": 1600, "one_wins_pct": 79.0},         # lines 10 apart: dropped
     ])
     stats = pd.DataFrame({"player": "Pat Guard", "team": "AAA", "pts": [15, 18, 25, 30, 12, 24, 27, 16, 19, 23, 26, 17],
                           "date": pd.date_range("2026-10-01", periods=12, freq="2D")})
