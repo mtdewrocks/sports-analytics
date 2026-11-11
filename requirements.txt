@@ -17,3 +17,5 @@ pydantic[email]
 pydantic-settings
 python-multipart
 aiofiles
+# NBA Projections runs its stat models on the server (app/data/nba_projections.py)
+lightgbm>=4.5,<5
