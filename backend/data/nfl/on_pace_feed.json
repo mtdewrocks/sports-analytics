@@ -2,7 +2,7 @@
   "season": 2026,
   "as_of_week": 9,
   "games_total": 17,
-  "generated_at": "2026-11-10T20:46:55.572901+00:00",
+  "generated_at": "2026-11-11T21:19:40.646402+00:00",
   "players": {
     "A'Shawn Robinson": {
       "team": "TB",
@@ -3672,7 +3672,7 @@
       "passing_tds": 0.0,
       "rushing_yards": 0.0,
       "rushing_tds": 0.0,
-      "receiving_yards": 238.0,
+      "receiving_yards": 239.0,
       "receiving_tds": 0.0,
       "receptions": 23.0
     },
@@ -10112,7 +10112,7 @@
       "team": "WAS",
       "position": "QB",
       "games_played": 6,
-      "passing_yards": 1249.0,
+      "passing_yards": 1250.0,
       "passing_tds": 7.0,
       "rushing_yards": 252.0,
       "rushing_tds": 2.0,
