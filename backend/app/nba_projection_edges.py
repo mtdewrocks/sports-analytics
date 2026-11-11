@@ -53,6 +53,18 @@ MIN_PROB_EDGE = 0.05
 # a minutes cap) rather than the books being wrong -- still shown, but marked.
 SUSPECT_EV = 0.35
 
+# Tested Nov 2026 (models as of Oct 31, graded on Nov 1-9 games): the
+# chances were right in the middle but too sure at the ends -- 65% calls hit
+# 60%, 88% calls hit 80% -- so they're pulled 15% back toward a coin flip.
+PROB_SHRINK = 0.85
+# And on Nov 10 the model disagreed with the books' no-vig price by 5%+ on
+# 64% of all lines (266 flags in 6 games) even though its projections sat on
+# the lines on average. Books aren't wrong two times in three; the model is
+# noisy line to line. So its chance is averaged 50/50 with the book's before
+# a play is judged -- the same lean-on-the-market blend the NFL page uses.
+# Re-tune once a few weeks of closing lines can be graded.
+MARKET_WEIGHT = 0.5
+
 
 def american_to_decimal(price: Optional[float]) -> Optional[float]:
     if price is None or pd.isna(price) or price == 0:
@@ -128,16 +140,23 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Op
         pu = None
         if po is not None:
             pu = 1 - po if ln["line"] % 1 else float(1 - prob_over(CAL_KEY[m], p, ln["line"] - 1, calibration))
-        ev = {}
-        for side, prob, price in (("over", po, ln["over_price"]), ("under", pu, ln["under_price"])):
-            dec = american_to_decimal(price)
-            if prob is not None and dec:
-                ev[side] = prob * dec - 1
         # no-vig market chance of the over, when both sides are priced
         mkt = None
         do, du = american_to_decimal(ln["over_price"]), american_to_decimal(ln["under_price"])
         if do and du:
             mkt = (1 / do) / (1 / do + 1 / du)
+        raw_po, raw_pu = po, pu
+        if po is not None:
+            po = 0.5 + PROB_SHRINK * (po - 0.5)
+            pu = 0.5 + PROB_SHRINK * (pu - 0.5)
+            if mkt is not None:
+                po = (1 - MARKET_WEIGHT) * po + MARKET_WEIGHT * mkt
+                pu = (1 - MARKET_WEIGHT) * pu + MARKET_WEIGHT * (1 - mkt)
+        ev = {}
+        for side, prob, price in (("over", po, ln["over_price"]), ("under", pu, ln["under_price"])):
+            dec = american_to_decimal(price)
+            if prob is not None and dec:
+                ev[side] = prob * dec - 1
         side = max(ev, key=ev.get) if ev else None
         if side and ev[side] < MIN_EV:
             side = None
@@ -150,6 +169,9 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Op
                   "threshold": THRESHOLDS.get(m),
                   "prob_over": round(po, 3) if po is not None else None,
                   "prob_under": round(pu, 3) if pu is not None else None,
+                  # the model alone, before the shrink and the blend with the book
+                  "model_prob_over": round(raw_po, 3) if raw_po is not None else None,
+                  "model_prob_under": round(raw_pu, 3) if raw_pu is not None else None,
                   "market_prob_over": round(mkt, 3) if mkt is not None else None,
                   "ev_over": round(ev["over"], 3) if "over" in ev else None,
                   "ev_under": round(ev["under"], 3) if "under" in ev else None,

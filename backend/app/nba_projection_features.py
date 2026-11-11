@@ -30,6 +30,8 @@ import pandas as pd
 
 ROLLING_GAMES = 5
 OLYMPIC_GAMES = 10
+MIN_SHORT = 3        # games needed before the 5-game windows are used
+MIN_LONG = 5         # ...and the 10-game ones
 OPP_WINDOW = 10
 PACE_WINDOW = 10
 
@@ -87,8 +89,17 @@ def _engineer(df: pd.DataFrame) -> pd.DataFrame:
 
     for stat in TARGETS:
         sh = g[stat].shift(1)
-        df[f"{stat}_roll{ROLLING_GAMES}"] = sh.rolling(ROLLING_GAMES).mean()
-        df[f"{stat}_oly{OLYMPIC_GAMES}"] = sh.rolling(OLYMPIC_GAMES).apply(_olympic_mean, raw=True)
+        # min_periods: a player with fewer than 10 games on file (a rookie, or a
+        # veteran back from a season-long injury) used to get NaN here, and the
+        # models -- which never trained on NaN -- read that as "fringe player"
+        # (Damian Lillard, 9 games back from his Achilles: 9.8 points projected
+        # off a 20-point average). Half a window is enough to use.
+        # grouped, so a window never reaches back into the previous player's
+        # rows (with full windows the NaN from shift(1) used to block that)
+        gs = sh.groupby(df["PLAYER"])
+        df[f"{stat}_roll{ROLLING_GAMES}"] = gs.transform(lambda x: x.rolling(ROLLING_GAMES, min_periods=MIN_SHORT).mean())
+        df[f"{stat}_oly{OLYMPIC_GAMES}"] = gs.transform(
+            lambda x: x.rolling(OLYMPIC_GAMES, min_periods=MIN_LONG).apply(_olympic_mean, raw=True))
 
     prev = g["GAME DATE"].shift(1)
     df["is_b2b"] = ((df["GAME DATE"] - prev).dt.days == 1).astype(int)
@@ -102,8 +113,9 @@ def _engineer(df: pd.DataFrame) -> pd.DataFrame:
     df["TEAM_USG"] = df.groupby(["TEAM", "GAME DATE"])["USG_PROXY"].transform("sum")
     df["USG_SHARE"] = df["USG_PROXY"] / df["TEAM_USG"]
     us = df.groupby("PLAYER")["USG_SHARE"].shift(1)
-    df["USG_SHARE_roll5"] = us.rolling(5).mean()
-    df["USG_SHARE_roll10"] = us.rolling(10).mean()
+    ug = us.groupby(df["PLAYER"])
+    df["USG_SHARE_roll5"] = ug.transform(lambda x: x.rolling(5, min_periods=MIN_SHORT).mean())
+    df["USG_SHARE_roll10"] = ug.transform(lambda x: x.rolling(10, min_periods=MIN_LONG).mean())
 
     # min_count=1: a slate date (all NaN) sums to NaN rather than 0, so it
     # can never leak into anyone's rolling average
@@ -273,7 +285,11 @@ def recent_minutes(history: pd.DataFrame) -> pd.DataFrame:
 # report tells you before tip; deep-bench DNPs aren't knowable, so they're
 # deliberately left out of every team-level input.
 MINUTES_FEATURES = ["ew", "last", "l3", "l10sd", "start5", "last_start", "rest", "is_home",
-                    "played_last", "team_missing", "team_returning", "share", "ngames"]
+                    "played_last", "team_missing", "team_returning", "share", "ngames",
+                    # blowouts (final margin 20+, either way) pull starters early,
+                    # so minutes in competitive games are tracked separately
+                    "ew_close", "l3_close", "blow5", "last_blow"]
+BLOWOUT_MARGIN = 20
 MINUTES_PARAMS = {"objective": "l1", "learning_rate": 0.05, "num_leaves": 15, "min_data_in_leaf": 60,
                   "feature_fraction": 0.9, "bagging_fraction": 0.8, "bagging_freq": 1, "verbose": -1, "seed": 1}
 MINUTES_ROUNDS = 500
@@ -296,11 +312,38 @@ def team_minutes_context(df: pd.DataFrame) -> pd.DataFrame:
     return d
 
 
+def _with_margins(h: pd.DataFrame) -> pd.DataFrame:
+    """Final margin of each player's game (team points minus opponent's, from
+    the box scores) and whether it was a blowout."""
+    tp = h.groupby(["TEAM", "GAME DATE"])["PTS"].sum().rename("_tp").reset_index()
+    op = tp.rename(columns={"TEAM": "Opponent", "_tp": "_op"})
+    h = h.merge(tp, on=["TEAM", "GAME DATE"], how="left").merge(op, on=["Opponent", "GAME DATE"], how="left")
+    h["margin"] = h["_tp"] - h["_op"]
+    h["blow"] = (h["margin"].abs() >= BLOWOUT_MARGIN).astype(float).where(h["margin"].notna())
+    return h.drop(columns=["_tp", "_op"])
+
+
+def _close_minutes(m: np.ndarray, blow: np.ndarray) -> tuple:
+    """(EW minutes, mean of the last 3) over games that weren't blowouts;
+    NaN when there are none."""
+    keep = m[blow != 1]
+    if len(keep) == 0:
+        return np.nan, np.nan
+    return float(pd.Series(keep).ewm(halflife=EW_HALFLIFE).mean().iloc[-1]), float(keep[-3:].mean())
+
+
 def build_minutes_training(history: pd.DataFrame) -> pd.DataFrame:
     """One row per player-game with the inputs as they stood BEFORE tip."""
-    h = _clean(history).sort_values(["PLAYER", "GAME DATE"]).reset_index(drop=True)
+    h = _with_margins(_clean(history)).sort_values(["PLAYER", "GAME DATE"]).reset_index(drop=True)
     g = h.groupby("PLAYER")
     h["ew"] = g["MIN"].transform(lambda s: s.shift(1).ewm(halflife=EW_HALFLIFE).mean())
+    close = h["MIN"].where(h["blow"] != 1)
+    gc = close.groupby(h["PLAYER"])
+    h["ew_close"] = gc.transform(lambda s: s.shift(1).ewm(halflife=EW_HALFLIFE, ignore_na=True).mean())
+    h["l3_close"] = gc.transform(lambda s: s.shift(1).rolling(10, min_periods=1).apply(
+        lambda a: np.nanmean(a[~np.isnan(a)][-3:]) if (~np.isnan(a)).any() else np.nan, raw=True))
+    h["blow5"] = g["blow"].transform(lambda s: s.shift(1).rolling(5, min_periods=1).mean())
+    h["last_blow"] = g["blow"].shift(1)
     h["ew_after"] = g["MIN"].transform(lambda s: s.ewm(halflife=EW_HALFLIFE).mean())
     h["last"] = g["MIN"].shift(1)
     h["l3"] = g["MIN"].transform(lambda s: s.shift(1).rolling(3, min_periods=1).mean())
@@ -339,13 +382,17 @@ def build_minutes_training(history: pd.DataFrame) -> pd.DataFrame:
 def slate_minutes_inputs(history: pd.DataFrame, slate: pd.DataFrame) -> pd.DataFrame:
     """Player-level minutes inputs for tonight (team-level ones are added by
     team_minutes_context, because they depend on who's out)."""
-    h = _clean(history).sort_values(["PLAYER", "GAME DATE"])
+    h = _with_margins(_clean(history)).sort_values(["PLAYER", "GAME DATE"])
     st = pd.to_numeric(h["STARTER"], errors="coerce") if "STARTER" in h.columns else pd.Series(np.nan, index=h.index)
     h = h.assign(_st=st)
     rows = []
     for p, g in h.groupby("PLAYER"):
         m = g["MIN"].astype(float)
-        rows.append({"PLAYER": p,
+        bl = g["blow"].values
+        ewc, l3c = _close_minutes(m.values, bl)
+        rows.append({"PLAYER": p, "ew_close": ewc, "l3_close": l3c,
+                     "blow5": float(np.nanmean(bl[-5:])) if np.isfinite(bl[-5:]).any() else np.nan,
+                     "last_blow": float(bl[-1]),
                      "ew": float(m.ewm(halflife=EW_HALFLIFE).mean().iloc[-1]),
                      "last": float(m.iloc[-1]), "l3": float(m.tail(3).mean()),
                      "l10sd": float(m.tail(10).std()) if len(m) >= 3 else np.nan,
@@ -362,8 +409,12 @@ def model_minutes(slate: pd.DataFrame, booster) -> pd.Series:
     """Default minutes from the minutes model: Out -> 0, the 240-minute bench
     trim from default_minutes() applied on top."""
     d = team_minutes_context(slate)
-    X = d[MINUTES_FEATURES].astype(float).copy()
-    X["played_last"] = d["played_last"].astype(int)
+    # the booster's own feature list, so a model trained before a feature was
+    # added still runs on a newer slate (and vice versa, with NaN)
+    cols = booster.feature_name() if hasattr(booster, "feature_name") else MINUTES_FEATURES
+    X = d.reindex(columns=cols).astype(float).copy()
+    if "played_last" in X.columns:
+        X["played_last"] = d["played_last"].astype(int)
     pred = pd.Series(np.clip(booster.predict(X), 0, MAX_MIN), index=d.index)
     pred[d["out"].values] = 0.0
     for _, g in d.groupby("TEAM"):

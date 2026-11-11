@@ -72,8 +72,11 @@ def test_main_line_and_expected_value_edges():
     # results spread evenly from half to 1.5x the projection
     cal = {"PTS": {"edges": [], "ratios": [list(np.linspace(0.5, 1.5, 199))]}}
     e = E.edges_for("Jalen Brunson", {"PTS": 27.6}, lines, cal)["points"]
-    assert abs(e["prob_over"] - 0.578) < 0.01 and e["market_prob_over"] == 0.5
-    assert e["side"] == "over" and e["price"] == -105 and 0.10 < e["ev"] < 0.14 and not e["suspect"]
+    assert abs(e["model_prob_over"] - 0.578) < 0.01 and e["market_prob_over"] == 0.5
+    # shrunk toward 50% and averaged with the book: 57.8% -> ~53% -> not enough
+    assert abs(e["prob_over"] - (0.5 * (0.5 + E.PROB_SHRINK * 0.078) + 0.25)) < 0.01 and e["side"] is None
+    e = E.edges_for("Jalen Brunson", {"PTS": 30.0}, lines, cal)["points"]
+    assert e["side"] == "over" and e["price"] == -105 and 0.07 < e["ev"] < 0.13 and not e["suspect"]
     # +5% on price alone isn't enough when the model barely disagrees with the book
     assert E.edges_for("Jalen Brunson", {"PTS": 26.5}, lines, cal)["points"]["side"] is None
     # no calibration -> no chance -> nothing flagged
@@ -168,3 +171,18 @@ def test_espn_odds_parse_and_history():
     assert N.parse_odds({"odds": [{"details": "NY -4.5", "overUnder": 228.5}]}, h, a) == (228.5, -4.5)
     assert N.parse_odds({"odds": [{"details": "MIL -2", "overUnder": 230}]}, h, a) == (230.0, 2.0)
     assert N.parse_odds({}, h, a) == (None, None)
+
+
+def test_short_history_gets_partial_windows_without_borrowing_other_players():
+    """A player with fewer than 10 games (rookie, or back from a long injury)
+    gets his long-window features from the games he has -- and never from
+    the previous player's rows in the frame."""
+    h = _history(n_days=30)
+    new = h[h["PLAYER"] == "NYK P0"].tail(7).copy()
+    new["PLAYER"] = "NYK Z9"                       # sorts after the others on his team
+    new["PTS"] = 40
+    X = F._engineer(F._clean(pd.concat([h, new], ignore_index=True)))
+    z = X[X["PLAYER"] == "NYK Z9"].sort_values("GAME DATE")
+    assert z["PTS_oly10"].isna().sum() == 5         # needs 5 prior games
+    assert (z["PTS_oly10"].dropna() == 40).all()     # only his own games
+    assert (z["PTS_roll5"].dropna() == 40).all() and z["USG_SHARE_roll10"].notna().sum() == 2

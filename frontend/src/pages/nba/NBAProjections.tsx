@@ -20,6 +20,7 @@ interface LineEdge {
   side: 'over' | 'under' | null; price: number | null; book: string | null;
   over_price: number | null; under_price: number | null; threshold: number | null;
   prob_over: number | null; prob_under: number | null; market_prob_over: number | null;
+  model_prob_over?: number | null; model_prob_under?: number | null;
   ev: number | null; suspect: boolean;
 }
 
@@ -83,7 +84,11 @@ function FlagRow({ f, onOpen }: { f: Flag; onOpen?: () => void }) {
           {' '}· projects {f.e.projection.toFixed(1)} at {f.p.minutes} min
         </div>
         <div style={{ fontSize: 11.5, color: theme.textMuted }}>
-          Model {pct(model)}{book != null ? ` vs book ${pct(book)}` : ''}
+          Chance it hits: ours {pct(model)}{book != null ? `, book ${pct(book)}` : ''}
+          {f.e.model_prob_over != null && (() => {
+            const raw = f.e.side === 'over' ? f.e.model_prob_over : f.e.model_prob_under;
+            return raw != null ? ` (model alone ${pct(raw)})` : '';
+          })()}
           {f.p.status ? ` · ${f.p.status}` : ''}
           {f.e.suspect && <span style={{ color: theme.warningText }}> · gap this big often means news the model doesn't know — check before betting</span>}
         </div>
