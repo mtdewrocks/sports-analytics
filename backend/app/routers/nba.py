@@ -56,9 +56,9 @@ def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None)
 
 @router.get("/middles")
 def nba_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query(None),
-                market: Optional[str] = Query(None), _=Depends(require_access)):
+                market: Optional[str] = Query(None), max_gap: float = Query(2.0, ge=1, le=5), _=Depends(require_access)):
     from app.data.props import get_middles
-    return get_middles("nba", kind, player, market)
+    return get_middles("nba", kind, player, market, max_gap)
 
 @router.get("/gap-bets")
 def gap_bets(include_negative: bool = Query(False), market: Optional[str] = Query(None),

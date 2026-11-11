@@ -109,9 +109,9 @@ def props(team: Optional[str] = Query(None), player: Optional[str] = Query(None)
 
 @router.get("/middles")
 def mlb_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query(None),
-                market: Optional[str] = Query(None), _=Depends(require_access)):
+                market: Optional[str] = Query(None), max_gap: float = Query(2.0, ge=1, le=5), _=Depends(require_access)):
     from app.data.props import get_middles
-    return get_middles("mlb", kind, player, market)
+    return get_middles("mlb", kind, player, market, max_gap)
 
 @router.get("/hit-rate-sheet/players")
 def hit_rate_sheet_players(_=Depends(require_access)):

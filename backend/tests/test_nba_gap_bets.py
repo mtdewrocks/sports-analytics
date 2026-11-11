@@ -150,3 +150,22 @@ def test_gap_bets_one_pair_per_game_and_no_even_money(monkeypatch):
     rows = nba_gaps.get_gap_bets(include_negative=True)["rows"]
     assert len(rows) == 1
     assert rows[0]["under_book"] == "betmgm" and rows[0]["under_price"] == 120
+
+
+def test_betting_middles_list_trims_anti_middles(monkeypatch):
+    from app.data import props as PR
+    tip = (pd.Timestamp.now(tz="UTC") + pd.Timedelta(hours=5)).isoformat()
+    b = {"kind": "anti_middle", "Player": "A @ B", "market": "totals", "commence_time": tip}
+    df = pd.DataFrame([
+        {**b, "under_line": 220.5, "over_line": 280.5, "under_price": 110, "over_price": 5000, "breakeven_window_rate_pct": 90.0},
+        {**b, "under_line": 225.5, "over_line": 226.5, "under_price": 105, "over_price": 110, "breakeven_window_rate_pct": 6.0},
+        {**b, "under_line": 225.5, "over_line": 227.5, "under_price": 115, "over_price": 120, "breakeven_window_rate_pct": 9.0},
+        {**b, "under_line": 225.5, "over_line": 226.5, "under_price": 100, "over_price": 140, "breakeven_window_rate_pct": 20.0},
+        {**b, "kind": "middle", "under_line": 230.5, "over_line": 210.5, "under_price": 300, "over_price": 300,
+         "breakeven_window_rate_pct": 1.0},
+    ])
+    monkeypatch.setattr(PR, "get_middles_data", lambda sport: df)
+    rows = PR.get_middles("nba")
+    anti = [r for r in rows if r["kind"] == "anti_middle"]
+    assert len(anti) == 1 and anti[0]["over_line"] == 226.5 and anti[0]["under_price"] == 105
+    assert any(r["kind"] == "middle" for r in rows)            # real middles untouched

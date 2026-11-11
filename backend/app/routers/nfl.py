@@ -145,9 +145,9 @@ def nfl_props(team: str | None = Query(None), player: str | None = Query(None),
 
 @router.get("/middles")
 def nfl_middles(kind: str | None = Query(None), player: str | None = Query(None),
-                market: str | None = Query(None), _=Depends(require_access)):
+                market: str | None = Query(None), max_gap: float = Query(2.0, ge=1, le=5), _=Depends(require_access)):
     from app.data.props import get_middles
-    return get_middles("nfl", kind, player, market)
+    return get_middles("nfl", kind, player, market, max_gap)
 
 @router.get("/hit-rate-sheet/players")
 def nfl_hit_rate_sheet_players(_=Depends(require_access)):

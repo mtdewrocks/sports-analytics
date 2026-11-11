@@ -69,19 +69,23 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [marketFilter, setMarketFilter] = useState('');
+  // Widest anti-middle shown: Over line at most this many points above the Under line.
+  const [maxGap, setMaxGap] = useState<'1' | '2'>(() => {
+    try { return localStorage.getItem('middles-max-gap') === '1' ? '1' : '2'; } catch { return '2'; }
+  });
   const isMobile = useIsMobile();
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    fetcher({})
+    fetcher({ max_gap: Number(maxGap) })
       .then((res) => setRows(res.data))
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to load.'))
       .finally(() => setLoading(false));
     // fetcher is a stable module-level export (getNFLMiddles / getMLBMiddles),
     // not state -- re-running this on every render would refetch in a loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [maxGap]);
 
   const markets = useMemo(
     () => [...new Set(rows.map((r) => r.market).filter(Boolean))].sort(),
@@ -145,6 +149,17 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
         ] as [Kind, string][]).map(([value, label]) => ({ value, label }))}
         style={{ marginBottom: 10 }}
       />
+
+      {(kind === 'all' || kind === 'anti_middle') && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, color: theme.textSecondary }}>Anti-middle spread (player props; game totals up to 5)</span>
+          <SegmentedToggle
+            value={maxGap}
+            onChange={(v: '1' | '2') => { setMaxGap(v); try { localStorage.setItem('middles-max-gap', v); } catch { /* private mode */ } }}
+            options={[{ value: '1', label: '1 pt' }, { value: '2', label: 'Up to 2 pts' }]}
+          />
+        </div>
+      )}
 
       {markets.length > 0 && (
         <select

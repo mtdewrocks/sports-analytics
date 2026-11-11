@@ -136,16 +136,17 @@ EVEN_MONEY = 100.0
 # (Under 21.5 / Over 23.5 at most). Wider "gaps" are really two separate
 # bets on a long shot, not a near-middle.
 MAX_LINE_DIFF = 2.0
+MAX_LINE_DIFF_TOTALS = 5.0     # game and team totals: a few points is still narrow on a 220 total
 GROUP = ["Player", "market", "commence_time"]
 
 
 def _drop_even_money(df: pd.DataFrame) -> pd.DataFrame:
     """Pairs the page leaves out: a leg at exactly +100 (it only pays on one
-    side), and lines more than MAX_LINE_DIFF apart."""
+    side), and lines more than MAX_LINE_DIFF apart (MAX_LINE_DIFF_TOTALS for game and team totals)."""
     diff = pd.to_numeric(df["over_line"], errors="coerce") - pd.to_numeric(df["under_line"], errors="coerce")
     return df[(pd.to_numeric(df["over_price"], errors="coerce") != EVEN_MONEY)
               & (pd.to_numeric(df["under_price"], errors="coerce") != EVEN_MONEY)
-              & (diff <= MAX_LINE_DIFF)]
+              & (diff <= df["market"].isin(list(MODELED_SD)).map({True: MAX_LINE_DIFF_TOTALS, False: MAX_LINE_DIFF}))]
 
 
 def _rates(df: pd.DataFrame, lo: "np.ndarray", hi: "np.ndarray", vals_for) -> "np.ndarray":

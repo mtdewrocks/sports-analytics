@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+import math
+
 import pandas as pd
 
 from app.data.loader import get_middles_data, get_props_data
@@ -164,8 +166,11 @@ def get_middles(
     kind: Optional[str] = None,
     player: Optional[str] = None,
     market: Optional[str] = None,
+    max_gap: float = 2.0,
 ) -> List[Dict[str, Any]]:
-    """Middles and arbs from build_prop_middles.py, already priced and ranked."""
+    """Middles and arbs from build_prop_middles.py, already priced and ranked.
+    max_gap: widest anti-middle shown (Over line minus Under line) -- the
+    page's 1 / 2 point toggle."""
     df = get_middles_data(sport)
     if df.empty:
         return []
@@ -188,8 +193,43 @@ def get_middles(
         df = df[df["Player"].astype(str).str.lower().str.strip() == _normalize(player)]
     if market and "market" in df.columns:
         df = df[df["market"].astype(str).str.lower().str.strip() == _normalize(market)]
+    df = _trim_anti_middles(df, min(float(max_gap), ANTI_MAX_LINE_DIFF))
 
     return df.fillna("").to_dict(orient="records")
+
+
+ANTI_MAX_LINE_DIFF = 2.0     # widest the page allows on player props; same rule as NBA Gap Bets (app/data/nba_gaps.py)
+# Game and team totals score in the hundreds (or 40s in football), so a few
+# points between the lines is still a narrow window there.
+TOTALS_MARKETS = {"totals", "team_totals", "alternate_totals", "alternate_team_totals"}
+TOTALS_MAX_LINE_DIFF = 5.0
+
+
+def _trim_anti_middles(df: pd.DataFrame, max_diff: float = 2.0) -> pd.DataFrame:
+    """Anti-middles (Under the low line + Over the high one) get the same
+    rules as the Gap Bets page: lines at most 2 apart (5 for game and team totals), no leg at exactly
+    +100, and one pair per player (or game), market and game -- the one with
+    the most cushion per number in the gap. Alt-line ladders otherwise turn
+    one bet into hundreds of rows, e.g. game-total pairs 60 points apart at
+    +5000. Middles and arbs are left alone."""
+    if df.empty or "kind" not in df.columns:
+        return df
+    anti = df["kind"].astype(str).str.lower() == "anti_middle"
+    if not anti.any():
+        return df
+    a = df[anti].copy()
+    ol = pd.to_numeric(a["over_line"], errors="coerce")
+    ul = pd.to_numeric(a["under_line"], errors="coerce")
+    limit = a["market"].astype(str).isin(TOTALS_MARKETS).map({True: TOTALS_MAX_LINE_DIFF, False: max_diff})
+    a = a[(ol - ul <= limit)
+          & (pd.to_numeric(a["over_price"], errors="coerce") != 100)
+          & (pd.to_numeric(a["under_price"], errors="coerce") != 100)]
+    if not a.empty:
+        width = (a["over_line"].astype(float).apply(math.floor) - a["under_line"].astype(float).apply(math.ceil) + 1).clip(lower=1)
+        a["_score"] = pd.to_numeric(a.get("breakeven_window_rate_pct"), errors="coerce").fillna(0) / width
+        keys = [c for c in ("Player", "market", "commence_time") if c in a.columns]
+        a = a.sort_values("_score", ascending=False).drop_duplicates(subset=keys).drop(columns="_score")
+    return pd.concat([df[~anti], a]).sort_index()
 
 
 # ── Pitcher props card (MLB Matchup page) ───────────────────────────────────
