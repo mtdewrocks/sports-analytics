@@ -100,9 +100,10 @@ def _fit(train: pd.DataFrame, stat: str, vegas: bool = False):
     return lgb.train(PARAMS, ds, num_boost_round=ROUNDS), cols
 
 
-def _fit_minutes(train: pd.DataFrame):
+def _fit_minutes(train: pd.DataFrame, cols=None):
     import lightgbm as lgb
-    ds = lgb.Dataset(train[F.MINUTES_FEATURES].astype(float), label=train["MIN"].astype(float),
+    cols = cols or F.MINUTES_FEATURES
+    ds = lgb.Dataset(train[cols].astype(float), label=train["MIN"].astype(float),
                      weight=_weights(train))
     return lgb.train(F.MINUTES_PARAMS, ds, num_boost_round=F.MINUTES_ROUNDS)
 
@@ -116,7 +117,7 @@ def _holdout_mae(tr, te, vegas: bool) -> dict:
     return out
 
 
-def calibrate(X: pd.DataFrame, M: pd.DataFrame, vegas: bool) -> dict:
+def calibrate(X: pd.DataFrame, M: pd.DataFrame, vegas: bool, mcols=None) -> dict:
     """How actual results spread around a projection -- the piece that turns
     "projects 26 vs a 20.5 line" into a chance of going over.
 
@@ -141,9 +142,11 @@ def calibrate(X: pd.DataFrame, M: pd.DataFrame, vegas: bool) -> dict:
     mtr = M[M["GAME DATE"] <= start]
     if len(cal) < 1000 or len(tr) < 2000:
         return {}
-    mm = _fit_minutes(mtr)
-    cal = cal.merge(M[["PLAYER", "GAME DATE"] + F.MINUTES_FEATURES], on=["PLAYER", "GAME DATE"], how="inner")
-    proj_min = np.clip(mm.predict(cal[F.MINUTES_FEATURES].astype(float)), 0, F.MAX_MIN)
+    mcols = mcols or F.MINUTES_FEATURES
+    mm = _fit_minutes(mtr, mcols)
+    extra = [c for c in mcols if c not in cal.columns]
+    cal = cal.merge(M[["PLAYER", "GAME DATE"] + extra], on=["PLAYER", "GAME DATE"], how="inner")
+    proj_min = np.clip(mm.predict(cal[mcols].astype(float)), 0, F.MAX_MIN)
     pred = {}
     for st in F.TARGETS:
         m, cols = _fit(tr, st, vegas)
@@ -175,6 +178,11 @@ def train(history: pd.DataFrame, odds: pd.DataFrame = None) -> dict:
     how far off the model typically is."""
     X = F.build_features_v2(history, odds)
     M = F.build_minutes_training(history)
+    if odds is not None and not odds.empty:
+        M = M.merge(F.team_odds(odds), on=["TEAM", "GAME DATE"], how="left")
+    for c in F.VEGAS_FEATURES:
+        if c not in M.columns:
+            M[c] = np.nan
     cutoff = X["GAME DATE"].max() - pd.Timedelta(days=HOLDOUT_DAYS)
     tr, te = X[X["GAME DATE"] <= cutoff], X[X["GAME DATE"] > cutoff]
 
@@ -187,18 +195,23 @@ def train(history: pd.DataFrame, odds: pd.DataFrame = None) -> dict:
             # points carry the bets that matter most, so they get double weight
             score = lambda h: 2 * h["PTS"] + sum(h.values())  # noqa: E731
             vegas = score(holdout_vegas) < score(holdout)
+    # Minutes get the pregame spread and implied points too: starters average
+    # ~31 min when the spread is under 8 and ~29.5 above it (blowout risk).
+    # Tested Nov 2026: minutes miss 4.81 -> 4.75, starters 4.40 -> 4.25.
+    m_vegas = float(M["abs_spread"].notna().mean()) >= VEGAS_MIN_COVERAGE
+    mcols = F.MINUTES_FEATURES + (F.VEGAS_FEATURES if m_vegas else [])
     minutes_holdout = None
     mtr, mte = M[M["GAME DATE"] <= cutoff], M[M["GAME DATE"] > cutoff]
     if len(mte) > 200 and len(mtr) > 2000:
-        mm = _fit_minutes(mtr)
-        minutes_holdout = round(float(np.abs(mm.predict(mte[F.MINUTES_FEATURES].astype(float)) - mte["MIN"]).mean()), 2)
+        mm = _fit_minutes(mtr, mcols)
+        minutes_holdout = round(float(np.abs(mm.predict(mte[mcols].astype(float)) - mte["MIN"]).mean()), 2)
 
-    calibration = calibrate(X, M, vegas)
+    calibration = calibrate(X, M, vegas, mcols)
     models = {}
     for st in F.TARGETS:
         m, cols = _fit(X, st, vegas)
         models[st] = {"features": cols, "model": m.model_to_string(), "per_minute": True}
-    mm = _fit_minutes(M)
+    mm = _fit_minutes(M, mcols)
     return {
         "version": 2,
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -213,7 +226,7 @@ def train(history: pd.DataFrame, odds: pd.DataFrame = None) -> dict:
         "minutes_holdout_mae": minutes_holdout,
         "calibration": calibration, "calibration_days": CALIBRATION_DAYS,
         "models": models,
-        "minutes_model": {"features": F.MINUTES_FEATURES, "model": mm.model_to_string()},
+        "minutes_model": {"features": mcols, "model": mm.model_to_string()},
     }
 
 
