@@ -179,9 +179,14 @@ function StatCell({ value, edge }: { value: number; edge?: LineEdge }) {
   );
 }
 
-function MinutesInput({ row, onChange, compact }: { row: PlayerRow; onChange: (v: number | null) => void; compact?: boolean }) {
-  const [text, setText] = useState(String(row.minutes));
-  useEffect(() => { setText(String(row.minutes)); }, [row.minutes]);
+function MinutesInput({ row, pending, onChange, compact }: {
+  row: PlayerRow; pending?: number | null; onChange: (v: number | null) => void; compact?: boolean;
+}) {
+  // pending: typed but not run yet (undefined = nothing pending; null = back to default)
+  const shown = pending === undefined ? row.minutes : pending === null ? row.default_min : pending;
+  const [text, setText] = useState(String(shown));
+  useEffect(() => { setText(String(shown)); }, [shown]);
+  const isPending = pending !== undefined;
   const commit = () => {
     const v = parseFloat(text);
     if (text.trim() === '' || isNaN(v)) { onChange(null); return; }
@@ -199,10 +204,10 @@ function MinutesInput({ row, onChange, compact }: { row: PlayerRow; onChange: (v
         style={{
           width: compact ? 44 : 54, padding: compact ? '5px 4px' : '5px 6px', fontSize: 13, borderRadius: 4, textAlign: 'right',
           background: theme.bgPage, color: theme.textPrimary, fontVariantNumeric: 'tabular-nums',
-          border: `1px solid ${row.edited ? theme.warningText : theme.border}`,
+          border: `1px ${isPending ? 'dashed' : 'solid'} ${isPending ? theme.dataBlue : row.edited ? theme.warningText : theme.border}`,
         }}
       />
-      {row.edited && (
+      {(row.edited || (isPending && pending !== null)) && (
         <button
           onClick={() => onChange(null)}
           title={`Back to default (${row.default_min})`}
@@ -215,15 +220,37 @@ function MinutesInput({ row, onChange, compact }: { row: PlayerRow; onChange: (v
   );
 }
 
-function TeamTable({ t, onMinutes, isMobile }: { t: TeamBlock; onMinutes: (p: string, v: number | null) => void; isMobile: boolean }) {
-  const off = Math.abs(t.minutes_total - 240) > 5;
+function TeamTable({ t, pending, onMinutes, onRun, busy, isMobile }: {
+  t: TeamBlock; pending: Record<string, number | null>; onMinutes: (p: string, v: number | null) => void;
+  onRun: (team: string) => void; busy: boolean; isMobile: boolean;
+}) {
+  const nPending = t.players.filter((p) => p.player in pending).length;
+  // minutes total as typed, so the 240 check is useful before running
+  const typedTotal = t.players.reduce((a, p) => {
+    const v = pending[p.player];
+    return a + (v === undefined ? p.minutes : v === null ? p.default_min : v);
+  }, 0);
+  const off = Math.abs(typedTotal - 240) > 5;
   const cols = isMobile ? COLS.slice(0, 4) : COLS;
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
         <b style={{ color: theme.textPrimary, fontSize: 15 }}>{t.team}{t.home ? ' (home)' : ''}</b>
-        <span style={{ fontSize: 12, color: off ? theme.warningText : theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
-          {t.minutes_total.toFixed(0)} / 240 minutes{off ? (t.minutes_total > 240 ? ' — over' : ' — under') : ''}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span style={{ fontSize: 12, color: off ? theme.warningText : theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
+            {typedTotal.toFixed(0)} / 240 minutes{off ? (typedTotal > 240 ? ' — over' : ' — under') : ''}
+          </span>
+          {nPending > 0 && (
+            <button
+              onClick={() => onRun(t.team)} disabled={busy}
+              style={{
+                background: theme.dataBlue, color: theme.bgPage, border: 'none', borderRadius: 4, padding: '5px 12px',
+                fontSize: 12.5, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1,
+              }}
+            >
+              {busy ? 'Updating…' : `Update ${t.team} projections (${nPending} change${nPending === 1 ? '' : 's'})`}
+            </button>
+          )}
         </span>
       </div>
       <div style={{ overflowX: 'auto', border: `1px solid ${theme.border}`, borderRadius: 8 }}>
@@ -249,7 +276,7 @@ function TeamTable({ t, onMinutes, isMobile }: { t: TeamBlock; onMinutes: (p: st
                     )}
                   </td>
                   <td style={{ padding: '6px 6px' }}>
-                    <MinutesInput row={p} onChange={(v) => onMinutes(p.player, v)} compact={isMobile} />
+                    <MinutesInput row={p} pending={pending[p.player]} onChange={(v) => onMinutes(p.player, v)} compact={isMobile} />
                   </td>
                   {cols.map((c) => (
                     <StatCell key={c.stat} value={p.projection[c.stat]} edge={c.market ? p.lines[c.market] : undefined} />
@@ -330,6 +357,8 @@ export default function NBAProjections() {
   const [error, setError] = useState('');
   const [gameId, setGameId] = useState<number | null>(null);
   const [edits, setEdits] = useState<Record<string, number>>({});
+  // typed but not run yet: player -> minutes (null = back to default)
+  const [pending, setPending] = useState<Record<string, number | null>>({});
   const [busy, setBusy] = useState(false);
   const isMobile = useIsMobile();
   const req = useRef(0);
@@ -362,15 +391,34 @@ export default function NBAProjections() {
     if (gameId == null || !data) return;
     const saved = loadEdits(data.date, gameId);
     setEdits(saved);
+    setPending({});
     if (Object.keys(saved).length) rerun(gameId, saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameId, data?.date]);
 
+  // Typing only stages a change; the team's "Update" button runs the model,
+  // so a user can rework a whole rotation (and check the 240) in one go.
   const onMinutes = (player: string, v: number | null) => {
-    if (gameId == null) return;
+    const current = edits[player];
+    setPending((pd) => {
+      const next = { ...pd };
+      if ((v === null && current === undefined) || (v !== null && v === current)) delete next[player];
+      else next[player] = v;
+      return next;
+    });
+  };
+
+  const runTeam = (team: string) => {
+    if (gameId == null || !game) return;
+    const roster = new Set(game.teams.find((t) => t.team === team)?.players.map((p) => p.player) || []);
     const next = { ...edits };
-    if (v == null) delete next[player]; else next[player] = v;
+    const left: Record<string, number | null> = {};
+    Object.entries(pending).forEach(([p, v]) => {
+      if (!roster.has(p)) { left[p] = v; return; }
+      if (v === null) delete next[p]; else next[p] = v;
+    });
     setEdits(next);
+    setPending(left);
     saveEdits(data?.date ?? null, gameId, next);
     rerun(gameId, next);
   };
@@ -378,6 +426,7 @@ export default function NBAProjections() {
   const resetAll = () => {
     if (gameId == null) return;
     setEdits({});
+    setPending({});
     saveEdits(data?.date ?? null, gameId, {});
     rerun(gameId, {});
   };
@@ -391,7 +440,7 @@ export default function NBAProjections() {
       <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.55 }}>
         Projected stats for every player tonight, from recent form, opponent defense, pace, rest and
         usage — <b style={{ color: theme.textPrimary }}>given his minutes</b>. Minutes start from a default
-        built on recent minutes and the injury report; change any of them and the game reruns.
+        built on recent minutes and the injury report; change any of them, then tap <b style={{ color: theme.textPrimary }}>Update</b> on that team to rerun it.
         Lines under each number are the main line across books. A line turns blue when the model's chance
         of that side beats the price by {Math.round((data?.min_ev ?? 0.05) * 100)}% or more — the chance comes from how
         results have actually spread around projections like it, so a 5-point gap on a 20.5 line counts
@@ -448,14 +497,19 @@ export default function NBAProjections() {
             )}
           </div>
           <Plays game={game} />
-          {game.teams.map((t) => <TeamTable key={t.team} t={t} onMinutes={onMinutes} isMobile={isMobile} />)}
+          {game.teams.map((t) => (
+            <TeamTable key={t.team} t={t} pending={pending} onMinutes={onMinutes} onRun={runTeam} busy={busy} isMobile={isMobile} />
+          ))}
         </>
       )}
 
       <TrackRecord />
       <div style={{ marginTop: 18, fontSize: 12, color: theme.textMuted, lineHeight: 1.6 }}>
-        Projections are estimates, not guarantees. Points and assists are re-balanced so a team's usage adds
-        up, which is why changing one player's minutes moves his teammates a little too.
+        Projections are estimates, not guarantees. Usage shifts too: the model knows how much of the team's
+        usage is on the floor, so setting a high-usage player to 0 raises his teammates' scoring and
+        assists at the same minutes, in proportion to how much of the offense each one already runs
+        (Luka out: Reaves about +5 points, close to the +20% he's scored in real games without him). His minutes don't move
+        to anyone on their own — add them where you think they'll go.
       </div>
     </div>
   );

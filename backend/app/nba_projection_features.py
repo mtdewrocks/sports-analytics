@@ -527,4 +527,29 @@ def predict_stats(models: dict, slate: pd.DataFrame, minutes: pd.Series) -> pd.D
         p = booster.predict(X)
         out[stat] = np.clip(p * s["MIN"].values if per_min else p, 0, None)
     out.loc[s["MIN"].values <= 0, list(models)] = 0.0
+    return _redistribute_usage(out, s)
+
+
+# How much of a newly-absent player's usage goes to each teammate, on top of
+# what the stat models already add for "less usage on the floor". Tested on
+# 381 teammate-games (Feb-Apr 2026) where a 24%+ usage player sat: the models
+# alone came in 0.45 points and 0.23 assists low per teammate; handing the
+# freed usage out in proportion to each teammate's own share removed the
+# points bias and trimmed the error (4.35 -> 4.34). Rebounds, threes and the
+# rest didn't move, so they're left alone. E.g. Luka out: Reaves +21%, about
+# what he's done in 18 real games without him (+20% points per 36).
+USAGE_REDISTRIBUTE = {"PTS": 1.0, "AST": 1.0}
+USAGE_BUMP_CAP = 0.35
+
+
+def _redistribute_usage(out: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
+    if "usg_newly_out" not in s.columns:
+        return out
+    gone = s["usg_newly_out"].fillna(0).clip(0, 0.8).values
+    own = s["USG_SHARE_roll10"].fillna(s.get("USG_SHARE_roll5")).fillna(0).clip(0, 0.6).values
+    base = np.clip(gone * own / np.maximum(1 - gone, 0.2), 0, USAGE_BUMP_CAP)
+    playing = s["MIN"].values > 0
+    for stat, a in USAGE_REDISTRIBUTE.items():
+        if stat in out.columns:
+            out[stat] = out[stat].values * np.where(playing, 1 + a * base, 1)
     return out

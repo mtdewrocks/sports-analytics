@@ -198,3 +198,14 @@ def test_odds_history_consensus_line():
         {"markets": [{"key": "spreads", "outcomes": [{"name": "Boston Celtics", "point": -6.5}]}]}]}
     assert OH.consensus(ev) == {"home_spread": -6.5, "total": 222.0}
     assert OH.TEAMS["LA Clippers"] == "LAC"
+
+
+
+def test_newly_out_usage_goes_to_teammates_by_their_own_share():
+    s = pd.DataFrame({"PLAYER": ["Star", "Second", "Role"], "TEAM": "AAA", "MIN": [0.0, 34.0, 20.0],
+                      "usg_newly_out": 0.33, "USG_SHARE_roll10": [0.33, 0.25, 0.10], "USG_SHARE_roll5": np.nan})
+    out = pd.DataFrame({"PLAYER": s.PLAYER, "TEAM": s.TEAM, "PTS": [0.0, 25.0, 8.0], "REB": [0.0, 4.0, 5.0]})
+    r = F._redistribute_usage(out.copy(), s)
+    assert r.PTS[0] == 0 and r.REB.tolist() == [0.0, 4.0, 5.0]           # rebounds untouched
+    second, role = r.PTS[1] / 25 - 1, r.PTS[2] / 8 - 1
+    assert 0.10 < second < 0.15 and 0.03 < role < 0.07 and second > 2 * role
