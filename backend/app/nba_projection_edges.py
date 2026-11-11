@@ -124,10 +124,51 @@ def main_lines(props: pd.DataFrame, exclude_books: set, markets=None) -> Dict[tu
     return out
 
 
-def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Optional[dict] = None) -> Dict[str, dict]:
+def _priced(m: str, p: float, ln: dict, calibration: Optional[dict]) -> dict:
+    """Chances, expected return and the side to play (or None) for one
+    projection against one main line."""
+    po = prob_over(CAL_KEY[m], p, ln["line"], calibration)
+    pu = None
+    if po is not None:
+        pu = 1 - po if ln["line"] % 1 else float(1 - prob_over(CAL_KEY[m], p, ln["line"] - 1, calibration))
+    # no-vig market chance of the over, when both sides are priced
+    mkt = None
+    do, du = american_to_decimal(ln["over_price"]), american_to_decimal(ln["under_price"])
+    if do and du:
+        mkt = (1 / do) / (1 / do + 1 / du)
+    raw_po, raw_pu = po, pu
+    if po is not None:
+        po = 0.5 + PROB_SHRINK * (po - 0.5)
+        pu = 0.5 + PROB_SHRINK * (pu - 0.5)
+        if mkt is not None:
+            po = (1 - MARKET_WEIGHT) * po + MARKET_WEIGHT * mkt
+            pu = (1 - MARKET_WEIGHT) * pu + MARKET_WEIGHT * (1 - mkt)
+    ev = {}
+    for side, prob, price in (("over", po, ln["over_price"]), ("under", pu, ln["under_price"])):
+        dec = american_to_decimal(price)
+        if prob is not None and dec:
+            ev[side] = prob * dec - 1
+    side = max(ev, key=ev.get) if ev else None
+    if side and ev[side] < MIN_EV:
+        side = None
+    if side and mkt is not None:
+        model_p = po if side == "over" else pu
+        book_p = mkt if side == "over" else 1 - mkt
+        if model_p - book_p < MIN_PROB_EDGE:
+            side = None
+    return {"po": po, "pu": pu, "raw_po": raw_po, "raw_pu": raw_pu, "mkt": mkt, "ev": ev, "side": side}
+
+
+def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Optional[dict] = None,
+              alt_proj: Optional[dict] = None) -> Dict[str, dict]:
     """Every market with a line for this player: projection, line, the model's
     chance of each side, expected return at the best price, and -- when that
-    return clears MIN_EV -- the side to play."""
+    return clears MIN_EV -- the side to play.
+
+    alt_proj: the same player at his recent minutes instead of the default.
+    A play is only flagged if it ALSO holds there -- so a flag can't come
+    purely from a minutes guess (default minutes miss by ~4.8). Plays that
+    fail it are marked minutes_sensitive."""
     k = match_key(player)
     out = {}
     for m, parts in MARKETS.items():
@@ -136,46 +177,25 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Op
             continue
         p = float(sum(proj.get(s, 0.0) or 0.0 for s in parts))
         diff = p - ln["line"]
-        po = prob_over(CAL_KEY[m], p, ln["line"], calibration)
-        pu = None
-        if po is not None:
-            pu = 1 - po if ln["line"] % 1 else float(1 - prob_over(CAL_KEY[m], p, ln["line"] - 1, calibration))
-        # no-vig market chance of the over, when both sides are priced
-        mkt = None
-        do, du = american_to_decimal(ln["over_price"]), american_to_decimal(ln["under_price"])
-        if do and du:
-            mkt = (1 / do) / (1 / do + 1 / du)
-        raw_po, raw_pu = po, pu
-        if po is not None:
-            po = 0.5 + PROB_SHRINK * (po - 0.5)
-            pu = 0.5 + PROB_SHRINK * (pu - 0.5)
-            if mkt is not None:
-                po = (1 - MARKET_WEIGHT) * po + MARKET_WEIGHT * mkt
-                pu = (1 - MARKET_WEIGHT) * pu + MARKET_WEIGHT * (1 - mkt)
-        ev = {}
-        for side, prob, price in (("over", po, ln["over_price"]), ("under", pu, ln["under_price"])):
-            dec = american_to_decimal(price)
-            if prob is not None and dec:
-                ev[side] = prob * dec - 1
-        side = max(ev, key=ev.get) if ev else None
-        if side and ev[side] < MIN_EV:
-            side = None
-        if side and mkt is not None:
-            model_p = po if side == "over" else pu
-            book_p = mkt if side == "over" else 1 - mkt
-            if model_p - book_p < MIN_PROB_EDGE:
-                side = None
+        r = _priced(m, p, ln, calibration)
+        po, pu, ev, side, mkt = r["po"], r["pu"], r["ev"], r["side"], r["mkt"]
+        sensitive = False
+        if side and alt_proj:
+            pa = float(sum(alt_proj.get(s, 0.0) or 0.0 for s in parts))
+            if _priced(m, pa, ln, calibration)["side"] != side:
+                side, sensitive = None, True
         out[m] = {**ln, "label": LABELS[m], "projection": round(p, 2), "diff": round(diff, 2),
                   "threshold": THRESHOLDS.get(m),
                   "prob_over": round(po, 3) if po is not None else None,
                   "prob_under": round(pu, 3) if pu is not None else None,
                   # the model alone, before the shrink and the blend with the book
-                  "model_prob_over": round(raw_po, 3) if raw_po is not None else None,
-                  "model_prob_under": round(raw_pu, 3) if raw_pu is not None else None,
+                  "model_prob_over": round(r["raw_po"], 3) if r["raw_po"] is not None else None,
+                  "model_prob_under": round(r["raw_pu"], 3) if r["raw_pu"] is not None else None,
                   "market_prob_over": round(mkt, 3) if mkt is not None else None,
                   "ev_over": round(ev["over"], 3) if "over" in ev else None,
                   "ev_under": round(ev["under"], 3) if "under" in ev else None,
                   "side": side,
+                  "minutes_sensitive": sensitive,
                   "ev": round(ev[side], 3) if side else None,
                   "suspect": bool(side and ev[side] >= SUSPECT_EV),
                   "price": ln["over_price"] if side == "over" else ln["under_price"] if side == "under" else None,

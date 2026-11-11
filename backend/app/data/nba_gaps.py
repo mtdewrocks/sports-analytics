@@ -197,6 +197,51 @@ def _history_cached():
     return _hist_cache["val"]
 
 
+# gap-bet market -> projection stats it sums (Gap Bets' markets are named
+# like the props board's)
+_PROJ_STATS = {"points": ["PTS"], "rebounds": ["REB"], "assists": ["AST"], "threes": ["3PM"],
+               "blocks": ["BLK"], "steals": ["STL"], "turnovers": ["TOV"], "blocks_steals": ["BLK", "STL"],
+               "points_rebounds_assists": ["PTS", "REB", "AST"], "points_rebounds": ["PTS", "REB"],
+               "rebounds_assists": ["REB", "AST"], "points_assists": ["PTS", "AST"]}
+# which calibration table a combo borrows (only single stats and PRA are fit)
+_CAL_FOR = {"blocks_steals": "STL", "points_rebounds": "PRA", "rebounds_assists": "PRA", "points_assists": "PRA",
+            "points_rebounds_assists": "PRA"}
+
+
+def _add_model_view(rows: list) -> None:
+    """Second opinion from NBA Projections: the model's number at default
+    minutes and its chance the result lands in the gap. "agrees" = that
+    chance is below the break-even (the bet looks good to the model too),
+    "disagrees" = above it. Never breaks the page: no slate, no view."""
+    try:
+        from app.data.nba_projections import default_projections
+        from app.nba_projection_edges import match_key, prob_over
+        dp = default_projections()
+    except Exception:          # noqa: BLE001
+        return
+    players, cal = dp.get("players") or {}, dp.get("calibration") or {}
+    for x in rows:
+        x["model_projection"] = x["model_landing_pct"] = x["model_view"] = None
+        if x.get("is_game_line"):
+            continue
+        p = players.get(match_key(x["player"]))
+        parts = _PROJ_STATS.get(x["market"])
+        if not p or not parts or p.get("out"):
+            continue
+        proj = float(sum(p["stats"].get(s, 0.0) for s in parts))
+        key = _CAL_FOR.get(x["market"], parts[0])
+        lo, hi = (int(v) for v in (x["gap"].split("-") if "-" in x["gap"] else (x["gap"], x["gap"])))
+        above_lo = prob_over(key, proj, lo - 0.5, cal)
+        above_hi = prob_over(key, proj, hi + 0.5, cal)
+        if above_lo is None or above_hi is None:
+            continue
+        land = max(0.0, above_lo - above_hi)
+        x["model_projection"] = round(proj, 1)
+        x["model_minutes"] = round(p["min"], 1)
+        x["model_landing_pct"] = round(100 * land, 1)
+        x["model_view"] = "agrees" if 100 * land < x["breakeven_pct"] else "disagrees"
+
+
 def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -> Dict[str, Any]:
     import numpy as np
     pairs = get_middles_data("nba")
@@ -269,6 +314,7 @@ def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -
             "fetched_at": r.get("fetched_at"),
         })
 
+    _add_model_view(rows)
     if not include_negative:
         rows = [x for x in rows if x["ev_pct"] is None or x["ev_pct"] > 0]
     # Priced rows by estimated return; un-priced (too little history) last.

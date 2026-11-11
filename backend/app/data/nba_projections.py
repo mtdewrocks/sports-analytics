@@ -99,6 +99,33 @@ def _predict(slate: pd.DataFrame, minutes: pd.Series) -> pd.DataFrame:
     return F.predict_stats(models, slate, minutes)
 
 
+@ttl_cache(600)
+def default_projections() -> Dict[str, Any]:
+    """Tonight's projections at default minutes, keyed by match_key(player):
+    {"stats": {PTS: .., REB: .., ...}, "min": ..}, plus the calibration the
+    chances come from. For other pages (Gap Bets) that want the model's view
+    without running the whole projections response."""
+    slate = get_projection_slate()
+    if slate is None or slate.empty:
+        return {"players": {}, "calibration": {}}
+    slate = _live_status(slate).reset_index(drop=True)
+    proj = _predict(slate, slate["default_min"])
+    players = {}
+    for i, r in slate.iterrows():
+        players[E.match_key(r["PLAYER"])] = {
+            "min": float(r["default_min"]),
+            "out": bool(r.get("out")),
+            "stats": {s: float(proj.loc[i, s]) for s in F.TARGETS},
+        }
+    return {"players": players, "calibration": _models.get("calibration") or {}}
+
+
+def _scaled(p, minutes, used) -> Optional[Dict[str, float]]:
+    if minutes is None or pd.isna(minutes) or not used or used <= 0:
+        return None
+    return {s: float(p[s]) * float(minutes) / float(used) for s in F.TARGETS}
+
+
 def get_projections(game_id: Optional[int] = None, minutes: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
     slate = get_projection_slate()
     empty = {"date": None, "model": None, "lines_as_of": None, "games": []}
@@ -138,8 +165,11 @@ def get_projections(game_id: Optional[int] = None, minutes: Optional[Dict[str, f
                     "default_min": float(r["default_min"]), "minutes": round(float(used[i]), 1),
                     "edited": E.match_key(r["PLAYER"]) in overrides,
                     "projection": stats,
+                    # unedited players: a flag must also hold at his recent minutes
                     "lines": E.edges_for(r["PLAYER"], {s: float(p[s]) for s in F.TARGETS}, lines,
-                                         _models.get("calibration")),
+                                         _models.get("calibration"),
+                                         None if E.match_key(r["PLAYER"]) in overrides
+                                         else _scaled(p, r.get("ew"), used[i])),
                 })
             rows.sort(key=lambda x: (-x["minutes"], x["player"]))
             teams.append({"team": team, "home": team == first["home"],

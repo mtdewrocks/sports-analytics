@@ -228,6 +228,9 @@ SHARE_RETURN = 0.3
 ROTATION_MIN = 10       # players this size and up absorb or give back minutes
 NEWLY_OUT_MIN = 12
 RETURNING_MIN = 15
+# chance a listed player suits up, for the "returning" minutes he takes back
+SAT_LAST_LIKELIHOOD = 0.6     # sat the last game, not on the injury report
+RETURN_LIKELIHOOD = {"Probable": 0.9, "Questionable": 0.5, "Day-To-Day": 0.5, "Doubtful": 0.15, "Out": 0.0}
 MAX_MIN = 42.0
 TEAM_MINUTES = 240.0
 BENCH_MIN = 15.0
@@ -285,7 +288,10 @@ def recent_minutes(history: pd.DataFrame) -> pd.DataFrame:
 # report tells you before tip; deep-bench DNPs aren't knowable, so they're
 # deliberately left out of every team-level input.
 MINUTES_FEATURES = ["ew", "last", "l3", "l10sd", "start5", "last_start", "rest", "is_home",
-                    "played_last", "team_missing", "team_returning", "share", "ngames",
+                    "played_last", "team_missing", "team_returning", "share",
+                    # ("ngames" dropped Nov 2026: with only ~1.5 seasons of data it
+                    # acted as a calendar -- veterans tonight sit past anything in
+                    # training -- and leaving it out tested better, 4.75 -> 4.71)
                     # blowouts (final margin 20+, either way) pull starters early,
                     # so minutes in competitive games are tracked separately
                     "ew_close", "l3_close", "blow5", "last_blow"]
@@ -306,8 +312,23 @@ def team_minutes_context(df: pd.DataFrame) -> pd.DataFrame:
     back = ~d["out"] & ~d["played_last"] & (d["ew"] >= RETURNING_MIN)
     avail = ~d["out"] & (d["ew"] >= ROTATION_MIN)
     d["team_missing"] = d["ew"].where(newly, 0).groupby(d["TEAM"]).transform("sum")
-    d["team_returning"] = d["ew"].where(back, 0).groupby(d["TEAM"]).transform("sum")
-    tot = d["ew"].where(avail, 0).groupby(d["TEAM"]).transform("sum")
+    # In training every "returning" player really did play. Tonight a
+    # Day-To-Day or Questionable one may not, so he only counts by his chance
+    # of suiting up -- full weight made teammates' defaults drop 3-5 minutes
+    # for a player who might sit (Nov 2026: Murray 26.9 with Trey Murphy DTD).
+    likely = d["status"].map(RETURN_LIKELIHOOD).fillna(1.0) if "status" in d.columns else 1.0
+    d["team_returning"] = (d["ew"] * likely).where(back, 0).groupby(d["TEAM"]).transform("sum")
+    # The rotation a player's share is measured against. In training that's
+    # only players who actually played; tonight it's everyone not ruled out,
+    # including Day-To-Day/Questionable players and guys who sat last game --
+    # so it ran ~6% bigger (252 vs 237 minutes) and every starter's share,
+    # and default minutes, came out low (median 1.4 min under his average).
+    # Count each by his chance of playing instead.
+    w = pd.Series(1.0, index=d.index)
+    if "status" in d.columns:
+        w = d["status"].map(RETURN_LIKELIHOOD).fillna(1.0)
+    w = w.where(d["played_last"] | d["status"].notna() if "status" in d.columns else d["played_last"], SAT_LAST_LIKELIHOOD)
+    tot = (d["ew"] * w).where(avail, 0).groupby(d["TEAM"]).transform("sum")
     d["share"] = (d["ew"] / tot.replace(0, np.nan)).where(d["ew"] >= ROTATION_MIN)
     return d
 

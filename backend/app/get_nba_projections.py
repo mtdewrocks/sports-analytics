@@ -300,6 +300,15 @@ def build_slate(history: pd.DataFrame, schedule: pd.DataFrame, injuries: pd.Data
     return slate
 
 
+def _at_minutes(proj: dict, minutes, default_min) -> dict:
+    """The same projection at different minutes (the stat models are per
+    minute, so it scales). None when there's nothing to compare."""
+    if minutes is None or not default_min or pd.isna(minutes) or default_min <= 0:
+        return None
+    f = float(minutes) / float(default_min)
+    return {s: float(proj[s]) * f for s in F.TARGETS if s in proj}
+
+
 def main() -> int:
     t0 = time.time()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -338,7 +347,7 @@ def main() -> int:
                         - {"MIN", "mates_usg", "usg_newly_out"})
     keep = (["PLAYER", "TEAM", "Opponent", "GAME DATE", "Location", "espn_game_id", "start_utc", "home", "away",
              "ew_min", "played_last", "status", "injury", "out", "default_min", "USG_SHARE_roll10"]
-            + F.MINUTES_FEATURES + model_cols)
+            + F.MINUTES_FEATURES + F.VEGAS_FEATURES + model_cols)      # the API reruns minutes with these
     keep = list(dict.fromkeys(c for c in keep if c in feats.columns))
     feats = feats[keep]
     feats.to_parquet(OUT / "nba_projection_slate.parquet", index=False)
@@ -366,8 +375,10 @@ def main() -> int:
         lines = E.main_lines(pd.read_parquet(props_path), set(UNBETTABLE_BOOKS | SHARP_BOOKS | DFS_BOOKS))
         today_rows = log[pd.to_datetime(log["GAME DATE"]) == pd.Timestamp(feats["GAME DATE"].iloc[0])]
         plays = []
+        recent_min = feats.drop_duplicates("PLAYER").set_index("PLAYER")["ew"].to_dict()
         for r in today_rows.to_dict("records"):
-            for m, e in E.edges_for(r["PLAYER"], r, lines, bundle.get("calibration")).items():
+            alt = _at_minutes(r, recent_min.get(r["PLAYER"]), r["default_min"])
+            for m, e in E.edges_for(r["PLAYER"], r, lines, bundle.get("calibration"), alt).items():
                 if e["side"] and e["price"] is not None:
                     plays.append({"PLAYER": r["PLAYER"], "TEAM": r["TEAM"], "GAME DATE": r["GAME DATE"],
                                   "start_utc": r["start_utc"], "market": m, "side": e["side"], "line": e["line"],

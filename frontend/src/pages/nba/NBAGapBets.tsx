@@ -33,6 +33,9 @@ interface GapRow {
   avg: number | null;
   landing_pct: number | null;
   ev_pct: number | null;
+  // NBA Projections' view at default minutes
+  model_projection?: number | null; model_minutes?: number | null;
+  model_landing_pct?: number | null; model_view?: 'agrees' | 'disagrees' | null;
   dfs_leg: string;
   fetched_at: string | null;
   landing_basis?: 'history' | 'model';
@@ -140,6 +143,22 @@ function GapCard({ r, lookback }: { r: GapRow; lookback: number }) {
           </span>
         )}
       </div>
+
+      {r.model_view && r.model_projection != null && (
+        <div style={{
+          marginTop: 10, fontSize: 12.5, padding: '7px 10px', borderRadius: 6, lineHeight: 1.45,
+          border: `1px solid ${r.model_view === 'agrees' ? theme.dataBlue : theme.warningText}`,
+          color: theme.textSecondary,
+        }}>
+          <b style={{ color: r.model_view === 'agrees' ? theme.dataBlue : theme.warningText }}>
+            {r.model_view === 'agrees' ? 'Model agrees' : 'Model disagrees'}
+          </b>
+          {' — '}projects <b style={{ color: theme.textPrimary }}>{r.model_projection}</b>
+          {r.model_minutes != null && <> in {r.model_minutes} min</>}, a{' '}
+          <b style={{ color: theme.textPrimary }}>{r.model_landing_pct}%</b> chance of landing on {r.gap}
+          {r.model_view === 'agrees' ? ` (under the ${r.breakeven_pct}% break-even).` : ` (over the ${r.breakeven_pct}% break-even — the model thinks the gap is live).`}
+        </div>
+      )}
 
       <div style={{ marginTop: 8, fontSize: 11, color: theme.textMuted }}>
         Lines as of {clockLabel(r.fetched_at) || 'unknown'}

@@ -11,7 +11,9 @@ in a single call. Cost: 10 credits x 2 markets = 20 per game day, so a full
 season (~165 game days) is ~3,300 credits.
 
 Writes into backend/data/nba/nba_game_odds.parquet in the same shape ESPN's
-captures use; a line already captured pregame from ESPN is kept as is.
+captures use; a line already captured pregame from ESPN is kept as is. Copy
+the result into backend/data/nba_seed/ and commit it so the daily run can
+never lose it (it re-merges the seed every time).
 
 Usage:
   python backend/app/get_nba_odds_history.py --start 2025-10-21 --max-credits 5000
@@ -128,6 +130,11 @@ def main() -> int:
 
     if rows:
         new = pd.DataFrame(rows)
+        sched_p = OUT / "nba_schedule.parquet"
+        if sched_p.exists():            # fill ESPN's id where the schedule has the game
+            sc = pd.read_parquet(sched_p)
+            ids = {(str(r.date)[:10], r.home, r.away): r.espn_game_id for r in sc.itertuples()}
+            new["espn_game_id"] = [ids.get((d, hm, aw)) for d, hm, aw in zip(new["date"], new["home"], new["away"])]
         if len(old):
             # never overwrite a line ESPN captured before tip
             k = lambda df: df["date"].astype(str) + df["home"] + df["away"]  # noqa: E731

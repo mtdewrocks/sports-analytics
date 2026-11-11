@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import OddsDisclaimer from '../../components/OddsDisclaimer';
 import useIsMobile from '../../hooks/useIsMobile';
 import { theme } from '../../theme';
+import { nameKey, readMinutesFile } from '../../utils/minutesUpload';
 
 /**
  * NBA Projections -- Shawn's stat model (app/data/nba_projections.py) with
@@ -360,6 +361,8 @@ export default function NBAProjections() {
   // typed but not run yet: player -> minutes (null = back to default)
   const [pending, setPending] = useState<Record<string, number | null>>({});
   const [busy, setBusy] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<{ text: string; warn: boolean } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const req = useRef(0);
 
@@ -421,6 +424,40 @@ export default function NBAProjections() {
     setPending(left);
     saveEdits(data?.date ?? null, gameId, next);
     rerun(gameId, next);
+  };
+
+  // A sheet of player + minutes, applied to every game it covers tonight.
+  // Saved like hand edits (this browser), so switching games keeps them.
+  const onUpload = async (file: File) => {
+    if (!data) return;
+    let rows;
+    try { rows = await readMinutesFile(file); } catch (e) {
+      setUploadMsg({ text: (e as Error).message || 'Couldn’t read that file.', warn: true }); return;
+    }
+    if (!rows.length) { setUploadMsg({ text: 'No player + minutes rows found in that file.', warn: true }); return; }
+    const where = new Map<string, { gid: number; player: string }>();
+    data.games.forEach((g) => g.teams.forEach((t) => t.players.forEach((p) => where.set(nameKey(p.player), { gid: g.game_id, player: p.player }))));
+    const byGame = new Map<number, Record<string, number>>();
+    const missing: string[] = [];
+    rows.forEach((r) => {
+      const hit = where.get(nameKey(r.player));
+      if (!hit) { missing.push(r.player); return; }
+      const g = byGame.get(hit.gid) || {};
+      g[hit.player] = r.minutes;
+      byGame.set(hit.gid, g);
+    });
+    let n = 0;
+    byGame.forEach((m, gid) => {
+      const merged = { ...loadEdits(data.date, gid), ...m };
+      saveEdits(data.date, gid, merged);
+      n += Object.keys(m).length;
+      if (gid === gameId) { setEdits(merged); setPending({}); rerun(gid, merged); }
+    });
+    setUploadMsg({
+      text: `Updated ${n} player${n === 1 ? '' : 's'} across ${byGame.size} game${byGame.size === 1 ? '' : 's'}.`
+        + (missing.length ? ` Not on tonight's slate: ${missing.slice(0, 8).join(', ')}${missing.length > 8 ? ` +${missing.length - 8} more` : ''}.` : ''),
+      warn: missing.length > 0,
+    });
   };
 
   const resetAll = () => {
@@ -490,12 +527,31 @@ export default function NBAProjections() {
             <span style={{ fontSize: 12, color: theme.textMuted }}>
               {busy ? 'Updating…' : Object.keys(edits).length ? `${Object.keys(edits).length} minute${Object.keys(edits).length === 1 ? '' : 's'} edited (saved in this browser)` : 'Default minutes'}
             </span>
+            <span style={{ display: 'flex', gap: 8 }}>
+            <input
+              ref={fileRef} type="file" accept=".xlsx,.xlsm,.csv,.txt" style={{ display: 'none' }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              title="Excel or CSV with a player column and a minutes column"
+              style={{ background: 'none', border: `1px solid ${theme.dataBlue}`, borderRadius: 4, color: theme.dataBlue, fontSize: 12, padding: '4px 10px', cursor: 'pointer' }}
+            >
+              Upload minutes
+            </button>
             {Object.keys(edits).length > 0 && (
               <button onClick={resetAll} style={{ background: 'none', border: `1px solid ${theme.border}`, borderRadius: 4, color: theme.textSecondary, fontSize: 12, padding: '4px 10px', cursor: 'pointer' }}>
                 Reset all minutes
               </button>
             )}
+            </span>
           </div>
+          {uploadMsg && (
+            <div style={{ fontSize: 12, marginBottom: 10, color: uploadMsg.warn ? theme.warningText : theme.textSecondary }}>
+              {uploadMsg.text}{' '}
+              <button onClick={() => setUploadMsg(null)} style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: 12 }}>✕</button>
+            </div>
+          )}
           <Plays game={game} />
           {game.teams.map((t) => (
             <TeamTable key={t.team} t={t} pending={pending} onMinutes={onMinutes} onRun={runTeam} busy={busy} isMobile={isMobile} />

@@ -209,3 +209,35 @@ def test_newly_out_usage_goes_to_teammates_by_their_own_share():
     assert r.PTS[0] == 0 and r.REB.tolist() == [0.0, 4.0, 5.0]           # rebounds untouched
     second, role = r.PTS[1] / 25 - 1, r.PTS[2] / 8 - 1
     assert 0.10 < second < 0.15 and 0.03 < role < 0.07 and second > 2 * role
+
+
+def test_flag_must_survive_recent_minutes():
+    props = pd.DataFrame([{"Player": "Pat Guard", "market": "points", "Line": 20.5, "bookmakers": "fanduel",
+                           "Over Price": -110, "Under Price": -110, "fetched_at": "x"}])
+    lines = E.main_lines(props, set())
+    cal = {"PTS": {"edges": [], "ratios": [list(np.linspace(0.5, 1.5, 201))]}}
+    e = E.edges_for("Pat Guard", {"PTS": 15.0}, lines, cal)["points"]
+    assert e["side"] == "under"
+    # at his usual minutes he'd project 21 -- the under only came from a low minutes guess
+    e = E.edges_for("Pat Guard", {"PTS": 15.0}, lines, cal, alt_proj={"PTS": 21.0})["points"]
+    assert e["side"] is None and e["minutes_sensitive"]
+
+
+def test_uncertain_players_count_partly_in_the_rotation():
+    d = pd.DataFrame({"PLAYER": list("ABCDEFGH"), "TEAM": "T", "ew": [34, 32, 30, 28, 26, 20, 18, 30.0],
+                      "played_last": [True] * 7 + [False], "out": False,
+                      "status": [None] * 7 + ["Day-To-Day"]})
+    full = F.team_minutes_context(d.assign(status=[None] * 8, played_last=True))
+    part = F.team_minutes_context(d)
+    assert part.share[0] > full.share[0]
+
+
+def test_odds_history_keeps_backfilled_lines(tmp_path):
+    import get_nba_data as G
+    p = tmp_path / "odds.parquet"
+    pd.DataFrame([{"espn_game_id": None, "date": f"2025-11-{d:02d}", "home": "BOS", "away": "MIA", "total": 220.0,
+                   "home_spread": -5.0, "captured_at": "x", "state": "odds_api_history"} for d in range(1, 21)]).to_parquet(p)
+    sched = pd.DataFrame([{"espn_game_id": 9, "date": "2026-11-12", "home": "NYK", "away": "CHI", "total": 225.5,
+                           "home_spread": -4.5, "state": "pre"}])
+    out = G.update_odds_history(sched, p)
+    assert (out["state"] == "odds_api_history").sum() >= 20 and (out["state"] == "pre").sum() == 1

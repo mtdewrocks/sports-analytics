@@ -262,25 +262,42 @@ def parse_odds(comp: dict, home: dict, away: dict) -> tuple:
     return total, home_spread
 
 
+# Past lines bought from The Odds API (get_nba_odds_history.py), committed so
+# they can't be lost again: merged in on every run.
+ODDS_SEED = Path(__file__).resolve().parent.parent / "data" / "nba_seed" / "nba_game_odds_seed.parquet"
+
+
+def _game_key(df: pd.DataFrame) -> pd.Series:
+    """date|home|away -- the only id every source has. (ESPN's game id is
+    missing on backfilled rows; de-duplicating on it once collapsed 1,480
+    past lines into one.)"""
+    return df["date"].astype(str).str[:10] + "|" + df["home"].astype(str) + "|" + df["away"].astype(str)
+
+
 def update_odds_history(sched: pd.DataFrame, path: Path) -> pd.DataFrame:
     """Keep every game's pregame line: ESPN shows it until tip, so the last
     capture while state == 'pre' wins; games already final keep whatever was
     stored (or what ESPN still shows, for a backfill)."""
     cols = ["espn_game_id", "date", "home", "away", "total", "home_spread", "captured_at", "state"]
     new = sched.dropna(subset=["total"]).copy() if "total" in sched.columns else pd.DataFrame(columns=cols)
-    if new.empty and path.exists():
-        return pd.read_parquet(path)
-    new["captured_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    new = new[[c for c in cols if c in new.columns]]
-    if path.exists():
-        old = pd.read_parquet(path)
-        # a pre-game capture replaces anything older; a post-game one only fills gaps
-        pre = new[new["state"] == "pre"]
-        post = new[(new["state"] != "pre") & ~new["espn_game_id"].isin(old["espn_game_id"])]
-        new = pd.concat([old[~old["espn_game_id"].isin(pre["espn_game_id"])], pre, post], ignore_index=True)
-    new = new.drop_duplicates("espn_game_id", keep="last").sort_values("date").reset_index(drop=True)
-    new.to_parquet(path, index=False)
-    return new
+    if len(new):
+        new["captured_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    new = new.reindex(columns=cols)
+    old = pd.read_parquet(path).reindex(columns=cols) if path.exists() else pd.DataFrame(columns=cols)
+    if ODDS_SEED.exists():
+        seed = pd.read_parquet(ODDS_SEED).reindex(columns=cols)
+        old = pd.concat([seed[~_game_key(seed).isin(set(_game_key(old)))], old], ignore_index=True) if len(old) else seed
+    if old.empty and new.empty:
+        return old
+    pre = new[new["state"] == "pre"]
+    post = new[(new["state"] != "pre") & ~_game_key(new).isin(set(_game_key(old)))]
+    # a pre-game capture replaces anything older for that game; a post-game one only fills gaps
+    keep = old[~_game_key(old).isin(set(_game_key(pre)))] if len(old) else old
+    out = pd.concat([keep, pre, post], ignore_index=True)
+    out = (out.assign(_k=_game_key(out)).drop_duplicates("_k", keep="last").drop(columns="_k")
+              .sort_values("date").reset_index(drop=True))
+    out.to_parquet(path, index=False)
+    return out
 
 
 def fetch_schedule(start: date, days: int) -> pd.DataFrame:
