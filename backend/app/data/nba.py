@@ -470,17 +470,16 @@ def get_in_out(player_a: str, exclude: List[str] = None) -> dict:
     }
 
 
-def get_biggest_beneficiary(excluded_player: str, stat: str = "min", min_games: int = 3) -> dict:
+def get_biggest_beneficiary(excluded_player: str, stat: str = "min", min_games: int = 1) -> dict:
     """Given one player who is OUT, find which teammate's stat increases the
     most -- rather than requiring the user to manually check each teammate
     one at a time via get_in_out(). Reuses get_in_out() and get_teammates()
     directly instead of duplicating the with/without logic.
 
     min_games: both the "with" and "without" sample need at least this many
-    games, or a teammate is skipped entirely -- a "without" average built
-    from a single game is too noisy to call someone a genuine beneficiary,
-    and would be exactly the kind of result most likely to misleadingly
-    top this ranking if left in.
+    games. Default 1 so early-season absences still show; the page prints
+    both game counts on every row (and flags thin ones) so the reader can
+    judge how much a 2-game "with" sample is worth.
     """
     teammates = get_teammates(excluded_player)
     results = []

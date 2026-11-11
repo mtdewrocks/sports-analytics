@@ -202,7 +202,7 @@ export default function NBAInOut() {
           {!beneficiaryLoading && beneficiaryData && (
             beneficiaryData.results.length === 0 ? (
               <div style={{ color: theme.textSecondary, fontSize: 14 }}>
-                Not enough games with {outPlayer} both in and out of the lineup to say anything reliable yet.
+                No games yet with {outPlayer} both in and out of the lineup this season.
               </div>
             ) : (
               <>
@@ -230,6 +230,7 @@ export default function NBAInOut() {
                       <th style={{ padding: '8px 14px', textAlign: 'center' }}>With</th>
                       <th style={{ padding: '8px 14px', textAlign: 'center' }}>Without</th>
                       <th style={{ padding: '8px 14px', textAlign: 'center' }}>Diff</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'center' }}>Games (with / without)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -239,12 +240,16 @@ export default function NBAInOut() {
                         <td style={{ padding: '7px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.with.toFixed(1)}</td>
                         <td style={{ padding: '7px 14px', textAlign: 'center', color: theme.textPrimary }}>{r.without.toFixed(1)}</td>
                         <DiffCell value={r.delta} />
+                        <td style={{ padding: '7px 14px', textAlign: 'center', fontVariantNumeric: 'tabular-nums',
+                          color: Math.min(r.games_with, r.games_without) < 3 ? theme.warningText : theme.textSecondary }}>
+                          {r.games_with} / {r.games_without}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 10 }}>
-                  Only includes teammates with at least 3 games both with and without {outPlayer} -- a thin sample on either side is too noisy to trust.
+                  Game counts in amber mean fewer than 3 games on one side -- a sample that thin can swing on one night, so treat it as a hint, not a trend.
                 </div>
               </>
             )
