@@ -16,7 +16,7 @@ on:
         type: boolean
         default: false
       backfill_odds:
-        description: "Also fetch ESPN's pregame lines for every past game (one-off, for the model's Vegas features)"
+        description: "Also buy past pregame spreads/totals from The Odds API (one-off, ~20 credits per game day, ~3,700 total)"
         type: boolean
         default: false
 
@@ -66,13 +66,18 @@ jobs:
         run: |
           ARGS=""
           if [ "${{ github.event.inputs.refresh_prior }}" = "true" ]; then ARGS="--refresh-prior"; fi
-          if [ "${{ github.event.inputs.backfill_odds }}" = "true" ]; then ARGS="$ARGS --backfill-odds"; fi
           python -u backend/app/get_nba_data.py $ARGS
 
       # Shawn's stat model, automated: retrain on last night's box scores,
       # build tonight's slate with default minutes and the injury report,
       # publish features so the site can rerun it with edited minutes.
       # ~20 s. See get_nba_projections.py.
+      - name: Backfill past game lines (The Odds API)
+        if: github.event.inputs.backfill_odds == 'true'
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -u backend/app/get_nba_odds_history.py --start 2025-10-21 --max-credits 5000
+
       - name: Project player stats
         # A projection failure shouldn't stop last night's box scores from publishing
         continue-on-error: true

@@ -186,3 +186,15 @@ def test_short_history_gets_partial_windows_without_borrowing_other_players():
     assert z["PTS_oly10"].isna().sum() == 5         # needs 5 prior games
     assert (z["PTS_oly10"].dropna() == 40).all()     # only his own games
     assert (z["PTS_roll5"].dropna() == 40).all() and z["USG_SHARE_roll10"].notna().sum() == 2
+
+
+def test_odds_history_consensus_line():
+    import get_nba_odds_history as OH
+    ev = {"home_team": "Boston Celtics", "bookmakers": [
+        {"markets": [{"key": "spreads", "outcomes": [{"name": "Boston Celtics", "point": -6.5}, {"name": "Miami Heat", "point": 6.5}]},
+                     {"key": "totals", "outcomes": [{"name": "Over", "point": 221.5}, {"name": "Under", "point": 221.5}]}]},
+        {"markets": [{"key": "spreads", "outcomes": [{"name": "Boston Celtics", "point": -7.5}]},
+                     {"key": "totals", "outcomes": [{"name": "Over", "point": 222.5}]}]},
+        {"markets": [{"key": "spreads", "outcomes": [{"name": "Boston Celtics", "point": -6.5}]}]}]}
+    assert OH.consensus(ev) == {"home_spread": -6.5, "total": 222.0}
+    assert OH.TEAMS["LA Clippers"] == "LAC"
