@@ -9,6 +9,7 @@ import useIsMobile from '../hooks/useIsMobile';
 interface Game {
   game_date?: string; week?: number; stat_value: number; opponent?: string;
   result?: 'W' | 'L' | 'T' | null;
+  min?: number | string | null;            // NBA: minutes played
   tooltip?: Record<string, number | string | null>;
 }
 interface StatChartProps { games: Game[]; threshold: number; stat: string; }
@@ -20,10 +21,14 @@ function CustomTooltip({ active, payload, label, stat }: any) {
   if (!active || !payload || payload.length === 0) return null;
   const game: Game = payload[0].payload;
   const score = game.tooltip?.score;
+  const mins = game.min ?? game.tooltip?.min;
   return (
     <div style={{ background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 12 }}>
       <div style={{ color: theme.textPrimary, fontWeight: 700, marginBottom: 4 }}>{label}{game.opponent ? ` vs ${game.opponent}` : ''}</div>
       <div style={{ color: theme.textPrimary }}>{stat.toUpperCase()}: {payload[0].value}</div>
+      {mins != null && mins !== '' && (
+        <div style={{ color: theme.textSecondary, marginTop: 2 }}>Minutes: {mins}</div>
+      )}
       {score != null && (
         <div style={{ color: theme.textSecondary, marginTop: 2 }}>
           {game.result === 'W' ? 'Won' : game.result === 'L' ? 'Lost' : 'Tied'} {score}

@@ -194,8 +194,51 @@ def get_middles(
     if market and "market" in df.columns:
         df = df[df["market"].astype(str).str.lower().str.strip() == _normalize(market)]
     df = _trim_anti_middles(df, min(float(max_gap), ANTI_MAX_LINE_DIFF))
+    if sport == "nba":
+        df = _add_landing(df)
 
     return df.fillna("").to_dict(orient="records")
+
+
+def _add_landing(df: pd.DataFrame) -> pd.DataFrame:
+    """How often the window (the numbers between the two lines) actually
+    came up: share of the player's last 30 games, or for game/team totals the
+    same modelled rate Gap Bets uses. Compare with "Needs" -- an anti-middle
+    wants it lower, a middle wants it higher. NBA only for now."""
+    import numpy as np
+    from app.data import nba_gaps as NG
+    df = df.copy()
+    df["landed_pct"], df["landed_games"] = np.nan, np.nan
+    if df.empty or not {"over_line", "under_line", "Player", "market"} <= set(df.columns):
+        return df
+    ol = pd.to_numeric(df["over_line"], errors="coerce").values
+    ul = pd.to_numeric(df["under_line"], errors="coerce").values
+    lo, hi = np.ceil(np.fmin(ol, ul)), np.floor(np.fmax(ol, ul))
+    ok = (hi >= lo) & (df["kind"].astype(str).str.lower() != "arb").values
+    if not ok.any():
+        return df
+    sub = df[ok]
+    if "commence_time" not in sub.columns:
+        sub = sub.assign(commence_time="")
+    try:
+        history, _ = NG._history_cached()
+    except Exception:          # noqa: BLE001 -- stats unavailable: leave blank
+        return df
+
+    def vals_for(gk):
+        player, mkt, _ = gk
+        v = history.get((NG.name_key(player), mkt), [])
+        return v if len(v) >= NG.MIN_GAMES else None
+
+    rate = NG._rates(sub.reset_index(drop=True), lo[ok], hi[ok], vals_for)
+    games = np.array([len(history.get((NG.name_key(p), m), [])) for p, m in zip(sub["Player"], sub["market"])], float)
+    mk = sub["market"].astype(str).values
+    for i in np.where(np.isin(mk, list(NG.MODELED_SD)))[0]:
+        rate[i] = NG._normal_window(int(lo[ok][i]), int(hi[ok][i]), (ol[ok][i] + ul[ok][i]) / 2, NG.MODELED_SD[mk[i]])
+        games[i] = np.nan
+    df.loc[ok, "landed_pct"] = np.round(100 * rate, 1)
+    df.loc[ok, "landed_games"] = np.where(np.isnan(rate), np.nan, games)
+    return df
 
 
 ANTI_MAX_LINE_DIFF = 2.0     # widest the page allows on player props; same rule as NBA Gap Bets (app/data/nba_gaps.py)

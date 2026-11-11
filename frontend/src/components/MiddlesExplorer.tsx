@@ -63,6 +63,23 @@ function book(b: string): string {
   return String(b || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Landed column: how often the window actually came up, coloured by
+ *  whether that beats "Needs" (lower for an anti-middle, higher for a middle). */
+function landed(r: Row): { text: string; color: string; title: string } | null {
+  const v = r.landed_pct;
+  if (v === '' || v === null || v === undefined || isNaN(Number(v))) return null;
+  const pct = Number(v);
+  const need = Number(r.breakeven_window_rate_pct) || 0;
+  const good = need > 0 && (r.kind === 'anti_middle' ? pct < need : pct > need);
+  const games = Number(r.landed_games);
+  return {
+    text: `${pct.toFixed(0)}%`,
+    color: need > 0 ? (good ? theme.dataBlue : theme.warningText) : theme.textSecondary,
+    title: games > 0 ? `Landed on ${r.window} in ${Math.round((pct / 100) * games)} of the last ${games} games`
+      : 'Modelled from how far final scores land from the line',
+  };
+}
+
 export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExplorerProps) {
   const [kind, setKind] = useState<Kind>('all');
   const [rows, setRows] = useState<Row[]>([]);
@@ -236,7 +253,10 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
                     </strong>. Both legs lose if {r.window} does land — only take this if you think
                     that happens under <strong style={{ color: theme.warningText }}>
                       {r.breakeven_window_rate_pct.toFixed(0)}%
-                    </strong> of the time. Stake {r.stake_over_pct.toFixed(0)}% on the Over.</>
+                    </strong> of the time. Stake {r.stake_over_pct.toFixed(0)}% on the Over.
+                    {landed(r) && <> {Number(r.landed_games) > 0 ? 'Landed there in' : 'Modelled at'}{' '}
+                      <strong style={{ color: landed(r)!.color }}>{landed(r)!.text}</strong>
+                      {Number(r.landed_games) > 0 ? ` of his last ${r.landed_games} games.` : '.'}</>}</>
                 ) : r.window ? (
                   <>Both win on <strong style={{ color: theme.dataBlue }}>{r.window}</strong> → {r.window_pct.toFixed(1)}%.
                     Otherwise <strong style={{ color: r.one_wins_pct >= 0 ? theme.dataBlue : theme.dataRed }}>
@@ -258,7 +278,7 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
             <thead>
               <tr style={{ background: theme.bgCard, color: theme.textSecondary }}>
                 {['Player', 'Market', 'Type', 'Over', 'Under', 'Window',
-                  'If window', 'Otherwise', 'Stake Over', 'Needs'].map((h, i) => (
+                  'If window', 'Otherwise', 'Stake Over', 'Needs', 'Landed (L30)'].map((h, i) => (
                   <th key={h} style={{
                     padding: '9px 10px', textAlign: i < 3 ? 'left' : 'right',
                     fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -308,6 +328,9 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
                   <td style={{ padding: '9px 10px', textAlign: 'right', color: theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
                     {r.breakeven_window_rate_pct > 0 ? `${r.breakeven_window_rate_pct.toFixed(0)}%` : '—'}
                   </td>
+                  <td title={landed(r)?.title} style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: landed(r)?.color || theme.textMuted }}>
+                    {landed(r)?.text ?? '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -317,6 +340,9 @@ export default function MiddlesExplorer({ fetcher, title, toolbar }: MiddlesExpl
 
       {!loading && shown.length > 0 && (
         <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 14, lineHeight: 1.6 }}>
+          <strong>Landed (L30)</strong> is how often the window actually came up in the player's last 30 games
+          (NBA; game and team totals are modelled). Blue means it beats Needs, amber means it doesn't.
+          <br />
           <strong>Needs</strong> reads in opposite directions depending on the row. For a{' '}
           <strong style={{ color: theme.dataBlue }}>middle</strong> that loses money outside
           its window, it's how often the window has to land <em>at least</em> to break even.
