@@ -19,6 +19,7 @@ interface GapRow {
   player: string;
   team: string | null;
   market: string;
+  teams?: string[];
   market_label: string;
   game: string;
   commence_time: string | null;
@@ -35,7 +36,7 @@ interface GapRow {
   ev_pct: number | null;
   // NBA Projections' view at default minutes
   model_projection?: number | null; model_minutes?: number | null;
-  model_landing_pct?: number | null; model_view?: 'agrees' | 'disagrees' | null;
+  model_landing_pct?: number | null; model_view?: 'outside' | 'inside' | null;
   dfs_leg: string;
   fetched_at: string | null;
   landing_basis?: 'history' | 'model';
@@ -147,16 +148,15 @@ function GapCard({ r, lookback }: { r: GapRow; lookback: number }) {
       {r.model_view && r.model_projection != null && (
         <div style={{
           marginTop: 10, fontSize: 12.5, padding: '7px 10px', borderRadius: 6, lineHeight: 1.45,
-          border: `1px solid ${r.model_view === 'agrees' ? theme.dataBlue : theme.warningText}`,
+          border: `1px solid ${r.model_view === 'outside' ? theme.dataBlue : theme.warningText}`,
           color: theme.textSecondary,
         }}>
-          <b style={{ color: r.model_view === 'agrees' ? theme.dataBlue : theme.warningText }}>
-            {r.model_view === 'agrees' ? 'Model agrees' : 'Model disagrees'}
+          <b style={{ color: r.model_view === 'outside' ? theme.dataBlue : theme.warningText }}>
+            {r.model_view === 'outside' ? 'Model projects outside the gap' : 'Model projects inside the gap'}
           </b>
-          {' — '}projects <b style={{ color: theme.textPrimary }}>{r.model_projection}</b>
-          {r.model_minutes != null && <> in {r.model_minutes} min</>}, a{' '}
-          <b style={{ color: theme.textPrimary }}>{r.model_landing_pct}%</b> chance of landing on {r.gap}
-          {r.model_view === 'agrees' ? ` (under the ${r.breakeven_pct}% break-even).` : ` (over the ${r.breakeven_pct}% break-even — the model thinks the gap is live).`}
+          {' — '}<b style={{ color: theme.textPrimary }}>{r.model_projection}</b>
+          {r.model_minutes != null && <> in {r.model_minutes} min</>} vs a losing range of {r.gap}
+          {r.model_landing_pct != null && <>; its chance of landing there: {r.model_landing_pct}% (break-even {r.breakeven_pct}%)</>}.
         </div>
       )}
 
@@ -172,6 +172,8 @@ interface RecordSummary { bets: number; one_leg_won: number; gap_hits: number; r
 interface RecordResponse {
   overall: RecordSummary;
   positive: RecordSummary;
+  model_outside?: RecordSummary;
+  model_inside?: RecordSummary;
   by_market: (RecordSummary & { market: string; market_label: string })[];
   recent: { date: string; player: string; market_label: string; gap: string; result: number; landed_in_gap: boolean; return_pct: number; under: string; over: string }[];
   since: string | null;
@@ -215,6 +217,8 @@ function TrackRecord() {
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
             <SummaryTile label={`All gap bets${rec.since ? ` since ${rec.since}` : ''}`} s={rec.overall} />
             <SummaryTile label="Ones rated a positive return" s={rec.positive} />
+            {rec.model_outside && rec.model_outside.bets > 0 && <SummaryTile label="Model projected outside the gap" s={rec.model_outside} />}
+            {rec.model_inside && rec.model_inside.bets > 0 && <SummaryTile label="Model projected inside the gap" s={rec.model_inside} />}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.textPrimary, marginBottom: 14 }}>
@@ -256,16 +260,22 @@ export default function NBAGapBets() {
   const [error, setError] = useState('');
   const [showAll, setShowAll] = useState<'positive' | 'all'>('positive');
   const [market, setMarket] = useState('');
+  const [team, setTeam] = useState('');
+  const [modelOnly, setModelOnly] = useState<'any' | 'outside'>('any');
+  // widest player-prop pair: Over line at most this far above the Under
+  const [maxGap, setMaxGap] = useState<'1' | '2'>(() => {
+    try { return localStorage.getItem('gap-max-gap') === '1' ? '1' : '2'; } catch { return '2'; }
+  });
   const isMobile = useIsMobile();
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    getNBAGapBets({ include_negative: showAll === 'all' })
+    getNBAGapBets({ include_negative: showAll === 'all', max_gap: Number(maxGap) })
       .then((res) => setData(res.data))
       .catch((err) => setError(err?.response?.data?.detail || 'Failed to load gap bets.'))
       .finally(() => setLoading(false));
-  }, [showAll]);
+  }, [showAll, maxGap]);
 
   const markets = useMemo(() => {
     const m = new Map<string, string>();
@@ -273,9 +283,15 @@ export default function NBAGapBets() {
     return [...m.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [data]);
 
+  const teams = useMemo(
+    () => [...new Set((data?.rows || []).flatMap((r) => r.teams || []))].sort(),
+    [data],
+  );
+
   const rows = useMemo(
-    () => (data?.rows || []).filter((r) => !market || r.market === market),
-    [data, market],
+    () => (data?.rows || []).filter((r) => (!market || r.market === market) && (!team || (r.teams || []).includes(team))
+      && (modelOnly === 'any' || r.model_view === 'outside')),
+    [data, market, team, modelOnly],
   );
 
   return (
@@ -319,6 +335,33 @@ export default function NBAGapBets() {
             {markets.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
           </select>
         )}
+        {teams.length > 1 && (
+          <select
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+            style={{ minHeight: 36, padding: '6px 10px', fontSize: 13, borderRadius: 4, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textPrimary }}
+          >
+            <option value="">All teams</option>
+            {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: -4, marginBottom: 14 }}>
+        <span style={{ fontSize: 12.5, color: theme.textSecondary }}>Player-prop spread</span>
+        <SegmentedToggle
+          value={maxGap}
+          onChange={(v: '1' | '2') => { setMaxGap(v); try { localStorage.setItem('gap-max-gap', v); } catch { /* private mode */ } }}
+          options={[{ value: '1', label: '1 pt' }, { value: '2', label: 'Up to 2 pts' }]}
+        />
+        <span style={{ fontSize: 12, color: theme.textMuted }}>Game and team totals: up to 5</span>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: -4, marginBottom: 14 }}>
+        <span style={{ fontSize: 12.5, color: theme.textSecondary }}>NBA Projections</span>
+        <SegmentedToggle
+          value={modelOnly}
+          onChange={(v: 'any' | 'outside') => setModelOnly(v)}
+          options={[{ value: 'any', label: 'Any' }, { value: 'outside', label: 'Projects outside the gap' }]}
+        />
       </div>
 
       {loading && <LoadingSpinner />}

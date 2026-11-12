@@ -62,10 +62,11 @@ def nba_middles(kind: Optional[str] = Query(None), player: Optional[str] = Query
 
 @router.get("/gap-bets")
 def gap_bets(include_negative: bool = Query(False), market: Optional[str] = Query(None),
+             max_gap: float = Query(2.0, ge=1, le=2),
              _=Depends(require_access)):
     """Anti-middles with each player's historical landing rate -- see app/data/nba_gaps.py."""
     from app.data.nba_gaps import get_gap_bets
-    return get_gap_bets(include_negative, market)
+    return get_gap_bets(include_negative, market, max_gap)
 
 @router.get("/gap-bets/record")
 def gap_bets_record(_=Depends(require_access)):

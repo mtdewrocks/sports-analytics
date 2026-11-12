@@ -140,13 +140,13 @@ MAX_LINE_DIFF_TOTALS = 5.0     # game and team totals: a few points is still nar
 GROUP = ["Player", "market", "commence_time"]
 
 
-def _drop_even_money(df: pd.DataFrame) -> pd.DataFrame:
+def _drop_even_money(df: pd.DataFrame, prop_limit: float = MAX_LINE_DIFF) -> pd.DataFrame:
     """Pairs the page leaves out: a leg at exactly +100 (it only pays on one
     side), and lines more than MAX_LINE_DIFF apart (MAX_LINE_DIFF_TOTALS for game and team totals)."""
     diff = pd.to_numeric(df["over_line"], errors="coerce") - pd.to_numeric(df["under_line"], errors="coerce")
     return df[(pd.to_numeric(df["over_price"], errors="coerce") != EVEN_MONEY)
               & (pd.to_numeric(df["under_price"], errors="coerce") != EVEN_MONEY)
-              & (diff <= df["market"].isin(list(MODELED_SD)).map({True: MAX_LINE_DIFF_TOTALS, False: MAX_LINE_DIFF}))]
+              & (diff <= df["market"].isin(list(MODELED_SD)).map({True: MAX_LINE_DIFF_TOTALS, False: prop_limit}))]
 
 
 def _rates(df: pd.DataFrame, lo: "np.ndarray", hi: "np.ndarray", vals_for) -> "np.ndarray":
@@ -208,6 +208,12 @@ _CAL_FOR = {"blocks_steals": "STL", "points_rebounds": "PRA", "rebounds_assists"
             "points_rebounds_assists": "PRA"}
 
 
+def _model_side(proj: float, lo: int, hi: int) -> str:
+    """Where the model's number falls: "outside" the losing window (it rounds
+    to a winning result, e.g. projects 14 against a 19 gap) or "inside" it."""
+    return "inside" if lo - 0.5 <= proj < hi + 0.5 else "outside"
+
+
 def _add_model_view(rows: list) -> None:
     """Second opinion from NBA Projections: the model's number at default
     minutes and its chance the result lands in the gap. "agrees" = that
@@ -239,10 +245,35 @@ def _add_model_view(rows: list) -> None:
         x["model_projection"] = round(proj, 1)
         x["model_minutes"] = round(p["min"], 1)
         x["model_landing_pct"] = round(100 * land, 1)
-        x["model_view"] = "agrees" if 100 * land < x["breakeven_pct"] else "disagrees"
+        x["model_view"] = _model_side(proj, lo, hi)
 
 
-def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -> Dict[str, Any]:
+TEAM_ABBR = {
+    "Atlanta Hawks": "ATL", "Boston Celtics": "BOS", "Brooklyn Nets": "BKN", "Charlotte Hornets": "CHA",
+    "Chicago Bulls": "CHI", "Cleveland Cavaliers": "CLE", "Dallas Mavericks": "DAL", "Denver Nuggets": "DEN",
+    "Detroit Pistons": "DET", "Golden State Warriors": "GSW", "Houston Rockets": "HOU", "Indiana Pacers": "IND",
+    "Los Angeles Clippers": "LAC", "LA Clippers": "LAC", "Los Angeles Lakers": "LAL", "Memphis Grizzlies": "MEM",
+    "Miami Heat": "MIA", "Milwaukee Bucks": "MIL", "Minnesota Timberwolves": "MIN", "New Orleans Pelicans": "NOP",
+    "New York Knicks": "NYK", "Oklahoma City Thunder": "OKC", "Orlando Magic": "ORL", "Philadelphia 76ers": "PHI",
+    "Phoenix Suns": "PHX", "Portland Trail Blazers": "POR", "Sacramento Kings": "SAC", "San Antonio Spurs": "SAS",
+    "Toronto Raptors": "TOR", "Utah Jazz": "UTA", "Washington Wizards": "WAS",
+}
+
+
+def _row_teams(r: dict, team: Optional[str]) -> list:
+    """Teams a row belongs to, for the page's team filter: the player's team,
+    the team for a team total, both for a game total."""
+    if r["market"] == "team_totals":
+        return [t for t in [TEAM_ABBR.get(r["Player"])] if t]
+    if r["market"] in MODELED_SD:
+        return [t for t in (TEAM_ABBR.get(r.get("away_team") or ""), TEAM_ABBR.get(r.get("home_team") or "")) if t]
+    return [team] if team else []
+
+
+def get_gap_bets(include_negative: bool = False, market: Optional[str] = None,
+                 max_gap: float = MAX_LINE_DIFF) -> Dict[str, Any]:
+    """max_gap: widest player-prop pair shown (the page's 1 / 2 point toggle);
+    game and team totals always allow up to MAX_LINE_DIFF_TOTALS."""
     import numpy as np
     pairs = get_middles_data("nba")
     empty = {"lines_as_of": None, "oldest_line": None, "lookback": LOOKBACK, "rows": []}
@@ -254,7 +285,7 @@ def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -
         pairs = pairs[~(start <= pd.Timestamp.now(tz="UTC"))]
     if market:
         pairs = pairs[pairs["market"] == market]
-    pairs = _drop_even_money(pairs)
+    pairs = _drop_even_money(pairs, min(float(max_gap), MAX_LINE_DIFF))
     lo = np.ceil(pairs["under_line"].astype(float).values)
     hi = np.floor(pairs["over_line"].astype(float).values)
     keep = hi >= lo
@@ -291,6 +322,7 @@ def get_gap_bets(include_negative: bool = False, market: Optional[str] = None) -
         rows.append({
             "player": r["Player"],
             "team": None if is_model else teams.get(name_key(r["Player"])),
+            "teams": _row_teams(r, None if is_model else teams.get(name_key(r["Player"]))),
             "market": r["market"],
             "market_label": MARKET_LABELS.get(r["market"], r["market"].replace("_", " ").title()),
             "game": f"{r.get('away_team') or ''} @ {r.get('home_team') or ''}".strip(" @"),
@@ -423,7 +455,8 @@ def _summary(graded: List[dict]) -> Dict[str, Any]:
 
 def get_gap_record(recent: int = 25) -> Dict[str, Any]:
     log = get_nba_gap_log()
-    empty = {"overall": _summary([]), "positive": _summary([]), "by_market": [], "recent": [],
+    empty = {"overall": _summary([]), "positive": _summary([]), "model_outside": _summary([]),
+             "model_inside": _summary([]), "by_market": [], "recent": [],
              "since": None, "pending": 0}
     if log is None or log.empty:
         return empty
@@ -463,6 +496,18 @@ def get_gap_record(recent: int = 25) -> Dict[str, Any]:
     # grade the one pair per game the page would have shown, not every alt-line combination
     done = _top_per_game(_with_ev(done, rate).assign(_lo=lo, _hi=hi))
 
+    # what NBA Projections said that day (its last default-minutes projection
+    # before tip), to grade "model said outside the gap" separately
+    proj_by = {}
+    try:
+        from app.data.nba_projections import get_projection_log
+        pl = get_projection_log()
+        if pl is not None and not pl.empty:
+            for pr in pl.to_dict("records"):
+                proj_by[(name_key(pr["PLAYER"]), pd.Timestamp(pr["GAME DATE"]).date())] = pr
+    except Exception:          # noqa: BLE001
+        pass
+
     graded = []
     for r in done.to_dict("records"):
         d = _game_date_et(r["commence_time"])
@@ -475,7 +520,13 @@ def get_gap_record(recent: int = 25) -> Dict[str, Any]:
         in_gap = lo_ <= v <= hi_
         one_wins = float(r["one_wins_pct"]) / 100.0
         est = None if pd.isna(r["_ev"]) else float(r["_ev"])
+        side = None
+        pr = proj_by.get((name_key(r["Player"]), d))
+        parts = _PROJ_STATS.get(r["market"])
+        if pr is not None and parts and all(pd.notna(pr.get(s_)) for s_ in parts):
+            side = _model_side(float(sum(pr[s_] for s_ in parts)), lo_, hi_)
         graded.append({
+            "model_view": side,
             "date": d.isoformat(), "player": r["Player"], "market": r["market"],
             "market_label": MARKET_LABELS.get(r["market"], r["market"]),
             "gap": str(lo_) if lo_ == hi_ else f"{lo_}-{hi_}",
@@ -495,6 +546,8 @@ def get_gap_record(recent: int = 25) -> Dict[str, Any]:
     return {
         "overall": _summary(graded),
         "positive": _summary([g for g in graded if (g["est_ev_pct"] or 0) > 0]),
+        "model_outside": _summary([g for g in graded if g["model_view"] == "outside"]),
+        "model_inside": _summary([g for g in graded if g["model_view"] == "inside"]),
         "by_market": by_market,
         "recent": [{k: v for k, v in g.items() if k != "return"} | {"return_pct": round(100 * g["return"], 2)}
                    for g in recent_rows],
