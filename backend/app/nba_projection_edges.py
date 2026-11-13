@@ -64,6 +64,7 @@ PROB_SHRINK = 0.85
 # a play is judged -- the same lean-on-the-market blend the NFL page uses.
 # Re-tune once a few weeks of closing lines can be graded.
 MARKET_WEIGHT = 0.5
+CENTER_ON_TYPICAL = True
 
 
 def american_to_decimal(price: Optional[float]) -> Optional[float]:
@@ -79,7 +80,20 @@ def prob_over(stat: str, projection: float, line: float, calibration: dict) -> O
     if not c or projection is None or projection <= 0:
         return None
     b = int(np.searchsorted(np.asarray(c["edges"]), projection, side="left"))
-    vals = np.asarray(c["ratios"][min(b, len(c["ratios"]) - 1)]) * projection
+    r = np.asarray(c["ratios"][min(b, len(c["ratios"]) - 1)], dtype=float)
+    # Read the projection as the TYPICAL result, not the average. Results
+    # skew (a few big nights), so the typical game sits 3-14% under the
+    # average -- and scoring the line against the average started every
+    # line leaning under: when our number matched the line, the model gave
+    # the over 43% while overs actually hit 50% (Nov 10-12, 1,141 real
+    # lines). Centred, it's 49% vs 50%, accuracy improves (Brier .2545 ->
+    # .2528), and flags went from 14% overs to 40%. Matchups that push the
+    # projection above a line now show up as overs. Skipped where the
+    # typical result is 0 (blocks/steals for most players).
+    med = float(np.median(r))
+    if CENTER_ON_TYPICAL and med > 0.2:
+        r = r / med
+    vals = r * projection
     cut = line if line % 1 else line + 0.5      # whole-number line: a push isn't a win
     return float((vals > cut).mean())
 
