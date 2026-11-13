@@ -8,6 +8,10 @@ on:
     # tonight's schedule/tip times before games start. Off the top of the
     # hour on purpose (see update_statcast.yml).
     - cron: "47 15 * * *"
+    # 11:47 AM Central (17:47 UTC in standard time): the box-score source often
+    # posts last night's games after the 9:47 run, so this picks them up
+    # before the afternoon refresh.
+    - cron: "47 17 * * *"
     - cron: "47 21 * * *"
   workflow_dispatch:
     inputs:
