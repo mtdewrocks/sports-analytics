@@ -57,6 +57,7 @@ sys.path.insert(0, str(HERE))
 
 import nba_projection_features as F  # noqa: E402
 import nba_projection_edges as E  # noqa: E402
+import nba_play_tiers as T  # noqa: E402
 from props_config import DFS_BOOKS, SHARP_BOOKS, UNBETTABLE_BOOKS  # noqa: E402
 
 OUT = HERE.parent / "data" / "nba"
@@ -374,27 +375,33 @@ def main() -> int:
     if props_path.exists():
         lines = E.main_lines(pd.read_parquet(props_path), set(UNBETTABLE_BOOKS | SHARP_BOOKS | DFS_BOOKS))
         today_rows = log[pd.to_datetime(log["GAME DATE"]) == pd.Timestamp(feats["GAME DATE"].iloc[0])]
-        plays = []
+        day = pd.Timestamp(feats["GAME DATE"].iloc[0])
         recent_min = feats.drop_duplicates("PLAYER").set_index("PLAYER")["ew"].to_dict()
-        for r in today_rows.to_dict("records"):
-            alt = _at_minutes(r, recent_min.get(r["PLAYER"]), r["default_min"])
-            for m, e in E.edges_for(r["PLAYER"], r, lines, bundle.get("calibration"), alt).items():
-                if e["side"] and e["price"] is not None:
-                    plays.append({"PLAYER": r["PLAYER"], "TEAM": r["TEAM"], "GAME DATE": r["GAME DATE"],
-                                  "start_utc": r["start_utc"], "market": m, "side": e["side"], "line": e["line"],
-                                  "price": e["price"], "book": e["book"], "projection": e["projection"],
-                                  "diff": e["diff"], "ev": e["ev"],
-                                  "prob": e["prob_over"] if e["side"] == "over" else e["prob_under"],
-                                  "minutes": r["default_min"], "logged_at": r["logged_at"]})
-        plays_path = OUT / "nba_projection_plays.parquet"
-        new_plays = pd.DataFrame(plays)
-        if plays_path.exists():
-            old = pd.read_parquet(plays_path)
-            old = old[pd.to_datetime(old["GAME DATE"]) != pd.Timestamp(feats["GAME DATE"].iloc[0])]
-            new_plays = pd.concat([old, new_plays], ignore_index=True)
-        if not new_plays.empty:
-            new_plays.to_parquet(plays_path, index=False)
+        alt_for = lambda r: _at_minutes(r, recent_min.get(r["PLAYER"]), r["default_min"])  # noqa: E731
+        hist = T.recent_values(history)
+        cal = bundle.get("calibration")
+        # live rule -- what the site shows (stars/signals logged, not shown yet)
+        plays = T.flag_rows("centered", today_rows, lines, cal, alt_for, hist, center=True, edges=E)
+        T.update_log(OUT / "nba_projection_plays.parquet", plays, day)
         print(f"plays flagged today (expected return >= {E.MIN_EV:.0%}): {len(plays)}")
+        # shadow: the pre-Nov 13 rule on the same lines, for a before/after
+        shadow = T.flag_rows("old", today_rows, lines, cal, alt_for, hist, center=False, edges=E)
+        T.update_log(OUT / "nba_projection_plays_shadow.parquet", shadow, day)
+        print(f"  old rule would flag: {len(shadow)} "
+              f"({sum(p['side'] == 'under' for p in shadow)} unders) vs {sum(p['side'] == 'under' for p in plays)} unders now")
+        try:
+            frames = [pd.read_parquet(OUT / f) for f in ("nba_projection_plays.parquet", "nba_projection_plays_shadow.parquet")
+                      if (OUT / f).exists()]
+            allp = pd.concat(frames, ignore_index=True)
+            if "rule" not in allp.columns:
+                allp["rule"] = None
+            allp["rule"] = allp["rule"].fillna("pre-tracking")
+            rep = T.report(T.grade(allp, history))
+            rep["updated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            (OUT / "nba_tier_report.json").write_text(json.dumps(rep, indent=1, default=str))
+            print("tier report:", {k: v["overall"] for k, v in rep.items() if isinstance(v, dict)})
+        except Exception as ex:                      # tracking must never break the run
+            print(f"tier report skipped: {ex}")
     else:
         print("no NBA_Props.parquet -- skipping plays")
     print(f"done in {time.time() - t0:.0f}s")

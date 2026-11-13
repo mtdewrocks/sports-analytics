@@ -64,6 +64,7 @@ jobs:
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_injuries.parquet'
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_projection_log.parquet'
           bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_projection_plays.parquet'
+          bash scripts/release_data.sh pull data-nba backend/data/nba 'nba_projection_plays_shadow.parquet'
           bash scripts/release_data.sh pull data-nba backend/data/nba 'NBA_Props.parquet'
 
       - name: Update NBA data
@@ -101,4 +102,6 @@ jobs:
             $D/nba_projection_model.json \
             $D/nba_projection_slate.parquet \
             $D/nba_projection_log.parquet \
-            $D/nba_projection_plays.parquet
+            $D/nba_projection_plays.parquet \
+            $D/nba_projection_plays_shadow.parquet \
+            $D/nba_tier_report.json

@@ -241,3 +241,38 @@ def test_odds_history_keeps_backfilled_lines(tmp_path):
                            "home_spread": -4.5, "state": "pre"}])
     out = G.update_odds_history(sched, p)
     assert (out["state"] == "odds_api_history").sum() >= 20 and (out["state"] == "pre").sum() == 1
+
+
+def test_tier_tracking_logs_both_rules_and_grades(tmp_path):
+    import nba_play_tiers as T
+    assert T.stars(0.06, 0.3, 1, "Questionable") == 3
+    assert T.stars(0.09, 0.7, 1, "Questionable") == 4
+    assert T.stars(0.15, 0.7, 4, None) == 5
+    assert T.hist_rate([10, 20, 30, 5], 15.5, "under") == 0.5 and T.hist_rate([], 1, "over") is None
+
+    props = pd.DataFrame([{"Player": "Jalen Brunson", "market": "points", "Line": 25.5, "bookmakers": b,
+                           "Over Price": -110, "Under Price": -110, "fetched_at": "t"}
+                          for b in ("fanduel", "draftkings", "betmgm")])
+    lines = E.main_lines(props, set())
+    # skewed calibration: median ratio 0.8, so the two rules disagree
+    cal = {"PTS": {"edges": [], "ratios": [list(np.linspace(0.4, 1.2, 199))]}}
+    rows = pd.DataFrame([{"PLAYER": "Jalen Brunson", "TEAM": "NYK", "GAME DATE": pd.Timestamp("2026-11-13"),
+                          "start_utc": None, "PTS": 26.0, "default_min": 35, "status": None, "logged_at": "t"}])
+    hist = {(E.match_key("Jalen Brunson"), "points"): [20, 22, 30, 31, 32]}
+    was = E.CENTER_ON_TYPICAL
+    new = T.flag_rows("centered", rows, lines, cal, lambda r: None, hist, center=True, edges=E)
+    old = T.flag_rows("old", rows, lines, cal, lambda r: None, hist, center=False, edges=E)
+    assert E.CENTER_ON_TYPICAL == was                       # switch restored
+    assert [p["side"] for p in old] == ["under"] and new == []  # the old under lean
+
+    p = tmp_path / "plays.parquet"
+    T.update_log(p, old, "2026-11-13")
+    T.update_log(p, old, "2026-11-13")                      # rerun replaces, doesn't double
+    logged = pd.read_parquet(p)
+    assert len(logged) == 1 and logged["stars"].iloc[0] in (3, 4, 5) and logged["books"].iloc[0] == 3
+
+    box = pd.DataFrame([{"PLAYER": "Jalen Brunson", "GAME DATE": "2026-11-13", "PTS": 21, "Played": 1}])
+    g = T.grade(logged, box)
+    assert g["outcome"].tolist() == ["win"] and abs(g["units"].iloc[0] - 100 / 110) < 1e-9
+    rep = T.report(g)
+    assert rep["old"]["overall"]["wins"] == 1 and "by_stars" in rep["old"] and "by_ev_band" in rep["old"]
