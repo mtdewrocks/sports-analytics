@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""             # blank -> falls back to SMTP_USER
     ADMIN_NOTIFY_EMAIL: str = ""    # where new-user pings go; blank = off
+    # Top-picks emails before NBA/NFL starts (app/pick_emails.py). Test mode:
+    # sends ONLY to PICK_EMAILS_TEST_TO; both must be set or nothing sends.
+    PICK_EMAILS_ENABLED: bool = False
+    PICK_EMAILS_TEST_TO: str = ""
     NBA_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/NBA_Player_Stats.parquet"
     NFL_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/Player_Stats_Weekly.parquet"
     NFL_TEAM_STATS_URL: str = "https://github.com/mtdewrocks/sports_analysis/raw/main/data/2025_Team_Stats.xlsx"

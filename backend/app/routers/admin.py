@@ -119,3 +119,16 @@ def test_email(_admin=Depends(require_admin)):
     if not ok:
         raise HTTPException(status_code=502, detail="Send failed -- check server logs for the SMTP error")
     return {"status": "sent", "to": settings.ADMIN_NOTIFY_EMAIL}
+
+
+@router.post("/pick-emails/preview")
+def pick_emails_preview(sport: str = "nfl", send: bool = False, _admin=Depends(require_admin)):
+    """The next window's top-picks email for `sport` (nba|nfl), ignoring the
+    30-minute timing. send=true also emails it to PICK_EMAILS_TEST_TO (not
+    logged, so the scheduled send still goes)."""
+    from app import pick_emails
+    if sport not in pick_emails.SOURCES:
+        raise HTTPException(status_code=400, detail="sport must be nba or nfl")
+    if send and not pick_emails.recipients():
+        raise HTTPException(status_code=400, detail="PICK_EMAILS_TEST_TO is not set")
+    return pick_emails.preview(sport, send)

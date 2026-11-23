@@ -201,3 +201,51 @@ def test_props_history_flatten_and_budget():
     with pytest.raises(H.OverBudget):
         m.check(50)
     m.check(40)
+
+
+def test_top_bets_sorted_by_history_then_receptions():
+    assert E.hist_rate([1, 2, 6, 7], 4.5, "over") == 0.5
+    assert E.hist_rate([None, 3], 4.5, "under") == 1.0 and E.hist_rate([], 4.5, "over") is None
+    mk = lambda pl, m, ev, h, sus=False: {"game_id": "g", "player": pl, "team": "T", "position": "WR",  # noqa: E731
+                                          "lines": {m: {"side": "over", "tier": "bet", "ev": ev, "hist_rate": h,
+                                                        "suspect": sus}}}
+    players = [mk("a", "reception_yds", 0.40, 0.2), mk("b", "reception_yds", 0.10, 0.75),
+               mk("c", "receptions", 0.08, 0.75), mk("d", "receptions", 0.50, None), mk("e", "receptions", 0.9, 1.0, True)]
+    order = [b["player"] for b in E.best_bets(players, "bet", E.TOP_BETS)]
+    assert order == ["c", "b", "d", "a", "e"]          # history, then receptions, then EV; suspect last
+    assert len(E.best_bets(players * 10, "bet", E.TOP_BETS)) == E.TOP_BETS
+
+
+def test_history_signal_attached_to_flags():
+    props = pd.DataFrame([{"Player": "Puka Nacua", "market": "receptions", "Line": 6.5, "bookmakers": b,
+                           "Over Price": -110, "Under Price": -110, "fetched_at": "t"} for b in ("fanduel", "draftkings")])
+    lines = E.main_lines(props, set(), E.MARKETS)
+    e = E.edges_for("Puka Nacua", {"rec": 9.5}, lines, {}, CAL, "WR", {"rec": [8, 9, 4, 10, 7, 3, 9, 11, 12]})["receptions"]
+    assert e["side"] == "over" and e["hist_n"] == 8 and e["hist_rate"] == 0.75
+
+
+def test_tracking_cuts():
+    import get_nfl_projections as GP
+    g = lambda top, h, ev, u, side="over": {"tier": "bet", "top": top, "hist_rate": h, "ev": ev, "units": u, "price": 120,  # noqa: E731
+                                           "outcome": "win" if u > 0 else "loss", "market": "receptions", "side": side}
+    graded = [g(True, 0.75, 0.1, 0.9), g(False, 0.25, 0.25, -1.0, "under"), g(None, None, None, 0.9)]
+    summ = lambda rows: {"plays": len(rows), "units": round(sum(r["units"] for r in rows), 2)} if rows else None  # noqa: E731
+    t = GP.tracking(graded, summ)
+    assert t["top15"]["top15"]["plays"] == 1 and t["top15"]["rest"]["units"] == -1.0 and "unknown" in t["top15"]
+    assert t["history"]["5+ of 8"]["plays"] == 1 and t["ev"]["20%+"]["plays"] == 1
+    assert t["market_side"]["receptions under"]["plays"] == 1 and t["price"]["+101 to +150"]["plays"] == 3
+
+
+def test_over_nudge_adds_two_points_to_overs():
+    props = pd.DataFrame([{"Player": "Puka Nacua", "market": "receptions", "Line": 6.5, "bookmakers": "fanduel",
+                           "Over Price": -110, "Under Price": -110, "fetched_at": "t"}])
+    lines = E.main_lines(props, set(), E.MARKETS)
+    with_n = E.edges_for("Puka Nacua", {"rec": 6.5}, lines, {}, CAL)["receptions"]
+    was = E.OVER_NUDGE
+    try:
+        E.OVER_NUDGE = 0.0
+        without = E.edges_for("Puka Nacua", {"rec": 6.5}, lines, {}, CAL)["receptions"]
+    finally:
+        E.OVER_NUDGE = was
+    assert abs(with_n["prob_over"] - without["prob_over"] - 0.02) < 0.002
+    assert abs(with_n["prob_over"] + with_n["prob_under"] - 1) < 1e-6

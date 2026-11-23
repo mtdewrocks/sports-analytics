@@ -36,6 +36,17 @@ OPP_WINDOW = 10
 PACE_WINDOW = 10
 
 TARGETS = ["PTS", "AST", "REB", "TOV", "BLK", "STL", "3PM"]
+# threes cap (predict_stats): projected threes can't run more than
+# THREE_CAP_SLACK above attempts/min x minutes x make rate x opponent's
+# threes allowed. Tree models can't go below their lowest leaf, so a big who
+# takes ~1 three a night was projected like a shooter (Jarrett Allen, Nov 13
+# 2026: 0.5 threes and a +910 over flagged at +156%).
+LEAGUE_3P_PCT = 0.36
+THREE_PCT_PRIOR = 40          # attempts' worth of league average mixed into his make rate
+THREE_PCT_GAMES = 40
+THREE_CAP_SLACK = 1.25
+CAP_COLUMNS = ["3PA_pm10", "3P_pct_est"]
+
 NEEDED = ["PLAYER", "TEAM", "Opponent", "GAME DATE", "MIN", "FGA", "FTA", "OREB", "Location"] + TARGETS
 
 TEAMS = ["ATL", "BKN", "BOS", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GSW", "HOU", "IND", "LAC", "LAL",
@@ -100,6 +111,18 @@ def _engineer(df: pd.DataFrame) -> pd.DataFrame:
         df[f"{stat}_roll{ROLLING_GAMES}"] = gs.transform(lambda x: x.rolling(ROLLING_GAMES, min_periods=MIN_SHORT).mean())
         df[f"{stat}_oly{OLYMPIC_GAMES}"] = gs.transform(
             lambda x: x.rolling(OLYMPIC_GAMES, min_periods=MIN_LONG).apply(_olympic_mean, raw=True))
+
+    # threes from attempts (the cap in predict_stats): attempts per minute
+    # over his last 10 games, and a make rate pulled toward the league's
+    # until he has real volume -- prior games only, like everything here
+    if "3PA" in df.columns:
+        a = g["3PA"].shift(1).fillna(0).groupby(df["PLAYER"])
+        mk = g["3PM"].shift(1).fillna(0).groupby(df["PLAYER"])
+        mn = g["MIN"].shift(1).fillna(0).groupby(df["PLAYER"])
+        roll = lambda x, n: x.transform(lambda v: v.rolling(n, min_periods=1).sum())  # noqa: E731
+        df["3PA_pm10"] = roll(a, 10) / roll(mn, 10).replace(0, np.nan)
+        att40, made40 = roll(a, THREE_PCT_GAMES), roll(mk, THREE_PCT_GAMES)
+        df["3P_pct_est"] = (made40 + LEAGUE_3P_PCT * THREE_PCT_PRIOR) / (att40 + THREE_PCT_PRIOR)
 
     prev = g["GAME DATE"].shift(1)
     df["is_b2b"] = ((df["GAME DATE"] - prev).dt.days == 1).astype(int)
@@ -537,18 +560,37 @@ def slate_context(slate: pd.DataFrame, minutes: pd.Series) -> pd.DataFrame:
     return s
 
 
-def predict_stats(models: dict, slate: pd.DataFrame, minutes: pd.Series) -> pd.DataFrame:
+def predict_stats(models: dict, slate: pd.DataFrame, minutes: pd.Series, adjust=None) -> pd.DataFrame:
     """Shared by the pipeline and the API. models: {stat: (booster, features,
-    per_minute)}. Players at 0 minutes get 0 of everything."""
+    per_minute)}. Players at 0 minutes get 0 of everything. `adjust(s)` edits
+    the prepared features before predicting -- the "what if" runs behind the
+    pick reasons (nba_reasons.py)."""
     s = slate_context(slate, minutes)
     s["MIN"] = minutes.values
+    if adjust is not None:
+        s = adjust(s)
     out = s[["PLAYER", "TEAM"]].copy()
     for stat, (booster, cols, per_min) in models.items():
         X = s.reindex(columns=cols).astype(float)
         p = booster.predict(X)
         out[stat] = np.clip(p * s["MIN"].values if per_min else p, 0, None)
     out.loc[s["MIN"].values <= 0, list(models)] = 0.0
-    return _redistribute_usage(out, s)
+    out = _redistribute_usage(out, s)
+    if "3PM" in out.columns:
+        cap = three_cap(s)
+        out["3PM"] = np.where(np.isfinite(cap), np.minimum(out["3PM"].values, cap), out["3PM"].values)
+    return out
+
+
+def three_cap(s: pd.DataFrame) -> np.ndarray:
+    """Most threes he can be projected for: attempts per minute x minutes x
+    make rate x how many threes tonight's defense allows, plus slack.
+    NaN (no cap) when the inputs aren't there."""
+    if not all(c in s.columns for c in CAP_COLUMNS):
+        return np.full(len(s), np.nan)
+    rel = s["Opp_3PM_rel"].fillna(1.0).clip(0.7, 1.4) if "Opp_3PM_rel" in s.columns else 1.0
+    est = s["3PA_pm10"] * s["MIN"] * s["3P_pct_est"] * rel
+    return (THREE_CAP_SLACK * est).astype(float).values
 
 
 # How much of a newly-absent player's usage goes to each teammate, on top of

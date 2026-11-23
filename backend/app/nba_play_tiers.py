@@ -41,6 +41,9 @@ _E = E
 HIST_GAMES = 10
 EV_BANDS = [0.05, 0.08, 0.12, 0.20, 10.0]
 EV_LABELS = ["5-8%", "8-12%", "12-20%", "20%+"]
+# long shots are where a model is most likely overconfident -- watch them
+PRICE_BANDS = [-10000, -121, -100, 150, 10000]
+PRICE_LABELS = ["-121 or shorter", "-120 to -100", "+101 to +150", "+151 and up"]
 
 
 def recent_values(history: pd.DataFrame, n: int = HIST_GAMES) -> Dict[tuple, list]:
@@ -150,9 +153,10 @@ def report(graded: pd.DataFrame) -> dict:
     g = graded.copy()
     g["ev_band"] = pd.cut(g["ev"], EV_BANDS, labels=EV_LABELS, right=False).astype(str)
     g["night"] = pd.to_datetime(g["GAME DATE"]).dt.date.astype(str)
+    g["price_band"] = pd.cut(g["price"], PRICE_BANDS, labels=PRICE_LABELS).astype(str)
     for rule, rg in g.groupby("rule"):
         rep = {"overall": _summ(rg)}
-        for col in ("side", "ev_band", "night") + (("stars",) if "stars" in rg.columns else ()):
+        for col in ("side", "ev_band", "price_band", "night") + (("stars",) if "stars" in rg.columns else ()):
             rep[f"by_{col}"] = {str(k): _summ(x) for k, x in rg.groupby(col) if len(x)}
         out[rule] = rep
     return out

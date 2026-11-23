@@ -65,7 +65,9 @@ function flagsFor(games: Game[]): Flag[] {
       if (e.side && e.ev != null) out.push({ p, e, team: t.team, opp: t.team === g.home ? g.away : g.home, game: g });
     });
   })));
-  return out.sort((a, b) => (b.e.ev || 0) - (a.e.ev || 0));
+  // "check before betting" flags (expected return so big it usually means
+  // news the model doesn't know) go to the bottom, best first within each group
+  return out.sort((a, b) => Number(!!a.e.suspect) - Number(!!b.e.suspect) || (b.e.ev || 0) - (a.e.ev || 0));
 }
 
 function FlagRow({ f, onOpen }: { f: Flag; onOpen?: () => void }) {

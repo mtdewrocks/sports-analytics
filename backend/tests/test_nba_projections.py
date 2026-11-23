@@ -276,3 +276,12 @@ def test_tier_tracking_logs_both_rules_and_grades(tmp_path):
     assert g["outcome"].tolist() == ["win"] and abs(g["units"].iloc[0] - 100 / 110) < 1e-9
     rep = T.report(g)
     assert rep["old"]["overall"]["wins"] == 1 and "by_stars" in rep["old"] and "by_ev_band" in rep["old"]
+    assert rep["old"]["by_price_band"]["-120 to -100"]["plays"] == 1
+
+
+def test_threes_capped_by_attempts_make_rate_and_defense():
+    s = pd.DataFrame({"MIN": [27.0, 34.0, 30.0], "3PA_pm10": [0.0159, 0.30, np.nan],
+                      "3P_pct_est": [0.40, 0.38, 0.36], "Opp_3PM_rel": [1.12, 1.0, 1.0]})
+    cap = F.three_cap(s)
+    assert abs(cap[0] - 1.25 * 0.0159 * 27 * 0.40 * 1.12) < 1e-9      # a big: ~0.24 threes at most
+    assert cap[1] > 4 and np.isnan(cap[2])                                # a shooter isn't held back; no data, no cap

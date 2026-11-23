@@ -51,7 +51,7 @@ def _live_status() -> Dict[str, tuple]:
 def get_projections(game_id: Optional[str] = None) -> Dict[str, Any]:
     b = get_projection_bundle()
     if not b:
-        return {"season": None, "week": None, "games": [], "players": [], "best_bets": [], "watch": []}
+        return {"season": None, "week": None, "games": [], "players": [], "best_bets": [], "bets_flagged": 0, "watch": []}
     cal = b.get("calibration") or {}
     try:
         props = get_props_data("nfl")
@@ -69,7 +69,7 @@ def get_projections(game_id: Optional[str] = None) -> Dict[str, Any]:
         if p["player_id"] in status:
             p["status"], p["injury"] = status[p["player_id"]]
         p["ruled_out"] = p.get("status") in RULED_OUT
-        p["lines"] = {} if p["ruled_out"] else E.edges_for(p["player"], p["projection"], lines, tds, cal, p["position"])
+        p["lines"] = {} if p["ruled_out"] else E.edges_for(p["player"], p["projection"], lines, tds, cal, p["position"], p.get("recent"))
         players.append(p)
     games = [g for g in b["games"] if not game_id or g["game_id"] == game_id]
     stamps = [e.get("fetched_at") for p in players for e in p["lines"].values() if e.get("fetched_at")]
@@ -77,7 +77,9 @@ def get_projections(game_id: Optional[str] = None) -> Dict[str, Any]:
         "season": b["season"], "week": b["week"], "generated_at": b["generated_at"],
         "lines_as_of": max(stamps) if stamps else None,
         "games": games, "players": players,
-        "best_bets": E.best_bets(players, "bet"), "watch": E.best_bets(players, "watch"),
+        # only the top TOP_BETS are shown; the rest still count in the record
+        "best_bets": E.best_bets(players, "bet", E.TOP_BETS), "bets_flagged": len(E.best_bets(players, "bet", 10_000)),
+        "watch": E.best_bets(players, "watch"),
         "accuracy": cal.get("accuracy"), "fit_on": cal.get("fit_on"),
         "min_ev": E.MIN_EV, "min_prob_edge": E.MIN_PROB_EDGE,
     }

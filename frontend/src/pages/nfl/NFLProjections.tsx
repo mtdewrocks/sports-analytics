@@ -19,7 +19,7 @@ interface Edge {
   side: 'over' | 'under' | 'yes' | null; tier: 'bet' | 'watch' | null;
   price: number | null; book: string | null; over_price: number | null; under_price: number | null; over_book?: string | null;
   prob_over: number | null; prob_under?: number | null; market_prob_over?: number | null;
-  ev: number | null; suspect: boolean;
+  ev: number | null; suspect: boolean; hist_rate?: number | null; hist_n?: number | null;
 }
 interface Player {
   game_id: string; player: string; player_id: string; team: string; opponent: string; position: string;
@@ -37,7 +37,7 @@ interface Game {
 interface Bet extends Edge { game_id: string; player: string; team: string; position: string; status: string | null; market: string }
 interface Resp {
   season: number | null; week: number | null; generated_at?: string; lines_as_of: string | null;
-  games: Game[]; players: Player[]; best_bets: Bet[]; watch: Bet[];
+  games: Game[]; players: Player[]; best_bets: Bet[]; bets_flagged?: number; watch: Bet[];
   accuracy?: Record<string, number[]>; min_ev?: number; min_prob_edge?: number;
 }
 
@@ -100,7 +100,7 @@ function BetRow({ b, game, onOpen }: { b: Bet; game?: Game; onOpen?: () => void 
         </div>
         {b.side !== 'yes' && b.line != null && <Trio model={b.model ?? b.projection} vegas={b.line} blended={b.projection} />}
         <div style={{ fontSize: 11.5, color: theme.textMuted }}>
-          Chance it hits: ours {pct(model)}{bk != null ? `, book ${pct(bk)}` : ''}{b.status ? ` · ${b.status}` : ''}
+          Chance it hits: ours {pct(model)}{bk != null ? `, book ${pct(bk)}` : ''}{b.hist_rate != null && b.hist_n ? ` · landed there in ${Math.round(b.hist_rate * b.hist_n)} of his last ${b.hist_n}` : ''}{b.status ? ` · ${b.status}` : ''}
           {b.suspect && <span style={{ color: theme.warningText }}> · a gap this big often means news the model doesn't know — check before betting</span>}
         </div>
       </div>
@@ -397,8 +397,8 @@ export default function NFLProjections() {
       {!!data?.games.length && (
         <>
           <BetList
-            title="Best bets this week" bets={data.best_bets} games={data.games} onOpen={open}
-            note={`Receptions and receiving yards where the model's chance beats the price by ${ev}%+ and the book's own fair chance by ${Math.round((data.min_prob_edge ?? 0.08) * 100)} points. Our number is blended 50/50 with the line before it's priced — the mix beat either one alone in testing — so a flag means a real disagreement, not noise. These are the markets that held up against closing lines.`}
+            title="Top bets this week" bets={data.best_bets} games={data.games} onOpen={open}
+            note={`${(data.bets_flagged ?? 0) > data.best_bets.length ? `The best ${data.best_bets.length} of ${data.bets_flagged} that cleared the bar — first those where the player has landed on that side in 5+ of his last 8 games, then receptions, then expected return. ` : ''}Receptions and receiving yards where the model's chance beats the price by ${ev}%+ and the book's own fair chance by ${Math.round((data.min_prob_edge ?? 0.08) * 100)} points. Our number is blended 50/50 with the line before it's priced — the mix beat either one alone in testing — so a flag means a real disagreement, not noise. These are the markets that held up against closing lines.`}
           />
           <BetList
             title="Also flagged — tracking only" bets={data.watch} games={data.games} onOpen={open} initial={4}

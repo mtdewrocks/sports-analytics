@@ -45,3 +45,10 @@ services:
         sync: false
       - key: ADMIN_NOTIFY_EMAIL
         sync: false
+      # Top-picks emails ~30 min before NBA/NFL starts (app/pick_emails.py).
+      # TEST MODE: only PICK_EMAILS_TEST_TO receives them. Needs the SMTP_*
+      # settings above too.
+      - key: PICK_EMAILS_ENABLED
+        sync: false
+      - key: PICK_EMAILS_TEST_TO
+        sync: false

@@ -57,6 +57,7 @@ jobs:
           bash scripts/release_data.sh pull data-nfl backend/data/nfl 'NFL_Props.parquet'
           bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_projection_log.parquet'
           bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_projection_plays.parquet'
+          bash scripts/release_data.sh pull data-nfl backend/data/nfl 'nfl_projection_plays_shadow.parquet'
 
       - name: Project this week
         run: python -u backend/app/get_nfl_projections.py
@@ -67,7 +68,7 @@ jobs:
         run: |
           D=backend/data/nfl
           FILES=""
-          for f in nfl_projections.json nfl_projection_record.json nfl_projection_log.parquet nfl_projection_plays.parquet; do
+          for f in nfl_projections.json nfl_projection_record.json nfl_projection_log.parquet nfl_projection_plays.parquet nfl_projection_plays_shadow.parquet; do
             [ -f "$D/$f" ] && FILES="$FILES $D/$f"
           done
           if [ -n "$FILES" ]; then bash scripts/release_data.sh push data-nfl $FILES; fi

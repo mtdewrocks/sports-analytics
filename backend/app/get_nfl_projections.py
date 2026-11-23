@@ -49,6 +49,7 @@ URLS = {
 GAMES_URL = NV + "/schedules/games.csv"
 SKIP_STATUS = {"Out", "Doubtful", "IR", "Injured Reserve", "PUP", "Suspended"}
 LOG_KEEP_SEASONS = 2
+SHADOW_WEIGHTS = (0.0, 0.25)
 
 
 def clean(o):
@@ -174,6 +175,8 @@ def main() -> int:
 
     # ---- players
     inj = load_injuries()
+    inj_status = ({r.gsis_id: (r.status, getattr(r, "detail", None)) for r in inj.itertuples() if r.gsis_id}
+                  if not inj.empty and "gsis_id" in inj.columns else {})
     cand = candidates(PS, U, inj, season)
     X = M.player_features(PS, SN, G, TP, cand.drop(columns=["status", "injury", "headshot_url"]))
     models = M.train_direct(X, FIRST_SEASON + 1)
@@ -187,6 +190,24 @@ def main() -> int:
 
     sc = cal["sim"]
     games, players = [], []
+    # context for the pick reasons (nfl_reasons.py): each team's normal
+    # dropback rate this season, and what defenses allow by position
+    cur = S[S.season == season]
+    season_rate = cur.groupby("posteam").dropback.mean().to_dict()
+    lg_rate = float(cur.dropback.mean()) if len(cur) else None
+    hist = X[(X._up == 0) & (X.season == season)]
+    opp_avg = {c: hist.groupby("position")[f"opp_pos_{c}"].mean().to_dict()
+               for c in OPP_STATS if f"opp_pos_{c}" in hist.columns}
+    sim_rates, qb_info = {}, {}
+    # who's been throwing: each team's main QB over its last 5 games, and
+    # every QB's yards per attempt this season (for "Wentz starting for Murray")
+    qbp = PS[(PS.season == season) & (PS.position == "QB") & (PS.attempts.fillna(0) > 0)]
+    ypa = (qbp.groupby("player_id").passing_yards.sum() / qbp.groupby("player_id").attempts.sum()).to_dict()
+    qname = qbp.drop_duplicates("player_id").set_index("player_id").player_display_name.to_dict()
+    usual_qb = {}
+    for tm_, g_ in qbp.groupby("team"):
+        last5 = sorted(g_.week.unique())[-5:]
+        usual_qb[tm_] = g_[g_.week.isin(last5)].groupby("player_id").attempts.sum().idxmax()
     for g in U.itertuples():
         ph, pa = pri.get((g.game_id, g.home_team)), pri.get((g.game_id, g.away_team))
         if ph is None or pa is None:
@@ -199,6 +220,11 @@ def main() -> int:
             qbs = XU[(XU.game_id == g.game_id) & (XU.team == tm) & (XU.position == "QB")].sort_values("ew_pass_att", ascending=False)
             qb = qbs.player_id.iloc[0] if len(qbs) else None
             rows[tm] = (r, qb)
+            u = usual_qb.get(tm)
+            if qb is not None and u is not None and qb != u:
+                qb_info[tm] = {"now": qname.get(qb, "backup"), "usual": qname.get(u, "starter"),
+                               "now_ypa": _num(ypa.get(qb), 2), "usual_ypa": _num(ypa.get(u), 2),
+                               "usual_status": (inj_status.get(u) or [None])[0]}
             arrs.append(M.player_arrays(r, qb) if len(r) else None)
         has_lines = pd.notna(g.spread_line) and pd.notna(g.total_line)
         use_pl = all(x is not None for x in arrs)
@@ -214,6 +240,9 @@ def main() -> int:
                 got = (r0["pts_home"].mean(), r0["pts_away"].mean())
                 shift = [float(np.clip(shift[i] + (imp[i] - got[i]) / sc["pts_per_yard"], -3, 6)) for i in (0, 1)]
         r = NS.simulate(L, h, aw, n=a.sims, seed=1, clock_scale=sc["clock_scale"], yards_shift=shift, players=pls, team_spread=tsp)
+        for k, tm in (("home", g.home_team), ("away", g.away_team)):
+            d_, r_ = float(r[f"drops_{k}"].mean()), float(r[f"runs_{k}"].mean())
+            sim_rates[tm] = d_ / max(d_ + r_, 1e-9)
 
         # game: ratings + market model, and the sim's game flow
         gx = GU.loc[g.game_id] if g.game_id in GU.index else None
@@ -255,6 +284,7 @@ def main() -> int:
                 for i, pid in enumerate(R.pid):
                     simd[(tm, pid)] = {c: float(np.median(pl[c][:, i])) for c in ("rec", "rec_yds", "car", "rush_yds")}
                     simd[(tm, pid)]["tgt"] = float(pl["tgt"][:, i].mean())
+                    simd[(tm, pid)]["car_mean"] = float(pl["car"][:, i].mean())
                     simd[(tm, pid)]["td"] = float(((pl["rec_td"][:, i] + pl["rush_td"][:, i]) > 0).mean())
                 if qb is not None:
                     simd.setdefault((tm, qb), {})["pass_yds"] = float(np.median(pl["qb"]["pass_yds"]))
@@ -282,8 +312,18 @@ def main() -> int:
                 "headshot_url": None if pd.isna(x.headshot_url) else x.headshot_url,
                 "sim_targets": round(sd_["tgt"], 1) if "tgt" in sd_ else None,
                 "snap_pct": None if pd.isna(x.ew_offense_pct) else round(float(x.ew_offense_pct), 2),
+                "why": {**_why(x, sd_, sim_rates, season_rate, opp_avg, games[-1]), "qb_change": qb_info.get(x.team)},
                 "projection": proj,
             })
+    # game-script shift: how far each team's simulated dropback rate sits from
+    # its normal one, each against the league (sim this week / real this season)
+    seas = [season_rate[t] for t in sim_rates if season_rate.get(t) is not None]
+    if sim_rates and seas:
+        ms, mr = float(np.mean(list(sim_rates.values()))), float(np.mean(seas))
+        for p in players:
+            w = p["why"]
+            if w.get("pass_rate_sim") is not None and w.get("pass_rate_season") is not None:
+                w["script_shift"] = _num((w["pass_rate_sim"] - ms) - (w["pass_rate_season"] - mr))
     print(f"  simulated {len(games)} games, {len(players)} player projections ({time.time() - t0:.0f}s)")
 
     # ---- edges at today's lines (the API recomputes these live)
@@ -292,8 +332,37 @@ def main() -> int:
     excl = set(UNBETTABLE_BOOKS | SHARP_BOOKS | DFS_BOOKS)
     lines = E.main_lines(props, excl, E.MARKETS) if not props.empty else {}
     tds = E.td_prices(props, excl) if not props.empty else {}
+    A = _actuals(PS).merge(PS[["game_id", "player_id", "season", "week"]], on=["game_id", "player_id"])
+    A = A[A.player_id.isin({p["player_id"] for p in players})].sort_values(["season", "week"])
+    rec_cols = [c for c in A.columns if c in ACTUAL or c == "rush_rec_yds"]
+    recent = {pid: {c: [None if pd.isna(v) else float(v) for v in g[c].tail(E.HIST_GAMES)] for c in rec_cols}
+              for pid, g in A.groupby("player_id")}
     for p in players:
-        p["lines"] = E.edges_for(p["player"], p["projection"], lines, tds, cal, p["position"])
+        p["recent"] = {k: v for k, v in recent.get(p["player_id"], {}).items() if k in p["projection"]}
+        p["lines"] = E.edges_for(p["player"], p["projection"], lines, tds, cal, p["position"], p["recent"])
+    top = {(b["player"], b["market"]) for b in E.best_bets(players, "bet", E.TOP_BETS)}
+    # Weight test (tracking only): what the rule would flag if our number
+    # leaned less on the line -- straight model and 25% line -- for every
+    # market. On 2026 weeks 3-9 those looked better for some yardage markets
+    # but the sample is thin; graded beside the live weights to decide.
+    # Also the live weights WITHOUT the 2-point over nudge (Nov 13 2026), to
+    # see whether the nudge earns its keep.
+    shadow, nudge = [], E.OVER_NUDGE
+    variants = [(f"line {int(w * 100)}%", {**cal, "market_weight": {k: w for k in (cal.get("market_weight") or {})}}, nudge)
+                for w in SHADOW_WEIGHTS] + [("no nudge", cal, 0.0)]
+    try:
+        for name, cw, nd in variants:
+            E.OVER_NUDGE = nd
+            for p in players:
+                for m, e in E.edges_for(p["player"], p["projection"], lines, {}, cw, p["position"], p["recent"]).items():
+                    if e.get("side") and e.get("price") is not None:
+                        shadow.append({"season": season, "week": week, "game_id": p["game_id"],
+                                       "player_id": p["player_id"], "player": p["player"], "team": p["team"],
+                                       "market": m, "side": e["side"], "variant": name, "tier": e.get("tier"),
+                                       "line": e.get("line"), "price": e["price"], "ev": e["ev"],
+                                       "projection": e["projection"]})
+    finally:
+        E.OVER_NUDGE = nudge
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     out = {"generated_at": stamp, "season": season, "week": week, "games": games, "players": players,
            "calibration": {k: cal.get(k) for k in ("residuals", "td_map", "accuracy", "fit_on", "market_weight")},
@@ -310,9 +379,14 @@ def main() -> int:
                            "side": e["side"], "tier": e["tier"], "line": e.get("line"), "price": e["price"], "book": e["book"],
                            "projection": e["projection"], "ev": e["ev"],
                            "prob": e["prob_over"] if e["side"] in ("over", "yes") else e.get("prob_under"),
+                           # tracking only (not on the page): does the top-15 sort pick winners?
+                           "top": (p["player"], m) in top, "hist_rate": e.get("hist_rate"),
+                           "prob_edge": e.get("prob_edge"), "books": e.get("books"),
                            "logged_at": stamp}
                           for p in players for m, e in p["lines"].items() if e.get("side") and e.get("price") is not None])
-    for name, new in (("nfl_projection_log.parquet", log), ("nfl_projection_plays.parquet", plays)):
+    kick_of = lambda df: df.assign(kickoff=df.game_id.map(kick)) if len(df) else df  # noqa: E731
+    for name, new in (("nfl_projection_log.parquet", log), ("nfl_projection_plays.parquet", plays),
+                      ("nfl_projection_plays_shadow.parquet", kick_of(pd.DataFrame(shadow)))):
         path = OUT / name
         if path.exists():
             old = pd.read_parquet(path)
@@ -330,6 +404,37 @@ def main() -> int:
         print(f"  record: {rec['plays']}")
     print(f"done in {time.time() - t0:.0f}s")
     return 0
+
+
+OPP_STATS = ("rec", "rec_yds", "rush_yds", "pass_yds")
+
+
+def _num(v, nd=3):
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return None
+    return round(v, nd) if np.isfinite(v) else None
+
+
+def _why(x, sd_: dict, sim_rates: dict, season_rate: dict, opp_avg: dict, game: dict) -> dict:
+    """Raw numbers the pick reasons are written from (nfl_reasons.py)."""
+    tm = x.team
+    return {
+        "team_spread": _num(getattr(x, "team_spread", None), 1),       # negative = favored
+        "implied_pts": _num(getattr(x, "implied_pts", None), 1),
+        "total": game.get("total_line"),
+        "pass_rate_sim": _num(sim_rates.get(tm)), "pass_rate_season": _num(season_rate.get(tm)),
+        "script_shift": None,                         # filled once every game is simulated
+        "opp_rel": {c: _num(getattr(x, f"opp_pos_{c}", None) / opp_avg[c][x.position])
+                    for c in OPP_STATS if c in opp_avg and opp_avg[c].get(x.position)
+                    and _num(getattr(x, f"opp_pos_{c}", None)) is not None},
+        "sim_targets": _num(sd_.get("tgt"), 1), "ew_targets": _num(getattr(x, "ew_targets", None), 1),
+        "sim_carries": _num(sd_.get("car_mean"), 1), "ew_carries": _num(getattr(x, "ew_rush_att", None), 1),
+        "tm_out_tgt_share": _num(getattr(x, "tm_out_tgt_share", None)),
+        "tm_out_carries": _num(getattr(x, "tm_out_carries", None), 1),
+        "wind": _num(getattr(x, "wind", None), 0), "dome": bool(getattr(x, "dome", 0) == 1),
+    }
 
 
 ACTUAL = {"rec": "receptions", "rec_yds": "receiving_yards", "rush_att": "carries", "rush_yds": "rushing_yards",
@@ -382,7 +487,9 @@ def grade(PS: pd.DataFrame) -> dict:
                            "tier": r.get("tier") or "watch",
                            "market": r["market"], "label": E.LABELS[r["market"]], "side": r["side"], "line": r["line"],
                            "price": r["price"], "book": r["book"], "projection": r["projection"], "result": float(v),
-                           "outcome": "push" if push else ("win" if won else "loss"), "units": round(u, 3)})
+                           "outcome": "push" if push else ("win" if won else "loss"), "units": round(u, 3),
+                           "top": r.get("top"), "hist_rate": r.get("hist_rate"), "ev": r.get("ev"),
+                           "books": r.get("books")})
 
         def summ(rows):
             if not rows:
@@ -398,7 +505,59 @@ def grade(PS: pd.DataFrame) -> dict:
         out["by_market"] = [{"market": m, "label": E.LABELS[m], **summ([g for g in graded if g["market"] == m])}
                             for m in sorted({g["market"] for g in graded})]
         out["recent"] = sorted(graded, key=lambda g: (g["season"], g["week"]), reverse=True)[:30]
+        out["tracking"] = tracking(graded, summ)
+        sp = OUT / "nfl_projection_plays_shadow.parquet"
+        if sp.exists():
+            sh = pd.read_parquet(sp).merge(A, on=["game_id", "player_id"], how="inner")
+            rows = []
+            for r in sh.to_dict("records"):
+                v = r.get(E.MARKETS.get(r["market"], ""))
+                if v is None or pd.isna(v):
+                    continue
+                push, won = v == r["line"], (v > r["line"]) == (r["side"] == "over")
+                rows.append({"variant": r.get("variant"), "market": r["market"], "side": r["side"], "tier": r.get("tier"),
+                             "outcome": "push" if push else ("win" if won else "loss"),
+                             "units": 0.0 if push else (_profit(r["price"]) if won else -1.0)})
+            # the live rule, same markets, for the side-by-side
+            allw = rows + [{**g, "variant": "live"} for g in graded if g["market"] != "anytime_td"]
+            out["tracking"]["variants"] = {
+                v: {"bets": summ([g for g in allw if g["variant"] == v and g["tier"] == "bet"]),
+                    "overs_share": round(sum(g["side"] == "over" for g in allw if g["variant"] == v)
+                                         / max(1, sum(g["variant"] == v for g in allw)), 3)}
+                for v in sorted({g["variant"] for g in allw}, key=str)}
+            out["tracking"]["variant_market_side"] = {
+                f"{v} | {m} {sd}": summ([g for g in allw if g["variant"] == v and g["market"] == m and g["side"] == sd])
+                for v, m, sd in sorted({(g["variant"], g["market"], g["side"]) for g in allw}, key=str)}
     return out
+
+
+def tracking(graded: list, summ) -> dict:
+    """Behind-the-scenes cuts of the bets (not shown on the page yet): the
+    top-15 the page shows vs the rest, the history signal, edge size, side and
+    market. Plays logged before Nov 13 2026 have no signals ('unknown')."""
+    bets = [g for g in graded if g["tier"] == "bet"]
+    nan = lambda v: v is None or (isinstance(v, float) and not np.isfinite(v))  # noqa: E731
+
+    def by(fn):
+        keys = sorted({fn(g) for g in bets}, key=str)
+        return {str(k): summ([g for g in bets if fn(g) == k]) for k in keys}
+
+    def ev_band(g):
+        ev = g.get("ev")
+        if nan(ev):
+            return "unknown"
+        return "5-12%" if ev < 0.12 else "12-20%" if ev < 0.20 else "20%+"
+    return {
+        "top15": by(lambda g: "unknown" if nan(g.get("top")) else ("top15" if g["top"] else "rest")),
+        "history": by(lambda g: "unknown" if nan(g.get("hist_rate")) else
+                      ("5+ of 8" if g["hist_rate"] >= E.HIST_GOOD else "under 5 of 8")),
+        "ev": by(ev_band),
+        "side": by(lambda g: g["side"]),
+        "price": by(lambda g: "unknown" if nan(g.get("price")) else "-121 or shorter" if g["price"] <= -121
+                    else "-120 to -100" if g["price"] <= -100 else "+101 to +150" if g["price"] <= 150 else "+151 and up"),
+        "market_side": {f"{m} {sd}": summ([g for g in graded if g["market"] == m and g["side"] == sd])
+                        for m, sd in sorted({(g["market"], g["side"]) for g in graded})},
+    }
 
 
 if __name__ == "__main__":

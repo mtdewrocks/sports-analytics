@@ -51,6 +51,32 @@ BET_MARKETS = {"receptions", "reception_yds"}
 # chances for rushing markets were calibrated on running backs only
 RB_ONLY = {"rush_attempts", "rush_yds"}
 
+# The page shows only the TOP_BETS best bets a week (the full rule flags ~65).
+# Ranking, from a weeks 3-9 2026 check at closing lines: the player hit the
+# flagged side in 5+ of his last 8 games (HIST_GOOD), then receptions before
+# receiving yards, then expected return. Size of the edge did NOT sort winners
+# in football (5-12% returned more than 12-20%), so it's last. Half-season
+# check: the history signal held weeks 3-6 but not 7-9 -- so this is a sort
+# order, not a star rating; every flag is logged with its signals to see.
+# Over chances run ~2-4 points low against 2026 results (at a 50% call, overs
+# hit 54% for receptions), so 2 points are added to every over chance. On
+# weeks 3-9 that took bets from ~1/3 overs to ~1/2 at the same return; 4
+# points overshot (80%+ overs). The no-nudge version is logged beside it.
+OVER_NUDGE = 0.02
+
+TOP_BETS = 15
+HIST_GAMES = 8
+HIST_GOOD = 0.625
+
+
+def hist_rate(vals, line, side) -> Optional[float]:
+    """Share of his last HIST_GAMES results on the flagged side of this line."""
+    vals = [v for v in (vals or [])[-HIST_GAMES:] if v is not None]
+    if not vals or line is None or side not in ("over", "under"):
+        return None
+    hit = [v > line if side == "over" else v < line for v in vals]
+    return round(sum(hit) / len(hit), 3)
+
 
 def td_prices(props: pd.DataFrame, exclude_books: set) -> Dict[str, dict]:
     """player key -> best anytime-TD 'yes' price."""
@@ -67,7 +93,8 @@ def td_prices(props: pd.DataFrame, exclude_books: set) -> Dict[str, dict]:
 
 
 def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], tds: Dict[str, dict], cal: dict,
-              position: Optional[str] = None) -> Dict[str, dict]:
+              position: Optional[str] = None, recent: Optional[dict] = None) -> Dict[str, dict]:
+    """`recent`: stat -> his last results, oldest first (for the history signal)."""
     k = match_key(player)
     out = {}
     for m, st in MARKETS.items():
@@ -83,10 +110,11 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], tds: Dict[str, 
         # just a target. Weights per stat in nfl_projection_calibration.json.
         w = (cal.get("market_weight") or {}).get(st, 0.0)
         p = (1 - w) * model + w * line
-        po = prob_over(st, p, line, cal)
+        nudge = lambda x: None if x is None else min(0.99, x + OVER_NUDGE)  # noqa: E731
+        po = nudge(prob_over(st, p, line, cal))
         pu = None
         if po is not None:
-            pu = 1 - po if line % 1 else 1 - prob_over(st, p, line - 1, cal)
+            pu = 1 - po if line % 1 else 1 - nudge(prob_over(st, p, line - 1, cal))
         ev = {}
         for side, prob, price in (("over", po, ln["over_price"]), ("under", pu, ln["under_price"])):
             dec = american_to_decimal(price)
@@ -112,6 +140,10 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], tds: Dict[str, 
                   "market_prob_over": round(mkt, 3) if mkt is not None else None,
                   "side": side, "ev": round(ev[side], 3) if side else None,
                   "suspect": bool(side and ev[side] >= SUSPECT_EV),
+                  "hist_rate": hist_rate((recent or {}).get(st), line, side) if side else None,
+                  "hist_n": len([v for v in ((recent or {}).get(st) or [])[-HIST_GAMES:] if v is not None]) if side else None,
+                  "prob_edge": (round((po if side == "over" else pu) - (mkt if side == "over" else 1 - mkt), 3)
+                                if side and mkt is not None else None),
                   "price": ln["over_price"] if side == "over" else ln["under_price"] if side == "under" else None,
                   "book": ln["over_book"] if side == "over" else ln["under_book"] if side == "under" else None}
     t = tds.get(k)
@@ -130,12 +162,19 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], tds: Dict[str, 
     return out
 
 
+def rank_key(r: dict):
+    h = r.get("hist_rate")
+    return (bool(r.get("suspect")), -(h is not None and h >= HIST_GOOD), -(r.get("market") == "receptions"),
+            -(r.get("ev") or 0))
+
+
 def best_bets(players: list, tier: str = "bet", limit: int = 40) -> list:
     rows = []
     for p in players:
         for m, e in (p.get("lines") or {}).items():
             if e.get("side") and e.get("tier") == tier:
-                rows.append({"game_id": p["game_id"], "player": p["player"], "team": p["team"], "position": p["position"],
+                rows.append({"game_id": p["game_id"], "player": p["player"], "player_id": p.get("player_id"),
+                             "team": p["team"], "position": p["position"],
                              "status": p.get("status"), "market": m, **e})
-    rows.sort(key=lambda r: (r["suspect"], -(r["ev"] or 0)))
+    rows.sort(key=rank_key)
     return rows[:limit]

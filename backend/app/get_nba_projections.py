@@ -348,7 +348,7 @@ def main() -> int:
                         - {"MIN", "mates_usg", "usg_newly_out"})
     keep = (["PLAYER", "TEAM", "Opponent", "GAME DATE", "Location", "espn_game_id", "start_utc", "home", "away",
              "ew_min", "played_last", "status", "injury", "out", "default_min", "USG_SHARE_roll10"]
-            + F.MINUTES_FEATURES + F.VEGAS_FEATURES + model_cols)      # the API reruns minutes with these
+            + F.MINUTES_FEATURES + F.VEGAS_FEATURES + model_cols + F.CAP_COLUMNS + ["Opp_3PM_rel"])  # the API reruns these
     keep = list(dict.fromkeys(c for c in keep if c in feats.columns))
     feats = feats[keep]
     feats.to_parquet(OUT / "nba_projection_slate.parquet", index=False)

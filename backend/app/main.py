@@ -14,6 +14,7 @@ from app.routers.nhl import router as nhl_router
 from app.routers.admin import router as admin_router
 from app.routers.betting import router as betting_router
 from app.config import settings
+from app import pick_emails  # noqa: F401 -- registers pick_email_log before create_tables()
 
 app = FastAPI(title="Sports Analytics API", version="1.0.0")
 # The projections pages send a few hundred KB of JSON; compressed it's ~10x smaller on a phone.
@@ -50,6 +51,7 @@ def _run_migrations():
 def startup():
     create_tables()
     _run_migrations()
+    pick_emails.start_background()
     # Pre-warm MLB data cache so first user request doesn't time out
     try:
         from app.data.loader import get_mlb_data, get_pitcher_names
