@@ -27,7 +27,7 @@ interface LineEdge {
 
 interface PlayerRow {
   player: string; status: string | null; injury: string | null;
-  default_min: number; minutes: number; edited: boolean;
+  default_min: number; minutes: number; edited: boolean; l7_min?: number | null; l7_games?: number; play_chance?: number;
   projection: Record<Stat, number>;
   lines: Record<string, LineEdge>;
 }
@@ -182,6 +182,25 @@ function StatCell({ value, edge }: { value: number; edge?: LineEdge }) {
   );
 }
 
+// His average over the last 7 days under the minutes box, flagged when a
+// rotation player's minutes are 3+ below it. A prompt to check the news, not
+// a correction: backtested Nov 2026, flagged players still landed closer to
+// the default than to L7 about 60% of the time.
+const L7_GAP = 3;
+const L7_ROTATION = 15;
+function LastWeek({ row, shown }: { row: PlayerRow; shown: number }) {
+  if (row.l7_min == null || !row.l7_games || row.status === 'Out') return null;
+  const low = row.l7_games >= 2 && row.l7_min >= L7_ROTATION && shown <= row.l7_min - L7_GAP;
+  return (
+    <div
+      title={`Averaged ${row.l7_min} minutes in ${row.l7_games} game${row.l7_games === 1 ? '' : 's'} over the last 7 days`}
+      style={{ fontSize: 10.5, marginTop: 2, color: low ? theme.warningText : theme.textMuted, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+    >
+      L7 {row.l7_min.toFixed(1)}{low ? ' ▲' : ''}
+    </div>
+  );
+}
+
 function MinutesInput({ row, pending, onChange, compact }: {
   row: PlayerRow; pending?: number | null; onChange: (v: number | null) => void; compact?: boolean;
 }) {
@@ -228,20 +247,24 @@ function TeamTable({ t, pending, onMinutes, onRun, busy, isMobile }: {
   onRun: (team: string) => void; busy: boolean; isMobile: boolean;
 }) {
   const nPending = t.players.filter((p) => p.player in pending).length;
-  // minutes total as typed, so the 240 check is useful before running
+  // EXPECTED minutes as typed -- each player's minutes x his chance of
+  // playing (Day-To-Day, fringe) -- so the 240 check works with doubtful
+  // players listed at their if-he-plays minutes. The server caps it at 240.
   const typedTotal = t.players.reduce((a, p) => {
     const v = pending[p.player];
-    return a + (v === undefined ? p.minutes : v === null ? p.default_min : v);
+    const m = v === undefined ? p.minutes : v === null ? p.default_min : v;
+    return a + m * (p.play_chance ?? 1);
   }, 0);
-  const off = Math.abs(typedTotal - 240) > 5;
+  const off = typedTotal > 245 || typedTotal < 235;
   const cols = isMobile ? COLS.slice(0, 4) : COLS;
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
         <b style={{ color: theme.textPrimary, fontSize: 15 }}>{t.team}{t.home ? ' (home)' : ''}</b>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <span style={{ fontSize: 12, color: off ? theme.warningText : theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
-            {typedTotal.toFixed(0)} / 240 minutes{off ? (typedTotal > 240 ? ' — over' : ' — under') : ''}
+          <span title="Each player's minutes x his chance of playing, so Day-To-Day and fringe players count partly"
+            style={{ fontSize: 12, color: off ? theme.warningText : theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>
+            {typedTotal.toFixed(0)} / 240 expected min{off ? (typedTotal > 245 ? ' — over' : ' — under') : ''}
           </span>
           {nPending > 0 && (
             <button
@@ -280,6 +303,7 @@ function TeamTable({ t, pending, onMinutes, onRun, busy, isMobile }: {
                   </td>
                   <td style={{ padding: '6px 6px' }}>
                     <MinutesInput row={p} pending={pending[p.player]} onChange={(v) => onMinutes(p.player, v)} compact={isMobile} />
+                    <LastWeek row={p} shown={pending[p.player] === undefined ? p.minutes : pending[p.player] ?? p.default_min} />
                   </td>
                   {cols.map((c) => (
                     <StatCell key={c.stat} value={p.projection[c.stat]} edge={c.market ? p.lines[c.market] : undefined} />

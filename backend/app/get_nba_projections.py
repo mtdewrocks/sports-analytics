@@ -104,6 +104,12 @@ def _fit(train: pd.DataFrame, stat: str, vegas: bool = False):
 def _fit_minutes(train: pd.DataFrame, cols=None):
     import lightgbm as lgb
     cols = cols or F.MINUTES_FEATURES
+    # learn a standard game -- no OT, margin under 15 (F.STANDARD_GAME_MINUTES).
+    # 21-day holdout, Nov 2026: stars (30+ min lately) in standard games 3.01
+    # -> 2.80 min average miss, bias -0.7 -> +0.4, within 5 min 82% -> 84%;
+    # blowouts/OT knowingly worse (4.9 -> 5.4, +3.2 high).
+    if F.STANDARD_GAME_MINUTES and "std_game" in train.columns and train["std_game"].sum() > 2000:
+        train = train[train["std_game"] == 1]
     ds = lgb.Dataset(train[cols].astype(float), label=train["MIN"].astype(float),
                      weight=_weights(train))
     return lgb.train(F.MINUTES_PARAMS, ds, num_boost_round=F.MINUTES_ROUNDS)
@@ -348,7 +354,7 @@ def main() -> int:
                         - {"MIN", "mates_usg", "usg_newly_out"})
     keep = (["PLAYER", "TEAM", "Opponent", "GAME DATE", "Location", "espn_game_id", "start_utc", "home", "away",
              "ew_min", "played_last", "status", "injury", "out", "default_min", "USG_SHARE_roll10"]
-            + F.MINUTES_FEATURES + F.VEGAS_FEATURES + model_cols + F.CAP_COLUMNS + ["Opp_3PM_rel"])  # the API reruns these
+            + F.MINUTES_FEATURES + F.VEGAS_FEATURES + model_cols + F.CAP_COLUMNS + F.MINUTES_CHECK_COLUMNS + ["Opp_3PM_rel"])  # the API reruns these
     keep = list(dict.fromkeys(c for c in keep if c in feats.columns))
     feats = feats[keep]
     feats.to_parquet(OUT / "nba_projection_slate.parquet", index=False)

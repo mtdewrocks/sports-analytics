@@ -46,6 +46,7 @@ THREE_PCT_PRIOR = 40          # attempts' worth of league average mixed into his
 THREE_PCT_GAMES = 40
 THREE_CAP_SLACK = 1.25
 CAP_COLUMNS = ["3PA_pm10", "3P_pct_est"]
+MINUTES_CHECK_COLUMNS = ["play_rate5", "l7_min", "l7_games"]
 
 NEEDED = ["PLAYER", "TEAM", "Opponent", "GAME DATE", "MIN", "FGA", "FTA", "OREB", "Location"] + TARGETS
 
@@ -257,6 +258,31 @@ RETURN_LIKELIHOOD = {"Probable": 0.9, "Questionable": 0.5, "Day-To-Day": 0.5, "D
 MAX_MIN = 42.0
 TEAM_MINUTES = 240.0
 BENCH_MIN = 15.0
+# Rotation weight by recent participation (Nov 23 2026). In training only
+# players who actually played count toward the rotation; tonight a deep-bench
+# player with old minutes counted in full, shrinking everyone's share (IND:
+# Kobe Brown / Jay Huff / Jarace Walker at 1-3 min lately -> Siakam 30.0, team
+# 235). Each available player now counts by the share of his team's last
+# PLAY_RATE_GAMES games he actually played, floored at PLAY_RATE_FLOOR.
+ROTATION_BY_PLAY_RATE = True
+PLAY_RATE_GAMES = 5
+PLAY_RATE_FLOOR = 0.2
+REAL_MIN = 5.0                 # a game "counts" toward play_rate5 at 5+ minutes
+REAL_LAST_MIN = 10.0           # 10+ minutes last game = fully in the rotation
+# Team cap. Listed players' minutes are "if he plays", and some on any night
+# won't (Day-To-Day, Questionable, fringe). So the cap is on EXPECTED minutes
+# -- each player's minutes x his chance of playing (play_chance) -- at 240.
+# Over it, minutes come off in proportion to minutes x TRIM_WEIGHT x (1 +
+# TRIM_UNCERTAIN x his chance of sitting): fringe and doubtful players give
+# up the most, starters the least (Shawn's call, Nov 23 2026).
+# Backtest Nov 4-22 2026, players who played: average miss 5.05 (old bench
+# trim) -> 4.41; starters in standard games 3.17 -> 2.86 min, bias -1.1 ->
+# -0.2. (A flat 250 cap on the raw list squeezed starters when two
+# Day-To-Day players were listed -- PHI Nov 23: LeBron 29.9 vs 33 lately.)
+TEAM_LIST_CAP = 240.0          # expected minutes
+TRIM_WEIGHT = ((28.0, 1.0), (BENCH_MIN, 2.0), (0.0, 6.0))     # (minutes at least, weight)
+TRIM_UNCERTAIN = 4.0
+L7_DAYS = 7
 
 
 def default_minutes(slate: pd.DataFrame) -> pd.Series:
@@ -319,6 +345,14 @@ MINUTES_FEATURES = ["ew", "last", "l3", "l10sd", "start5", "last_start", "rest",
                     # so minutes in competitive games are tracked separately
                     "ew_close", "l3_close", "blow5", "last_blow"]
 BLOWOUT_MARGIN = 20
+# The minutes model learns a STANDARD game (Shawn's call, Nov 23 2026): no
+# overtime and a final margin under 15. Default minutes then mean "a normal
+# game" -- right in normal games, knowingly high in blowouts. The chances
+# behind every flag still come from all games (calibrate() grades these
+# minutes against what really happened, blowouts included).
+STANDARD_GAME_MINUTES = True
+STANDARD_MARGIN = 15
+OT_TEAM_MINUTES = 250
 MINUTES_PARAMS = {"objective": "l1", "learning_rate": 0.05, "num_leaves": 15, "min_data_in_leaf": 60,
                   "feature_fraction": 0.9, "bagging_fraction": 0.8, "bagging_freq": 1, "verbose": -1, "seed": 1}
 MINUTES_ROUNDS = 500
@@ -351,9 +385,51 @@ def team_minutes_context(df: pd.DataFrame) -> pd.DataFrame:
     if "status" in d.columns:
         w = d["status"].map(RETURN_LIKELIHOOD).fillna(1.0)
     w = w.where(d["played_last"] | d["status"].notna() if "status" in d.columns else d["played_last"], SAT_LAST_LIKELIHOOD)
+    if ROTATION_BY_PLAY_RATE and "play_rate5" in d.columns:
+        w = w * rotation_rate(d)
     tot = (d["ew"] * w).where(avail, 0).groupby(d["TEAM"]).transform("sum")
     d["share"] = (d["ew"] / tot.replace(0, np.nan)).where(d["ew"] >= ROTATION_MIN)
     return d
+
+
+def rotation_rate(d: pd.DataFrame) -> pd.Series:
+    """How much he's really in the rotation: 1 if he played REAL_LAST_MIN+
+    last game (a starter back from injury is fully in), else the share of
+    the team's last PLAY_RATE_GAMES games he played 5+ minutes in."""
+    if "play_rate5" not in d.columns:
+        return pd.Series(1.0, index=d.index)
+    rate = d["play_rate5"].fillna(1.0).clip(lower=PLAY_RATE_FLOOR)
+    if "last" in d.columns and "played_last" in d.columns:
+        real = d["played_last"].fillna(False).astype(bool) & (pd.to_numeric(d["last"], errors="coerce") >= REAL_LAST_MIN)
+        rate = rate.where(~real, 1.0)
+    return rate
+
+
+def play_chance(d: pd.DataFrame) -> pd.Series:
+    """His chance of playing tonight: injury status x rotation_rate."""
+    like = d["status"].map(RETURN_LIKELIHOOD).fillna(1.0) if "status" in d.columns else pd.Series(1.0, index=d.index)
+    return (like * rotation_rate(d)).clip(0, 1)
+
+
+def trim_to_team_minutes(pred: pd.Series, d: pd.DataFrame, cap: float = TEAM_LIST_CAP) -> pd.Series:
+    """If a team's expected minutes (minutes x chance of playing) run over
+    `cap`, take the extra off in proportion to minutes x TRIM_WEIGHT x
+    uncertainty -- fringe and doubtful players first, starters least."""
+    pred = pred.copy()
+    q = play_chance(d)
+    unc = 1 + TRIM_UNCERTAIN * (1 - q)
+    for _, idx in d["TEAM"].groupby(d["TEAM"]).groups.items():
+        for _ in range(8):                               # repeat if someone hits 0
+            tp, qi = pred.loc[idx], q.loc[idx]
+            over = (tp * qi).sum() - cap
+            if over <= 0.05:
+                break
+            wt = tp.map(lambda m: next(w for lo, w in TRIM_WEIGHT if m >= lo)) * unc.loc[idx] * tp
+            denom = (wt * qi).sum()
+            if denom <= 0:
+                break
+            pred.loc[idx] = (tp - wt * over / denom).clip(lower=0)
+    return pred
 
 
 def _with_margins(h: pd.DataFrame) -> pd.DataFrame:
@@ -417,6 +493,10 @@ def build_minutes_training(history: pd.DataFrame) -> pd.DataFrame:
     h["team_missing"] = [missing.get((t, d), 0.0) for t, d in zip(h["TEAM"], h["GAME DATE"])]
     back = (~h["played_last"]) & (h["ew"] >= RETURNING_MIN)
     h["team_returning"] = h["ew"].where(back, 0).groupby([h["TEAM"], h["GAME DATE"]]).transform("sum")
+    # a "standard game" -- no overtime, final margin under STANDARD_MARGIN --
+    # is what the minutes model learns (see STANDARD_GAME_MINUTES)
+    team_min = h.groupby(["TEAM", "GAME DATE"])["MIN"].transform("sum")
+    h["std_game"] = ((h["margin"].abs() < STANDARD_MARGIN) & (team_min <= OT_TEAM_MINUTES)).astype(int)
     tot = h["ew"].where(h["ew"] >= ROTATION_MIN, 0).groupby([h["TEAM"], h["GAME DATE"]]).transform("sum")
     h["share"] = (h["ew"] / tot.replace(0, np.nan)).where(h["ew"] >= ROTATION_MIN)
     h["played_last"] = h["played_last"].astype(int)
@@ -444,14 +524,24 @@ def slate_minutes_inputs(history: pd.DataFrame, slate: pd.DataFrame) -> pd.DataF
                      "last_game": g["GAME DATE"].iloc[-1], "ngames": int(len(g))})
     inp = pd.DataFrame(rows)
     s = slate.merge(inp, on="PLAYER", how="left")
+    # share of his team's last PLAY_RATE_GAMES games he played 5+ min, and his
+    # average over the last L7_DAYS (shown beside the default as a check)
+    team_dates = h.groupby("TEAM")["GAME DATE"].apply(lambda x: sorted(x.unique())[-PLAY_RATE_GAMES:]).to_dict()
+    played = set(zip(h.loc[h["MIN"] >= REAL_MIN, "PLAYER"], h.loc[h["MIN"] >= REAL_MIN, "GAME DATE"]))
+    s["play_rate5"] = [float(np.mean([(p, d) in played for d in team_dates[t]])) if team_dates.get(t) else np.nan
+                       for p, t in zip(s["PLAYER"], s["TEAM"])]
+    day = pd.to_datetime(s["GAME DATE"]).max() if len(s) else pd.Timestamp.now()
+    wk = h[h["GAME DATE"] >= day - pd.Timedelta(days=L7_DAYS)]
+    s["l7_min"] = s["PLAYER"].map(wk.groupby("PLAYER")["MIN"].mean()).round(1)
+    s["l7_games"] = s["PLAYER"].map(wk.groupby("PLAYER").size()).fillna(0).astype(int)
     s["rest"] = (pd.to_datetime(s["GAME DATE"]) - pd.to_datetime(s["last_game"])).dt.days.clip(upper=10)
     s["is_home"] = (s["Location"] == "Home").astype(int)
     return s.drop(columns=["last_game"])
 
 
 def model_minutes(slate: pd.DataFrame, booster) -> pd.Series:
-    """Default minutes from the minutes model: Out -> 0, the 240-minute bench
-    trim from default_minutes() applied on top."""
+    """Default minutes from the minutes model: Out -> 0, then anything over
+    TEAM_LIST_CAP a team taken off fringe players first (trim_to_team_minutes)."""
     d = team_minutes_context(slate)
     # the booster's own feature list, so a model trained before a feature was
     # added still runs on a newer slate (and vice versa, with NaN)
@@ -461,13 +551,7 @@ def model_minutes(slate: pd.DataFrame, booster) -> pd.Series:
         X["played_last"] = d["played_last"].astype(int)
     pred = pd.Series(np.clip(booster.predict(X), 0, MAX_MIN), index=d.index)
     pred[d["out"].values] = 0.0
-    for _, g in d.groupby("TEAM"):
-        tp = pred.loc[g.index]
-        bench = tp < BENCH_MIN
-        over = tp.sum() - TEAM_MINUTES
-        if over > 0 and tp[bench].sum() > 0:
-            pred.loc[tp[bench].index] = tp[bench] * max(0.0, 1 - over / tp[bench].sum())
-    return pred.round(1)
+    return trim_to_team_minutes(pred, d).round(1)
 
 
 # ---------------------------------------------------------------------------

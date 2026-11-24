@@ -285,3 +285,34 @@ def test_threes_capped_by_attempts_make_rate_and_defense():
     cap = F.three_cap(s)
     assert abs(cap[0] - 1.25 * 0.0159 * 27 * 0.40 * 1.12) < 1e-9      # a big: ~0.24 threes at most
     assert cap[1] > 4 and np.isnan(cap[2])                                # a shooter isn't held back; no data, no cap
+
+
+def test_team_trim_takes_more_from_fringe_and_doubtful_players():
+    d = pd.DataFrame({"TEAM": ["IND"] * 4, "status": [None, None, None, "Questionable"],
+                      "play_rate5": [1.0, 1.0, 0.4, 1.0]})
+    pred = pd.Series([36.0, 34.0, 10.0, 12.0] + [0.0] * 0)
+    pred = pd.concat([pred, pd.Series([30.0, 28.0, 26.0, 24.0, 22.0, 20.0, 18.0])], ignore_index=True)
+    d = pd.concat([d, pd.DataFrame({"TEAM": ["IND"] * 7, "status": [None] * 7, "play_rate5": [1.0] * 7})],
+                  ignore_index=True)
+    out = F.trim_to_team_minutes(pred, d)
+    assert abs((out * F.play_chance(d)).sum() - F.TEAM_LIST_CAP) < 0.1       # expected minutes = 240
+    cut = (pred - out) / pred
+    assert cut[2] > cut[1] * 3 and cut[3] > cut[1] * 3        # fringe (played 2 of 5) and Questionable lose most
+    under = F.trim_to_team_minutes(pred.head(3), d.head(3))
+    assert (under == pred.head(3)).all()                       # under the cap: untouched
+
+
+def test_rotation_weighted_by_recent_participation():
+    base = {"TEAM": ["IND"] * 3, "ew": [32.0, 30.0, 15.0], "played_last": [True, True, False],
+            "out": [False] * 3, "status": [None] * 3}
+    a = F.team_minutes_context(pd.DataFrame({**base, "play_rate5": [1.0, 1.0, 1.0]}))
+    b = F.team_minutes_context(pd.DataFrame({**base, "play_rate5": [1.0, 1.0, 0.2]}))
+    assert b["share"].iloc[0] > a["share"].iloc[0]            # a rarely-used player shrinks the rotation less
+
+
+def test_rotation_rate_counts_a_starter_back_from_injury_fully():
+    d = pd.DataFrame({"play_rate5": [0.6, 0.6, 0.2], "played_last": [True, True, False], "last": [32.0, 1.0, 0.0],
+                      "status": [None, None, None]})
+    r = F.rotation_rate(d)
+    assert r.tolist() == [1.0, 0.6, 0.2]          # 32 min last game = fully in; 1 min = still fringe
+    assert F.play_chance(d.assign(status=["Day-To-Day", None, None])).iloc[0] == 0.5

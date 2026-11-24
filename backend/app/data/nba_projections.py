@@ -17,6 +17,7 @@ import json
 import threading
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 
 from app import nba_projection_edges as E
@@ -67,6 +68,14 @@ def _boosters():
 
 
 @ttl_cache(600)
+def _f(v):
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return None
+    return v if np.isfinite(v) else None
+
+
 def _cached_boosters():
     return _boosters()
 
@@ -139,6 +148,7 @@ def get_projections(game_id: Optional[int] = None, minutes: Optional[Dict[str, f
     slate = slate.reset_index(drop=True)
 
     overrides = {E.match_key(k): float(v) for k, v in (minutes or {}).items() if v is not None}
+    chance = F.play_chance(slate)          # for the page's expected-minutes total
     used = slate.apply(lambda r: max(0.0, min(48.0, overrides.get(E.match_key(r["PLAYER"]), r["default_min"]))), axis=1)
     proj = _predict(slate, used)
 
@@ -163,6 +173,8 @@ def get_projections(game_id: Optional[int] = None, minutes: Optional[Dict[str, f
                     "player": r["PLAYER"],
                     "status": r["status"], "injury": r["injury"],
                     "default_min": float(r["default_min"]), "minutes": round(float(used[i]), 1),
+                    "play_chance": round(float(chance[i]), 2),
+                    "l7_min": _f(r.get("l7_min")), "l7_games": int(r.get("l7_games") or 0) if pd.notna(r.get("l7_games")) else 0,
                     "edited": E.match_key(r["PLAYER"]) in overrides,
                     "projection": stats,
                     # unedited players: a flag must also hold at his recent minutes
