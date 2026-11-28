@@ -266,8 +266,9 @@ def test_tier_tracking_logs_both_rules_and_grades(tmp_path):
     assert [p["side"] for p in old] == ["under"] and new == []  # the old under lean
 
     p = tmp_path / "plays.parquet"
-    T.update_log(p, old, "2026-11-13")
-    T.update_log(p, old, "2026-11-13")                      # rerun replaces, doesn't double
+    ran = {(pd.Timestamp("2026-11-13"), "NYK")}
+    T.update_log(p, old, ran)
+    T.update_log(p, old, ran)                               # rerun replaces, doesn't double
     logged = pd.read_parquet(p)
     assert len(logged) == 1 and logged["stars"].iloc[0] in (3, 4, 5) and logged["books"].iloc[0] == 3
 
@@ -316,3 +317,28 @@ def test_rotation_rate_counts_a_starter_back_from_injury_fully():
     r = F.rotation_rate(d)
     assert r.tolist() == [1.0, 0.6, 0.2]          # 32 min last game = fully in; 1 min = still fringe
     assert F.play_chance(d.assign(status=["Day-To-Day", None, None])).iloc[0] == 0.5
+
+
+def test_evening_run_keeps_the_early_games(tmp_path):
+    import nba_play_tiers as T
+    p = tmp_path / "plays.parquet"
+    day = pd.Timestamp("2026-11-23")
+    early = [{"PLAYER": "a", "TEAM": "IND", "GAME DATE": day, "ev": 0.1},
+             {"PLAYER": "b", "TEAM": "OKC", "GAME DATE": day, "ev": 0.1},
+             {"PLAYER": "c", "TEAM": "LAL", "GAME DATE": day, "ev": 0.1}]
+    T.update_log(p, early, {(day, "IND"), (day, "OKC"), (day, "LAL"), (day, "UTA")})
+    # 9:30 PM: IND-OKC has tipped, only LAL-UTA is re-projected
+    late = [{"PLAYER": "d", "TEAM": "UTA", "GAME DATE": day, "ev": 0.2}]
+    out = T.update_log(p, late, T.run_keys(pd.DataFrame({"GAME DATE": [day, day], "TEAM": ["LAL", "UTA"]})))
+    assert sorted(out["PLAYER"]) == ["a", "b", "d"]          # early games kept; LAL's stale pick replaced
+
+
+def test_blocks_tracking_only_and_no_zero_block_unders():
+    props = pd.DataFrame([{"Player": "Joel Embiid", "market": m, "Line": ln, "bookmakers": "fanduel",
+                           "Over Price": -110, "Under Price": -110, "fetched_at": "t"}
+                          for m, ln in (("blocks", 0.5), ("rebounds", 10.5))])
+    lines = E.main_lines(props, set())
+    low = E.edges_for("Joel Embiid", {"BLK": 0.05, "REB": 6.0}, lines)
+    assert low["blocks"]["side"] is None                      # under 0.5 blocks: never flagged
+    assert low["blocks"]["tracking"] and not low["rebounds"]["tracking"]
+    assert ("blocks", "over", 0.5) not in E.NEVER_FLAG             # overs can still flag (tracking only)

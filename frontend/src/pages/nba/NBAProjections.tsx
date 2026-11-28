@@ -22,7 +22,7 @@ interface LineEdge {
   over_price: number | null; under_price: number | null; threshold: number | null;
   prob_over: number | null; prob_under: number | null; market_prob_over: number | null;
   model_prob_over?: number | null; model_prob_under?: number | null;
-  ev: number | null; suspect: boolean;
+  ev: number | null; suspect: boolean; tracking?: boolean;
 }
 
 interface PlayerRow {
@@ -62,7 +62,7 @@ function flagsFor(games: Game[]): Flag[] {
   const out: Flag[] = [];
   games.forEach((g) => g.teams.forEach((t) => t.players.forEach((p) => {
     Object.values(p.lines).forEach((e) => {
-      if (e.side && e.ev != null) out.push({ p, e, team: t.team, opp: t.team === g.home ? g.away : g.home, game: g });
+      if (e.side && e.ev != null && !e.tracking) out.push({ p, e, team: t.team, opp: t.team === g.home ? g.away : g.home, game: g });
     });
   })));
   // "check before betting" flags (expected return so big it usually means
@@ -161,7 +161,7 @@ function saveEdits(date: string | null, gid: number, edits: Record<string, numbe
 }
 
 function StatCell({ value, edge }: { value: number; edge?: LineEdge }) {
-  const flagged = !!edge?.side;
+  const flagged = !!edge?.side && !edge?.tracking;   // tracking-only markets (blocks) aren't shown as plays
   return (
     <td style={{ padding: '6px 6px', textAlign: 'center', verticalAlign: 'top' }}>
       <div style={{ fontWeight: 700, color: theme.textPrimary, fontVariantNumeric: 'tabular-nums' }}>{value.toFixed(1)}</div>
@@ -333,7 +333,7 @@ function Plays({ game }: { game: Game }) {
 interface RecordResp {
   accuracy: { games: number; since: string; minutes_mae: number; mae: Record<string, number> } | null;
   plays: { plays: number; wins: number; losses: number; win_pct: number | null; units: number; roi_pct: number } | null;
-  by_market: { market: string; label: string; plays: number; wins: number; losses: number; win_pct: number | null; units: number; roi_pct: number }[];
+  by_market: { market: string; label: string; tracking?: boolean; plays: number; wins: number; losses: number; win_pct: number | null; units: number; roi_pct: number | null }[];
 }
 
 function TrackRecord() {
@@ -366,8 +366,8 @@ function TrackRecord() {
               {rec.by_market.map((m) => (
                 <tr key={m.market}>
                   <td style={cell}>{m.label}</td><td style={cell}>{m.wins}-{m.losses}</td>
-                  <td style={{ ...cell, color: m.units > 0 ? theme.dataBlue : theme.warningText }}>{m.units > 0 ? '+' : ''}{m.units}</td>
-                  <td style={cell}>{m.roi_pct > 0 ? '+' : ''}{m.roi_pct}%</td>
+                  <td style={{ ...cell, color: m.units > 0 ? theme.dataBlue : m.units < 0 ? theme.warningText : theme.textMuted }}>{m.units > 0 ? '+' : ''}{m.units}</td>
+                  <td style={cell}>{m.roi_pct == null ? '—' : `${m.roi_pct > 0 ? '+' : ''}${m.roi_pct}%`}</td>
                 </tr>
               ))}
             </tbody>

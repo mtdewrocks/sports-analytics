@@ -94,7 +94,7 @@ def flag_rows(rule: str, today_rows: pd.DataFrame, lines: dict, calibration: dic
                     continue
                 hr = hist_rate(hist.get((E.match_key(r["PLAYER"]), m)), e["line"], e["side"])
                 out.append({
-                    "rule": rule, "PLAYER": r["PLAYER"], "TEAM": r["TEAM"], "GAME DATE": r["GAME DATE"],
+                    "rule": rule, "tracking": m in E.TRACK_ONLY, "PLAYER": r["PLAYER"], "TEAM": r["TEAM"], "GAME DATE": r["GAME DATE"],
                     "start_utc": r.get("start_utc"), "market": m, "side": e["side"], "line": e["line"],
                     "price": e["price"], "book": e["book"], "projection": e["projection"], "diff": e["diff"], "ev": e["ev"],
                     "prob": e["prob_over"] if e["side"] == "over" else e["prob_under"],
@@ -154,6 +154,12 @@ def report(graded: pd.DataFrame) -> dict:
     g["ev_band"] = pd.cut(g["ev"], EV_BANDS, labels=EV_LABELS, right=False).astype(str)
     g["night"] = pd.to_datetime(g["GAME DATE"]).dt.date.astype(str)
     g["price_band"] = pd.cut(g["price"], PRICE_BANDS, labels=PRICE_LABELS).astype(str)
+    trk = g["market"].isin(E.TRACK_ONLY)          # also catches rows logged before the flag existed
+    new_rule = g["tracking"].fillna(False).astype(bool) if "tracking" in g.columns else pd.Series(False, index=g.index)
+    for (rule, mk), x in g[trk & new_rule].groupby(["rule", "market"]):     # fresh start: new-rule picks only
+        out.setdefault("tracking_only", {})[f"{rule} {mk}"] = {"overall": _summ(x),
+                                                               "by_side": {k: _summ(y) for k, y in x.groupby("side")}}
+    g = g[~trk]
     for rule, rg in g.groupby("rule"):
         rep = {"overall": _summ(rg)}
         for col in ("side", "ev_band", "price_band", "night") + (("stars",) if "stars" in rg.columns else ()):
@@ -162,13 +168,26 @@ def report(graded: pd.DataFrame) -> dict:
     return out
 
 
-def update_log(path, new_rows: Iterable[dict], day) -> pd.DataFrame:
-    """Replace today's rows (the last run before tip wins), keep the rest."""
+def run_keys(slate: pd.DataFrame) -> set:
+    """(game date, team) pairs a run projected."""
+    return set(zip(pd.to_datetime(slate["GAME DATE"]).dt.normalize(), slate["TEAM"]))
+
+
+def drop_rerun(old: pd.DataFrame, ran: set) -> pd.DataFrame:
+    """Old rows minus the games this run re-projected; everything else --
+    other days, and today's games already under way -- is kept."""
+    if old.empty or not ran:
+        return old
+    k = list(zip(pd.to_datetime(old["GAME DATE"]).dt.normalize(), old["TEAM"]))
+    return old[[x not in ran for x in k]]
+
+
+def update_log(path, new_rows: Iterable[dict], ran: set) -> pd.DataFrame:
+    """Replace the games this run projected (`ran`, from run_keys), keep the
+    rest -- an evening run must not wipe the early games' picks."""
     new = pd.DataFrame(list(new_rows))
     if path.exists():
-        old = pd.read_parquet(path)
-        old = old[pd.to_datetime(old["GAME DATE"]) != pd.Timestamp(day)]
-        new = pd.concat([old, new], ignore_index=True)
+        new = pd.concat([drop_rerun(pd.read_parquet(path), ran), new], ignore_index=True)
     if not new.empty:
         new.to_parquet(path, index=False)
     return new

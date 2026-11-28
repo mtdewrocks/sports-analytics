@@ -362,16 +362,25 @@ def main() -> int:
           f"{len(feats)} players ({int(feats['out'].sum())} ruled out)")
 
     proj = F.predict_stats(load_models(bundle), feats, feats["default_min"])
-    log = feats[["PLAYER", "TEAM", "Opponent", "GAME DATE", "espn_game_id", "start_utc", "default_min", "status"]].merge(
+    # only games that haven't tipped are logged (a game in progress keeps its
+    # pregame projections and picks; its lines may already be live in-game)
+    tip = pd.to_datetime(feats["start_utc"], utc=True, errors="coerce")
+    pregame = feats[tip.isna() | (tip > pd.Timestamp.now(tz="UTC"))]
+    ran = T.run_keys(pregame)                     # (game date, team) this run projected
+    log = pregame[["PLAYER", "TEAM", "Opponent", "GAME DATE", "espn_game_id", "start_utc", "default_min", "status"]].merge(
         proj[["PLAYER", "TEAM"] + F.TARGETS], on=["PLAYER", "TEAM"])
     log = log[log["default_min"] > 0].copy()
     log["logged_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    new_log = log.copy()                          # this run's rows -- the plays below use only these
     log_path = OUT / "nba_projection_log.parquet"
     if log_path.exists():
         old = pd.read_parquet(log_path)
-        # The latest run before tip replaces that day's projections outright,
-        # so a player dropped from the slate (ruled out late) doesn't linger.
-        old = old[pd.to_datetime(old["GAME DATE"]) != pd.Timestamp(feats["GAME DATE"].iloc[0])]
+        # This run replaces only the games it projected -- a team's latest
+        # run before tip wins, and a player ruled out late doesn't linger --
+        # while games already under way keep their pregame projections.
+        # (Until Nov 24 2026 a run replaced the WHOLE day, so an evening run
+        # wiped the early games: Nov 16 kept 2 of 16 teams.)
+        old = T.drop_rerun(old, ran)
         log = pd.concat([old, log], ignore_index=True)
         log = log[pd.to_datetime(log["GAME DATE"]) >= pd.Timestamp.now() - pd.Timedelta(days=LOG_RETAIN_DAYS)]
     log.to_parquet(log_path, index=False)
@@ -380,19 +389,18 @@ def main() -> int:
     props_path = OUT / "NBA_Props.parquet"
     if props_path.exists():
         lines = E.main_lines(pd.read_parquet(props_path), set(UNBETTABLE_BOOKS | SHARP_BOOKS | DFS_BOOKS))
-        today_rows = log[pd.to_datetime(log["GAME DATE"]) == pd.Timestamp(feats["GAME DATE"].iloc[0])]
-        day = pd.Timestamp(feats["GAME DATE"].iloc[0])
+        today_rows = new_log[pd.to_datetime(new_log["GAME DATE"]) == pd.Timestamp(feats["GAME DATE"].iloc[0])]
         recent_min = feats.drop_duplicates("PLAYER").set_index("PLAYER")["ew"].to_dict()
         alt_for = lambda r: _at_minutes(r, recent_min.get(r["PLAYER"]), r["default_min"])  # noqa: E731
         hist = T.recent_values(history)
         cal = bundle.get("calibration")
         # live rule -- what the site shows (stars/signals logged, not shown yet)
         plays = T.flag_rows("centered", today_rows, lines, cal, alt_for, hist, center=True, edges=E)
-        T.update_log(OUT / "nba_projection_plays.parquet", plays, day)
+        T.update_log(OUT / "nba_projection_plays.parquet", plays, ran)
         print(f"plays flagged today (expected return >= {E.MIN_EV:.0%}): {len(plays)}")
         # shadow: the pre-Nov 13 rule on the same lines, for a before/after
         shadow = T.flag_rows("old", today_rows, lines, cal, alt_for, hist, center=False, edges=E)
-        T.update_log(OUT / "nba_projection_plays_shadow.parquet", shadow, day)
+        T.update_log(OUT / "nba_projection_plays_shadow.parquet", shadow, ran)
         print(f"  old rule would flag: {len(shadow)} "
               f"({sum(p['side'] == 'under' for p in shadow)} unders) vs {sum(p['side'] == 'under' for p in plays)} unders now")
         try:
@@ -405,7 +413,7 @@ def main() -> int:
             rep = T.report(T.grade(allp, history))
             rep["updated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
             (OUT / "nba_tier_report.json").write_text(json.dumps(rep, indent=1, default=str))
-            print("tier report:", {k: v["overall"] for k, v in rep.items() if isinstance(v, dict)})
+            print("tier report:", {k: v["overall"] for k, v in rep.items() if isinstance(v, dict) and "overall" in v})
         except Exception as ex:                      # tracking must never break the run
             print(f"tier report skipped: {ex}")
     else:

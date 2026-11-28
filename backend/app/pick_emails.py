@@ -151,7 +151,7 @@ def nba_games() -> List[dict]:
         for t in g["teams"]:
             for p in t["players"]:
                 for m, e in (p.get("lines") or {}).items():
-                    if e.get("side") and e.get("price") is not None and not e.get("suspect"):
+                    if e.get("side") and e.get("price") is not None and not e.get("suspect") and not e.get("tracking"):
                         h = hit_text(recent.get((E.match_key(p["player"]), m)), e["line"], e["side"], NBA_LAST)
                         r = why(p["player"], m, e["side"])
                         vals = recent.get((E.match_key(p["player"]), m)) or []

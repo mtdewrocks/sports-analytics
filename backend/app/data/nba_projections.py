@@ -251,7 +251,8 @@ def get_projection_record() -> Dict[str, Any]:
             graded.append({"date": str(r["_d"].date()), "player": r["PLAYER"], "market": r["market"],
                            "label": E.LABELS[r["market"]], "side": r["side"], "line": r["line"],
                            "price": r["price"], "book": r["book"], "projection": r["projection"],
-                           "result": v, "outcome": res, "units": round(ret, 3)})
+                           "result": v, "outcome": res, "units": round(ret, 3),
+                           "tracking": bool(r.get("tracking")) if pd.notna(r.get("tracking")) else False})
 
         def summ(rows):
             dec = [g for g in rows if g["outcome"] != "push"]
@@ -263,8 +264,18 @@ def get_projection_record() -> Dict[str, Any]:
                     "units": round(sum(g["units"] for g in rows), 2),
                     "roi_pct": round(100 * sum(g["units"] for g in rows) / len(rows), 1)}
 
-        out["plays"] = summ(graded)
-        out["by_market"] = [{"market": m, "label": E.LABELS[m], **summ([g for g in graded if g["market"] == m])}
+        # Tracking-only markets (blocks, Nov 28 2026) keep their row but start
+        # fresh: only picks logged under the new rule (tracking=True) count, and
+        # they stay out of the overall total since they aren't offered as bets.
+        graded = [g for g in graded if g["market"] not in E.TRACK_ONLY or g["tracking"]]
+        bets = [g for g in graded if g["market"] not in E.TRACK_ONLY]
+        out["plays"] = summ(bets)
+        out["by_market"] = [{"market": m, "label": E.LABELS[m] + (" (tracking only)" if m in E.TRACK_ONLY else ""),
+                             "tracking": m in E.TRACK_ONLY, **summ([g for g in graded if g["market"] == m])}
                             for m in sorted({g["market"] for g in graded})]
+        for m in sorted(E.TRACK_ONLY - {g["market"] for g in graded}):      # row shows before its first result
+            out["by_market"].append({"market": m, "label": E.LABELS[m] + " (tracking only)", "tracking": True,
+                                     "plays": 0, "wins": 0, "losses": 0, "win_pct": None, "units": 0.0, "roi_pct": None})
+        graded = bets
         out["recent"] = sorted(graded, key=lambda g: g["date"], reverse=True)[:25]
     return out

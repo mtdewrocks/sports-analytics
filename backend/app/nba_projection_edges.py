@@ -52,6 +52,13 @@ MIN_PROB_EDGE = 0.05
 # Past this, the gap usually means the model is missing news (a role change,
 # a minutes cap) rather than the books being wrong -- still shown, but marked.
 SUSPECT_EV = 0.35
+# Blocks (Nov 28 2026): 17-24, -17.8% Nov 10-23, nearly all unders. Under 0.5
+# ("he gets zero") went 8-17, -28% -- the model projects these players ~15%
+# low (0.70 vs 0.81 actual) and one block kills the bet -- so it's never
+# flagged. Other block flags are TRACKING ONLY: logged and graded behind the
+# scenes, not shown as bets, not in the record, not emailed.
+TRACK_ONLY = {"blocks"}
+NEVER_FLAG = {("blocks", "under", 0.5)}
 
 # Tested Nov 2026 (models as of Oct 31, graded on Nov 1-9 games): the
 # chances were right in the middle but too sure at the ends -- 65% calls hit
@@ -198,6 +205,8 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Op
             pa = float(sum(alt_proj.get(s, 0.0) or 0.0 for s in parts))
             if _priced(m, pa, ln, calibration)["side"] != side:
                 side, sensitive = None, True
+        if side and (m, side, ln["line"]) in NEVER_FLAG:
+            side = None
         out[m] = {**ln, "label": LABELS[m], "projection": round(p, 2), "diff": round(diff, 2),
                   "threshold": THRESHOLDS.get(m),
                   "prob_over": round(po, 3) if po is not None else None,
@@ -212,6 +221,7 @@ def edges_for(player: str, proj: dict, lines: Dict[tuple, dict], calibration: Op
                   "minutes_sensitive": sensitive,
                   "ev": round(ev[side], 3) if side else None,
                   "suspect": bool(side and ev[side] >= SUSPECT_EV),
+                  "tracking": m in TRACK_ONLY,
                   "price": ln["over_price"] if side == "over" else ln["under_price"] if side == "under" else None,
                   "book": ln["over_book"] if side == "over" else ln["under_book"] if side == "under" else None}
     return out
